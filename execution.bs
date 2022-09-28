@@ -16,8 +16,8 @@ Editor: Michael Garland, mgarland@nvidia.com
 Editor: Eric Niebler, eric.niebler@gmail.com
 Editor: Bryce Adelstein Lelbach, brycelelbach@gmail.com
 URL: https://wg21.link/P2300
-!Source: <a href="https://github.com/brycelelbach/wg21_p2300_std_execution/blob/main/std_execution.bs">GitHub</a>
-Issue Tracking: GitHub https://github.com/brycelelbach/wg21_p2300_std_execution/issues
+!Source: <a href="https://github.com/brycelelbach/wg21_p2300_execution/blob/main/std_execution.bs">GitHub</a>
+Issue Tracking: GitHub https://github.com/brycelelbach/wg21_p2300_execution/issues
 Metadata Order: Editor, This Version, Source, Issue Tracking, Project, Audience
 Markup Shorthands: markdown yes
 Toggle Diffs: no
@@ -1078,7 +1078,7 @@ This proposal also draws heavily from our experience with [Thrust](https://githu
 
 The changes since R5 are as follows:
 
-<b>Fixes:</b>					 
+<b>Fixes:</b>
 
   * Fix typo in the specification of `in_place_stop_source` about the relative
     lifetimes of the tokens and the source that produced them.
@@ -2515,7 +2515,7 @@ Returns a sender describing the task of invoking the provided function with ever
 by sending values, they are equivalent to those sent by the input sender.
 
 No instance of `function` will begin executing until the returned sender is started. Each invocation of `function` runs in an execution agent whose forward progress guarantees are determined by the scheduler on which they are run. All agents created by a single use
-of `bulk` execute with the same guarantee. The number of execution agents used by `bulk` is not specified. This allows a scheduler to execute some invocations of the `function` in parallel. 
+of `bulk` execute with the same guarantee. The number of execution agents used by `bulk` is not specified. This allows a scheduler to execute some invocations of the `function` in parallel.
 
 In this proposal, only integral types are used to specify the shape of the bulk section. We expect that future papers may wish to explore extensions of the interface to explore additional kinds of shapes, such as multi-dimensional grids, that are commonly used for
 parallel computing tasks.
@@ -4399,7 +4399,7 @@ enum class forward_progress_guarantee {
 
 3. The `sender_of` concept defines the requirements for a sender type that
     completes with the completion signature specified for the given completion
-    channel. 
+    channel.
 
     <pre highlight=c++>
     template &lt;class> struct <i>sender-of-helper</i>; <i>// exposition only</i>
@@ -5401,7 +5401,7 @@ template &lt;class E>  // arguments are not associated entities ([lib.tmpl-heads
 
         4. Given subexpressions `s2` and `e` where `s2` is a sender returned
             from `bulk` or a copy of such, let `S2` be `decltype((s2))`, let
-            `E` be `decltype((e))`, let `S'` be `copy_cvref_t<S2, S>`, let `Shape` be 
+            `E` be `decltype((e))`, let `S'` be `copy_cvref_t<S2, S>`, let `Shape` be
             `decltype((shape))` and let <code><i>nothrow-callable</i></code> be the alias template:
 
               <pre highlight="c++">

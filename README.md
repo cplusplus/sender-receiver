@@ -2,11 +2,11 @@
 
 `std::execution`, the proposed C++ framework for asynchronous and parallel programming.
 
-You can see a rendered copy of the current draft [here](https://brycelelbach.github.io/wg21_p2300_std_execution/std_execution.html).
+You can see a rendered copy of the current draft [here](https://brycelelbach.github.io/wg21_p2300_execution/execution.html).
 
 ## Reference implementation
 
-[![CI](https://github.com/brycelelbach/wg21_p2300_std_execution/workflows/CI/badge.svg)](https://github.com/brycelelbach/wg21_p2300_std_execution/actions)
+[![CI](https://github.com/brycelelbach/wg21_p2300_execution/workflows/CI/badge.svg)](https://github.com/brycelelbach/wg21_p2300_execution/actions)
 
 ### Building
 
