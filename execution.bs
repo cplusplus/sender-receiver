@@ -3749,7 +3749,7 @@ namespace std::execution {
     using error_types_of_t = <i>see below</i>;
 
   template&lt;class S, class E = no_env>
-      requries sender&lt;S, E>
+      requires sender&lt;S, E>
     inline constexpr bool sends_stopped = <i>see below</i>;
 
   // [exec.connect], the connect sender algorithm
