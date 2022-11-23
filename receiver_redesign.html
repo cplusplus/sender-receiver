@@ -1560,7 +1560,7 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
+  <meta content="Bikeshed version 63e66730b, updated Tue Oct 25 12:35:05 2022 -0700" name="generator">
   <link href="https://wg21.link/P2532" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
 <style>
@@ -1881,6 +1881,14 @@ a.self-link:hover {
 .heading > a.self-link {
     font-size: 83%;
 }
+.example > a.self-link,
+.note > a.self-link,
+.issue > a.self-link {
+    /* These blocks are overflow:auto, so positioning outside
+       doesn't work. */
+    left: auto;
+    right: 0;
+}
 li > a.self-link {
     left: calc(-1 * (3.5rem - 26px) - 2em);
 }
@@ -2153,7 +2161,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2532R0<br><code class="highlight"><c- n>Removing</c-> <c- n>exception_ptr</c-> <c- n>from</c-> <c- n>the</c-> <c- n>Receiver</c-> <c- n>Concepts</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2022-10-04">2022-10-04</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2022-11-22">2022-11-22</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Author:
@@ -3689,7 +3697,7 @@ alias template such that <code class="highlight"><i><c- n>error</c-><c- o>-</c->
        <p>
         Let <code class="highlight"><c- n>Ss</c-></code> 
         <del>be an empty pack if <code class="highlight"><c- n>SendsStopped</c-></code> is <code class="highlight">false</code>; otherwise, a
-pack containing the single type <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>set_stopped_t</c-><c- p>()</c-></code></del>
+    pack containing the single type <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>set_stopped_t</c-><c- p>()</c-></code></del>
         <ins>name the type <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;></c-></code> if <code class="highlight"><c- n>sends_stopped</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">false</code>; otherwise, <code class="highlight"><c- n>SetStopped</c-></code></ins>
         .
        </p>
