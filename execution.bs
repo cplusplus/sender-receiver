@@ -3199,8 +3199,8 @@ Insert this section as a new subclause between Header `<stop_token>` synopsis <b
 1. The `stoppable_token` concept checks for the basic interface of a stop token
     that is copyable and allows polling to see if stop has been requested and
     also whether a stop request is possible. For a stop token type `T` and a type
-    `CB` that is callable with no arguments, the type `T::callback_type<CB>` shall
-    be well-formed and name the stop callback type to use to register a callback
+    `CB` that is callable with no arguments, the type `T::callback_type<CB>` is
+    valid and denotes the stop callback type to use to register a callback
     to be executed if a stop request is ever made on a `stoppable_token` of type
     `T`. The `stoppable_token_for` concept checks for a stop token type compatible
     with a given callback type. The `unstoppable_token` concept checks for a stop
@@ -3212,7 +3212,7 @@ template&lt;class T>
     copyable&lt;T> &&
     equality_comparable&lt;T> &&
     requires (const T t) {
-      { T{t} } noexcept;
+      { T(t) } noexcept; // <i>see implicit expression variations ([concepts.equality])</i>
       { t.stop_requested() } noexcept -> <i>boolean-testable</i>;
       { t.stop_possible() } noexcept -> <i>boolean-testable</i>;
       typename <i>check-type-alias-exists</i>&lt;T::template callback_type>;
@@ -3223,12 +3223,8 @@ template&lt;class T, class CB, class Initializer = CB>
     stoppable_token&lt;T> &&
     invocable&lt;CB> &&
     constructible_from&lt;CB, Initializer> &&
-    requires (const T t) {
-      typename stop_callback_for_t&lt;T, CB>;
-      []&lt;class T>(T&& t)
-        requires constructible_from&lt;stop_callback_for_t&lt;T, CB>, U, Initializer>
-      {}(t);
-    };
+    requires { typename stop_callback_for_t&lt;T, CB>; } &&
+    constructible_from&lt;stop_callback_for_t&lt;T, CB>, const T&, Initializer>;
 
 template&lt;class T>
   concept unstoppable_token =
@@ -3250,17 +3246,24 @@ This is the subject of core issue [[cwg2517|2517]].
 
 2. Let `t` and `u` be distinct, valid objects of type `T`. The type `T` models `stoppable_token` only if:
 
-    1. If `t.stop_possible()` evaluates to `false` then, if `u` references the same logical shared stop state, `u.stop_possible()` shall also subsequently evaluate to `false` and `u.stop_requested()` shall also subsequently evaluate to `false`.
+    1. If `t.stop_possible()` evaluates to `false` then, if `t` and `u` reference the same logical shared stop state, `u.stop_possible()` shall also subsequently evaluate to `false` and `u.stop_requested()` shall also subsequently evaluate to `false`.
 
-    2. If `t.stop_requested()` evaluates to `true` then, if `u` references the same logical shared stop state, `u.stop_requested()` shall also subsequently evaluate to `true` and `u.stop_possible()` shall also subsequently evaluate to `true`.
+    2. If `t.stop_requested()` evaluates to `true` then, if `t` and `u` reference the same logical shared stop state, `u.stop_requested()` shall also subsequently evaluate to `true` and `u.stop_possible()` shall also subsequently evaluate to `true`.
 
 3. Let `t` and `u` be distinct, valid objects of type `T` and let `init` be an
     object of type `Initializer`. Then for some type `CB`, the type `T` models
     `stoppable_token_for<CB, Initializer>` only if:
 
-    1. Constructing an instance, `cb`, of type `T::callback_type<CB>`, passing
-        `t` as the first argument and `init` as the second argument to the
-        constructor, shall, if `t.stop_possible()` is `true`, construct an
+    1. The type `T::callback_type<CB>` also models:
+
+        <xmp>
+        constructible_from<T, Initializer> &&
+        constructible_from<T&, Initializer> &&
+        constructible_from<const T, Initializer>
+        </xmp>
+
+    2. Direct non-list initializing an object `cb` of type `T::callback_type<CB>`
+        from `t, init` shall, if `t.stop_possible()` is `true`, construct an
         instance, `callback`, of type `CB`, direct-initialized with `init`,
         and register callback with `t`'s shared stop state such that `callback`
         will be invoked with an empty argument list if a stop request is made
@@ -3270,17 +3273,17 @@ This is the subject of core issue [[cwg2517|2517]].
             registered then `callback` may be invoked immediately inline inside
             the call to `cb`'s constructor.
 
-        2. If `callback` is invoked then, if `u` references the same shared stop
-            state as `t`, an evaluation of `u.stop_requested()` will be `true`
+        2. If `callback` is invoked then, if `t` and `u` reference the same shared stop
+            state, an evaluation of `u.stop_requested()` will be `true`
             if the beginning of the invocation of `callback`
             strongly-happens-before the evaluation of `u.stop_requested()`.
 
         3. [*Note:* If `t.stop_possible()` evaluates to `false` then the construction of
             `cb` is not required to construct and initialize `callback`. *--end note*]
 
-    2. Construction of a `T::callback_type<CB>` instance shall only throw exceptions thrown by the initialization of the `CB` instance from the value of type `Initializer`.
+    3. Construction of a `T::callback_type<CB>` instance shall only throw exceptions thrown by the initialization of the `CB` instance from the value of type `Initializer`.
 
-    3. Destruction of the `T::callback_type<CB>` object, `cb`, removes `callback` from the shared stop state such that `callback` will not be invoked after the destructor returns.
+    4. Destruction of the `T::callback_type<CB>` object, `cb`, removes `callback` from the shared stop state such that `callback` will not be invoked after the destructor returns.
 
         1. If `callback` is currently being invoked on another thread then the destructor of `cb` will block until the invocation of `callback` returns such that the return from the invocation of `callback` strongly-happens-before the destruction of `callback`.
 
