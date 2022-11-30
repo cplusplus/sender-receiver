@@ -3269,9 +3269,9 @@ This is the subject of core issue [[cwg2517|2517]].
         will be invoked with an empty argument list if a stop request is made
         on the shared stop state.
 
-        1. If `t.stop_requested()` is `true` at the time `callback` is
-            registered then `callback` may be invoked immediately inline inside
-            the call to `cb`'s constructor.
+        1. If `t.stop_requested()` evaluates to `true` at the time `callback` is
+            registered then `callback` may be invoked on the current thread before
+            the call to `cb`'s constructor returns.
 
         2. If `callback` is invoked then, if `t` and `u` reference the same shared stop
             state, an evaluation of `u.stop_requested()` will be `true`
