@@ -3331,10 +3331,10 @@ namespace std
     template&lt;class>
       using callback_type = <i>callback</i>;
 
-    static constexpr bool stop_requested() noexcept { return false; }
-    static constexpr bool stop_possible() noexcept { return false; }
+    [[nodiscard]] static constexpr bool stop_requested() noexcept { return false; }
+    [[nodiscard]] static constexpr bool stop_possible() noexcept { return false; }
 
-    friend bool operator==(const never_stop_token&, const never_stop_token&) noexcept = default;
+    [[nodiscard]] friend bool operator==(const never_stop_token&, const never_stop_token&) noexcept = default;
   };
 }
 </pre>
@@ -3364,10 +3364,7 @@ namespace std {
     [[nodiscard]] bool stop_requested() const noexcept;
     [[nodiscard]] bool stop_possible() const noexcept;
 
-    <div class="ed-note">LWG directed me to drop the `[[nodiscard]]` here, but
-  I notice that `stop_token::operator==` has `[[nodiscard]]`. Guidance
-  appreciated.</div>
-    friend bool operator==(const in_place_stop_token&, const in_place_stop_token&) noexcept = default;
+    [[nodiscard]] friend bool operator==(const in_place_stop_token&, const in_place_stop_token&) noexcept = default;
     friend void swap(in_place_stop_token& lhs, in_place_stop_token& rhs) noexcept;
 
   private:
@@ -3398,19 +3395,19 @@ void swap(stop_token& rhs) noexcept;
 
 1. *Effects*: Equivalent to: <code>return <i>source_</i> != nullptr && <i>source_</i>->stop_requested();</code>
 
-2. [*Note*: If <code><i>source_</i> != nullptr</code>, then the behavior of
-    `stop_requested()` is undefined unless the call strongly happens before the
-    destructor of <code>*<i>source_</i></code> is entered. --*end note*]
+2. [*Note*: The behavior of `stop_requested()` is undefined unless the call
+    strongly happens before the start of the destructor of the associated
+    `in_place_stop_source`, if any ([basic.life]). --*end note*]
 
 <pre highlight=c++>
 [[nodiscard]] bool stop_possible() const noexcept;
 </pre>
 
-3. *Effects*: Equivalent to: <code>return <i>source_</i> != nullptr && <i>source_</i>->stop_possible();</code>
+3. *Effects*: Equivalent to: <code>return <i>source_</i> != nullptr;</code>
 
-4. [*Note*: If <code><i>source_</i> != nullptr</code>, then the behavior of
-    `stop_possible()` is undefined unless the call strongly happens before the
-    destructor of <code>*<i>source_</i></code> is entered. --*end note*]
+4. [*Note*: The behavior of `stop_possible()` is implementation-defined unless
+    the call strongly happens before the end of the storage duration of the
+    associated `in_place_stop_source` object, if any ([basic.stc.general]). --*end note*]
 
 #### Non-member functions <b>[stoptoken.inplace.nonmembers]</b> #### {#spec-stoptoken.inplace.nonmembers}
 
@@ -3429,7 +3426,7 @@ Insert a new subclause, Class `in_place_stop_source` <b>[stopsource.inplace]</b>
 1. The class `in_place_stop_source` implements the semantics of making a stop request, without the need for a dynamic allocation of a shared state.
     A stop request made on a `in_place_stop_source` object is visible to all associated `in_place_stop_token` ([stoptoken.inplace]) objects.
     Once a stop request has been made it cannot be withdrawn (a subsequent stop request has no effect).
-    All uses of `in_place_stop_token` objects associated with a given `in_place_stop_source` object must happen before the invocation of the destructor of that `in_place_stop_source` object.
+    All uses of `in_place_stop_token` objects associated with a given `in_place_stop_source` object must happen before the start of the destructor of that `in_place_stop_source` object.
 
 <pre highlight=c++>
 namespace std {
@@ -3437,19 +3434,39 @@ namespace std {
   public:
     // [stopsource.inplace.cons], constructors, copy, and assignment
     in_place_stop_source() noexcept;
-    explicit in_place_stop_source(nostopstate_t) noexcept;
 
     in_place_stop_source(in_place_stop_source&&) noexcept = delete;
     ~in_place_stop_source();
 
     //[stopsource.inplace.mem], stop handling
     [[nodiscard]] in_place_stop_token get_token() const noexcept;
-    [[nodiscard]] bool stop_possible() const noexcept;
+    [[nodiscard]] static bool stop_possible() noexcept { return true; }
     [[nodiscard]] bool stop_requested() const noexcept;
     bool request_stop() noexcept;
   };
 }
 </pre>
+
+2. An instance of `in_place_stop_source` maintains a list of registered stop callback invocations.
+    The registration of a stop callback invocation either succeeds or fails. When an invocation
+    of a stop callback is *registered*, the the following happens atomically:
+
+        - The stop state is checked. If stop has not been requested, the callback invocation is
+            added to the list of registered stop callback invocations, and registration has succeeded.
+
+        - Otherwise, registration has failed.
+
+    When an invocation of a stop callback is *unregistered*, the invocation is atomically removed
+    from the list of registered callback invocations. The removal is not blocked by the concurrent
+    execution of another stop callback invocation in the list. If the stop callback invocation
+    being unregistered is currently executing, then:
+
+        - If the execution of the callback invocation is happening concurrently on another thread,
+            the completion of the execution strongly happens before ([intro.races]) the end of the
+            stop callback's lifetime.
+
+        - Otherwise, the execution is happening on the current thread. Removal of the stop
+            callback invocation does not block waiting for the execution to complete.
 
 #### Constructors, copy, and assignment <b>[stopsource.inplace.cons]</b> #### {#spec-stopsource.inplace.cons}
 
@@ -3459,15 +3476,7 @@ in_place_stop_source() noexcept;
 
 1. *Effects*: Initializes a new stop state inside `*this`.
 
-2. *Postconditions*: `stop_possible()` is `true` and `stop_requested()` is `false`.
-
-<pre highlight=c++>
-explicit in_place_stop_source(nostopstate_t) noexcept;
-</pre>
-
-3. *Postconditions*: `stop_possible()` is `false` and `stop_requested()` is `false`.
-
-    [*Note*: No new stop state is created. --*end note*]
+2. *Postconditions*: `stop_requested()` is `false`.
 
 #### Members <b>[stopsource.inplace.mem]</b> #### {#spec-stopsource.inplace.mem}
 
@@ -3476,16 +3485,6 @@ explicit in_place_stop_source(nostopstate_t) noexcept;
 </pre>
 
 1. *Returns*: A new associated `in_place_stop_token` object.
-
-<pre highlight=c++>
-[[nodiscard]] bool stop_possible() const noexcept;
-</pre>
-
-2. Returns: `true` if `*this` owns a stop state; otherwise, `false`.
-
-<div class="ed-note">Dietmar observes that if we strike the `nostopstate_t` constructor
-  this function can be `constexpr` and simply return `true`. I'll also note that
-  striking that ctor eliminates branches in what could be hot code.</div>
 
 <pre highlight=c++>
 [[nodiscard]] bool stop_requested() const noexcept;
@@ -3497,12 +3496,12 @@ explicit in_place_stop_source(nostopstate_t) noexcept;
 bool request_stop() noexcept;
 </pre>
 
-4. *Effects*: If `*this` does not own a stop state, returns `false`. Otherwise, atomically determines whether the stop state inside `*this` has received a stop request, and if not, makes a stop request.
+4. *Effects*: Atomically determines whether the stop state inside `*this` has received a stop request, and if not, makes a stop request.
     The determination and making of the stop request are an atomic read-modify-write operation ([intro.races]).
-    If the request was made, the callbacks registered by associated `in_place_stop_callback` objects are synchronously called.
+    If the request was made, the callback invocations registered by associated `in_place_stop_callback` objects are executed.
     If an invocation of a callback exits via an exception then `terminate` is invoked ([except.terminate]).
 
-5. *Postconditions*: `stop_possible()` is `false` or `stop_requested()` is `true`.
+5. *Postconditions*: `stop_requested()` is `true`.
 
 6. *Returns*: `true` if this call made a stop request; otherwise `false`.
 
