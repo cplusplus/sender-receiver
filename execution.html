@@ -1633,6 +1633,26 @@ div.newnumbered li:before {
   content: "(�." counter(list_item) ")";
   counter-increment: list_item;
 }
+div.ed-note {
+  color: blue;
+  margin-left: 2em;
+}
+div.ed-note:before {
+  content: "[Editorial note:";
+  font-style: italic;
+}
+div.ed-note:after {
+  content: "-- end note]";
+  font-style: italic;
+}
+div.ed-note * {
+  color: blue;
+  margin-top: 0em;
+  margin-bottom: 0em;
+}
+div.ed-note blockquote {
+  margin-left: 2em;
+}
 </style>
 <style>/* style-autolinks */
 
@@ -2202,7 +2222,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R6<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2022-11-22">2022-11-22</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2022-12-07">2022-12-07</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -5265,16 +5285,16 @@ themselves are templated classes.</p>
    <p>At the beginning of this subclause, insert the following declarations into the synopsis within <code class="highlight"><c- k>namespace</c-> <c- nn>std</c-></code>:</p>
    <ins>
     <blockquote>
-<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>template</c-><c- o>&lt;</c-><c- k>typename</c-><c- o>></c-> <c- k>class</c-><c- o>></c->
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- o>></c-> <c- k>class</c-><c- o>></c->
   <c- k>struct</c-> <i><c- nc>check</c-><c- o>-</c-><c- n>type</c-><c- o>-</c-><c- n>alias</c-><c- o>-</c-><c- n>exists</c-></i><c- p>;</c-> <c- c1>// exposition-only</c->
 
-<c- k>template</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- o>></c->
+<c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
   <c- k>concept</c-> <c- nc>stoppable_token</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
 
-<c- k>template</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- p>,</c-> <c- k>typename</c-> <c- nc>CB</c-><c- p>,</c-> <c- k>typename</c-> <c- nc>Initializer</c-> <c- o>=</c-> <c- n>CB</c-><c- o>></c->
+<c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- p>,</c-> <c- k>class</c-> <c- nc>CB</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Initializer</c-> <c- o>=</c-> <c- n>CB</c-><c- o>></c->
   <c- k>concept</c-> <c- nc>stoppable_token_for</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
 
-<c- k>template</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- o>></c->
+<c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
   <c- k>concept</c-> <c- nc>unstoppable_token</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
 </pre>
     </blockquote>
@@ -5292,8 +5312,11 @@ themselves are templated classes.</p>
 <c- k>class</c-> <c- nc>in_place_stop_source</c-><c- p>;</c->
 
 <c- c1>// [stopcallback.inplace], class template in_place_stop_callback</c->
-<c- k>template</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>Callback</c-><c- o>></c->
-<c- k>class</c-> <c- nc>in_place_stop_callback</c-><c- p>;</c->
+<c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>CB</c-><c- o>></c->
+  <c- k>class</c-> <c- nc>in_place_stop_callback</c-><c- p>;</c->
+
+<c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- p>,</c-> <c- k>class</c-> <c- nc>CB</c-><c- o>></c->
+  <c- k>using</c-> <c- n>stop_callback_for_t</c-> <c- o>=</c-> <c- k>typename</c-> <c- nc>T</c-><c- o>::</c-><c- k>template</c-> <c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-><c- p>;</c->
 </pre>
     </blockquote>
    </ins>
@@ -5303,64 +5326,82 @@ themselves are templated classes.</p>
     <blockquote>
      <ol>
       <li data-md>
-       <p>The <code class="highlight"><c- n>stoppable_token</c-></code> concept checks for the basic interface of a “stop token” which is copyable and allows polling to see if stop has been requested and also whether a stop request is possible. It also requires an associated nested template-type-alias, <code class="highlight"><c- n>T</c-><c- o>::</c-><c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-></code>, that identifies the stop-callback type to use to register a callback to be executed if a stop-request is ever made on a stoppable_token of type, <code class="highlight"><c- n>T</c-></code>. The <code class="highlight"><c- n>stoppable_token_for</c-></code> concept checks for a stop token type compatible with a given
-callback type. The <code class="highlight"><c- n>unstoppable_token</c-></code> concept checks for a stop token type that does not allow stopping.</p>
+       <p>The <code class="highlight"><c- n>stoppable_token</c-></code> concept checks for the basic interface of a stop token
+that is copyable and allows polling to see if stop has been requested and
+also whether a stop request is possible. For a stop token type <code class="highlight"><c- n>T</c-></code> and a type <code class="highlight"><c- n>CB</c-></code> that is callable with no arguments, the type <code class="highlight"><c- n>T</c-><c- o>::</c-><c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-></code> is
+valid and denotes the stop callback type to use to register a callback
+to be executed if a stop request is ever made on a <code class="highlight"><c- n>stoppable_token</c-></code> of type <code class="highlight"><c- n>T</c-></code>. The <code class="highlight"><c- n>stoppable_token_for</c-></code> concept checks for a stop token type compatible
+with a given callback type. The <code class="highlight"><c- n>unstoppable_token</c-></code> concept checks for a stop
+token type that does not allow stopping.</p>
      </ol>
-<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- o>></c->
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
   <c- k>concept</c-> <c- nc>stoppable_token</c-> <c- o>=</c->
-    <c- n>copy_constructible</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-    <c- n>move_constructible</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-    <c- n>is_nothrow_copy_constructible_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-    <c- n>is_nothrow_move_constructible_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+    <c- n>copyable</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-> <c- o>&amp;&amp;</c->
     <c- n>equality_comparable</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-    <c- k>requires</c-> <c- p>(</c-><c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-> <c- n>token</c-><c- p>)</c-> <c- p>{</c->
-      <c- p>{</c-> <c- n>token</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-> <c- p>}</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- n>boolean</c-><c- o>-</c-><c- n>testable</c-><c- p>;</c->
-      <c- p>{</c-> <c- n>token</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-> <c- p>}</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- n>boolean</c-><c- o>-</c-><c- n>testable</c-><c- p>;</c->
+    <c- k>requires</c-> <c- p>(</c-><c- k>const</c-> <c- n>T</c-> <c- n>t</c-><c- p>)</c-> <c- p>{</c->
+      <c- p>{</c-> <c- n>T</c-><c- p>(</c-><c- n>t</c-><c- p>)</c-> <c- p>}</c-> <c- k>noexcept</c-><c- p>;</c-> <c- c1>// </c-><i><c- c1>see implicit expression variations ([concepts.equality])</c-></i>
+      <c- p>{</c-> <c- n>t</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-> <c- p>}</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- n>same_as</c-><c- o>&lt;</c-><c- b>bool</c-><c- o>></c-><c- p>;</c->
+      <c- p>{</c-> <c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-> <c- p>}</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- n>same_as</c-><c- o>&lt;</c-><c- b>bool</c-><c- o>></c-><c- p>;</c->
       <c- k>typename</c-> <i><c- nc>check</c-><c- o>-</c-><c- n>type</c-><c- o>-</c-><c- n>alias</c-><c- o>-</c-><c- n>exists</c-></i><c- o>&lt;</c-><c- n>T</c-><c- o>::</c-><c- k>template</c-> <c- n>callback_type</c-><c- o>></c-><c- p>;</c->
     <c- p>};</c->
 
-<c- k>template</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- p>,</c-> <c- k>typename</c-> <c- nc>CB</c-><c- p>,</c-> <c- k>typename</c-> <c- nc>Initializer</c-> <c- o>=</c-> <c- n>CB</c-><c- o>></c->
+<c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- p>,</c-> <c- k>class</c-> <c- nc>CB</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Initializer</c-> <c- o>=</c-> <c- n>CB</c-><c- o>></c->
   <c- k>concept</c-> <c- nc>stoppable_token_for</c-> <c- o>=</c->
     <c- n>stoppable_token</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-> <c- o>&amp;&amp;</c->
     <c- n>invocable</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-    <c- k>requires</c-> <c- p>{</c->
-      <c- k>typename</c-> <c- nc>T</c-><c- o>::</c-><c- k>template</c-> <c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-><c- p>;</c->
-    <c- p>}</c-> <c- o>&amp;&amp;</c->
     <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>CB</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-    <c- n>constructible_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- o>::</c-><c- k>template</c-> <c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-><c- p>,</c-> <c- n>T</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-    <c- n>constructible_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- o>::</c-><c- k>template</c-> <c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-><c- p>,</c-> <c- n>T</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-    <c- n>constructible_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- o>::</c-><c- k>template</c-> <c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-><c- p>,</c-> <c- k>const</c-> <c- n>T</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-    <c- n>constructible_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- o>::</c-><c- k>template</c-> <c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-><c- p>,</c-> <c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-><c- p>;</c->
+    <c- k>requires</c-> <c- p>{</c-> <c- k>typename</c-> <c- nc>stop_callback_for_t</c-><c- o>&lt;</c-><c- n>T</c-><c- p>,</c-> <c- n>CB</c-><c- o>></c-><c- p>;</c-> <c- p>}</c-> <c- o>&amp;&amp;</c->
+    <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>stop_callback_for_t</c-><c- o>&lt;</c-><c- n>T</c-><c- p>,</c-> <c- n>CB</c-><c- o>></c-><c- p>,</c-> <c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-><c- p>;</c->
 
-<c- k>template</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- o>></c->
+<c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
   <c- k>concept</c-> <c- nc>unstoppable_token</c-> <c- o>=</c->
     <c- n>stoppable_token</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-> <c- o>&amp;&amp;</c->
     <c- k>requires</c-> <c- p>{</c->
-      <c- p>{</c-> <c- n>T</c-><c- o>::</c-><c- n>stop_possible</c-><c- p>()</c-> <c- p>}</c-> <c- o>-></c-> <c- n>boolean</c-><c- o>-</c-><c- n>testable</c-><c- p>;</c->
-    <c- p>}</c-> <c- o>&amp;&amp;</c->
-    <c- p>(</c-><c- o>!</c-><c- n>T</c-><c- o>::</c-><c- n>stop_possible</c-><c- p>());</c->
+      <c- p>{</c-> <c- n>bool_constant</c-><c- o>&lt;</c-><c- n>T</c-><c- o>::</c-><c- n>stop_possible</c-><c- p>()</c-><c- o>></c-><c- p>{}</c-> <c- p>}</c-> <c- o>-></c-> <c- n>same_as</c-><c- o>&lt;</c-><c- n>false_type</c-><c- o>></c-><c- p>;</c->
+    <c- p>};</c->
 </pre>
+     <div class="ed-note">
+      LWG directed me to replace <code class="highlight"><c- n>T</c-><c- o>::</c-><c- n>stop_possible</c-><c- p>()</c-></code> with <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> because
+of the recent <code class="highlight"><c- k>constexpr</c-></code> changes in <a data-link-type="biblio" href="https://wg21.link/p2280r2">P2280R2</a>. However, even with those changes, a nested
+requirement like <code class="highlight"><c- k>requires</c-> <c- p>(</c-><c- o>!</c-><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>())</c-></code>, where <code class="highlight"><c- n>t</c-></code> is an argument in the requirement-parameter-list, is ill-formed according to <a href="http://eel.is/c++draft/expr.prim.req#nested-2.sentence-1">[expr.prim.req.nested/p2]</a>: 
+      <blockquote>
+       <p>A local parameter shall only appear as an unevaluated operand within the constraint-expression.</p>
+      </blockquote>
+      <p>This is the subject of core issue <a data-link-type="biblio" href="https://wg21.link/cwg2517">2517</a>.</p>
+     </div>
      <ol start="2">
       <li data-md>
-       <p>Let <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> be distinct object of type <code class="highlight"><c- n>T</c-></code>. The type <code class="highlight"><c- n>T</c-></code> models <code class="highlight"><c- n>stoppable_token</c-></code> only if:</p>
+       <p>Let <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> be distinct, valid objects of type <code class="highlight"><c- n>T</c-></code>. The type <code class="highlight"><c- n>T</c-></code> models <code class="highlight"><c- n>stoppable_token</c-></code> only if:</p>
        <ol>
         <li data-md>
-         <p>All copies of a <code class="highlight"><c- n>stoppable_token</c-></code> reference the same logical shared stop state and shall report values consistent with each other.</p>
+         <p>If <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> evaluates to <code class="highlight">false</code> then, if <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> reference the same logical shared stop state, <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> shall also subsequently evaluate to <code class="highlight">false</code> and <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> shall also subsequently evaluate to <code class="highlight">false</code>.</p>
         <li data-md>
-         <p>If <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> evaluates to <code class="highlight">false</code> then, if <code class="highlight"><c- n>u</c-></code>, references the same logical shared stop state, <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> shall also subsequently evaluate to <code class="highlight">false</code> and <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> shall also subsequently evaluate to <code class="highlight">false</code>.</p>
+         <p>If <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> evaluates to <code class="highlight">true</code> then, if <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> reference the same logical shared stop state, <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> shall also subsequently evaluate to <code class="highlight">true</code> and <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> shall also subsequently evaluate to <code class="highlight">true</code>.</p>
+       </ol>
+      <li data-md>
+       <p>Let <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> be distinct, valid objects of type <code class="highlight"><c- n>T</c-></code> and let <code class="highlight"><c- n>init</c-></code> be an
+object of type <code class="highlight"><c- n>Initializer</c-></code>. Then for some type <code class="highlight"><c- n>CB</c-></code>, the type <code class="highlight"><c- n>T</c-></code> models <code class="highlight"><c- n>stoppable_token_for</c-><c- o>&lt;</c-><c- n>CB</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> only if:</p>
+       <ol>
         <li data-md>
-         <p>If <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> evaluates to <code class="highlight">true</code> then, if <code class="highlight"><c- n>u</c-></code>, references the same logical shared stop state, <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> shall also subsequently evaluate to <code class="highlight">true</code> and <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> shall also subsequently evaluate to <code class="highlight">true</code>.</p>
+         <p>The type <code class="highlight"><c- n>T</c-><c- o>::</c-><c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-></code> models:</p>
+<pre class="highlight"><c- n>constructible_from</c-><c- o>&lt;</c-><c- n>T</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+<c- n>constructible_from</c-><c- o>&lt;</c-><c- n>T</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+<c- n>constructible_from</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>T</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c->
+</pre>
         <li data-md>
-         <p>Given a callback-type, CB, and a callback-initializer argument, <code class="highlight"><c- n>init</c-></code>, of type <code class="highlight"><c- n>Initializer</c-></code> then constructing an instance, <code class="highlight"><c- n>cb</c-></code>, of type <code class="highlight"><c- n>T</c-><c- o>::</c-><c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-></code>, passing <code class="highlight"><c- n>t</c-></code> as the first argument and <code class="highlight"><c- n>init</c-></code> as the second argument to the constructor, shall,
-if <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> is <code class="highlight">true</code>, construct an instance, <code class="highlight"><c- n>callback</c-></code>, of type <code class="highlight"><c- n>CB</c-></code>, direct-initialized with <code class="highlight"><c- n>init</c-></code>, and register callback with <code class="highlight"><c- n>t</c-></code>’s shared stop state such that callback will be invoked with an empty argument list if a stop request is made on
-the shared stop state.</p>
+         <p>Direct non-list initializing an object <code class="highlight"><c- n>cb</c-></code> of type <code class="highlight"><c- n>T</c-><c- o>::</c-><c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-></code> from <code class="highlight"><c- n>t</c-><c- p>,</c-> <c- n>init</c-></code> shall, if <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> is <code class="highlight">true</code>, construct an
+instance, <code class="highlight"><c- n>callback</c-></code>, of type <code class="highlight"><c- n>CB</c-></code>, direct-initialized with <code class="highlight"><c- n>init</c-></code>,
+and register callback with <code class="highlight"><c- n>t</c-></code>'s shared stop state such that <code class="highlight"><c- n>callback</c-></code> will be invoked with an empty argument list if a stop request is made
+on the shared stop state.</p>
          <ol>
           <li data-md>
-           <p>If <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> is <code class="highlight">true</code> at the time callback is registered then callback may be invoked immediately inline inside the call to <code class="highlight"><c- n>cb</c-></code>’s constructor.</p>
+           <p>If <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> evaluates to <code class="highlight">true</code> at the time <code class="highlight"><c- n>callback</c-></code> is
+registered then <code class="highlight"><c- n>callback</c-></code> may be invoked on the thread executing <code class="highlight"><c- n>cb</c-></code>'s constructor.</p>
           <li data-md>
-           <p>If callback is invoked then, if <code class="highlight"><c- n>u</c-></code> references the same shared stop state as <code class="highlight"><c- n>t</c-></code>, an evaluation of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> will be <code class="highlight">true</code> if the beginning of the invocation of callback strongly-happens-before the evaluation of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code>.</p>
+           <p>If <code class="highlight"><c- n>callback</c-></code> is invoked then, if <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> reference the same shared stop
+state, an evaluation of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> will be <code class="highlight">true</code> if the beginning of the invocation of <code class="highlight"><c- n>callback</c-></code> strongly-happens-before the evaluation of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code>.</p>
           <li data-md>
-           <p>If <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> evaluates to <code class="highlight">false</code> then the construction of <code class="highlight"><c- n>cb</c-></code> is not required to construct and initialize <code class="highlight"><c- n>callback</c-></code>.</p>
+           <p>[<em>Note:</em> If <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> evaluates to <code class="highlight">false</code> then the construction of <code class="highlight"><c- n>cb</c-></code> is not required to construct and initialize <code class="highlight"><c- n>callback</c-></code>. <em>--end note</em>]</p>
          </ol>
         <li data-md>
          <p>Construction of a <code class="highlight"><c- n>T</c-><c- o>::</c-><c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-></code> instance shall only throw exceptions thrown by the initialization of the <code class="highlight"><c- n>CB</c-></code> instance from the value of type <code class="highlight"><c- n>Initializer</c-></code>.</p>
@@ -9096,6 +9137,8 @@ of all the <code class="highlight"><c- n>completion_signatures</c-></code> insta
   <h2 class="no-num no-ref heading settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
   <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
+   <dt id="biblio-cwg2517">[CWG2517]
+   <dd>Richard Smith. <a href="https://wg21.link/cwg2517"><cite>Useless restriction on use of parameter in constraint-expression</cite></a>. 10 June 2019. open. URL: <a href="https://wg21.link/cwg2517">https://wg21.link/cwg2517</a>
    <dt id="biblio-hpx">[HPX]
    <dd>Hartmut Kaiser; et al. <a href="https://doi.org/10.21105/joss.02352"><cite>HPX - The C++ Standard Library for Parallelism and Concurrency</cite></a>. URL: <a href="https://doi.org/10.21105/joss.02352">https://doi.org/10.21105/joss.02352</a>
    <dt id="biblio-n4885">[N4885]
@@ -9112,6 +9155,8 @@ of all the <code class="highlight"><c- n>completion_signatures</c-></code> insta
    <dd>Lee Howes. <a href="https://wg21.link/p1897r3"><cite>Towards C++23 executors: A proposal for an initial set of algorithms</cite></a>. 16 May 2020. URL: <a href="https://wg21.link/p1897r3">https://wg21.link/p1897r3</a>
    <dt id="biblio-p2175r0">[P2175R0]
    <dd>Lewis Baker. <a href="https://wg21.link/p2175r0"><cite>Composable cancellation for sender-based async operations</cite></a>. 15 December 2020. URL: <a href="https://wg21.link/p2175r0">https://wg21.link/p2175r0</a>
+   <dt id="biblio-p2280r2">[P2280r2]
+   <dd>Barry Revzin. <a href="https://wg21.link/p2280r2"><cite>Using unknown references in constant expressions</cite></a>. 15 May 2021. URL: <a href="https://wg21.link/p2280r2">https://wg21.link/p2280r2</a>
   </dl>
   <aside class="dfn-panel" data-for="algorithm">
    <b><a href="#algorithm">#algorithm</a></b><b>Referenced in:</b>
