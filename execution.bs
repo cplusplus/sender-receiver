@@ -3449,7 +3449,7 @@ namespace std {
 
 2. An instance of `in_place_stop_source` maintains a list of registered stop callback invocations.
     The registration of a stop callback invocation either succeeds or fails. When an invocation
-    of a stop callback is *registered*, the the following happens atomically:
+    of a stop callback is *registered*, the following happens atomically:
 
         - The stop state is checked. If stop has not been requested, the callback invocation is
             added to the list of registered stop callback invocations, and registration has succeeded.
