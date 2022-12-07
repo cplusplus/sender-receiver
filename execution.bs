@@ -3213,8 +3213,8 @@ template&lt;class T>
     equality_comparable&lt;T> &&
     requires (const T t) {
       { T(t) } noexcept; // <i>see implicit expression variations ([concepts.equality])</i>
-      { t.stop_requested() } noexcept -> <i>boolean-testable</i>;
-      { t.stop_possible() } noexcept -> <i>boolean-testable</i>;
+      { t.stop_requested() } noexcept -> same_as&lt;bool>;
+      { t.stop_possible() } noexcept -> same_as&lt;bool>;
       typename <i>check-type-alias-exists</i>&lt;T::template callback_type>;
     };
 
@@ -3254,7 +3254,7 @@ This is the subject of core issue [[cwg2517|2517]].
     object of type `Initializer`. Then for some type `CB`, the type `T` models
     `stoppable_token_for<CB, Initializer>` only if:
 
-    1. The type `T::callback_type<CB>` also models:
+    1. The type `T::callback_type<CB>` models:
 
         <xmp>
         constructible_from<T, Initializer> &&
@@ -3270,8 +3270,8 @@ This is the subject of core issue [[cwg2517|2517]].
         on the shared stop state.
 
         1. If `t.stop_requested()` evaluates to `true` at the time `callback` is
-            registered then `callback` may be invoked on the current thread before
-            the call to `cb`'s constructor returns.
+            registered then `callback` may be invoked on the thread executing
+            `cb`'s constructor.
 
         2. If `callback` is invoked then, if `t` and `u` reference the same shared stop
             state, an evaluation of `u.stop_requested()` will be `true`
