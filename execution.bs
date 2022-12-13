@@ -3498,7 +3498,7 @@ bool request_stop() noexcept;
 
 4. *Effects*: Atomically determines whether the stop state inside `*this` has received a stop request, and if not, makes a stop request.
     The determination and making of the stop request are an atomic read-modify-write operation ([intro.races]).
-    If the request was made, the callback invocations registered by associated `in_place_stop_callback` objects are executed.
+    If the request was made, the registered invocations are executed and the evaluations of the invocations are indeterminately sequenced.
     If an invocation of a callback exits via an exception then `terminate` is invoked ([except.terminate]).
 
 5. *Postconditions*: `stop_requested()` is `true`.
@@ -3529,7 +3529,7 @@ Insert a new subclause, Class template `in_place_stop_callback` <b>[stopcallback
         in_place_stop_callback(in_place_stop_callback&&) = delete;
 
       private:
-        Callback callback_;      // exposition only
+        Callback <i>callback_</i>;      <i>// exposition only</i>
       };
 
       template&lt;class Callback>
@@ -3542,39 +3542,42 @@ Insert a new subclause, Class template `in_place_stop_callback` <b>[stopcallback
 
 3. *Preconditions*: `in_place_stop_callback` is instantiated with an argument for the template parameter `Callback` that models both `invocable` and `destructible`.
 
-4. *Recommended practice*: Implementation should use the storage of the `in_place_stop_callback` objects to store the state necessary for their association with an `in_place_stop_source` object.
+4. *Recommended practice*: Implementations should use the storage of the `in_place_stop_callback` objects to store the state necessary for their association with an `in_place_stop_source` object.
 
 #### Constructors and destructor <b>[stopcallback.inplace.cons]</b> #### {#spec-stopcallback.inplace.cons}
 
 <pre highlight=c++>
-template<class C>
-explicit in_place_stop_callback(in_place_stop_token st, C&& cb)
-  noexcept(is_nothrow_constructible_v&lt;Callback, C>);
+template&lt;class C>
+  explicit in_place_stop_callback(in_place_stop_token st, C&& cb)
+    noexcept(is_nothrow_constructible_v&lt;Callback, C>);
 </pre>
 
 1. *Constraints*: `Callback` and `C` satisfy `constructible_from<Callback, C>`.
 
 2. *Preconditions*: `Callback` and `C` model `constructible_from<Callback, C>`.
 
-3. *Effects*: Initializes `callback_` with `std::forward<C>(cb)`.
-    If `st.stop_requested()` is `true`, then `std::forward<Callback>(callback_)()` is evaluated in the current thread before the constructor returns.
-    Otherwise, if `st` has an associated `in_place_stop_source` object, registers the callback with the stop state of the `in_place_stop_source` that `st` is associated with such that `std::forward<Callback>(callback_)()` is evaluated by the first call to `request_stop()` on an associated `in_place_stop_source`.
-    The `in_place_stop_callback` object being initialized becomes associated with the `in_place_stop_source` object that `st` is associated with, if any.
+3. *Effects*: Initializes <code><i>callback_</i></code> with `std::forward<C>(cb)`.
+    Any `in_place_stop_source` associated with `st` becomes associated with `*this`.
+    Registers ([stopsource.inplace.general]) the callback invocation
+    <code>std::forward&lt;Callback>(<i>callback_</i>)()</code> with the associated
+    `in_place_stop_source`, if any. If the registration fails, evaluates
+    the callback invocation.
 
-4. *Throws*: Any exception thrown by the initialization of `callback_`.
+4. *Throws*: Any exception thrown by the initialization of <code><i>callback_</i></code>.
 
-5. *Remarks*: If evaluating `std::forward<Callback>(callback_)()` exits via an exception, then `terminate` is invoked ([except.terminate]).
+5. *Remarks*: If evaluating <code>std::forward&lt;Callback>(<i>callback_</i>)()</code>
+    exits via an exception, then `terminate` is invoked ([except.terminate]).
 
 <pre highlight=c++>
 ~in_place_stop_callback();
 </pre>
 
-6. *Effects*: Unregisters the callback from the stop state of the associated `in_place_stop_source` object, if any.
-    The destructor does not block waiting for the execution of another callback registered by an associated `stop_callback`.
-    If `callback_` is concurrently executing on another thread, then the return from the invocation of `callback_` strongly happens before ([intro.races]) `callback_` is destroyed.
-    If `callback_` is executing on the current thread, then the destructor does not block ([defns.block]) waiting for the return from the invocation of `callback_`.
+6. *Effects*: Unregisters ([stopsource.inplace.general]) the callback invocation from
+    the associated `in_place_stop_source` object, if any.
 
-7. *Remarks*: A program has undefined behavior if the invocation of this function does not strongly happen before the beginning of the invocation of the destructor of the associated `in_place_stop_source` object, if any.
+7. *Remarks*: A program has undefined behavior if the start of this destructor does
+    not strongly happen before the start of the destructor of the associated
+    `in_place_stop_source` object, if any.
 
 # Execution control library <b>[exec]</b> # {#spec-execution}
 
