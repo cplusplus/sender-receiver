@@ -3440,32 +3440,32 @@ namespace std {
 
     //[stopsource.inplace.mem], stop handling
     [[nodiscard]] in_place_stop_token get_token() const noexcept;
-    [[nodiscard]] static bool stop_possible() noexcept { return true; }
+    [[nodiscard]] static constexpr bool stop_possible() noexcept { return true; }
     [[nodiscard]] bool stop_requested() const noexcept;
     bool request_stop() noexcept;
   };
 }
 </pre>
 
-2. An instance of `in_place_stop_source` maintains a list of registered stop callback invocations.
-    The registration of a stop callback invocation either succeeds or fails. When an invocation
-    of a stop callback is *registered*, the following happens atomically:
+2. An instance of `in_place_stop_source` maintains a list of registered callback invocations.
+    The registration of a callback invocation either succeeds or fails. When an invocation
+    of a callback is registered, the following happens atomically:
 
         - The stop state is checked. If stop has not been requested, the callback invocation is
-            added to the list of registered stop callback invocations, and registration has succeeded.
+            added to the list of registered callback invocations, and registration has succeeded.
 
         - Otherwise, registration has failed.
 
-    When an invocation of a stop callback is *unregistered*, the invocation is atomically removed
+    When an invocation of a callback is unregistered, the invocation is atomically removed
     from the list of registered callback invocations. The removal is not blocked by the concurrent
-    execution of another stop callback invocation in the list. If the stop callback invocation
+    execution of another callback invocation in the list. If the callback invocation
     being unregistered is currently executing, then:
 
         - If the execution of the callback invocation is happening concurrently on another thread,
             the completion of the execution strongly happens before ([intro.races]) the end of the
-            stop callback's lifetime.
+            callback's lifetime.
 
-        - Otherwise, the execution is happening on the current thread. Removal of the stop
+        - Otherwise, the execution is happening on the current thread. Removal of the
             callback invocation does not block waiting for the execution to complete.
 
 #### Constructors, copy, and assignment <b>[stopsource.inplace.cons]</b> #### {#spec-stopsource.inplace.cons}
