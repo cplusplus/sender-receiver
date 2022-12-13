@@ -1560,7 +1560,7 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version 63e66730b, updated Tue Oct 25 12:35:05 2022 -0700" name="generator">
+  <meta content="Bikeshed version 26e85e599, updated Thu Dec 8 15:29:31 2022 -0800" name="generator">
   <link href="https://wg21.link/P2532" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
 <style>
@@ -2161,7 +2161,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2532R0<br><code class="highlight"><c- n>Removing</c-> <c- n>exception_ptr</c-> <c- n>from</c-> <c- n>the</c-> <c- n>Receiver</c-> <c- n>Concepts</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2022-12-07">2022-12-07</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2022-12-13">2022-12-13</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Author:
@@ -2253,12 +2253,12 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   </nav>
   <main>
    <h2 class="heading settled" data-level="1" id="intro"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#intro"></a></h2>
-   <p>This paper proposes a refactorization of the receiver concepts of <a data-link-type="biblio" href="https://wg21.link/p2300r4">[P2300R4]</a> to
+   <p>This paper proposes a refactorization of the receiver concepts of <a data-link-type="biblio" href="https://wg21.link/p2300r4" title="std::execution">[P2300R4]</a> to
 address concerns raised by LEWG during its design review related to the
 requirement of an error channel that accepts <code class="highlight"><c- n>exception_ptr</c-></code>. The change to <code class="highlight"><c- n>receiver_of</c-></code> proposed herein enables a corresponding change to the <code class="highlight"><c- n>sender_to</c-></code> concept that strengthens type checking and removes some need to constrain
 customizations of the <code class="highlight"><c- n>connect</c-></code> customization point.</p>
    <h3 class="heading settled" data-level="1.1" id="motivation"><span class="secno">1.1. </span><span class="content">Motivation</span><a class="self-link" href="#motivation"></a></h3>
-   <p>In <a data-link-type="biblio" href="https://wg21.link/p2300r4">[P2300R4]</a>, the receiver concepts are currently expressed as follows:</p>
+   <p>In <a data-link-type="biblio" href="https://wg21.link/p2300r4" title="std::execution">[P2300R4]</a>, the receiver concepts are currently expressed as follows:</p>
 <pre class="language-c++ highlight"><c- n>template</c-> <c- o>&lt;</c-><c- n>class</c-> <c- n>T</c-><c- p>,</c-> <c- n>class</c-> <c- n>E</c-> <c- o>=</c-> <c- n>exception_ptr</c-><c- o>></c->
 <c- n>concept</c-> <c- n>receiver</c-> <c- o>=</c->
   <c- n>move_constructible</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
@@ -2573,7 +2573,7 @@ those to use something like <code class="highlight"><c- n>set_error_t</c-><c- p>
 significantly <em>simpler</em> for the change, and the pull request removes more lines
 than it adds, while adding functionality at the same time.</p>
    <h2 class="heading settled" data-level="6" id="proposed-wording"><span class="secno">6. </span><span class="content">Proposed wording</span><a class="self-link" href="#proposed-wording"></a></h2>
-   <p>The following changes are relative to <a data-link-type="biblio" href="https://wg21.link/p2300r4">[P2300R4]</a>.</p>
+   <p>The following changes are relative to <a data-link-type="biblio" href="https://wg21.link/p2300r4" title="std::execution">[P2300R4]</a>.</p>
    <h3 class="heading settled" data-level="6.1" id="header-execution-synopsis"><span class="secno">6.1. </span><span class="content">Header <code class="highlight"><c- o>&lt;</c-><c- n>execution</c-><c- o>></c-></code> synopsis</span><a class="self-link" href="#header-execution-synopsis"></a></h3>
    <p>In [exec.syn], apply the following changes:</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
