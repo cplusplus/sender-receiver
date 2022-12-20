@@ -2983,11 +2983,32 @@ Much of this wording follows the wording of [[P0443R14]].
 
 [[#spec-execution]] is meant to be added as a new library clause to the working draft of C++.
 
+# Exception handling [except]   # {#spec-except}
+
+## Special functions [except.special]  ## {#spec-except.special}
+
+### General [except.special.general]   ### {#spec-except.special.general}
+
+#### The `std::terminate` function [except.terminate]   #### {#spec-except.terminate}
+
+<div class="ed-note">At the end of the bulleted list in the Note in paragraph 1, add a new bullet as follows:</div>
+
+<ins>
+<blockquote>
+ - when a callback invocation exits via an exception when requesting stop on a `std::stop_source`
+    or a `std::in_place_stop_source` ([stopsource.mem], [stopsource.inplace.mem]), or in
+    the constructor of `std::stop_callback` or `std::in_place_stop_callback`
+    ([stopcallback.cons], [stopcallback.inplace.cons]) when a callback invocation exits
+    via an exception.
+
+</blockquote>
+</ins>
+
 # Library introduction <b>[library]</b> # {#spec-library}
 
-[*Editorial:* Add the header `<execution>` to Table 23: C++ library headers [tab:headers.cpp]]
+<div class="ed-note">Add the header `<execution>` to Table 23: C++ library headers [tab:headers.cpp]
 
-In subclause [conforming], after [lib.types.movedfrom], add the following new subclause with suggested stable name [lib.tmpl-heads].
+In subclause [conforming], after [lib.types.movedfrom], add the following new subclause with suggested stable name [lib.tmpl-heads].</div>
 
 <ins>
 <blockquote>
