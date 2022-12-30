@@ -4835,7 +4835,7 @@ template &lt;class E>  // arguments are not associated entities ([lib.tmpl-heads
     };
     </pre>
 
-3. The name `execution::just` denotes a customization point object. For some subexpressions `vs...`, let `Vs...` be `decltype((vs))`. If any type `V` in `Vs` does not satisfy <code><i>movable-value</i></code>, `execution::just(vs...)` is ill-formed.
+3. The name `execution::just` denotes a customization point object. For some subexpressions `vs...`, let `Vs...` be `decltype((vs))...`. If any type `V` in `Vs` does not satisfy <code><i>movable-value</i></code>, `execution::just(vs...)` is ill-formed.
     Otherwise, `execution::just(vs...)` is expression-equivalent to <code><i>just-sender</i>&lt;set_value_t, decay_t&lt;Ts>...>(vs...)</i></code>.
 
 4. The name `execution::just_error` denotes a customization point object. For some subexpression `err`, let `Err` be `decltype((err))`. If `Err` does not satisfy <code><i>movable-value</i></code>, `execution::just_error(err)` is ill-formed.
