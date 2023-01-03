@@ -2222,7 +2222,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R6<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2022-12-20">2022-12-20</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-01-02">2023-01-02</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -6990,7 +6990,7 @@ argument <code class="highlight"><c- n>CPO</c-></code> in <code class="highlight
 <c- p>};</c->
 </r></r></pre>
     <li data-md>
-     <p>The name <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just</c-></code> denotes a customization point object. For some subexpressions <code class="highlight"><c- n>vs</c-><c- p>...</c-></code>, let <code class="highlight"><c- n>Vs</c-><c- p>...</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>vs</c-><c- p>))</c-></code>. If any type <code class="highlight"><c- n>V</c-></code> in <code class="highlight"><c- n>Vs</c-></code> does not satisfy <code class="highlight"><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just</c-><c- p>(</c-><c- n>vs</c-><c- p>...)</c-></code> is ill-formed.
+     <p>The name <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just</c-></code> denotes a customization point object. For some subexpressions <code class="highlight"><c- n>vs</c-><c- p>...</c-></code>, let <code class="highlight"><c- n>Vs</c-><c- p>...</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>vs</c-><c- p>))...</c-></code>. If any type <code class="highlight"><c- n>V</c-></code> in <code class="highlight"><c- n>Vs</c-></code> does not satisfy <code class="highlight"><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just</c-><c- p>(</c-><c- n>vs</c-><c- p>...)</c-></code> is ill-formed.
 Otherwise, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just</c-><c- p>(</c-><c- n>vs</c-><c- p>...)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>,</c-> <c- n>decay_t</c-><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-><c- p>...</c-><c- o>></c-><c- p>(</c-><c- n>vs</c-><c- p>...)</c-></code>.</p>
     <li data-md>
      <p>The name <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just_error</c-></code> denotes a customization point object. For some subexpression <code class="highlight"><c- n>err</c-></code>, let <code class="highlight"><c- n>Err</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>err</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>Err</c-></code> does not satisfy <code class="highlight"><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just_error</c-><c- p>(</c-><c- n>err</c-><c- p>)</c-></code> is ill-formed.
