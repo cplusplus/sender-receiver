@@ -115,6 +115,14 @@ div.ed-note * {
 div.ed-note blockquote {
   margin-left: 2em;
 }
+div.wg21note:before {
+  content: "[Note: ";
+  font-style: italic;
+}
+div.wg21note:after {
+  content: " -- end note]";
+  font-style: italic;
+}
 </style>
 
 # Introduction # {#intro}
@@ -3710,6 +3718,13 @@ namespace std::execution {
   using <i>exec-envs</i>::<i>empty-env</i>;
   using <i>exec-envs</i>::get_env_t;
   using <i>exec-envs</i>::forwarding_env_query_t;
+
+  template&lt;class T>
+    concept environment =
+      requires (T &t) {
+        { get_stop_token(as_const(t)) } -> stoppable_token;
+      };
+
   inline constexpr get_env_t get_env {};
   inline constexpr forwarding_env_query_t forwarding_env_query{};
   template &lt;class T>
@@ -4074,7 +4089,7 @@ namespace std::execution {
 
     2. Otherwise, `execution::get_scheduler(r)` is ill-formed.
 
-3. `execution::get_scheduler()` (with no arguments) is expression-equivalent to `execution::read(execution::get_scheduler)`.
+3. `execution::get_scheduler()` (with no arguments) is expression-equivalent to `execution::read(execution::get_scheduler)` ([exec.read]).
 
 ### `execution::get_delegatee_scheduler` <b>[exec.queries.get_delegatee_scheduler]</b> ### {#spec-execution.receivers.queries.get_delegatee_scheduler}
 
@@ -4089,7 +4104,7 @@ namespace std::execution {
 
     2. Otherwise, `execution::get_delegatee_scheduler(r)` is ill-formed.
 
-3. `execution::get_delegatee_scheduler()` (with no arguments) is expression-equivalent to `execution::read(execution::get_delegatee_scheduler)`.
+3. `execution::get_delegatee_scheduler()` (with no arguments) is expression-equivalent to `execution::read(execution::get_delegatee_scheduler)`  ([exec.read]).
 
 ### `execution::get_allocator` <b>[exec.queries.get_allocator]</b> ### {#spec-execution.receivers.queries.get_allocator}
 
@@ -4104,7 +4119,7 @@ namespace std::execution {
 
     2. Otherwise, `execution::get_allocator(r)` is ill-formed.
 
-3. `execution::get_allocator()` (with no arguments) is expression-equivalent to `execution::read(execution::get_allocator)`.
+3. `execution::get_allocator()` (with no arguments) is expression-equivalent to `execution::read(execution::get_allocator)` ([exec.read]).
 
 ### `execution::get_stop_token` <b>[exec.queries.get_stop_token]</b> ### {#spec-execution.receivers.queries.get_stop_token}
 
@@ -4119,30 +4134,53 @@ namespace std::execution {
 
     2. Otherwise, `never_stop_token{}`.
 
-3. `execution::get_stop_token()` (with no arguments) is expression-equivalent to `execution::read(execution::get_stop_token)`.
+3. `execution::get_stop_token()` (with no arguments) is expression-equivalent to `execution::read(execution::get_stop_token)` ([exec.read]).
 
 ## Execution environments <b>[exec.env]</b> ## {#spec-execution.environment}
 
-1. An <i>execution environment</i> contains state associated with the completion of an asynchronous operation. Every receiver has an associated execution environment, accessible with the `get_env` receiver query. The state of an execution environment is accessed with customization point objects. An execution environment may respond to any number of these environment queries.
+1. An <i>execution environment</i> contains state associated with the completion of an asynchronous operation. Every receiver has an associated execution environment, accessible with the `get_env` receiver query ([exec.get_env]). The state of an execution environment is accessed with customization point objects. An execution environment may respond to any number of these environment queries.
 
 2. An <i>environment query</i> is a customization point object that accepts as its first argument an execution environment. For an environment query `EQ` and an object `e` of type `no_env`, the expression `EQ(e)` shall be ill-formed.
+
+3. <div class="wg21note">
+    Sender algorithms may use the results of environment queries to control certain
+    aspects of their behavior. The general queries in [exec.queries] have the following
+    suggested uses in sender algorithms:
+
+    * `execution::get_scheduler`: a scheduler to use to launch additional work.
+
+    * `execution::get_delegatee_scheduler`: a scheduler to which work may be delegated
+        for the purpose of ensuring the algorithm's forward progress.
+
+    * `execution::get_allocator`: an allocator to be used to dynamically allocate memory.
+
+    * `execution::get_stop_token`: a stop token for determining whether a stop request has
+        been made.
+
+    Unless otherwise noted, the presence of these queries or any others on an execution
+    environment does not bind a sender algorithm to use its result.
+    </div>
+
 
 ### `execution::no_env` <b>[exec.no_env]</b> ### {#spec-execution.environment.no_env}
 
    <pre highlight="c++">
-    namespace <i>exec-envs</i> { // exposition only
+    namespace <i>exec-envs</i> { <i>// exposition only</i>
       struct no_env {
         friend void tag_invoke(auto, same_as&lt;no_env> auto, auto&&...) = delete;
       };
     }
     </pre>
 
-  1. `no_env` is a special environment used by the `sender` concept and by the `get_completion_signatures` customization point when the user has specified no environment argument. [<i>Note:</i> A user may choose to not specify an environment in order to see if a sender knows its completion signatures independent of any particular execution environment. -- <i>end note</i>]
+  1. `no_env` is a placeholder for an environment that is used by the `sender` concept and by the
+    `get_completion_signatures` customization point when the user has specified no environment
+    argument. [<i>Note:</i> A user may choose to not specify an environment in order to see if a
+    sender knows its completion signatures independent of any particular execution environment. -- <i>end note</i>]
 
 ### `execution::get_env` <b>[exec.get_env]</b> ### {#spec-execution.environment.get_env}
 
     <pre highlight="c++">
-    namespace <i>exec-envs</i> { // exposition only
+    namespace <i>exec-envs</i> { <i>// exposition only</i>
       struct get_env_t;
     }
     inline constexpr <i>exec-envs</i>::get_env_t get_env {};
@@ -4278,7 +4316,7 @@ enum class forward_progress_guarantee {
         move_constructible&lt;remove_cvref_t&lt;T>> &&
         constructible_from&lt;remove_cvref_t&lt;T>, T> &&
         requires(const remove_cvref_t&lt;T>& t) {
-          execution::get_env(t);
+          { execution::get_env(t) } -> environment;
         };
 
     template &lt;class Signature, class T>
@@ -4302,32 +4340,14 @@ enum class forward_progress_guarantee {
 
     1. None of a receiver’s completion-signal operations shall be invoked before `execution::start` has been called on the operation state object that was returned by `execution::connect` to connect that receiver to a sender.
 
-    2. Once `execution::start` has been called on the operation state object, exactly one of the receiver’s completion-signal operations shall complete non-exceptionally before the receiver is destroyed.
+    2. Once `execution::start` has been called on the operation state object, exactly one of the receiver’s completion-signal operations shall complete before the receiver is destroyed.
 
-    3. If `execution::set_value` exits with an exception, it is still valid to call `execution::set_error` or `execution::set_stopped` on the receiver, but it is no longer valid to call `execution::set_value` on the receiver.
+4. Once one of a receiver’s completion-signal operations has completed, the receiver contract has been satisfied.
 
-4. Once one of a receiver’s completion-signal operations has completed non-exceptionally, the receiver contract has been satisfied.
-
-5. Receivers have an associated <i>execution environment</i> that is accessible by passing the receiver to `execution::get_env`. A sender can obtain information about the current execution environment by querying the environment of the receiver to which it is connected. The set of environment queries is extensible and includes:
-
-    * `execution::get_scheduler`: used to obtain a <i>suggested scheduler</i> to
-        be used when a sender needs to launch additional work. [<i>Note:</i> the
-        presence of this query on a receiver's environment does not bind a
-        sender to use its result. --<i>end note</i>]
-
-    * `execution::get_delegatee_scheduler`: used to obtain a <i>delegatee
-        scheduler</i> on which an algorithm or scheduler may delegate work for the
-        purpose of ensuring forward progress.
-
-    * `execution::get_allocator`: used to obtain a <i>suggested allocator</i>
-        to be used when a sender needs to allocate memory. [<i>Note:</i> the
-        presence of this query on a receiver does not bind a sender to use its
-        result. --<i>end note</i>]
-
-    * `execution::get_stop_token`: used to obtain the <i>associated stop
-        token</i> to be used by a sender to check whether a stop request has
-        been made. [<i>Note</i>: such a stop token being signalled does not bind
-        the sender to actually cancel any work. --<i>end note</i>]
+5. Receivers have an associated execution environment ([exec.env]) that is accessible
+    by passing the receiver to `execution::get_env`. A sender algorithm can obtain
+    information about the current execution environment by querying the environment of
+    the receiver to which its sender is connected.
 
 6. Let `r` be a receiver, `s` be a sender, and `op_state` be an operation state
     resulting from an `execution::connect(s, r)` call. Let `token` be a stop
