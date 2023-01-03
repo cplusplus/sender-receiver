@@ -4202,12 +4202,11 @@ namespace std::execution {
 
 2. The name `execution::forwarding_env_query` denotes a customization point object. For some subexpression `t`, `execution::forwarding_env_query(t)` is expression equivalent to:
 
-    1. `tag_invoke(execution::forwarding_env_query, t)`, contextually converted to `bool`, if the `tag_invoke` expression is well formed.
+    1. `tag_invoke(execution::forwarding_env_query, t)` if the `tag_invoke` expression is well formed.
 
-        * <i>Mandates:</i> The `tag_invoke` expression is indeed contextually
-            convertible to `bool`, that expression and the contextual conversion
-            are not potentially-throwing and are core constant expressions if
-            `t` is a core constant expression.
+        * <i>Mandates:</i> The expression is a core constant expressions if
+            `t` is a core constant expression, has type
+            `bool`, and is not potentially-throwing.
 
     2. Otherwise, `true`.
 
@@ -4247,12 +4246,11 @@ namespace std::execution {
 
 2. The name `execution::forwarding_scheduler_query` denotes a customization point object. For some subexpression `t`, `execution::forwarding_scheduler_query(t)` is expression equivalent to:
 
-    1. `tag_invoke(execution::forwarding_scheduler_query, t)`, contextually converted to `bool`, if the `tag_invoke` expression is well formed.
+    1. `tag_invoke(execution::forwarding_scheduler_query, t)` if the `tag_invoke` expression is well formed.
 
-        * <i>Mandates:</i> The `tag_invoke` expression is indeed contextually
-            convertible to `bool`, that expression and the contextual conversion
-            are not potentially-throwing and are core constant expressions if
-            `t` is a core constant expression.
+        * <i>Mandates:</i> The expression is a core constant expressions if
+            `t` is a core constant expression, has type `bool`, and is not
+            potentially-throwing.
 
     2. Otherwise, `false`.
 
@@ -4304,7 +4302,7 @@ enum class forward_progress_guarantee {
     values, an error, or it may be cancelled. A receiver has three principal
     operations corresponding to the three ways an asynchronous operation may
     complete: `set_value`, `set_error`, and `set_stopped`. These are
-    collectively known as a receiver’s <i>completion-signal operations</i>.
+    collectively known as a receiver’s completion-signal operations.
 
 2. The `receiver` concept defines the requirements for a receiver type with an
     unknown set of completion signatures. The `receiver_of` concept defines the
@@ -4363,16 +4361,15 @@ enum class forward_progress_guarantee {
 
 ### `execution::set_value` <b>[exec.set_value]</b> ### {#spec-execution.receivers.set_value}
 
-1. `execution::set_value` is used to send a <i>value completion signal</i> to a receiver.
+1. `execution::set_value` is used to send a value completion signal to a receiver.
 
 2. The name `execution::set_value` denotes a customization point object. The
-    expression `execution::set_value(R, Vs...)` for some subexpressions `R` and
-    `Vs...` is expression-equivalent to:
+    expression `execution::set_value(R, Vs...)` for some subexpression `R` and
+    pack of subexpressions `Vs` is expression-equivalent to:
 
     1. `tag_invoke(execution::set_value, R, Vs...)`, if that expression is
-        valid. If the function selected by `tag_invoke` does not send the
-        value(s) `Vs...` to the receiver `R`’s value channel, the behavior of
-        calling `execution::set_value(R, Vs...)` is undefined.
+        valid. The function selected by `tag_invoke` shall send the
+        value(s) `Vs...` to the receiver `R`’s value channel.
 
         * <i>Mandates:</i> The `tag_invoke` expression above is not potentially
             throwing.
@@ -4381,14 +4378,13 @@ enum class forward_progress_guarantee {
 
 ### `execution::set_error` <b>[exec.set_error]</b> ### {#spec-execution.receivers.set_error}
 
-1. `execution::set_error` is used to send a <i>error signal</i> to a receiver.
+1. `execution::set_error` is used to send an error completion signal to a receiver.
 
 2. The name `execution::set_error` denotes a customization point object. The expression `execution::set_error(R, E)` for some subexpressions `R` and `E` is expression-equivalent to:
 
-    1. `tag_invoke(execution::set_error, R, E)`, if that expression is valid. If
-        the function selected by `tag_invoke` does not send the error `E` to the
-        receiver `R`’s error channel, the behavior of calling
-        `execution::set_error(R, E)` is undefined.
+    1. `tag_invoke(execution::set_error, R, E)`, if that expression is valid.
+        The function selected by `tag_invoke` shall send the error `E` to the
+        receiver `R`’s error channel.
 
         * <i>Mandates:</i> The `tag_invoke` expression above is not potentially
             throwing.
@@ -4397,11 +4393,11 @@ enum class forward_progress_guarantee {
 
 ### `execution::set_stopped` <b>[exec.set_stopped]</b> ### {#spec-execution.receivers.set_stopped}
 
-1. `execution::set_stopped` is used to send a <i>stopped signal</i> to a receiver.
+1. `execution::set_stopped` is used to send a stopped completion signal to a receiver.
 
 2. The name `execution::set_stopped` denotes a customization point object. The expression `execution::set_stopped(R)` for some subexpression `R` is expression-equivalent to:
 
-    1. `tag_invoke(execution::set_stopped, R)`, if that expression is valid. If the function selected by `tag_invoke` does not signal the receiver `R`’s stopped channel, the behavior of calling `execution::set_stopped(R)` is undefined.
+    1. `tag_invoke(execution::set_stopped, R)`, if that expression is valid. The function selected by `tag_invoke` shall signal the receiver `R`’s stopped channel.
 
         * <i>Mandates:</i> The `tag_invoke` expression above is not potentially
             throwing.
@@ -4416,18 +4412,17 @@ enum class forward_progress_guarantee {
 
 2. The name `execution::forwarding_receiver_query` denotes a customization point object. For some subexpression `t`, `execution::forwarding_receiver_query(t)` is expression equivalent to:
 
-    1. `tag_invoke(execution::forwarding_receiver_query, t)`, contextually converted to `bool`, if the `tag_invoke` expression is well formed.
+    1. `tag_invoke(execution::forwarding_receiver_query, t)` if the `tag_invoke` expression is well formed.
 
-        * <i>Mandates:</i> The `tag_invoke` expression is indeed contextually
-            convertible to `bool`, that expression and the contextual conversion
-            are not potentially-throwing and are core constant expressions if
-            `t` is a core constant expression.
+        * <i>Mandates:</i> The expression is a core constant expression if
+            `t` is a core constant expression, has type `bool`, and is not
+            potentially-throwing.
 
     2. Otherwise, `false` if the type of `t` is one of `set_value_t`, `set_error_t`, or `set_stopped_t`.
 
     3. Otherwise, `true`.
 
-3. [*Note:* Currently the only standard receiver query is `execution::get_env` -- *end note*]
+3. [*Note:* Currently the only standard receiver query is `execution::get_env` ([exec.get_env]). -- *end note*]
 
 ## Operation states <b>[exec.op_state]</b> ## {#spec-execution.op_state}
 
@@ -4768,12 +4763,11 @@ template &lt;class E>  // arguments are not associated entities ([lib.tmpl-heads
 
 2. The name `execution::forwarding_sender_query` denotes a customization point object. For some subexpression `t`, `execution::forwarding_sender_query(t)` is expression equivalent to:
 
-    1. `tag_invoke(execution::forwarding_sender_query, t)` contextually converted to `bool`, if the `tag_invoke` expression is well formed.
+    1. `tag_invoke(execution::forwarding_sender_query, t)` if the `tag_invoke` expression is well formed.
 
-        * <i>Mandates:</i> The `tag_invoke` expression is indeed contextually
-            convertible to `bool`, that expression and the contextual conversion
-            are not potentially-throwing and are core constant expressions if
-            `t` is a core constant expression.
+        * <i>Mandates:</i> The expression is a core constant expressions if
+            `t` is a core constant expression, has type
+            `bool`, and is not potentially-throwing.
 
     2. Otherwise, `false`.
 
