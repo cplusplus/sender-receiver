@@ -15,3 +15,12 @@ Design changes tweaks by LWG after the Kona meeting
   reflect the fact that an `in_place_stop_source` always has "ownership" of
   a stop state (there is no `std::nostopstate_t` constructor). This is
   for consistency with `std::stop_source`.
+* Sender queries are moved into a separate queryable "attributes" object
+  that is accessed by passing the sender to `get_attrs()`. The `sender`
+  concept is reexpressed to require `get_attrs()` and separated from
+  a new `sender_in<Snd, Env>` concept for checking whether a type is
+  a sender within a particular execution environment.
+* The placeholder types `no_env` and `dependent_completion_signatures<>`
+  are no longer needed and are dropped.
+* `ensure_started` and `split` are changed to persist the result of
+  calling `get_attrs()` on the input sender.
