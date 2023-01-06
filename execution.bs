@@ -551,6 +551,10 @@ struct _then_sender {
       return exec::connect(
         (S&&) self.s_, _then_receiver<R, F>{(R&&) r, (F&&) self.f_});
   }
+
+  friend decltype(auto) tag_invoke(get_attrs_t, const _then_sender& self) noexcept {
+    retturn get_attrs(self.s_);
+  }
 };
 
 template<exec::sender S, class F>
@@ -668,6 +672,10 @@ struct _retry_sender {
   friend _op<S, R> tag_invoke(exec::connect_t, _retry_sender&& self, R r) {
     return {(S&&) self.s_, (R&&) r};
   }
+
+  friend decltype(auto) tag_invoke(exec::get_attrs_t, const _retry_sender& self) noexcept {
+    return get_attrs(self.s_);
+  }
 };
 
 template<exec::sender S>
@@ -726,6 +734,13 @@ class inline_scheduler {
       }
     };
 
+  struct _attrs {
+    template <class Tag>
+      friend inline_scheduler tag_invoke(get_completion_scheduler<Tag>, _attrs) noexcept {
+        return {};
+      }
+  };
+
   struct _sender {
     using completion_signatures =
       std::execution::completion_signatures<
@@ -738,6 +753,10 @@ class inline_scheduler {
         -> _op<std::remove_cvref_t<R>> {
         return {(R&&) rec};
       }
+
+    friend _attrs tag_invoke(exec::get_attrs_t, _sender) noexcept {
+      return {};
+    }
   };
 
   friend _sender tag_invoke(std::execution::schedule_t, const inline_scheduler&) noexcept {
