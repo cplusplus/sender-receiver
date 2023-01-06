@@ -828,7 +828,7 @@ loop to finish up what it's doing and then joins the thread, blocking for the ev
 
 The interesting bits are in the `execution::run_loop` context implementation. It
 is slightly too long to include here, so we only provide [a reference to
-it](https://github.com/brycelelbach/wg21_p2300_std_execution/blob/8bc0955c008652937948af784b7b6ccedecec23c/include/execution.hpp#L2720-L2887),
+it](https://github.com/NVIDIA/stdexec/blob/c2cdb2a2abe2b29a34cf277728319d6ca92ec0bb/include/stdexec/execution.hpp#L3916-L4101),
 but there is one noteworthy detail about its implementation: It uses space in
 its operation states to build an intrusive linked list of work items. In
 structured concurrency patterns, the operation states of nested operations
@@ -1104,11 +1104,12 @@ The authors are aware of a number of other implementations of sender/receiver fr
 
     > When I asked [my students] specifically about how complex they consider the sender/receiver stuff the feedback was quite unanimous that the sender/receiver parts aren’t trivial but not what contributes to the complexity.
 
-* <b>[The reference implementation](https://github.com/brycelelbach/wg21_p2300_std_execution/tree/main/include)</b>
+* <b>[The reference implementation](https://github.com/NVIDIA/stdexec)</b>
 
-    This is a partial implementation written from the specification in this paper. Its primary purpose is to help find specification bugs and to harden the wording of the proposal. When finished, it will be a minimal and complete implementation of this proposal, fit for broad use and for contribution to libc++. It will be finished before this proposal is approved.
+    This is a complete implementation written from the specification in this paper. Its primary purpose is to help find specification bugs and to harden the wording of the proposal. It is
+    fit for broad use and for contribution to libc++.
 
-    It currently lacks some of the proposed sender adaptors and `execution::start_detached`, but otherwise implements the concepts, customization points, traits, queries, coroutine integration, sender factories, pipe support, `execution::receiver_adaptor`, and `execution::run_loop`.
+    It is current with R5 of this paper.
 
 * <b>[Reference implementation for the Microsoft STL](https://github.com/miscco/STL/tree/proposal/executors) by Michael Schellenberger Costa</b>
 
@@ -1328,7 +1329,7 @@ This change, apart from increasing the expressive power of the sender/receiver a
 **"Has it been implemented?"**
 
 Yes, the reference implementation, which can be found at
-https://github.com/brycelelbach/wg21_p2300_std_execution, has implemented this
+https://github.com/NVIDIA/stdexec, has implemented this
 design as well as some dependently-typed senders to confirm that it works.
 
 **Implementation experience**
