@@ -1137,9 +1137,9 @@ The changes since R5 are as follows:
 <b>Enhancements:</b>
 
   * Sender queries are moved into a separate queryable "attributes" object
-    that is accessed by passing the sender to `get_attrs()`. The `sender`
-    concept is reexpressed to require `get_attrs()` and separated from
-    a new `sender_in<Snd, Env>` concept for checking whether a type is
+    that is accessed by passing the sender to `get_attrs()` (see below). The
+    `sender` concept is reexpressed to require `get_attrs()` and separated
+    from a new `sender_in<Snd, Env>` concept for checking whether a type is
     a sender within a particular execution environment.
   * The placeholder types `no_env` and `dependent_completion_signatures<>`
     are no longer needed and are dropped.
@@ -1152,6 +1152,28 @@ The changes since R5 are as follows:
     `error_types_of_t`, and the variable template `sends_done` more concise by
     expressing them in terms of a new exposition-only alias template
     <code><i>gather-signatures</i></code>.
+
+### Environments and attributes ### {#environments-and-attributes}
+
+In earlier revisions, receivers, senders, and schedulers all were directly
+queryable. In R4, receiver queries were moved into a separate "environment"
+object, obtainable from a receiver with a `get_env` accessor. In R6, the
+sender queries are given similar treatment, relocating to a "attributes"
+object obtainable from a sender with a `get_attrs` accessor. This was done
+to solve a number of design problems with the `split` and `ensure_started`
+algorithms; _e.g._, see
+[NVIDIA/stdexec#466](https://github.com/NVIDIA/stdexec/issues/466).
+
+Schedulers, however, remain directly queryable. As lightweight handles
+that are required to be movable and copyable, there is little reason to
+want to dispose of a scheduler and yet persist the scheduler's queries.
+
+This revision also makes operation states directly queryable, even though
+there isn't yet a use for such. Some early prototypes of cooperative bulk
+parallel sender algorithms done at NVIDIA suggest the utility of
+forwardable operation state queries. The authors chose to make opstates
+directly queryable since the opstate object is itself required to be kept
+alive for the duration of asynchronous operation.
 
 ## R5 ## {#r5}
 
@@ -1575,8 +1597,8 @@ When further work is attached to that sender by invoking sender algorithms, that
 
 ### `execution::get_completion_scheduler` ### {#design-sender-query-get_completion_scheduler}
 
-`get_completion_scheduler` is a query that retrieves the [=completion scheduler=] for a specific completion signal from a sender.
-Calling `get_completion_scheduler` on a sender that does not have a completion scheduler for a given signal is ill-formed.
+`get_completion_scheduler` is a query that retrieves the [=completion scheduler=] for a specific completion signal from a sender's attributes.
+For a sender that lacks a completion scheduler attribute for a given signal, calling `get_completion_scheduler` is ill-formed.
 If a sender advertises a completion scheduler for a signal in this way, that sender <b>must</b> ensure that it [=send|sends=] that signal on an execution agent belonging to an execution context represented by a scheduler returned from this function.
 See [[#design-propagation]] for more details.
 
@@ -4099,7 +4121,10 @@ namespace std::execution {
       concept queryable = destructible&lt;T>;
     </pre>
 
-1. Let `e` be object of type `E`. The type `E` models `queryable` if for each query object <code><i>Q</i></code> and a pack of subexpressions `args`, if <code>requires { <i>Q</i>(e, args...) }</code> is `true` then <code><i>Q</i>(e, args...)</code> is well-formed.
+1. Let `e` be object of type `E`. The type `E` models `queryable` if for each query
+    object <code><i>Q</i></code> and a pack of subexpressions `args`, if
+    <code>requires { <i>Q</i>(e, args...) }</code> is `true` then
+    <code><i>Q</i>(e, args...)</code> meets the semantic requirements imposed by `Q`.
 
 ### `std::forwarding_query` <b>[exec.fwd_env]</b> ### {#spec-execution.queries.forwarding_query}
 
@@ -4232,10 +4257,10 @@ enum class forward_progress_guarantee {
 
 #### `execution::get_completion_scheduler` <b>[exec.queries.completion_scheduler]</b> #### {#spec-execution.queries.get_completion_scheduler}
 
-1. `execution::get_completion_scheduler` is used to ask a sender object for the <i>completion scheduler</i> for one of its signals.
+1. `execution::get_completion_scheduler` is used to obtain the <i>completion scheduler</i> for one of its signals from the sender attributes.
 
 2. The name `execution::get_completion_scheduler` denotes a query object template.
-    For some subexpression `q`, let `q` be `decltype((q))`. If the template
+    For some subexpression `q`, let `Q` be `decltype((q))`. If the template
     argument `CPO` in `execution::get_completion_scheduler<CPO>(q)` is not one of
     `execution::set_value_t`, `execution::set_error_t`, or `execution::set_stopped_t`, `execution::get_completion_scheduler<CPO>(q)` is ill-formed. Otherwise,
     `execution::get_completion_scheduler<CPO>(q)` is expression-equivalent to:
@@ -4246,8 +4271,8 @@ enum class forward_progress_guarantee {
 
     2. Otherwise, `execution::get_completion_scheduler<CPO>(q)` is ill-formed.
 
-3. If, for some sender `s` and customization point object `CPO`, `get_completion_scheduler<decltype(CPO)>(get_attrs(s))` is well-formed and results in a scheduler `sch`, and the sender `s` invokes `CPO(r, args...)`, for some receiver `r` which has been connected to
-    `s`, with additional arguments `args...`, on an execution agent which does not belong to the associated execution context of `sch`, the behavior is undefined.
+3. If, for some sender `s` and customization point object `CPO`, `get_completion_scheduler<decltype(CPO)>(get_attrs(s))` is well-formed and results in a scheduler `sch`, and the sender `s` invokes `CPO(r, args...)`, for some receiver `r` that has been connected to
+    `s`, with additional arguments `args...`, on an execution agent that does not belong to the associated execution context of `sch`, the behavior is undefined.
 
 4. The expression `execution::forwarding_query(get_completion_scheduler<CPO>)` has value `true`.
 
