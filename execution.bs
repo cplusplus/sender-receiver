@@ -4098,14 +4098,15 @@ namespace std::execution {
 
     <pre highlight=c++>
     template&lt;class T>
-    concept <i>movable-value</i> = <i>// exposition only</i>
-      move_constructible&lt;decay_t&lt;T>> &&
-      constructible_from&lt;decay_t&lt;T>, T>;
+      concept <i>movable-value</i> = <i>// exposition only</i>
+        move_constructible&lt;decay_t&lt;T>> &&
+        constructible_from&lt;decay_t&lt;T>, T>;
     </pre>
 
 ## Queries <b>[exec.queries]</b> ## {#spec-execution.queries}
 
-1. A <i>query object</i> is a customization point object that accepts as its
+1. A <i>query object</i> is a customization point object
+    ([customization.point.object]) that accepts as its
     first argument a `queryable` object, and for each such invocation that is
     valid, produces a value of the corresponding property of the object.
 
@@ -4348,7 +4349,8 @@ enum class forward_progress_guarantee {
         move_constructible&lt;remove_cvref_t&lt;T>> &&
         constructible_from&lt;remove_cvref_t&lt;T>, T>;
         
-    <div class="ed-note">Should these constructibility constraints instead be mandates and cause hard errors instead of substitution failures?</div>
+    <div class="ed-note">Should these constructibility constraints instead be mandates
+    and cause hard errors instead of substitution failures?</div>
 
     template &lt;class Signature, class T>
       concept <i>valid-completion-for</i> = <i>// exposition only</i>
@@ -4380,7 +4382,13 @@ enum class forward_progress_guarantee {
     information about the current execution environment by querying the environment of
     the receiver to which its sender is connected.
 
-6. Let `r` be a receiver, `s` be a sender, and `op_state` be an operation state
+6. Given a non-`const` rvalue `r` of type `R` where `R` models `receiver`,
+    then the expressions <code><i>Q</i>(get_env(r), <i>args...</i>)</code> and
+    <code><i>Q</i>(get_attrs(static_cast&lt;const R&>(r)), <i>args...</i>)</code>
+    shall be equivalent for any query object <code><i>Q</i></code> and for
+    any pack of subexpressions <code><i>args</i></code>.
+
+7. Let `r` be a receiver, `s` be a sender, and `op_state` be an operation state
     resulting from an `execution::connect(s, r)` call. Let `token` be a stop
     token resulting from an `execution::get_stop_token(execution::get_env(r))`
     call. `token` must remain valid at least until a call to a receiver
@@ -4529,6 +4537,12 @@ enum class forward_progress_guarantee {
           execution::connect(std::forward&lt;S>(s), std::forward&lt;R>(r));
         };
     </pre>
+
+2. Given a non-`const` rvalue `s` of type `S` where `S` models `sender`,
+    then the expressions <code><i>Q</i>(get_attrs(s), <i>args...</i>)</code> and
+    <code><i>Q</i>(get_attrs(static_cast&lt;const S&>(s)), <i>args...</i>)</code>
+    shall be equivalent for any query object <code><i>Q</i></code> and for
+    any pack of subexpressions <code><i>args</i></code>.
 
 3. The `sender_of` concept defines the requirements for a sender type that
     completes with the completion signature specified for the given completion
