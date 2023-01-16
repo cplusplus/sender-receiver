@@ -4121,10 +4121,10 @@ namespace std::execution {
       concept queryable = destructible&lt;T>;
     </pre>
 
-1. Let `e` be object of type `E`. The type `E` models `queryable` if for each query
+1. Let `e` be an object of type `E`. The type `E` models `queryable` if for each callable
     object <code><i>Q</i></code> and a pack of subexpressions `args`, if
     <code>requires { <i>Q</i>(e, args...) }</code> is `true` then
-    <code><i>Q</i>(e, args...)</code> meets the semantic requirements imposed by `Q`.
+    <code><i>Q</i>(e, args...)</code> meets any semantic requirements imposed by `Q`.
 
 ### `std::forwarding_query` <b>[exec.fwd_env]</b> ### {#spec-execution.queries.forwarding_query}
 
@@ -4347,6 +4347,8 @@ enum class forward_progress_guarantee {
         } &&
         move_constructible&lt;remove_cvref_t&lt;T>> &&
         constructible_from&lt;remove_cvref_t&lt;T>, T>;
+        
+    <div class="ed-note">Should these constructibility constraints instead be mandates and cause hard errors instead of substitution failures?</div>
 
     template &lt;class Signature, class T>
       concept <i>valid-completion-for</i> = <i>// exposition only</i>
@@ -4511,7 +4513,7 @@ enum class forward_progress_guarantee {
         move_constructible&lt;remove_cvref_t&lt;S>> &&
         constructible_from&lt;remove_cvref_t&lt;S>, S>;
 
-    template &lt;class S, class E>
+    template &lt;class S, class E = <i>empty-env</i>>
       concept sender_in =
         sender&lt;S> &&
         requires (S&& s, E&& e) {
@@ -4875,7 +4877,7 @@ enum class forward_progress_guarantee {
           friend auto tag_invoke(get_completion_signatures_t, <i>read-sender</i>, Env)
             -> completion_signatures&lt;set_value_t(<i>call-result-t</i>&lt;Tag, Env>)>; <i>// not defined</i>
 
-        friend <i>empty-attrs</i> tag_invoke(get_attrs_t, const <i>just-sender</i>&) noexcept {
+        friend <i>empty-attrs</i> tag_invoke(get_attrs_t, const <i>read-sender</i>&) noexcept {
           return {};
         }
       };
