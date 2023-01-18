@@ -1133,6 +1133,11 @@ The changes since R5 are as follows:
 
   * Fix typo in the specification of `in_place_stop_source` about the relative
     lifetimes of the tokens and the source that produced them.
+  * `get_completion_signatures` tests for awaitability with a promise type
+    similar to the one used by `connect` for the sake of consistency.
+  * A coroutine promise type is an environment provider (that is, it implements
+    `get_env()`) rather than being directly queryable. The previous draft was
+    inconsistent about that.
 
 <b>Enhancements:</b>
 
@@ -4490,7 +4495,11 @@ enum class forward_progress_guarantee {
         * <i>Mandates:</i> The type of the expression satisfies the `queryable`
             concept ([exec.queryable]).
 
-    2. Otherwise, `get_attrs(s)` is ill-formed.
+    2. Otherwise, <code><i>empty-attrs</i>{}</code> if the type of `s` satisfies
+        the <code><i>is-awaitable</i>&lt;<i>env-promise</i>&lt;<i>empty-env</i>>></code>
+        concept ([exec.complsigs]).
+
+    3. Otherwise, `get_attrs(s)` is ill-formed.
 
 2. If `get_attrs(s)` is an lvalue, the object it refers to shall be valid while `s` is valid.
 
@@ -4590,7 +4599,7 @@ enum class forward_progress_guarantee {
 
 ### Completion signatures <b>[exec.sndtraits]</b> ### {#spec-exec.sndtraits}
 
-#### `execution::completion_signatures_of_t` <b>[exec.sndtraitst]</b> #### {#spec-exec.sndtraitst}
+#### `execution::completion_signatures_of_t` <b>[exec.complsigs]</b> #### {#spec-exec.complsigs}
 
 1. The alias template `completion_signatures_of_t` is used to obtain from a sender the list of completion signatures it may complete with.
 
@@ -4606,7 +4615,17 @@ enum class forward_progress_guarantee {
     alias for `decltype(get_completion_signatures(declval<S>(), declval<E>()))`
     if that expression is well-formed.
 
-4. `execution::get_completion_signatures` is a customization point object. Let
+4. Given an execution environment type `Env`, let `p` be a non-`const` lvalue
+    of type <code><i>env-promise</i>&lt;Env></code>, where
+    <code><i>env-promise</i>&lt;Env></code> names a class type such that:
+
+    1. For some subexpression `e`, the expression `p.await_transform(e)` is
+        expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that
+        expression is well-formed; otherwise, `e`.
+
+    2. `decltype(get_env(as_const(p)))` names the type `const Env&`.
+
+5. `execution::get_completion_signatures` is a customization point object. Let
     `s` be an expression such that `decltype((s))` is `S`, and let `e` be an
     expression such that `decltype((e))` is `E`. Then
     `get_completion_signatures(s, e)` is expression-equivalent to:
@@ -4624,9 +4643,9 @@ enum class forward_progress_guarantee {
         * <i>Mandates:</i> <code><i>is-instance-of</i>&lt;Sigs,
             completion_signatures></code>, where `Sigs` names the type `remove_cvref_t<S>::completion_signatures`.
 
-    3. Otherwise, if <code><i>is-awaitable</i>&lt;S></code> is `true`, then
+    3. Otherwise, if <code><i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;E>></code> is `true`, then
 
-        1. If <code><i>await-result-type</i>&lt;S></code> is <code><i>cv</i> void</code> then a prvalue of a type equivalent to:
+        1. If <code><i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>></code> is <code><i>cv</i> void</code> then a prvalue of a type equivalent to:
 
             <pre highlight="c++">
             completion_signatures<
@@ -4639,14 +4658,14 @@ enum class forward_progress_guarantee {
 
             <pre highlight="c++">
             completion_signatures<
-              set_value_t(<i>await-result-type</i>&lt;S>),
+              set_value_t(<i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>>),
               set_error_t(exception_ptr),
               set_stopped_t()>
             </pre>
 
     4. Otherwise, `get_completion_signatures(s, e)` is ill-formed.
 
-5. The exposition-only type <code><i>variant-or-empty&lt;Ts...></i></code> is
+6. The exposition-only type <code><i>variant-or-empty&lt;Ts...></i></code> is
      defined as follows:
 
     1. If `sizeof...(Ts)` is greater than zero, <code><i>variant-or-empty&lt;Ts...></i></code> names the type `variant<Us...>` where `Us...` is the pack `decay_t<Ts>...` with duplicate types removed.
@@ -4659,7 +4678,7 @@ enum class forward_progress_guarantee {
         };
         </pre>
 
-6. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
+7. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
     sender. If `value_types_of_t<S, env_of_t<R>, Tuple, Variant>` is well
     formed, it shall name the type
     <code>Variant&lt;Tuple&lt;Args<i><sub>0</sub></i>...>,
@@ -4674,7 +4693,7 @@ enum class forward_progress_guarantee {
     <code>Args<i><sub>N</sub></i>...</code> (ignoring differences in
     rvalue-reference qualification).
 
-7. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
+8. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
     sender. If `error_types_of_t<S, env_of_t<R>, Variant>` is well formed, it
     shall name the type <code>Variant&lt;E<i><sub>0</sub></i>,
     E<i><sub>1</sub></i>, ..., E<i><sub>N</sub></i>></code>, where the types
@@ -4685,11 +4704,11 @@ enum class forward_progress_guarantee {
     <code>E<i><sub>0</sub></i></code> through <code>E<i><sub>N</sub></i></code>
     (ignoring differences in rvalue-reference qualification).
 
-8. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
+9. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
     sender. If `sends_stopped<S, env_of_t<R>>` is well formed and
     `false`, such a sender `S` shall not odr-use `execution::set_stopped(r)`.
 
-9. [<i>Note</i>: The types <code>Args<i><sub>i</sub></i>...</code> and <code>E<i><sub>i</sub></i>...</code> captured in `value_types` and `error_types` can appear in any order.
+10. [<i>Note</i>: The types <code>Args<i><sub>i</sub></i>...</code> and <code>E<i><sub>i</sub></i>...</code> captured in `value_types` and `error_types` can appear in any order.
      For example, a sender that can yield, in case of an error, either `exception_ptr` or `error_code` can have `error_types` be either `Variant<exception_ptr, error_code>` or `Variant<error_code, exception_ptr>`. --<i>end note</i>]
 
 ### `execution::connect` <b>[exec.connect]</b> ### {#spec-execution.senders.connect}
@@ -5006,7 +5025,7 @@ enum class forward_progress_guarantee {
 1. `execution::on` is used to adapt a sender into a sender that will start the input sender on an execution agent belonging to a specific execution context.
 
 2. Let <code><i>replace-scheduler</i>(e, sch)</code> be an expression denoting an object `e'` such that `execution::get_scheduler(e)` returns a copy of `sch`, and `tag_invoke(tag, e', args...)` is expression-equivalent to `tag(e, args...)`
-    for all arguments `args...` and for all `tag` whose type satisfies <code><i>forwarding-env-query</i></code> and is not `execution::get_scheduler_t`.
+    for all arguments `args...` and for all `tag` whose type satisfies <code><i>forwarding-query</i></code> and is not `execution::get_scheduler_t`.
 
 3. The name `execution::on` denotes a customization point object. For some subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If `Sch` does not satisfy `execution::scheduler`, or `S` does not satisfy `execution::sender`,
     `execution::on` is ill-formed. Otherwise, the expression `execution::on(sch, s)` is expression-equivalent to:
@@ -5718,7 +5737,7 @@ enum class forward_progress_guarantee {
 
             3. Otherwise, `request_stop` is called on `op_state`'s associated stop source. When all child operations have completed, `op_state`'s associated stop callback optional is reset and `execution::set_stopped(out_r)` is called.
 
-            4. For each receiver <code>r<i><sub>i</sub></i></code>, <code>get_env(r<i><sub>i</sub></i>)</code> is an expression <code><i>e</i></code> such that <code>execution::get_stop_token(<i>e</i>)</code> is well-formed and returns the results of calling `get_token()` on `op_state`'s associated stop source, and for which <code>tag_invoke(tag, <i>e</i>, args...)</code> is expression-equivalent to `tag(get_env(out_r), args...)` for all arguments `args...` and all `tag` whose type satisfies <code><i>forwarding-env-query</i></code> and is not `get_stop_token_t`.
+            4. For each receiver <code>r<i><sub>i</sub></i></code>, <code>get_env(r<i><sub>i</sub></i>)</code> is an expression <code><i>e</i></code> such that <code>execution::get_stop_token(<i>e</i>)</code> is well-formed and returns the results of calling `get_token()` on `op_state`'s associated stop source, and for which <code>tag_invoke(tag, <i>e</i>, args...)</code> is expression-equivalent to `tag(get_env(out_r), args...)` for all arguments `args...` and all `tag` whose type satisfies <code><i>forwarding-query</i></code> and is not `get_stop_token_t`.
 
         2. For each sender <code>s<i><sub>i</sub></i></code>, calls <code>execution::connect(s<i><sub>i</sub></i>, r<i><sub>i</sub></i>)</code>, resulting in operation states <code>child_op<i><sub>i</sub></i></code>.
 
@@ -6367,7 +6386,7 @@ enum class forward_progress_guarantee {
       friend decltype(auto) tag_invoke(get_env_t, const Derived&amp; self)
           noexcept(<i>see below</i>);
 
-      template &lt;<i>forwarding-receiver-query</i> Tag, class... As>
+      template &lt;<i>forwarding-query</i> Tag, class... As>
           requires <i>callable</i>&lt;Tag, <i>BASE-TYPE</i>(const Derived&amp;), As...>
         friend auto tag_invoke(Tag tag, const Derived&amp; self, As&amp;&amp;... as)
           noexcept(<i>nothrow-callable</i>&lt;Tag, <i>BASE-TYPE</i>(const Derived&amp;), As...>)
@@ -6839,7 +6858,7 @@ enum class forward_progress_guarantee {
 
     template &lt;class S, class P>
       concept <i>awaitable-sender</i> =
-        <i>single-sender</i>&lt;S, env_of_t&lt;P>> &amp;&amp;
+        <i>single-sender</i>&lt;S, <i>ENV_OF</i>(P)> &amp;&amp;
         sender_to&lt;S, <i>awaitable-receiver</i>> &amp;&amp; // see below
         requires (P&amp; p) {
           { p.unhandled_stopped() } -> convertible_to&lt;coroutine_handle&lt;>>;
@@ -6848,6 +6867,9 @@ enum class forward_progress_guarantee {
     template &lt;class S, class P>
       class <i>sender-awaitable</i>;
     </pre>
+
+    where <code><i>ENV_OF</i>(P)</code> names the type `env_of_t<P>` if that type
+    is well-formed, or <code><i>empty-env</i></code> otherwise.
 
     1. Alias template <i>single-sender-value-type</i> is defined as follows:
 
@@ -6863,7 +6885,7 @@ enum class forward_progress_guarantee {
         template &lt;class S, class P> // arguments are not associated entities ([lib.tmpl-heads])
         class <i>sender-awaitable</i> {
           struct unit {};
-          using value_t = <i>single-sender-value-type</i>&lt;S, env_of_t&lt;P>>;
+          using value_t = <i>single-sender-value-type</i>&lt;S, <i>ENV_OF</i>(P)>;
           using result_t = conditional_t&lt;is_void_v&lt;value_t>, unit, value_t>;
           struct <i>awaitable-receiver</i>;
 
@@ -6921,7 +6943,10 @@ enum class forward_progress_guarantee {
               3. The expression `execution::set_stopped(r)` is not potentially throwing and is equivalent to
                 `static_cast<coroutine_handle<>>(r.continuation_.promise().unhandled_stopped()).resume()`.
 
-              4. `tag_invoke(tag, cr, as...)` is expression-equivalent to `tag(as_const(cr.continuation_.promise()), as...)` for any expression `tag` whose type satisfies <code><i>forwarding-receiver-query</i></code> and for any set of arguments `as...`.
+              4. For any expression `tag` whose type satisfies <code><i>forwarding-query</i></code>
+                  and for any pack of subexpressions `as`, `tag_invoke(tag, get_env(cr), as...)`
+                  is expression-equivalent to `tag(get_env(as_const(cr.continuation_.promise())),
+                  as...)` when that expression is well-formed.
 
         2. <b><code><i>sender-awaitable</i>::<i>sender-awaitable</i>(S&& s, P& p)</code></b>
 
@@ -6942,9 +6967,11 @@ enum class forward_progress_guarantee {
 
     1. `tag_invoke(as_awaitable, e, p)` if that expression is well-formed.
 
-        * <i>Mandates:</i> <code><i>is-awaitable</i>&lt;A></code> is `true`, where `A` is the type of the `tag_invoke` expression above.
+        * <i>Mandates:</i> <code><i>is-awaitable</i>&lt;A, P></code> is `true`, where `A` is the type of the `tag_invoke` expression above.
 
     2. Otherwise, `e` if <code><i>is-awaitable</i>&lt;E></code> is `true`.
+        <span class="wg21note">The condition is not <code><i>is-awaitable</i>&lt;E, P></code>
+        as that creates the potential for constraint recursion.</span>
 
     3. Otherwise, <code><i>sender-awaitable</i>{e, p}</code> if <code><i>awaitable-sender</i>&lt;E, P></code> is `true`.
 
