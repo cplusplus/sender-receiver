@@ -4621,7 +4621,7 @@ enum class forward_progress_guarantee {
 
     1. For some subexpression `e`, the expression `p.await_transform(e)` is
         expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that
-        expression is well-formed; otherwise, `e`.
+        expression is well-formed ([exec.as_awaitable]); otherwise, `e`.
 
     2. `decltype(get_env(as_const(p)))` names the type `const Env&`.
 
@@ -4761,7 +4761,7 @@ enum class forward_progress_guarantee {
 
           5. The expression `p.unhandled_stopped()` is expression-equivalent to `(execution::set_stopped(std::move(r)), noop_coroutine())`.
 
-          6. For some expression `e`, the expression `p.await_transform(e)` is expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that expression is well-formed; otherwise, it is expression-equivalent to `e`.
+          6. For some expression `e`, the expression `p.await_transform(e)` is expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that expression is well-formed ([exec.as_awaitable]); otherwise, it is expression-equivalent to `e`.
 
         Let `Res` be <code><i>await-result-type</i>&lt;S, <i>connect-awaitable-promise</i>></code>, and let `Vs...` be an empty parameter pack if `Res` is <code><i>cv</i> void</code>, or a pack containing the single type `Res` otherwise. The operand of the <i>requires-clause</i> of <code><i>connect-awaitable</i></code> is equivalent to `receiver_of<R, Sigs>` where `Sigs` names the type:
 
