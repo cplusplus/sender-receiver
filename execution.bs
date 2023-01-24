@@ -2,7 +2,7 @@
 Title: `std::execution`
 H1: <code>std::execution</code>
 Shortname: D2300
-Revision: 6
+Revision: 7
 Status: D
 Group: WG21
 Audience: SG1, LEWG
@@ -1124,6 +1124,17 @@ This proposal also draws heavily from our experience with [Thrust](https://githu
 * [stlab](https://stlab.cc/libraries/concurrency/)
 
 # Revision history # {#revisions}
+
+## R7 ## {#r7}
+
+The changes since R6 are as follows:
+
+<b>Fixes:</b>
+
+  * Make it valid to pass non-variadic templates to the exposition-only
+    alias template <code><i>gather-signatures</i></code>, fixing the definitions
+    of `value_types_of_t`, `error_types_of_t`, and the exposition-only
+    alias template <code><i>sync-wait-type</i></code>.
 
 ## R6 ## {#r6}
 
@@ -6522,7 +6533,16 @@ enum class forward_progress_guarantee {
 
     <pre highlight="c++">
     template&lt;class Fn>
-      concept <i>completion-signature</i> = <i>see below</i>;
+      concept <i>completion-signature</i> = <i>/* see below */</i>;
+
+    template &lt;bool>
+      struct <i>indirect-meta-apply</i> {
+        template &lt;template &lt;class...> class T, class... As>
+          using <i>meta-apply</i> = T&lt;As...>; <i>// exposition only</i>
+      };
+
+    template &lt;class...>
+      concept <i>always-true</i> = true;
     </pre>
 
     1. A type `Fn` satisfies <code><i>completion-signature</i></code> if and only if it is a function type with one of the following forms:
@@ -6552,11 +6572,19 @@ enum class forward_progress_guarantee {
         <code><i>Tuple</i></code> and <code><i>Variant</i></code>, the type
         <code><i>gather-signatures</i>&lt;Tag, S, E, <i>Tuple</i>, <i>Variant</i>></code>
         names the type
-        <code><i>Variant</i>&lt;<i>Tuple</i>&lt;<i>Ts<i><sub>0</sub></i></i>...>,
-        <i>Tuple</i>&lt;<i>Ts<i><sub>1</sub></i></i>...>, ...
-        <i>Tuple</i>&lt;<i>Ts<i><sub>m-1</sub></i></i>...>></code>, where
+        <code><i>META-APPLY</i>(<i>Variant</i>, <i>META-APPLY</i>(<i>Tuple</i>, <i>Ts<i><sub>0</sub></i></i>...),
+        <i>META-APPLY</i>(<i>Tuple</i>, <i>Ts<i><sub>1</sub></i></i>...), ...
+        <i>META-APPLY</i>(<i>Tuple</i>, <i>Ts<i><sub>m-1</sub></i></i>...))</code>, where
         <code><i>m</i></code> is the size of the parameter pack
-        <code><i>TagFns</i></code>.
+        <code><i>TagFns</i></code> and <code><i>META-APPLY</i>(<i>T</i>, <i>As</i>...)</code> is
+        equivalent to:
+
+        <pre highlight="c++">
+        typename <i>indirect-meta-apply</i>&lt;<i>always-true</i>&lt;<i>As</i>...>>::template <i>meta-apply</i>&lt;<i>T</i>, <i>As</i>...>;
+        </pre>
+
+    3. <span class="wg21note">The purpose of <code><i>META-APPLY</i></code> is to make it
+        valid to use non-variadic templates as <code><i>Variant</i></code> and <code><i>Tuple</i></code> arguments to <code><i>gather-signatures</i></code>.</span>
 
 4.  <pre highlight="c++">
     template &lt;<i>completion-signature</i>... Fns>
