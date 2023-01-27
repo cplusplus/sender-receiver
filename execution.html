@@ -2233,7 +2233,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R7<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-01-26">2023-01-26</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-01-27">2023-01-27</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -6698,11 +6698,12 @@ being connected with a specific receiver type.</p>
   <c- k>concept</c-> <i><c- nc>valid</c-><c- o>-</c-><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
 <c- k>template</c-> <c- o>&lt;</c-><c- k>class</c-> <c- nc>S</c-><c- o>></c->
-  <c- kr>inline</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- n>enable_sender</c-> <c- o>=</c->
-    <c- k>requires</c-> <c- p>{</c->
-      <c- k>typename</c-> <c- nc>S</c-><c- o>::</c-><c- n>is_sender</c-><c- p>;</c->
-    <c- p>}</c-> <c- o>||</c->
+  <c- k>concept</c-> <i><c- nc>enable</c-><c- o>-</c-><c- n>sender</c-></i> <c- o>=</c-> <i><c- c1>// exposition only</c-></i>
+    <c- k>requires</c-> <c- p>{</c-> <c- k>typename</c-> <c- nc>S</c-><c- o>::</c-><c- n>is_sender</c-><c- p>;</c-> <c- p>}</c-> <c- o>||</c->
     <i><c- n>is</c-><c- o>-</c-><c- n>awaitable</c-></i><c- o>&lt;</c-><c- n>S</c-><c- p>,</c-> <i><c- n>env</c-><c- o>-</c-><c- n>promise</c-></i><c- o>&lt;</c-><c- n>empty_env</c-><c- o>>></c-><c- p>;</c-> <i><c- c1>// [exec.complsigs]</c-></i>
+
+<c- k>template</c-> <c- o>&lt;</c-><c- k>class</c-> <c- nc>S</c-><c- o>></c->
+  <c- kr>inline</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- n>enable_sender</c-> <c- o>=</c-> <i><c- n>enable</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>S</c-><c- o>></c-><c- p>;</c->
 
 <c- k>template</c-> <c- o>&lt;</c-><c- k>class</c-> <c- nc>S</c-><c- o>></c->
   <c- k>concept</c-> <c- nc>sender</c-> <c- o>=</c->
