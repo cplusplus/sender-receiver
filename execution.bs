@@ -4547,11 +4547,12 @@ enum class forward_progress_guarantee {
       concept <i>valid-completion-signatures</i> = <i>see below</i>;
 
     template &lt;class S>
-      inline constexpr bool enable_sender =
-        requires {
-          typename S::is_sender;
-        } ||
+      concept <i>enable-sender</i> = <i>// exposition only</i>
+        requires { typename S::is_sender; } ||
         <i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;empty_env>>; <i>// [exec.complsigs]</i>
+
+    template &lt;class S>
+      inline constexpr bool enable_sender = <i>enable-sender</i>&lt;S>;
 
     template &lt;class S>
       concept sender =
