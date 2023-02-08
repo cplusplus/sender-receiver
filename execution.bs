@@ -1156,6 +1156,7 @@ The changes since R6 are as follows:
     if a `tag_invoke` overload is not found.
   * `get_env` is required to be insensitive to the cvref-qualification of its
     argument.
+  * `get_env`, `empty_env`, and `env_of_t` are moved into the `std::` namespace.
 
 ## R6 ## {#r6}
 
@@ -4318,24 +4319,16 @@ enum class forward_progress_guarantee {
 
 ### `execution::get_env` <b>[exec.get_env]</b> ### {#spec-execution.environment.get_env}
 
-1. `get_env` is a customization point object. For some subexpression `o`, `get_env(o)` is expression-equivalent to
+1. `get_env` is a customization point object. For some subexpression `o` of type `O`, `get_env(o)` is expression-equivalent to
 
-    1. `tag_invoke(execution::get_env, o)` if that expression is well-formed.
+    1. `tag_invoke(execution::get_env, const_cast<const O&>(o))` if that expression is well-formed.
 
         * <i>Mandates:</i> The type of the expression satisfies the `queryable`
             concept ([exec.queryable]).
 
     2. Otherwise, `empty_env{}`.
 
-2. If `get_env(o)` is an lvalue, the object it refers to shall be valid while `o` is valid.
-
-3. For any non-`const` lvalue <code><i>o</i></code> of type <code><i>O</i></code>,
-    any query object <code><i>Q</i></code>, and any
-    pack of subexpressions <code><i>args</i></code>, the result of the expression
-    <code><i>Q</i>(get_env(static_cast&lt;<i>X</i>>(<i>o</i>)), <i>args</i>...)</code> shall equal
-    the result of <code><i>Q</i>(get_env(as_const(o)), <i>args</i>...)</code> where
-    <code><i>X</i></code> is any of <code><i>O</i>&&</code>, <code>const <i>O</i>&&</code>,
-    or <code>const <i>O</i>&</code>.
+2. The value of `get_env(o)` shall be valid while `o` is valid.
 
 ## Schedulers <b>[exec.sched] </b> ## {#spec-execution.schedulers}
 
@@ -4397,9 +4390,6 @@ enum class forward_progress_guarantee {
         } &&
         move_constructible&lt;remove_cvref_t&lt;R>> &&
         constructible_from&lt;remove_cvref_t&lt;R>, R>;
-        
-    <div class="ed-note">Should these constructibility constraints instead be mandates
-    and cause hard errors instead of substitution failures?</div>
 
     template &lt;class Signature, class R>
       concept <i>valid-completion-for</i> = <i>// exposition only</i>
@@ -4418,24 +4408,23 @@ enum class forward_progress_guarantee {
         };
     </pre>
 
-2. The receiver’s completion-signal operations have semantic requirements that are collectively known as the <i>receiver contract</i>, described below:
+3. _Remarks:_ Pursuant to [namespace.std], users may specialize `enable_receiver` to
+    `true` for cv-unqualified program-defined types that model `receiver`, and `false`
+    for types that do not. Such specializations shall be usable in constant
+    expressions ([expr.const]) and have type `const bool`.
+
+3. The receiver’s completion-signal operations have semantic requirements that are collectively known as the <i>receiver contract</i>, described below:
 
     1. None of a receiver’s completion-signal operations shall be invoked before `execution::start` has been called on the operation state object that was returned by `execution::connect` to connect that receiver to a sender.
 
     2. Once `execution::start` has been called on the operation state object, exactly one of the receiver’s completion-signal operations shall complete before the receiver is destroyed.
 
-3. Once one of a receiver’s completion-signal operations has completed, the receiver contract has been satisfied.
+4. Once one of a receiver’s completion-signal operations has completed, the receiver contract has been satisfied.
 
-4. Receivers have an associated execution environment ([exec.env]) that is accessible
+5. Receivers have an associated execution environment ([exec.env]) that is accessible
     by passing the receiver to `execution::get_env`. A sender algorithm can obtain
     information about the current execution environment by querying the environment of
     the receiver to which its sender is connected.
-
-5. Given a non-`const` rvalue `r` of type `R` where `R` models `receiver`,
-    then the expressions <code><i>Q</i>(get_env(r), <i>args...</i>)</code> and
-    <code><i>Q</i>(get_env(static_cast&lt;const R&>(r)), <i>args...</i>)</code>
-    shall be equivalent for any query object <code><i>Q</i></code> and for
-    any pack of subexpressions <code><i>args</i></code>.
 
 6. Let `r` be a receiver, `s` be a sender, and `op_state` be an operation state
     resulting from an `execution::connect(s, r)` call. Let `token` be a stop
@@ -4530,10 +4519,6 @@ enum class forward_progress_guarantee {
 
 1. A sender describes a potentially asynchronous operation. A sender's responsibility is to fulfill the receiver contract of a connected receiver by delivering one of the receiver completion-signals.
 
-2. For all the sender types `S` and receiver types `R`
-    specified in this section, `enable_sender<S>` and
-    `enable_receiver<R>` are `true`, respectively.
-
 ### Sender concepts <b>[exec.snd_concepts]</b> ### {#spec-execution.environment.snd_concepts}
 
 1. The `sender` concept defines the requirements for a sender type.
@@ -4547,12 +4532,11 @@ enum class forward_progress_guarantee {
       concept <i>valid-completion-signatures</i> = <i>see below</i>;
 
     template &lt;class S>
-      concept <i>enable-sender</i> = <i>// exposition only</i>
-        requires { typename S::is_sender; } ||
-        <i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;empty_env>>; <i>// [exec.complsigs]</i>
+      inline constexpr bool enable_sender =
+        requires { typename S::is_sender; };
 
-    template &lt;class S>
-      inline constexpr bool enable_sender = <i>enable-sender</i>&lt;S>;
+    template &lt;<i>is-awaitable</i>&lt;<i>env-promise</i>&lt;empty_env>> S> <i>// [exec.complsigs]</i>
+      inline constexpr bool enable_sender&lt;S> = true;
 
     template &lt;class S>
       concept sender =
@@ -4584,7 +4568,12 @@ enum class forward_progress_guarantee {
     <code><i>valid-completion-signatures</i></code> if it names an instantiation
     of the `completion_signatures` class template.
 
-3. The `sender_of` concept defines the requirements for a sender type that
+3. _Remarks:_ Pursuant to [namespace.std], users may specialize `enable_sender` to
+    `true` for cv-unqualified program-defined types that model `sender`, and `false`
+    for types that do not. Such specializations shall be usable in constant
+    expressions ([expr.const]) and have type `const bool`.
+
+4. The `sender_of` concept defines the requirements for a sender type that
     completes with the completion signature specified for the given completion
     channel.
 
