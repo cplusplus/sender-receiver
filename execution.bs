@@ -334,7 +334,7 @@ struct recv_op : operation_base {
     friend void tag_invoke(std::execution::start_t, recv_op& self) noexcept {
         // Avoid even calling WSARecv() if operation already cancelled
         auto st = std::execution::get_stop_token(
-          std::execution::get_env(self.receiver));
+          std::get_env(self.receiver));
         if (st.stop_requested()) {
             std::execution::set_stopped(std::move(self.receiver));
             return;
@@ -1156,6 +1156,7 @@ The changes since R6 are as follows:
     if a `tag_invoke` overload is not found.
   * `get_env` is required to be insensitive to the cvref-qualification of its
     argument.
+  * `get_env`, `empty_env`, and `env_of_t` are moved into the `std::` namespace.
 
 ## R6 ## {#r6}
 
@@ -1856,7 +1857,7 @@ This CPO takes a single parameter, which is the execution environment of the rec
 that the operation can use to check for stop-requests for that operation.
 
 As the caller of `execution::connect` typically has control over the receiver
-type it passes, it is able to customise the `execution::get_env()` CPO for that
+type it passes, it is able to customise the `std::get_env()` CPO for that
 receiver to return an execution environment that hooks the
 `execution::get_stop_token()` CPO to return a stop-token that the receiver has
 control over and that it can use to communicate a stop-request to the operation
@@ -3799,6 +3800,17 @@ namespace std {
   template &lt;class T>
     concept <i>forwarding-query</i> = // exposition only
       forwarding_query(T{});
+
+  namespace <i>exec-envs</i> { // exposition only
+    struct empty_env {};
+    struct get_env_t;
+  }
+  using <i>envs</i>::empty_env;
+  using <i>envs</i>::get_env_t;
+  inline constexpr get_env_t get_env {};
+
+  template &lt;class T>
+    using env_of_t = decltype(get_env(declval&lt;T>()));
 }
 
 namespace std::execution {
@@ -3820,18 +3832,6 @@ namespace std::execution {
   inline constexpr get_forward_progress_guarantee_t get_forward_progress_guarantee{};
   template &lt;class CPO>
     inline constexpr get_completion_scheduler_t&lt;CPO> get_completion_scheduler{};
-
-  // [exec.env], execution environments
-  namespace <i>exec-envs</i> { // exposition only
-    struct empty_env {};
-    struct get_env_t;
-  }
-  using <i>exec-envs</i>::empty_env;
-  using <i>exec-envs</i>::get_env_t;
-  inline constexpr get_env_t get_env {};
-
-  template &lt;class T>
-    using env_of_t = decltype(get_env(declval&lt;T>()));
 
   // [exec.sched], schedulers
   template &lt;class S>
@@ -4147,7 +4147,7 @@ namespace std::execution {
     returned by the expression <code><i>Q</i>(e, args...)</code> is valid as
     long as `e` is valid.
 
-### `queryable` concept <b>[exec.queries.queryable]</b> ### {#spec-execution.queries.queryable}
+### `queryable` concept <b>[exec.queryable]</b> ### {#spec-execution.queryable}
 
     <pre highlight="c++">
     template &lt;class T>
@@ -4159,7 +4159,20 @@ namespace std::execution {
     <code>requires { <i>Q</i>(e, args...) }</code> is `true` then
     <code><i>Q</i>(e, args...)</code> meets any semantic requirements imposed by `Q`.
 
-### `std::forwarding_query` <b>[exec.fwd_env]</b> ### {#spec-execution.queries.forwarding_query}
+### `std::get_env` <b>[exec.get_env]</b> ### {#spec-execution.environment.get_env}
+
+1. `get_env` is a customization point object. For some subexpression `o` of type `O`, `get_env(o)` is expression-equivalent to
+
+    1. `tag_invoke(std::get_env, const_cast<const O&>(o))` if that expression is well-formed.
+
+        * <i>Mandates:</i> The type of the expression satisfies the `queryable`
+            concept ([exec.queryable]).
+
+    2. Otherwise, `empty_env{}`.
+
+2. The value of `get_env(o)` shall be valid while `o` is valid.
+
+### `std::forwarding_query` <b>[exec.fwd_env]</b> ### {#spec-execution.forwarding_query}
 
 1. `std::forwarding_query` is used to ask a query object whether it should be forwarded through queryable adaptors.
 
@@ -4175,7 +4188,7 @@ namespace std::execution {
 
     3. Otherwise, `false`.
 
-### `std::get_allocator` <b>[exec.queries.get_allocator]</b> ### {#spec-execution.queries.get_allocator}
+### `std::get_allocator` <b>[exec.get_allocator]</b> ### {#spec-execution.get_allocator}
 
 1. `std::get_allocator` is used to ask an object for its associated allocator.
 
@@ -4194,7 +4207,7 @@ namespace std::execution {
 4. `std::get_allocator()` (with no arguments) is expression-equivalent to
     `execution::read(std::get_allocator)` ([exec.read]).
 
-### `std::get_stop_token` <b>[exec.queries.get_stop_token]</b> ### {#spec-execution.queries.get_stop_token}
+### `std::get_stop_token` <b>[exec.get_stop_token]</b> ### {#spec-execution.get_stop_token}
 
 1. `std::get_stop_token` is used to ask an object for an associated stop token.
 
@@ -4211,7 +4224,7 @@ namespace std::execution {
 
 4. `std::get_stop_token()` (with no arguments) is expression-equivalent to `execution::read(std::get_stop_token)` ([exec.read]).
 
-### `execution::get_scheduler` <b>[exec.queries.get_scheduler]</b> ### {#spec-execution.queries.get_scheduler}
+### `execution::get_scheduler` <b>[exec.get_scheduler]</b> ### {#spec-execution.get_scheduler}
 
 1. `execution::get_scheduler` is used to ask an object for its associated scheduler.
 
@@ -4230,7 +4243,7 @@ namespace std::execution {
 
 4. `execution::get_scheduler()` (with no arguments) is expression-equivalent to `execution::read(execution::get_scheduler)` ([exec.read]).
 
-### `execution::get_delegatee_scheduler` <b>[exec.queries.get_delegatee_scheduler]</b> ### {#spec-execution.queries.get_delegatee_scheduler}
+### `execution::get_delegatee_scheduler` <b>[exec.get_delegatee_scheduler]</b> ### {#spec-execution.get_delegatee_scheduler}
 
 1. `execution::get_delegatee_scheduler` is used to ask an object for a scheduler that may be used to delegate work to for the purpose of forward progress delegation.
 
@@ -4247,7 +4260,7 @@ namespace std::execution {
 
 4. `execution::get_delegatee_scheduler()` (with no arguments) is expression-equivalent to `execution::read(execution::get_delegatee_scheduler)`  ([exec.read]).
 
-### `execution::get_forward_progress_guarantee` <b>[exec.queries.get_forward_progress_guarantee]</b> ### {#spec-execution.queries.get_forward_progress_guarantee}
+### `execution::get_forward_progress_guarantee` <b>[exec.get_forward_progress_guarantee]</b> ### {#spec-execution.get_forward_progress_guarantee}
 
 <pre highlight=c++>
 enum class forward_progress_guarantee {
@@ -4272,7 +4285,7 @@ enum class forward_progress_guarantee {
 3. If `execution::get_forward_progress_guarantee(s)` for some scheduler `s` returns `execution::forward_progress_guarantee::concurrent`, all execution agents created by that scheduler shall provide the concurrent forward progress guarantee. If it returns
     `execution::forward_progress_guarantee::parallel`, all execution agents created by that scheduler shall provide at least the parallel forward progress guarantee.
 
-### `this_thread::execute_may_block_caller` <b>[exec.queries.execute_may_block_caller]</b> ### {#spec-execution.queries.execute_may_block_caller}
+### `this_thread::execute_may_block_caller` <b>[exec.execute_may_block_caller]</b> ### {#spec-execution.execute_may_block_caller}
 
 1. `this_thread::execute_may_block_caller` is used to ask a scheduler `s` whether a call `execution::execute(s, f)` with any invocable `f` may block the thread where such a call occurs.
 
@@ -4288,7 +4301,7 @@ enum class forward_progress_guarantee {
 
 3. If `this_thread::execute_may_block_caller(s)` for some scheduler `s` returns `false`, no `execution::execute(s, f)` call with some invocable `f` shall block the calling thread.
 
-#### `execution::get_completion_scheduler` <b>[exec.queries.completion_scheduler]</b> #### {#spec-execution.queries.get_completion_scheduler}
+### `execution::get_completion_scheduler` <b>[exec.completion_scheduler]</b> ### {#spec-execution.get_completion_scheduler}
 
 1. `execution::get_completion_scheduler` is used to obtain the <i>completion scheduler</i> for one of its signals from the sender environment.
 
@@ -4309,34 +4322,6 @@ enum class forward_progress_guarantee {
 
 4. The expression `execution::forwarding_query(get_completion_scheduler<CPO>)` has value `true`.
 
-## Execution environments <b>[exec.env]</b> ## {#spec-execution.environment}
-
-1. An <i>execution environment</i> is a queryable object ([exec.queryable]) that contains
-    state associated with the completion of an asynchronous operation. Every receiver
-    has an associated execution environment, accessible with the `get_env` customization
-    point object ([exec.get_env]).
-
-### `execution::get_env` <b>[exec.get_env]</b> ### {#spec-execution.environment.get_env}
-
-1. `get_env` is a customization point object. For some subexpression `o`, `get_env(o)` is expression-equivalent to
-
-    1. `tag_invoke(execution::get_env, o)` if that expression is well-formed.
-
-        * <i>Mandates:</i> The type of the expression satisfies the `queryable`
-            concept ([exec.queryable]).
-
-    2. Otherwise, `empty_env{}`.
-
-2. If `get_env(o)` is an lvalue, the object it refers to shall be valid while `o` is valid.
-
-3. For any non-`const` lvalue <code><i>o</i></code> of type <code><i>O</i></code>,
-    any query object <code><i>Q</i></code>, and any
-    pack of subexpressions <code><i>args</i></code>, the result of the expression
-    <code><i>Q</i>(get_env(static_cast&lt;<i>X</i>>(<i>o</i>)), <i>args</i>...)</code> shall equal
-    the result of <code><i>Q</i>(get_env(as_const(o)), <i>args</i>...)</code> where
-    <code><i>X</i></code> is any of <code><i>O</i>&&</code>, <code>const <i>O</i>&&</code>,
-    or <code>const <i>O</i>&</code>.
-
 ## Schedulers <b>[exec.sched] </b> ## {#spec-execution.schedulers}
 
 1. The `scheduler` concept defines the requirements of a type that allows for scheduling of work on its <i>associated execution context</i>.
@@ -4347,7 +4332,7 @@ enum class forward_progress_guarantee {
         queryable&lt;S> &&
         requires(S&& s, const get_completion_scheduler_t&lt;set_value_t> tag) {
           { execution::schedule(std::forward&lt;S>(s)) } -> sender;
-          { tag_invoke(tag, execution::get_env(
+          { tag_invoke(tag, std::get_env(
               execution::schedule(std::forward&lt;S>(s)))) } -> same_as&lt;remove_cvref_t&lt;S>>;
         } &&
         equality_comparable&lt;remove_cvref_t&lt;S>> &&
@@ -4362,7 +4347,7 @@ enum class forward_progress_guarantee {
 
 5. For any two (possibly const) values `s1` and `s2` of some scheduler type `S`, `s1 == s2` shall return `true` only if both `s1` and `s2` are handles to the same associated execution context.
 
-6. For a given scheduler expression `s`, the expression `execution::get_completion_scheduler<set_value_t>(execution::get_env(execution::schedule(s)))` shall compare equal to `s`.
+6. For a given scheduler expression `s`, the expression `execution::get_completion_scheduler<set_value_t>(std::get_env(execution::schedule(s)))` shall compare equal to `s`.
 
 7. A scheduler type's destructor shall not block pending completion of any receivers connected to the sender objects returned from `schedule`. <span class="wg21note">The ability to wait for completion of submitted function objects may be provided by the associated execution
     context of the scheduler.</span>
@@ -4375,6 +4360,13 @@ enum class forward_progress_guarantee {
     operations corresponding to the three ways an asynchronous operation may
     complete: `set_value`, `set_error`, and `set_stopped`. These are
     collectively known as a receiver’s completion-signal operations.
+
+2. An <i>execution environment</i> is a queryable object ([exec.queryable]) that contains
+    state associated with the completion of an asynchronous operation. Every receiver
+    has an associated execution environment, accessible with the `get_env` customization
+    point object ([exec.get_env]). A sender algorithm can obtain
+    information about the current execution environment by querying the environment of
+    the receiver to which its sender is connected.
 
 ### Receiver concepts <b>[exec.recv_concepts]</b> ### {#spec-execution.receiver_concepts}
 
@@ -4393,13 +4385,10 @@ enum class forward_progress_guarantee {
       concept receiver =
         enable_receiver&lt;remove_cvref_t&lt;R>> &&
         requires(const remove_cvref_t&lt;R>& r) {
-          { execution::get_env(r) } -> queryable;
+          { std::get_env(r) } -> queryable;
         } &&
         move_constructible&lt;remove_cvref_t&lt;R>> &&
         constructible_from&lt;remove_cvref_t&lt;R>, R>;
-        
-    <div class="ed-note">Should these constructibility constraints instead be mandates
-    and cause hard errors instead of substitution failures?</div>
 
     template &lt;class Signature, class R>
       concept <i>valid-completion-for</i> = <i>// exposition only</i>
@@ -4418,28 +4407,22 @@ enum class forward_progress_guarantee {
         };
     </pre>
 
-2. The receiver’s completion-signal operations have semantic requirements that are collectively known as the <i>receiver contract</i>, described below:
+3. _Remarks:_ Pursuant to [namespace.std], users may specialize `enable_receiver` to
+    `true` for cv-unqualified program-defined types that model `receiver`, and `false`
+    for types that do not. Such specializations shall be usable in constant
+    expressions ([expr.const]) and have type `const bool`.
+
+3. The receiver’s completion-signal operations have semantic requirements that are collectively known as the <i>receiver contract</i>, described below:
 
     1. None of a receiver’s completion-signal operations shall be invoked before `execution::start` has been called on the operation state object that was returned by `execution::connect` to connect that receiver to a sender.
 
     2. Once `execution::start` has been called on the operation state object, exactly one of the receiver’s completion-signal operations shall complete before the receiver is destroyed.
 
-3. Once one of a receiver’s completion-signal operations has completed, the receiver contract has been satisfied.
+4. Once one of a receiver’s completion-signal operations has completed, the receiver contract has been satisfied.
 
-4. Receivers have an associated execution environment ([exec.env]) that is accessible
-    by passing the receiver to `execution::get_env`. A sender algorithm can obtain
-    information about the current execution environment by querying the environment of
-    the receiver to which its sender is connected.
-
-5. Given a non-`const` rvalue `r` of type `R` where `R` models `receiver`,
-    then the expressions <code><i>Q</i>(get_env(r), <i>args...</i>)</code> and
-    <code><i>Q</i>(get_env(static_cast&lt;const R&>(r)), <i>args...</i>)</code>
-    shall be equivalent for any query object <code><i>Q</i></code> and for
-    any pack of subexpressions <code><i>args</i></code>.
-
-6. Let `r` be a receiver, `s` be a sender, and `op_state` be an operation state
+5. Let `r` be a receiver, `s` be a sender, and `op_state` be an operation state
     resulting from an `execution::connect(s, r)` call. Let `token` be a stop
-    token resulting from an `execution::get_stop_token(execution::get_env(r))`
+    token resulting from an `execution::get_stop_token(std::get_env(r))`
     call. `token` must remain valid at least until a call to a receiver
     completion-signal function of `r` returns successfully. [<i>Note</i>: this
     means that, unless it knows about further guarantees provided by the
@@ -4530,10 +4513,6 @@ enum class forward_progress_guarantee {
 
 1. A sender describes a potentially asynchronous operation. A sender's responsibility is to fulfill the receiver contract of a connected receiver by delivering one of the receiver completion-signals.
 
-2. For all the sender types `S` and receiver types `R`
-    specified in this section, `enable_sender<S>` and
-    `enable_receiver<R>` are `true`, respectively.
-
 ### Sender concepts <b>[exec.snd_concepts]</b> ### {#spec-execution.environment.snd_concepts}
 
 1. The `sender` concept defines the requirements for a sender type.
@@ -4547,12 +4526,11 @@ enum class forward_progress_guarantee {
       concept <i>valid-completion-signatures</i> = <i>see below</i>;
 
     template &lt;class S>
-      concept <i>enable-sender</i> = <i>// exposition only</i>
-        requires { typename S::is_sender; } ||
-        <i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;empty_env>>; <i>// [exec.complsigs]</i>
+      inline constexpr bool enable_sender =
+        requires { typename S::is_sender; };
 
-    template &lt;class S>
-      inline constexpr bool enable_sender = <i>enable-sender</i>&lt;S>;
+    template &lt;<i>is-awaitable</i>&lt;<i>env-promise</i>&lt;empty_env>> S> <i>// [exec.complsigs]</i>
+      inline constexpr bool enable_sender&lt;S> = true;
 
     template &lt;class S>
       concept sender =
@@ -4584,7 +4562,12 @@ enum class forward_progress_guarantee {
     <code><i>valid-completion-signatures</i></code> if it names an instantiation
     of the `completion_signatures` class template.
 
-3. The `sender_of` concept defines the requirements for a sender type that
+3. _Remarks:_ Pursuant to [namespace.std], users may specialize `enable_sender` to
+    `true` for cv-unqualified program-defined types that model `sender`, and `false`
+    for types that do not. Such specializations shall be usable in constant
+    expressions ([expr.const]) and have type `const bool`.
+
+4. The `sender_of` concept defines the requirements for a sender type that
     completes with the completion signature specified for the given completion
     channel.
 
@@ -5078,7 +5061,7 @@ enum class forward_progress_guarantee {
 
             3. `execution::set_stopped(r)` is expression-equivalent to `execution::set_stopped(out_r)`.
 
-            4. `execution::get_env(r)` is expression-equivalent to `execution::get_env(out_r)`.
+            4. `std::get_env(r)` is expression-equivalent to `std::get_env(out_r)`.
 
         2. Calls `execution::schedule(sch)`, which results in `s2`. It then calls `execution::connect(s2, r)`, resulting in `op_state2`.
 
@@ -5086,7 +5069,7 @@ enum class forward_progress_guarantee {
 
         4. `r2` is a receiver that wraps a reference to `out_r` and forwards all
             receiver completion-signals to it. In addition,
-            `execution::get_env(r2)` returns <code><i>replace-scheduler</i>(e, sch)</code>.
+            `std::get_env(r2)` returns <code><i>replace-scheduler</i>(e, sch)</code>.
 
         5. When `execution::start` is called on `op_state1`, it calls `execution::start` on `op_state2`.
 
@@ -5623,7 +5606,7 @@ enum class forward_progress_guarantee {
                 and returns the results of calling `get_token()` on `sh_state`'s
                 stop source.
 
-        3. Calls `execution::get_env(s)` and decay-copies the result into
+        3. Calls `std::get_env(s)` and decay-copies the result into
             `sh_state`.
 
         4. Calls `execution::connect(s, r)`, resulting in an operation state
@@ -6086,7 +6069,7 @@ enum class forward_progress_guarantee {
                 receiver contract has been completed, it releases its ownership
                 of `sh_state`.
 
-        3. Calls `execution::get_env(s)` and decay-copies the result into
+        3. Calls `std::get_env(s)` and decay-copies the result into
             `sh_state`.
 
         4. Calls `execution::connect(s, r)`, resulting in an operation state
@@ -6509,13 +6492,13 @@ enum class forward_progress_guarantee {
 
         * If `self.get_env()` is a valid expression, `self.get_env()`;
 
-        * Otherwise, <code>execution::get_env(<i>GET-BASE</i>(self))</code>.
+        * Otherwise, <code>std::get_env(<i>GET-BASE</i>(self))</code>.
 
     3. <i>Remarks:</i> The expression in the `noexcept` clause is:
 
         * If `self.get_env()` is a valid expression, `noexcept(self.get_env())`;
 
-        * Otherwise, <code>noexcept(execution::get_env(<i>GET-BASE</i>(self)))</code>.
+        * Otherwise, <code>noexcept(std::get_env(<i>GET-BASE</i>(self)))</code>.
 
 ### `execution::completion_signatures` <b>[exec.utils.cmplsigs]</b> ### {#spec-execution.snd_rec_utils.completion_sigs}
 
