@@ -642,7 +642,7 @@ struct _op {
     }};
   }
   void _retry() noexcept try {
-    o_.emplace(_connect()); // potentially throwing
+    o_.emplace(_connect()); // potentially-throwing
     exec::start(*o_);
   } catch(...) {
     exec::set_error((R&&) r_, std::current_exception());
@@ -2286,7 +2286,7 @@ For example, consider the following trivial implementation of the sender-based `
 
 <pre highlight="c++">
 template &lt;class S>
-  requires <i>single-sender</i>&lt;S&> // See <a href="#spec-execution.coro_utils.as_awaitable">[exec.as_awaitable]</a>
+  requires <i>single-sender</i>&lt;S&> // See <a href="#spec-execution.coro_utils.as_awaitable">[exec.as.awaitable]</a>
 task&lt;<i>single-sender-value-type</i>&lt;S>> retry(S s) {
   for (;;) {
     try {
@@ -2835,8 +2835,8 @@ Senders being able to advertise what their [=completion schedulers=] are fulfill
 The simple way to provide customizations for functions like `then`, that is for [=sender adaptors=] and [=sender consumers=], is to follow the customization scheme that has been adopted for C++20 ranges library; to do that, we would define
 the expression `execution::then(sender, invocable)` to be equivalent to:
 
-  1. `sender.then(invocable)`, if that expression is well formed; otherwise
-  2. `then(sender, invocable)`, performed in a context where this call always performs ADL, if that expression is well formed; otherwise
+  1. `sender.then(invocable)`, if that expression is well-formed; otherwise
+  2. `then(sender, invocable)`, performed in a context where this call always performs ADL, if that expression is well-formed; otherwise
   3. a default implementation of `then`, which returns a sender adaptor, and then define the exact semantics of said adaptor.
 
 However, this definition is problematic. Imagine another sender adaptor, `bulk`, which is a structured abstraction for a loop over an index space. Its default implementation is just a for loop. However, for accelerator runtimes like CUDA, we would like sender algorithms
@@ -3219,12 +3219,9 @@ namespace <i>tag-invoke</i> { <i>// exposition only</i>
       decltype(tag_invoke(declval&lt;Tag>(), declval&lt;Args>()...));
 
   template &lt;class Tag, class... Args>
-    struct tag_invoke_result {};
-
-  template &lt;class Tag, class... Args>
-      requires tag_invocable&lt;Tag, Args...>
     struct tag_invoke_result&lt;Tag, Args...> {
-      using type = tag_invoke_result_t&lt;Tag, Args...>;
+      using type =
+        tag_invoke_result_t&lt;Tag, Args...>; <i>// present if and only if tag_invocable&lt;Tag, Args...> is true</i>
     };
 
   struct <i>tag</i>; <i>// exposition only</i>
@@ -3248,13 +3245,12 @@ Insert this section as a new subclause, between Searchers <b>[func.search]</b> a
 <ins>
 <blockquote>
 
-1. The name `std::tag_invoke` denotes a customization point object [customization.point.object]. Given subexpressions `T` and `A...`, the expression `std::tag_invoke(T, A...)` is expression-equivalent [defns.expression-equivalent] to `tag_invoke(T, A...)` if it is a well-formed expression with overload resolution performed in a context in which unqualified lookup for `tag_invoke` finds only the declaration
+1. The name `std::tag_invoke` denotes a customization point object [customization.point.object]. Given subexpressions `T` and `A...`, the expression `std::tag_invoke(T, A...)` is expression-equivalent [defns.expression-equivalent] to `tag_invoke(T, A...)` 
+with overload resolution performed in a context in which unqualified lookup for `tag_invoke` finds only the declaration
 
     ```c++
     void tag_invoke();
     ```
-
-    Otherwise, `std::tag_invoke(T, A...)` is ill-formed.
 
 2. [Note: Diagnosable ill-formed cases above result in substitution failure when `std::tag_invoke(T, A...)` appears in the immediate context of a template instantiation. —end note]
 
@@ -3711,7 +3707,7 @@ template&lt;class C>
 <th><td>Subclause</td><td>Header</td></th>
 <tr style="border-bottom-style: hidden;"><td><a href="#spec-execution.schedulers">[exec.sched]</a></td><td>Schedulers</td><td>`<execution>`</td></tr>
 <tr style="border-bottom-style: hidden;"><td><a href="#spec-execution.receivers">[exec.recv]</a></td><td>Receivers</td><td></td></tr>
-<tr style="border-bottom-style: hidden;"><td><a href="#spec-execution.op_state">[exec.op_state]</a></td><td>Operation states</td><td></td></tr>
+<tr style="border-bottom-style: hidden;"><td><a href="#spec-execution.opstate">[exec.opstate]</a></td><td>Operation states</td><td></td></tr>
 <tr style="border-bottom-style: hidden;"><td><a href="#spec-execution.senders">[exec.snd]</a></td><td>Senders</td><td></td></tr>
 <tr><td><a href="#spec-execution.execute">[exec.execute]</a></td><td>One-way execution</td><td></td></tr>
 </table>
@@ -3859,7 +3855,7 @@ namespace std::execution {
   inline constexpr set_error_t set_error{};
   inline constexpr set_stopped_t set_stopped{};
 
-  // [exec.op_state], operation states
+  // [exec.opstate], operation states
   template&lt;class O>
     concept operation_state = <i>see-below</i>;
 
@@ -4040,7 +4036,7 @@ namespace std::execution {
   inline constexpr start_detached_t start_detached{};
 
   // [exec.utils], sender and receiver utilities
-  // [exec.utils.rcvr_adptr]
+  // [exec.utils.rcvr.adptr]
   template&lt;
       <i>class-type</i> Derived,
       receiver Base = <i>unspecified</i>> // arguments are not associated entities ([lib.tmpl-heads])
@@ -4113,23 +4109,35 @@ namespace std::execution {
   using <i>execute</i>::execute_t;
   inline constexpr execute_t execute{};
 
-  // [exec.as_awaitable]
+  // [exec.as.awaitable]
   namespace <i>coro-utils</i> { // exposition only
     struct as_awaitable_t;
   }
   using <i>coro-utils</i>::as_awaitable_t;
   inline constexpr as_awaitable_t as_awaitable;
 
-  // [exec.with_awaitable_senders]
+  // [exec.with.awaitable.senders]
   template &lt;<i>class-type</i> Promise>
     struct with_awaitable_senders;
 }
 </pre>
 
-## Helper concepts <b>[exec.helpers]</b> ## {#spec-execution.helpers}
+## Helper entities <b>[exec.helpers]</b> ## {#spec-execution.helpers}
+
+1. This clause makes use of the following exposition-only entities.
 
     <pre highlight=c++>
-    template&lt;class T>
+    template &lt;class Fn, class... Args>
+        requires <i>callable</i>&lt;Fn, Args...>
+      constexpr decltype(auto) <i>mandate-nothrow-call</i>(Fn&& fn, Args&&... args) noexcept {
+        return std::forward<Fn>(fn)(std::forward<Args>(args)...);
+      }
+    </pre>
+
+    * <i>Mandates:</i> <code><i>nothrow-callable</i>&lt;Fn, Args...></code> is `true`.
+
+    <pre highlight=c++>
+    template &lt;class T>
       concept <i>movable-value</i> = <i>// exposition only</i>
         move_constructible&lt;decay_t&lt;T>> &&
         constructible_from&lt;decay_t&lt;T>, T>;
@@ -4159,64 +4167,59 @@ namespace std::execution {
     <code>requires { <i>Q</i>(e, args...) }</code> is `true` then
     <code><i>Q</i>(e, args...)</code> meets any semantic requirements imposed by `Q`.
 
-### `std::get_env` <b>[exec.get_env]</b> ### {#spec-execution.environment.get_env}
+### `std::get_env` <b>[exec.get.env]</b> ### {#spec-execution.environment.get_env}
 
 1. `get_env` is a customization point object. For some subexpression `o` of type `O`, `get_env(o)` is expression-equivalent to
 
     1. `tag_invoke(std::get_env, const_cast<const O&>(o))` if that expression is well-formed.
 
-        * <i>Mandates:</i> The type of the expression satisfies the `queryable`
-            concept ([exec.queryable]).
+        * <i>Mandates:</i> The type of the expression above satisfies
+            `queryable` ([exec.queryable]).
 
     2. Otherwise, `empty_env{}`.
 
 2. The value of `get_env(o)` shall be valid while `o` is valid.
 
-### `std::forwarding_query` <b>[exec.fwd_env]</b> ### {#spec-execution.forwarding_query}
+### `std::forwarding_query` <b>[exec.fwd.env]</b> ### {#spec-execution.forwarding_query}
 
-1. `std::forwarding_query` is used to ask a query object whether it should be forwarded through queryable adaptors.
+1. `std::forwarding_query` asks a query object whether it should be forwarded through queryable adaptors.
 
-2. The name `std::forwarding_query` denotes a query object. For some query object `q` of type `Q`, `std::forwarding_query(q)` is expression equivalent to:
+2. The name `std::forwarding_query` denotes a query object. For some query object `q` of type `Q`, `std::forwarding_query(q)` is expression-equivalent to:
 
-    1. `tag_invoke(std::forwarding_query, q)` if that expression is well-formed.
+    1. <code><i>mandate-nothrow-call</i>(tag_invoke, std::forwarding_query, q)</code> if that expression is well-formed.
 
-        * <i>Mandates:</i> The expression is a core constant expressions if
-            `q` is a core constant expression, has type
-            `bool`, and is not potentially-throwing.
+        * <i>Mandates:</i> The expression above is a core constant expressions if
+            `q` is a core constant expression and has type `bool`.
 
     2. Otherwise, `true` if `derived_from<Q, std::forwarding_query_t>` is `true`.
 
     3. Otherwise, `false`.
 
-### `std::get_allocator` <b>[exec.get_allocator]</b> ### {#spec-execution.get_allocator}
+### `std::get_allocator` <b>[exec.get.allocator]</b> ### {#spec-execution.get_allocator}
 
-1. `std::get_allocator` is used to ask an object for its associated allocator.
+1. `std::get_allocator` asks an object for its associated allocator.
 
 2. The name `std::get_allocator` denotes a query object. For some subexpression
-    `r`, `std::get_allocator(r)` is expression equivalent to:
+    `r`, `std::get_allocator(r)` is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, std::get_allocator, as_const(r))</code>.
 
-    1. `tag_invoke(std::get_allocator, as_const(r))`, if this expression is well formed.
-
-        * <i>Mandates:</i> The `tag_invoke` expression above is not
-            potentially-throwing and its type satisfies <i>Allocator</i>.
-
-    2. Otherwise, `std::get_allocator(r)` is ill-formed.
+        * <i>Mandates:</i> The type of the expression above
+            satisfies <i>Allocator</i>.
 
 3. `std::forwarding_query(std::get_allocator)` is `true`.
 
 4. `std::get_allocator()` (with no arguments) is expression-equivalent to
     `execution::read(std::get_allocator)` ([exec.read]).
 
-### `std::get_stop_token` <b>[exec.get_stop_token]</b> ### {#spec-execution.get_stop_token}
+### `std::get_stop_token` <b>[exec.get.stop.token]</b> ### {#spec-execution.get_stop_token}
 
-1. `std::get_stop_token` is used to ask an object for an associated stop token.
+1. `std::get_stop_token` asks an object for an associated stop token.
 
-2. The name `std::get_stop_token` denotes a query object. For some subexpression `r`, `std::get_stop_token(r)` is expression equivalent to:
+2. The name `std::get_stop_token` denotes a query object. For some subexpression `r`, `std::get_stop_token(r)` is expression-equivalent to:
 
-    1. `tag_invoke(std::get_stop_token, as_const(r))`, if this expression is well formed.
+    1. <code><i>mandate-nothrow-call</i>(tag_invoke, std::get_stop_token, as_const(r))</code>, if this expression is well-formed.
 
-        * <i>Mandates:</i> The `tag_invoke` expression above is not
-            potentially-throwing and its type satisfies `stoppable_token`.
+        * <i>Mandates:</i> The type of the expression above satisfies `stoppable_token`.
 
     2. Otherwise, `never_stop_token{}`.
 
@@ -4224,43 +4227,35 @@ namespace std::execution {
 
 4. `std::get_stop_token()` (with no arguments) is expression-equivalent to `execution::read(std::get_stop_token)` ([exec.read]).
 
-### `execution::get_scheduler` <b>[exec.get_scheduler]</b> ### {#spec-execution.get_scheduler}
+### `execution::get_scheduler` <b>[exec.get.scheduler]</b> ### {#spec-execution.get_scheduler}
 
-1. `execution::get_scheduler` is used to ask an object for its associated scheduler.
+1. `execution::get_scheduler` asks an object for its associated scheduler.
 
 2. The name `execution::get_scheduler` denotes a query object. For some
-    subexpression `r`,  `execution::get_scheduler(r)` is expression equivalent
-    to:
+    subexpression `r`,  `execution::get_scheduler(r)` is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, execution::get_scheduler, as_const(r))</code>.
 
-    1. `tag_invoke(execution::get_scheduler, as_const(r))`, if this expression is well formed.
-
-        * <i>Mandates:</i> The `tag_invoke` expression above is not
-            potentially-throwing and its type satisfies `execution::scheduler`.
-
-    2. Otherwise, `execution::get_scheduler(r)` is ill-formed.
+        * <i>Mandates:</i> The type of the expression above satisfies `execution::scheduler`.
 
 3. `std::forwarding_query(std::get_scheduler)` is `true`.
 
 4. `execution::get_scheduler()` (with no arguments) is expression-equivalent to `execution::read(execution::get_scheduler)` ([exec.read]).
 
-### `execution::get_delegatee_scheduler` <b>[exec.get_delegatee_scheduler]</b> ### {#spec-execution.get_delegatee_scheduler}
+### `execution::get_delegatee_scheduler` <b>[exec.get.delegatee.scheduler]</b> ### {#spec-execution.get_delegatee_scheduler}
 
-1. `execution::get_delegatee_scheduler` is used to ask an object for a scheduler that may be used to delegate work to for the purpose of forward progress delegation.
+1. `execution::get_delegatee_scheduler` asks an object for a scheduler that may be used to delegate work to for the purpose of forward progress delegation.
 
-2. The name `execution::get_delegatee_scheduler` denotes a query object. For some subexpression `r`, `execution::get_delegatee_scheduler(r)` is expression equivalent to:
+2. The name `execution::get_delegatee_scheduler` denotes a query object. For some
+    subexpression `r`, `execution::get_delegatee_scheduler(r)` is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, execution::get_delegatee_scheduler, as_const(r))</code>.
 
-    1. `tag_invoke(execution::get_delegatee_scheduler, as_const(r))`, if this expression is well formed.
-
-        * <i>Mandates:</i> The `tag_invoke` expression above is not
-            potentially-throwing and its type satisfies `execution::scheduler`.
-
-    2. Otherwise, `execution::get_delegatee_scheduler(r)` is ill-formed.
+        * <i>Mandates:</i> The type of the expression above is satisfies `execution::scheduler`.
 
 3. `std::forwarding_query(std::get_delegatee_scheduler)` is `true`.
 
 4. `execution::get_delegatee_scheduler()` (with no arguments) is expression-equivalent to `execution::read(execution::get_delegatee_scheduler)`  ([exec.read]).
 
-### `execution::get_forward_progress_guarantee` <b>[exec.get_forward_progress_guarantee]</b> ### {#spec-execution.get_forward_progress_guarantee}
+### `execution::get_forward_progress_guarantee` <b>[exec.get.forward.progress.guarantee]</b> ### {#spec-execution.get_forward_progress_guarantee}
 
 <pre highlight=c++>
 enum class forward_progress_guarantee {
@@ -4270,52 +4265,49 @@ enum class forward_progress_guarantee {
 };
 </pre>
 
-1. `execution::get_forward_progress_guarantee` is used to ask a scheduler about the forward progress guarantees of execution agents created by that scheduler.
+1. `execution::get_forward_progress_guarantee` asks a scheduler about the forward progress guarantees of execution agents created by that scheduler.
 
 2. The name `execution::get_forward_progress_guarantee` denotes a query object. For some subexpression `s`, let `S` be `decltype((s))`. If `S` does not satisfy `execution::scheduler`, `execution::get_forward_progress_guarantee` is ill-formed.
-    Otherwise, `execution::get_forward_progress_guarantee(s)` is expression equivalent to:
+    Otherwise, `execution::get_forward_progress_guarantee(s)` is expression-equivalent to:
 
-    1. `tag_invoke(execution::get_forward_progress_guarantee, as_const(s))`, if this expression is well formed.
+    1. <code><i>mandate-nothrow-call</i>(tag_invoke, execution::get_forward_progress_guarantee, as_const(s))</code>, if this expression is well-formed.
 
-        * <i>Mandates:</i> The `tag_invoke` expression above is not potentially
-            throwing and its type is `execution::forward_progress_guarantee`.
+        * <i>Mandates:</i> The type of the expression above is
+            `execution::forward_progress_guarantee`.
 
     2. Otherwise, `execution::forward_progress_guarantee::weakly_parallel`.
 
 3. If `execution::get_forward_progress_guarantee(s)` for some scheduler `s` returns `execution::forward_progress_guarantee::concurrent`, all execution agents created by that scheduler shall provide the concurrent forward progress guarantee. If it returns
     `execution::forward_progress_guarantee::parallel`, all execution agents created by that scheduler shall provide at least the parallel forward progress guarantee.
 
-### `this_thread::execute_may_block_caller` <b>[exec.execute_may_block_caller]</b> ### {#spec-execution.execute_may_block_caller}
+### `this_thread::execute_may_block_caller` <b>[exec.execute.may.block.caller]</b> ### {#spec-execution.execute_may_block_caller}
 
-1. `this_thread::execute_may_block_caller` is used to ask a scheduler `s` whether a call `execution::execute(s, f)` with any invocable `f` may block the thread where such a call occurs.
+1. `this_thread::execute_may_block_caller` asks a scheduler `s` whether a call `execution::execute(s, f)` with any invocable `f` may block the thread where such a call occurs.
 
 2. The name `this_thread::execute_may_block_caller` denotes a query object. For some subexpression `s`, let `S` be `decltype((s))`. If `S` does not satisfy `execution::scheduler`, `this_thread::execute_may_block_caller` is ill-formed. Otherwise,
-    `this_thread::execute_may_block_caller(s)` is expression equivalent to:
+    `this_thread::execute_may_block_caller(s)` is expression-equivalent to:
 
-    1. `tag_invoke(this_thread::execute_may_block_caller, as_const(s))`, if this expression is well formed.
+    1. <code><i>mandate-nothrow-call</i>(tag_invoke, this_thread::execute_may_block_caller, as_const(s))</code>, if this expression is well-formed.
 
-        * <i>Mandates:</i> The `tag_invoke` expression above is not potentially
-            throwing and its type is `bool`.
+        * <i>Mandates:</i> The type of the expression above is `bool`.
 
     2. Otherwise, `true`.
 
 3. If `this_thread::execute_may_block_caller(s)` for some scheduler `s` returns `false`, no `execution::execute(s, f)` call with some invocable `f` shall block the calling thread.
 
-### `execution::get_completion_scheduler` <b>[exec.completion_scheduler]</b> ### {#spec-execution.get_completion_scheduler}
+### `execution::get_completion_scheduler` <b>[exec.completion.scheduler]</b> ### {#spec-execution.get_completion_scheduler}
 
-1. `execution::get_completion_scheduler` is used to obtain the <i>completion scheduler</i> for one of its signals from the sender environment.
+1. `execution::get_completion_scheduler` obtains the <i>completion scheduler</i> for one of its signals from the sender environment.
 
 2. The name `execution::get_completion_scheduler` denotes a query object template.
     For some subexpression `q`, let `Q` be `decltype((q))`. If the template
     argument `CPO` in `execution::get_completion_scheduler<CPO>(q)` is not one of
     `execution::set_value_t`, `execution::set_error_t`, or `execution::set_stopped_t`, `execution::get_completion_scheduler<CPO>(q)` is ill-formed. Otherwise,
-    `execution::get_completion_scheduler<CPO>(q)` is expression-equivalent to:
+    `execution::get_completion_scheduler<CPO>(q)` is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, execution::get_completion_scheduler<CPO>, as_const(q))</code> if this expression is well-formed.
 
-    1. `tag_invoke(execution::get_completion_scheduler<CPO>, as_const(q))` if this expression is well formed.
-
-        * <i>Mandates:</i> The `tag_invoke` expression above is not potentially throwing and its type satisfies `execution::scheduler`.
-
-    2. Otherwise, `execution::get_completion_scheduler<CPO>(q)` is ill-formed.
+        * <i>Mandates:</i> The type of the expression above satisfies
+            `execution::scheduler`.
 
 3. If, for some sender `s` and customization point object `CPO`, `get_completion_scheduler<decltype(CPO)>(get_env(s))` is well-formed and results in a scheduler `sch`, and the sender `s` invokes `CPO(r, args...)`, for some receiver `r` that has been connected to
     `s`, with additional arguments `args...`, on an execution agent that does not belong to the associated execution context of `sch`, the behavior is undefined.
@@ -4364,11 +4356,11 @@ enum class forward_progress_guarantee {
 2. An <i>execution environment</i> is a queryable object ([exec.queryable]) that contains
     state associated with the completion of an asynchronous operation. Every receiver
     has an associated execution environment, accessible with the `get_env` customization
-    point object ([exec.get_env]). A sender algorithm can obtain
+    point object ([exec.get.env]). A sender algorithm can obtain
     information about the current execution environment by querying the environment of
     the receiver to which its sender is connected.
 
-### Receiver concepts <b>[exec.recv_concepts]</b> ### {#spec-execution.receiver_concepts}
+### Receiver concepts <b>[exec.recv.concepts]</b> ### {#spec-execution.receiver_concepts}
 
 1. The `receiver` concept defines the requirements for a receiver type with an
     unknown set of completion signatures. The `receiver_of` concept defines the
@@ -4393,8 +4385,8 @@ enum class forward_progress_guarantee {
     template &lt;class Signature, class R>
       concept <i>valid-completion-for</i> = <i>// exposition only</i>
         requires (Signature* sig) {
-            []&lt;class Ret, class... Args>(Ret(*)(Args...))
-                requires nothrow_tag_invocable&lt;Ret, remove_cvref_t&lt;R>, Args...>
+            []&lt;class Tag, class... Args>(Tag(*)(Args...))
+                requires <i>callable</i>&lt;Tag, remove_cvref_t&lt;R>, Args...>
             {}(sig);
         };
 
@@ -4407,7 +4399,7 @@ enum class forward_progress_guarantee {
         };
     </pre>
 
-3. _Remarks:_ Pursuant to [namespace.std], users may specialize `enable_receiver` to
+3. <i>Remarks:</i> Pursuant to [namespace.std], users may specialize `enable_receiver` to
     `true` for cv-unqualified program-defined types that model `receiver`, and `false`
     for types that do not. Such specializations shall be usable in constant
     expressions ([expr.const]) and have type `const bool`.
@@ -4432,52 +4424,38 @@ enum class forward_progress_guarantee {
     of `op_state` or `s` must be destroyed before such a call to a receiver
     completion-signal function of `r`. --<i>end note</i>]
 
-### `execution::set_value` <b>[exec.set_value]</b> ### {#spec-execution.receivers.set_value}
+### `execution::set_value` <b>[exec.set.value]</b> ### {#spec-execution.receivers.set_value}
 
-1. `execution::set_value` is used to send a value completion signal to a receiver.
-
-2. The name `execution::set_value` denotes a customization point object. The
+1. The name `execution::set_value` denotes a customization point object. The
     expression `execution::set_value(R, Vs...)` for some subexpression `R` and
-    pack of subexpressions `Vs` is expression-equivalent to:
+    pack of subexpressions `Vs` is ill-formed if `R` is an lvalue. Otherwise,
+    it is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, execution::set_value, R, Vs...)</code>.
 
-    1. `tag_invoke(execution::set_value, R, Vs...)`, if that expression is
-        valid. The function selected by `tag_invoke` shall send the
-        value(s) `Vs...` to the receiver `R`’s value channel.
+2. The expression `execution::set_value(R, Vs...)` satisfies the receiver contract
+    of `R` with a value completion signal with values `Vs...`.
 
-        * <i>Mandates:</i> The `tag_invoke` expression above is not potentially
-            throwing.
+### `execution::set_error` <b>[exec.set.error]</b> ### {#spec-execution.receivers.set_error}
 
-    2. Otherwise, `execution::set_value(R, Vs...)` is ill-formed.
+1. The name `execution::set_error` denotes a customization point object. The
+    expression `execution::set_error(R, E)` for some subexpressions `R` and `E`
+    is ill-formed if `R` is an lvalue. Otherwise, it is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, execution::set_error, R, E)</code>.
 
-### `execution::set_error` <b>[exec.set_error]</b> ### {#spec-execution.receivers.set_error}
+2. The expression `execution::set_error(R, E)` satisfies the receiver contract
+    of `R` with an error completion signal with error `E`.
 
-1. `execution::set_error` is used to send an error completion signal to a receiver.
+### `execution::set_stopped` <b>[exec.set.stopped]</b> ### {#spec-execution.receivers.set_stopped}
 
-2. The name `execution::set_error` denotes a customization point object. The expression `execution::set_error(R, E)` for some subexpressions `R` and `E` is expression-equivalent to:
+1. The name `execution::set_stopped` denotes a customization point object. The
+    expression `execution::set_stopped(R)` for some subexpression `R` is
+    ill-formed if `R` is an lvalue. Otherwise, it is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, execution::set_stopped, R)</code>.
 
-    1. `tag_invoke(execution::set_error, R, E)`, if that expression is valid.
-        The function selected by `tag_invoke` shall send the error `E` to the
-        receiver `R`’s error channel.
+2. The expression `execution::set_stopped(R)` satisfies the receiver contract
+    of `R` with a stopped completion signal.
 
-        * <i>Mandates:</i> The `tag_invoke` expression above is not potentially
-            throwing.
-
-    2. Otherwise, `execution::set_error(R, E)` is ill-formed.
-
-### `execution::set_stopped` <b>[exec.set_stopped]</b> ### {#spec-execution.receivers.set_stopped}
-
-1. `execution::set_stopped` is used to send a stopped completion signal to a receiver.
-
-2. The name `execution::set_stopped` denotes a customization point object. The expression `execution::set_stopped(R)` for some subexpression `R` is expression-equivalent to:
-
-    1. `tag_invoke(execution::set_stopped, R)`, if that expression is valid. The function selected by `tag_invoke` shall signal the receiver `R`’s stopped channel.
-
-        * <i>Mandates:</i> The `tag_invoke` expression above is not potentially
-            throwing.
-
-    2. Otherwise, `execution::set_stopped(R)` is ill-formed.
-
-## Operation states <b>[exec.op_state]</b> ## {#spec-execution.op_state}
+## Operation states <b>[exec.opstate]</b> ## {#spec-execution.opstate}
 
 1. The `operation_state` concept defines the requirements for an operation state type, which allows for starting the execution of work.
 
@@ -4493,9 +4471,9 @@ enum class forward_progress_guarantee {
 
 2. Any operation state types defined by the implementation are non-movable types.
 
-### `execution::start` <b>[exec.op_state.start]</b> ### {#spec-execution.op_state.start}
+### `execution::start` <b>[exec.opstate.start]</b> ### {#spec-execution.opstate.start}
 
-1. `execution::start` is used to start work represented by an operation state object.
+1. `execution::start` starts work represented by an operation state object.
 
 2. The name `execution::start` denotes a customization point object. The expression `execution::start(O)` for some lvalue subexpression `O` is expression-equivalent to:
 
@@ -4513,7 +4491,7 @@ enum class forward_progress_guarantee {
 
 1. A sender describes a potentially asynchronous operation. A sender's responsibility is to fulfill the receiver contract of a connected receiver by delivering one of the receiver completion-signals.
 
-### Sender concepts <b>[exec.snd_concepts]</b> ### {#spec-execution.environment.snd_concepts}
+### Sender concepts <b>[exec.snd.concepts]</b> ### {#spec-execution.environment.snd_concepts}
 
 1. The `sender` concept defines the requirements for a sender type.
     The `sender_in` concept defines the requirements for a sender within a
@@ -4615,7 +4593,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::completion_signatures_of_t` <b>[exec.complsigs]</b> #### {#spec-exec.complsigs}
 
-1. The alias template `completion_signatures_of_t` is used to obtain from a sender the list of completion signatures it may complete with.
+1. The alias template `completion_signatures_of_t` obtains from a sender the list of completion signatures it may complete with.
 
 2. `completion_signatures_of_t` also recognizes awaitables as senders. For this clause ([exec]):
 
@@ -4635,7 +4613,7 @@ enum class forward_progress_guarantee {
 
     1. For some subexpression `e`, the expression `p.await_transform(e)` is
         expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that
-        expression is well-formed ([exec.as_awaitable]); otherwise, `e`.
+        expression is well-formed ([exec.as.awaitable]); otherwise, `e`.
 
     2. `decltype(get_env(as_const(p)))` names the type `const Env&`.
 
@@ -4708,7 +4686,7 @@ enum class forward_progress_guarantee {
     rvalue-reference qualification).
 
 8. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
-    sender. If `error_types_of_t<S, env_of_t<R>, Variant>` is well formed, it
+    sender. If `error_types_of_t<S, env_of_t<R>, Variant>` is well-formed, it
     shall name the type <code>Variant&lt;E<i><sub>0</sub></i>,
     E<i><sub>1</sub></i>, ..., E<i><sub>N</sub></i>></code>, where the types
     <code>E<i><sub>0</sub></i></code> through <code>E<i><sub>N</sub></i></code>
@@ -4719,7 +4697,7 @@ enum class forward_progress_guarantee {
     (ignoring differences in rvalue-reference qualification).
 
 9. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
-    sender. If `sends_stopped<S, env_of_t<R>>` is well formed and
+    sender. If `sends_stopped<S, env_of_t<R>>` is well-formed and
     `false`, such a sender `S` shall not odr-use `execution::set_stopped(r)`.
 
 10. [<i>Note</i>: The types <code>Args<i><sub>i</sub></i>...</code> and <code>E<i><sub>i</sub></i>...</code> captured in `value_types` and `error_types` can appear in any order.
@@ -4727,7 +4705,7 @@ enum class forward_progress_guarantee {
 
 ### `execution::connect` <b>[exec.connect]</b> ### {#spec-execution.senders.connect}
 
-1. `execution::connect` is used to <i>connect</i> a sender with a receiver, producing an operation state object that represents the work that needs to be performed to satisfy the receiver contract of the receiver with values that are the result of the operations described by the sender.
+1. `execution::connect` <i>connects</i> a sender with a receiver, producing an operation state object that represents the work that needs to be performed to satisfy the receiver contract of the receiver with values that are the result of the operations described by the sender.
 
 2. The name `execution::connect` denotes a customization point object. For some subexpressions `s` and `r`, let `S` be `decltype((s))` and `R` be `decltype((r))`, and let `S'` and `R'` be the decayed types of `S` and `R`, respectively. If `R` does not satisfy `execution::receiver`, `execution::connect(s, r)` is ill-formed. Otherwise, the expression `execution::connect(s, r)` is expression-equivalent to:
 
@@ -4775,7 +4753,7 @@ enum class forward_progress_guarantee {
 
           5. The expression `p.unhandled_stopped()` is expression-equivalent to `(execution::set_stopped(std::move(r)), noop_coroutine())`.
 
-          6. For some expression `e`, the expression `p.await_transform(e)` is expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that expression is well-formed ([exec.as_awaitable]); otherwise, it is expression-equivalent to `e`.
+          6. For some expression `e`, the expression `p.await_transform(e)` is expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that expression is well-formed ([exec.as.awaitable]); otherwise, it is expression-equivalent to `e`.
 
         Let `Res` be <code><i>await-result-type</i>&lt;S, <i>connect-awaitable-promise</i>></code>, and let `Vs...` be an empty parameter pack if `Res` is <code><i>cv</i> void</code>, or a pack containing the single type `Res` otherwise. The operand of the <i>requires-clause</i> of <code><i>connect-awaitable</i></code> is equivalent to `receiver_of<R, Sigs>` where `Sigs` names the type:
 
@@ -4798,7 +4776,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::schedule` <b>[exec.schedule]</b> #### {#spec-execution.senders.schedule}
 
-1. `execution::schedule` is used to obtain a sender associated with a scheduler, which can be used to describe work to be started on that scheduler's associated execution context.
+1. `execution::schedule` obtains a sender associated with a scheduler, which can be used to describe work to be started on that scheduler's associated execution context.
 
 2. The name `execution::schedule` denotes a customization point object. For some subexpression `s`, the expression `execution::schedule(s)` is expression-equivalent to:
 
@@ -4810,9 +4788,9 @@ enum class forward_progress_guarantee {
 
 #### `execution::just`, `execution::just_error`, `execution::just_stopped` <b>[exec.just]</b> #### {#spec-execution.senders.just}
 
-1. `execution::just` is used to create a sender that propagates a set of values to a connected receiver.
-    `execution::just_error` is used to create a sender that propagates an error to a connected receiver.
-    `execution::just_stopped` is used to create a sender that propagates a stopped signal to a connected receiver.
+1. `execution::just` creates a sender that propagates a set of values to a connected receiver.
+    `execution::just_error` creates a sender that propagates an error to a connected receiver.
+    `execution::just_stopped` creates a sender that propagates a stopped signal to a connected receiver.
 
 2. Let `just-sender` be the class template:
 
@@ -4862,9 +4840,9 @@ enum class forward_progress_guarantee {
 
 5. Then name `execution::just_stopped` denotes a customization point object. `execution::just_stopped` is expression-equivalent to <code><i>just-sender</i>&lt;set_stopped_t>()</i></code>.
 
-#### `execution::transfer_just` <b>[exec.transfer_just]</b> #### {#spec-execution.senders.transfer_just}
+#### `execution::transfer_just` <b>[exec.transfer.just]</b> #### {#spec-execution.senders.transfer_just}
 
-1. `execution::transfer_just` is used to create a sender that propagates a set of values to a connected receiver on an execution agent belonging to the associated execution context of a specified scheduler.
+1. `execution::transfer_just` creates a sender that propagates a set of values to a connected receiver on an execution agent belonging to the associated execution context of a specified scheduler.
 
 2. The name `execution::transfer_just` denotes a customization point object. For some subexpressions `s` and `vs...`, let `S` be `decltype((s))` and `Vs...` be `decltype((vs))`. If `S` does not satisfy `execution::scheduler`, or any type `V` in `Vs` does not
     satisfy <code><i>movable-value</i></code>, `execution::transfer_just(s, vs...)` is ill-formed. Otherwise, `execution::transfer_just(s, vs...)` is expression-equivalent to:
@@ -4881,7 +4859,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::read` <b>[exec.read]</b> #### {#spec-execution.senders.read}
 
-1. `execution::read` is used to create a sender that retrieves a value from the receiver's associated environment and sends it back to the receiver through the value channel.
+1. `execution::read` creates a sender that retrieves a value from the receiver's associated environment and sends it back to the receiver through the value channel.
 
 2. `execution::read` is a customization point object of an unspecified class type equivalent to:
 
@@ -4943,7 +4921,7 @@ enum class forward_progress_guarantee {
         }
         </pre>
 
-        if `e` is potentially throwing; or `execution::set_value(r, e)` otherwise.
+        if `e` is potentially-throwing; or `execution::set_value(r, e)` otherwise.
 
 ### Sender adaptors <b>[exec.adapt]</b> ### {#spec-execution.senders.adapt}
 
@@ -5038,7 +5016,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::on` <b>[exec.on]</b> #### {#spec-execution.senders.adapt.on}
 
-1. `execution::on` is used to adapt a sender into a sender that will start the input sender on an execution agent belonging to a specific execution context.
+1. `execution::on` adapts a sender into a sender that will start the input sender on an execution agent belonging to a specific execution context.
 
 2. Let <code><i>replace-scheduler</i>(e, sch)</code> be an expression denoting an object `e'` such that `execution::get_scheduler(e)` returns a copy of `sch`, and `tag_invoke(tag, e', args...)` is expression-equivalent to `tag(e, args...)`
     for all arguments `args...` and for all `tag` whose type satisfies <code><i>forwarding-query</i></code> and is not `execution::get_scheduler_t`.
@@ -5095,7 +5073,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
 
-1. `execution::transfer` is used to adapt a sender into a sender with a different associated `set_value` completion scheduler. [<i>Note</i>: it results in a transition between different execution contexts when executed. --<i>end note</i>]
+1. `execution::transfer` adapts a sender into a sender with a different associated `set_value` completion scheduler. [<i>Note</i>: it results in a transition between different execution contexts when executed. --<i>end note</i>]
 
 2. The name `execution::transfer` denotes a customization point object. For some subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If `Sch` does not satisfy `execution::scheduler`, or `S` does not satisfy
     `execution::sender`, `execution::transfer` is ill-formed. Otherwise, the expression `execution::transfer(s, sch)` is expression-equivalent to:
@@ -5124,9 +5102,9 @@ enum class forward_progress_guarantee {
     whose type satisfies `forwarding_query`, the expression <code><i>Q</i>(q, args...)</code>
     shall be equivalent to <code><i>Q</i>(get_env(s), args...)</code>.
 
-#### `execution::schedule_from` <b>[exec.schedule_from]</b> #### {#spec-execution.senders.adaptors.schedule_from}
+#### `execution::schedule_from` <b>[exec.schedule.from]</b> #### {#spec-execution.senders.adaptors.schedule_from}
 
-1. `execution::schedule_from` is used to schedule work dependent on the completion of a sender onto a scheduler's associated execution context. [<i>Note</i>: `schedule_from` is not meant to be used in user code; it is used in the implementation of
+1. `execution::schedule_from` schedules work dependent on the completion of a sender onto a scheduler's associated execution context. [<i>Note</i>: `schedule_from` is not meant to be used in user code; it is used in the implementation of
     `transfer`. -<i>end note</i>]
 
 3. The name `execution::schedule_from` denotes a customization point object. For some subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If `Sch` does not satisfy `execution::scheduler`, or `S` does not satisfy
@@ -5181,7 +5159,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::then` <b>[exec.then]</b> #### {#spec-execution.senders.adaptor.then}
 
-1. `execution::then` is used to attach an invocable as a continuation for the successful completion of the input sender.
+1. `execution::then` attaches an invocable as a continuation for the successful completion of the input sender.
 
 2. The name `execution::then` denotes a customization point object. For some
     subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
@@ -5216,7 +5194,7 @@ enum class forward_progress_guarantee {
 
             3. `execution::set_stopped(r)` is expression-equivalent to `execution::set_stopped(out_r)`.
 
-        2. Returns an expression equivalent to `execution::connect(s, r)`.
+        2. Returns an expression-equivalent to `execution::connect(s, r)`.
 
         3. Let <code><i>compl-sig-t</i>&lt;Tag, Args...></code> name the type
             `Tag()` if `Args...` is a template paramter pack containing the
@@ -5256,9 +5234,9 @@ enum class forward_progress_guarantee {
 
     If the function selected above does not return a sender that invokes `f` with the result of the `set_value` signal of `s`, passing the return value as the value to any connected receivers, and propagates the other completion-signals sent by `s`, the behavior of calling `execution::then(s, f)` is undefined.
 
-#### `execution::upon_error` <b>[exec.upon_error]</b> #### {#spec-execution.senders.adaptor.upon_error}
+#### `execution::upon_error` <b>[exec.upon.error]</b> #### {#spec-execution.senders.adaptor.upon_error}
 
-1. `execution::upon_error` is used to attach an invocable as a continuation for the unsuccessful completion of the input sender.
+1. `execution::upon_error` attaches an invocable as a continuation for the unsuccessful completion of the input sender.
 
 2. The name `execution::upon_error` denotes a customization point object. For
     some subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
@@ -5295,7 +5273,7 @@ enum class forward_progress_guarantee {
             3. `execution::set_stopped(r)` is expression-equivalent to
                 `execution::set_stopped(out_r)`.
 
-        2. Returns an expression equivalent to `execution::connect(s, r)`.
+        2. Returns an expression-equivalent to `execution::connect(s, r)`.
 
         3. Let <code><i>compl-sig-t</i>&lt;Tag, Args...></code> name the type
             `Tag()` if `Args...` is a template paramter pack containing the
@@ -5335,9 +5313,9 @@ enum class forward_progress_guarantee {
 
     If the function selected above does not return a sender which invokes `f` with the result of the `set_error` signal of `s`, passing the return value as the value to any connected receivers, and propagates the other completion-signals sent by `s`, the behavior of calling `execution::upon_error(s, f)` is undefined.
 
-#### `execution::upon_stopped` <b>[exec.upon_stopped]</b> #### {#spec-execution.senders.adaptor.upon_stopped}
+#### `execution::upon_stopped` <b>[exec.upon.stopped]</b> #### {#spec-execution.senders.adaptor.upon_stopped}
 
-1. `execution::upon_stopped` is used to attach an invocable as a continuation for the completion of the input sender using the "stopped" channel.
+1. `execution::upon_stopped` attaches an invocable as a continuation for the completion of the input sender using the "stopped" channel.
 
 2. The name `execution::upon_stopped` denotes a customization point object. For
     some subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
@@ -5372,7 +5350,7 @@ enum class forward_progress_guarantee {
                 ill-formed, the expression `execution::set_stopped(r)` is
                 ill-formed.
 
-        2. Returns an expression equivalent to `execution::connect(s, r)`.
+        2. Returns an expression-equivalent to `execution::connect(s, r)`.
 
         3. Let <code><i>compl-sig-t</i>&lt;Tag, Args...></code> name the type
             `Tag()` if `Args...` is a template paramter pack containing the
@@ -5402,9 +5380,9 @@ enum class forward_progress_guarantee {
 
 #### `execution::let_value`, `execution::let_error`, `execution::let_stopped`,  <b>[exec.let]</b> #### {#spec-execution.senders.adapt.let}
 
-1. `execution::let_value` is used to insert continuations creating more work dependent on the results of their input senders into a sender chain.
-    `execution::let_error` is used to insert continuations creating more work dependent on the error of its input senders into a sender chain.
-    `execution::let_stopped` is used to insert continuations creating more work dependent on the stopped signal of its input senders into a sender chain.
+1. `execution::let_value` inserts continuations creating more work dependent on the results of their input senders into a sender chain.
+    `execution::let_error` inserts continuations creating more work dependent on the error of its input senders into a sender chain.
+    `execution::let_stopped` inserts continuations creating more work dependent on the stopped signal of its input senders into a sender chain.
 
 2. The names `execution::let_value`, `execution::let_error`, and `execution::let_stopped` denote a customization point object.
     Let the expression <code><i>let-cpo</i></code> be one of `execution::let_value`, `execution::let_error`, or `execution::let_stopped`.
@@ -5487,7 +5465,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::bulk` <b>[exec.bulk]</b> #### {#spec-execution.senders.adapt.bulk}
 
-1. `execution::bulk` is used to run a task repeatedly for every index in an index space.
+1. `execution::bulk` runs a task repeatedly for every index in an index space.
 
 2. The name `execution::bulk` denotes a customization point object. For some
     subexpressions `s`, `shape`, and `f`, let `S` be `decltype((s))`, `Shape` be
@@ -5552,9 +5530,9 @@ enum class forward_progress_guarantee {
 
 #### `execution::split` <b>[exec.split]</b> #### {#spec-execution.senders.adapt.split}
 
-1. `execution::split` is used to adapt an arbitrary sender into a sender that can be connected multiple times.
+1. `execution::split` adapts an arbitrary sender into a sender that can be connected multiple times.
 
-2. Let <code><i>split-env</i></code> be the type of an execution environment such that, given an instance `e`, the expression `get_stop_token(e)` is well formed and has type `stop_token`.
+2. Let <code><i>split-env</i></code> be the type of an execution environment such that, given an instance `e`, the expression `get_stop_token(e)` is well-formed and has type `stop_token`.
 
 3. The name `execution::split` denotes a customization point object. For some
     subexpression `s`, let `S` be `decltype((s))`. If
@@ -5720,10 +5698,10 @@ enum class forward_progress_guarantee {
         be valid until after the completion of the invocation of `r2`'s completion-
         signal operation.
 
-#### `execution::when_all` <b>[exec.when_all]</b> #### {#spec-execution.senders.adaptor.when_all}
+#### `execution::when_all` <b>[exec.when.all]</b> #### {#spec-execution.senders.adaptor.when_all}
 
-1. `execution::when_all` is used to join multiple sender chains and create a sender whose execution is dependent on all of the input senders that only send a single set of values. `execution::when_all_with_variant`
-    is used to join multiple sender chains and create a sender whose execution is dependent on all of the input senders, each of which may have one or more sets of sent values.
+1. `execution::when_all` joins multiple sender chains and create a sender whose execution is dependent on all of the input senders that only send a single set of values. `execution::when_all_with_variant`
+    joins multiple sender chains and create a sender whose execution is dependent on all of the input senders, each of which may have one or more sets of sent values.
 
 2. The name `execution::when_all` denotes a customization point object. For some subexpressions <code>s<i><sub>i</sub></i>...</code>, let <code>S<i><sub>i</sub></i>...</code> be <code>decltype((s<i><sub>i</sub></i>))...</code>. The expression <code>execution::when_all(s<i><sub>i</sub></i>...)</code> is ill-formed if any of the following is true:
 
@@ -5850,13 +5828,13 @@ enum class forward_progress_guarantee {
 4. For a sender `s2` returned from `when_all` or `when_all_with_variant`, `get_env(s2)`
     shall return an instance of a class equivalent to <code>empty_env</code>.
 
-#### `execution::transfer_when_all` <b>[exec.transfer_when_all]</b> #### {#spec-execution.senders.adaptor.transfer_when_all}
+#### `execution::transfer_when_all` <b>[exec.transfer.when.all]</b> #### {#spec-execution.senders.adaptor.transfer_when_all}
 
-1. `execution::transfer_when_all` is used to join multiple sender chains and
+1. `execution::transfer_when_all` joins multiple sender chains and
     create a sender whose execution is dependent on all of the input senders
     that only send a single set of values each, while also making sure that they
     complete on the specified scheduler.
-    `execution::transfer_when_all_with_variant` is used to join multiple sender
+    `execution::transfer_when_all_with_variant` joins multiple sender
     chains and create a sender whose execution is dependent on all of the input
     senders, which may have one or more sets of sent values. [<i>Note:</i> this
     can allow for better customization of the adaptors. --<i>end note</i>]
@@ -5905,11 +5883,11 @@ enum class forward_progress_guarantee {
     cannot be guaranteed in case an error is thrown while trying to schedule work on
     the given scheduler object.
 
-#### `execution::into_variant` <b>[exec.into_variant]</b> #### {#spec-execution.senders.adapt.into_variant}
+#### `execution::into_variant` <b>[exec.into.variant]</b> #### {#spec-execution.senders.adapt.into_variant}
 
 1. `execution::into_variant` can be used to turn a sender which sends multiple sets of values into a sender which sends a variant of all of those sets of values.
 
-2. The template <code><i>into-variant-type</i></code> is used to compute the type sent by a sender returned from `execution::into_variant`.
+2. The template <code><i>into-variant-type</i></code> computes the type sent by a sender returned from `execution::into_variant`.
 
     <pre highlight=c++>
         template&lt;class S, class E>
@@ -5970,9 +5948,9 @@ enum class forward_progress_guarantee {
             >
         </pre>
 
-#### `execution::stopped_as_optional` <b>[exec.stopped_as_optional]</b> #### {#spec-execution.senders.adapt.stopped_as_optional}
+#### `execution::stopped_as_optional` <b>[exec.stopped.as.optional]</b> #### {#spec-execution.senders.adapt.stopped_as_optional}
 
-1. `execution::stopped_as_optional` is used to handle a stopped signal by mapping it into the value channel as an empty optional. The value channel is also converted into an optional. The result is a sender that never completes with stopped, reporting cancellation by completing with an empty optional.
+1. `execution::stopped_as_optional` maps an input sender's stopped signal into the value channel as an empty optional. The value channel is also converted into an optional. The result is a sender that never completes with stopped, reporting cancellation by completing with an empty optional.
 
 2. The name `execution::stopped_as_optional` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`. Let <code><i>get-env-sender</i></code> be an expression such that, when it is `connect`ed with a receiver `r`, `start` on the resulting operation state completes immediately by calling `execution::set_value(r, get_env(r))`. The expression `execution::stopped_as_optional(s)` is expression-equivalent to:
 
@@ -5996,9 +5974,9 @@ enum class forward_progress_guarantee {
     )
     </pre>
 
-#### `execution::stopped_as_error` <b>[exec.stopped_as_error]</b> #### {#spec-execution.senders.adapt.stopped_as_error}
+#### `execution::stopped_as_error` <b>[exec.stopped.as.error]</b> #### {#spec-execution.senders.adapt.stopped_as_error}
 
-1. `execution::stopped_as_error` is used to handle a stopped signal by mapping it into the error channel as a custom exception type. The result is a sender that never completes with stopped, reporting cancellation by completing with an error.
+1. `execution::stopped_as_error` maps an input sender's stopped signal into the error channel as a custom exception type. The result is a sender that never completes with stopped, reporting cancellation by completing with an error.
 
 2. The name `execution::stopped_as_error` denotes a customization point object. For some subexpressions `s` and `e`, let `S` be `decltype((s))` and let `E` be `decltype((e))`. If the type `S` does not satisfy `sender` or if the type `E` doesn't satisfy <code><i>movable-value</i></code>, `execution::stopped_as_error(s, e)` is ill-formed. Otherwise, the expression `execution::stopped_as_error(s, e)` is expression-equivalent to:
 
@@ -6006,13 +5984,13 @@ enum class forward_progress_guarantee {
     execution::let_stopped(s, [] { return execution::just_error(e); })
     </pre>
 
-#### `execution::ensure_started` <b>[exec.ensure_started]</b> #### {#spec-execution.senders.adapt.ensure_started}
+#### `execution::ensure_started` <b>[exec.ensure.started]</b> #### {#spec-execution.senders.adapt.ensure_started}
 
-1. `execution::ensure_started` is used to eagerly start the execution of a sender, while also providing a way to attach further work to execute once it has completed.
+1. `execution::ensure_started` eagerly starts the execution of a sender, while also providing a way to attach further work to execute once it has completed.
 
 2. Let <code><i>ensure-started-env</i></code> be the type of an execution
     environment such that, given an instance `e`, the expression
-    `get_stop_token(e)` is well formed and has type `stop_token`.
+    `get_stop_token(e)` is well-formed and has type `stop_token`.
 
 2. The name `execution::ensure_started` denotes a customization point object.
     For some subexpression `s`, let `S` be `decltype((s))`. If
@@ -6189,9 +6167,9 @@ enum class forward_progress_guarantee {
 
 ### Sender consumers <b>[exec.consumers]</b> ### {#spec-execution.senders.consumers}
 
-#### `execution::start_detached` <b>[exec.start_detached]</b> #### {#spec-execution.senders.consumers.start_detached}
+#### `execution::start_detached` <b>[exec.start.detached]</b> #### {#spec-execution.senders.consumers.start_detached}
 
-1. `execution::start_detached` is used to eagerly start a sender without the caller needing to manage the lifetimes of any objects.
+1. `execution::start_detached` eagerly starts a sender without the caller needing to manage the lifetimes of any objects.
 
 2. The name `execution::start_detached` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`. If `S` does not satisfy `execution::sender`, `execution::start_detached` is ill-formed. Otherwise, the expression
     `execution::start_detached(s)` is expression-equivalent to:
@@ -6209,12 +6187,12 @@ enum class forward_progress_guarantee {
         1. Let `R` be the type of a receiver, let `r` be an rvalue of type `R`, and let `cr` be a
             lvalue reference to `const R` such that:
 
-            1. The expression `set_value(r)` is not potentially throwing and has no effect,
+            1. The expression `set_value(r)` is not potentially-throwing and has no effect,
 
             2. For any subexpression `e`, the expression `set_error(r, e)` is expression-equivalent
                 to `terminate()`,
 
-            3. The expression `set_stopped(r)` is not potentially throwing and has no effect, and
+            3. The expression `set_stopped(r)` is not potentially-throwing and has no effect, and
 
             4. The expression `get_env(cr)` is expression-equivalent to <code>empty_env{}</code>.
 
@@ -6228,7 +6206,7 @@ enum class forward_progress_guarantee {
     `set_stopped` signals and calls `terminate()` on the `set_error` signal,
     the behavior of calling `execution::start_detached(s)` is undefined.
 
-#### `this_thread::sync_wait` <b>[exec.sync_wait]</b> #### {#spec-execution.senders.consumers.sync_wait}
+#### `this_thread::sync_wait` <b>[exec.sync.wait]</b> #### {#spec-execution.senders.consumers.sync_wait}
 
 1. `this_thread::sync_wait` and `this_thread::sync_wait_with_variant` are used to block a current thread until a sender passed into it as an argument has completed, and to obtain the values (if any) it completed with.
 
@@ -6307,7 +6285,7 @@ enum class forward_progress_guarantee {
 
 ## `execution::execute` <b>[exec.execute]</b> ## {#spec-execution.execute}
 
-1. `execution::execute` is used to create fire-and-forget tasks on a specified scheduler.
+1. `execution::execute` creates fire-and-forget tasks on a specified scheduler.
 
 2. The name `execution::execute` denotes a customization point object. For some subexpressions `sch` and `f`, let `Sch` be `decltype((sch))` and `F` be `decltype((f))`. If `Sch` does not satisfy `execution::scheduler` or `F` does not satisfy `invocable`,
     `execution::execute` is ill-formed. Otherwise, `execution::execute` is expression-equivalent to:
@@ -6339,7 +6317,7 @@ enum class forward_progress_guarantee {
 
 2. [<i>Note:</i> The C-style cast in <tt><i>c-style-cast</i></tt> is to disable accessibility checks. -- <i>end note</i>]
 
-### `execution::receiver_adaptor` <b>[exec.utils.rcvr_adptr]</b> ### {#spec-execution.snd_rec_utils.rcvr_adptr}
+### `execution::receiver_adaptor` <b>[exec.utils.rcvr.adptr]</b> ### {#spec-execution.snd_rec_utils.rcvr_adptr}
 
     <pre highlight="c++">
     template&lt;
@@ -6348,7 +6326,7 @@ enum class forward_progress_guarantee {
       class receiver_adaptor;
     </pre>
 
-1. `receiver_adaptor` is used to simplify the implementation of one receiver type in terms of another. It defines `tag_invoke` overloads that forward to named members if they exist, and to the adapted receiver otherwise.
+1. `receiver_adaptor` simplifies the implementation of one receiver type in terms of another. It defines `tag_invoke` overloads that forward to named members if they exist, and to the adapted receiver otherwise.
 
 2. If `Base` is an alias for the unspecified default template argument, then:
 
@@ -6392,7 +6370,7 @@ enum class forward_progress_guarantee {
         return (std::forward&lt;Self>(self).base_);
       }
 
-      // [exec.utils.rcvr_adptr.nonmembers] Non-member functions
+      // [exec.utils.rcvr.adptr.nonmembers] Non-member functions
       template &lt;class... As>
         friend void tag_invoke(set_value_t, Derived&amp;&amp; self, As&amp;&amp;... as) noexcept;
 
@@ -6429,7 +6407,7 @@ enum class forward_progress_guarantee {
      </pre>
      -- <i>end example</i>]
 
-#### Non-member functions <b>[exec.utils.rcvr_adptr.nonmembers]</b> #### {#spec-execution.snd_rec_utils.receiver_adaptor.nonmembers}
+#### Non-member functions <b>[exec.utils.rcvr.adptr.nonmembers]</b> #### {#spec-execution.snd_rec_utils.receiver_adaptor.nonmembers}
 
     <pre>
     template &lt;class... As>
@@ -6440,7 +6418,7 @@ enum class forward_progress_guarantee {
 
     2. <i>Constraints:</i> Either `SET-VALUE` is a valid expression or `typename Derived::set_value` denotes a type and <code><i>callable</i>&lt;set_value_t, <i>BASE-TYPE</i>(Derived), As...></code> is `true`.
 
-    3. <i>Mandates:</i> `SET-VALUE`, if that expression is valid, is not potentially throwing.
+    3. <i>Mandates:</i> `SET-VALUE`, if that expression is valid, is not potentially-throwing.
 
     4. <i>Effects:</i> Equivalent to:
 
@@ -6457,7 +6435,7 @@ enum class forward_progress_guarantee {
 
     2. <i>Constraints:</i> Either `SET-ERROR` is a valid expression or `typename Derived::set_error` denotes a type and <code><i>callable</i>&lt;set_error_t, <i>BASE-TYPE</i>(Derived), E></code> is `true`.
 
-    3. <i>Mandates:</i> `SET-ERROR`, if that expression is valid, is not potentially throwing.
+    3. <i>Mandates:</i> `SET-ERROR`, if that expression is valid, is not potentially-throwing.
 
     4. <i>Effects:</i> Equivalent to:
 
@@ -6473,7 +6451,7 @@ enum class forward_progress_guarantee {
 
     2. <i>Constraints:</i> Either `SET-STOPPED` is a valid expression or `typename Derived::set_stopped` denotes a type and <code><i>callable</i>&lt;set_stopped_t, <i>BASE-TYPE</i>(Derived)></code> is `true`.
 
-    3. <i>Mandates:</i> `SET-STOPPED`, if that expression is valid, is not potentially throwing.
+    3. <i>Mandates:</i> `SET-STOPPED`, if that expression is valid, is not potentially-throwing.
 
     4. <i>Effects:</i> Equivalent to:
 
@@ -6502,7 +6480,7 @@ enum class forward_progress_guarantee {
 
 ### `execution::completion_signatures` <b>[exec.utils.cmplsigs]</b> ### {#spec-execution.snd_rec_utils.completion_sigs}
 
-1. `completion_signatures` is used to describe the completion signals of a receiver that
+1. `completion_signatures` describes the completion signals of a receiver that
     a sender may invoke. Its template argument list is a list of function types corresponding
     to the signatures of the receiver's completion signals.
 
@@ -6703,7 +6681,7 @@ enum class forward_progress_guarantee {
 
 1. This section specifies some execution contexts on which work can be scheduled.
 
-### `run_loop` <b>[exec.run_loop]</b> ### {#spec-execution.contexts.run_loop}
+### `run_loop` <b>[exec.run.loop]</b> ### {#spec-execution.contexts.run_loop}
 
 1. A `run_loop` is an execution context on which work can be scheduled. It maintains a simple, thread-safe first-in-first-out queue of work. Its `run()` member function removes elements from the queue and executes them in a loop on whatever thread of execution calls `run()`.
 
@@ -6715,7 +6693,7 @@ enum class forward_progress_guarantee {
 
     <pre highlight="c++">
     class run_loop {
-      // [exec.run_loop.types] Associated types
+      // [exec.run.loop.types] Associated types
       class <i>run-loop-scheduler</i>; // exposition only
       class <i>run-loop-sender</i>; // exposition only
       struct <i>run-loop-opstate-base</i> { // exposition only
@@ -6726,24 +6704,24 @@ enum class forward_progress_guarantee {
       template&lt;receiver_of R>
         using <i>run-loop-opstate</i> = <i>unspecified</i>; // exposition only
 
-      // [exec.run_loop.members] Member functions:
+      // [exec.run.loop.members] Member functions:
       <i>run-loop-opstate-base</i>* pop_front(); // exposition only
       void push_back(<i>run-loop-opstate-base</i>*); // exposition only
 
      public:
-      // [exec.run_loop.ctor] construct/copy/destroy
+      // [exec.run.loop.ctor] construct/copy/destroy
       run_loop() noexcept;
       run_loop(run_loop&&) = delete;
       ~run_loop();
 
-      // [exec.run_loop.members] Member functions:
+      // [exec.run.loop.members] Member functions:
       <i>run-loop-scheduler</i> get_scheduler();
       void run();
       void finish();
     };
     </pre>
 
-#### Associated types <b>[exec.run_loop.types]</b> #### {#spec-execution.contexts.run_loop.types}
+#### Associated types <b>[exec.run.loop.types]</b> #### {#spec-execution.contexts.run_loop.types}
 
     <pre highlight="c++">
     class <i>run-loop-scheduler</i>;
@@ -6755,7 +6733,7 @@ enum class forward_progress_guarantee {
 
   3. Two instances of <code><i>run-loop-scheduler</i></code> compare equal if and only if they were obtained from the same `run_loop` instance.
 
-  4. Let <code><i>sch</i></code> be an expression of type <code><i>run-loop-scheduler</i></code>. The expression  <code>execution::schedule(<i>sch</i>)</code> is not potentially throwing and has type <code><i>run-loop-sender</i></code>.
+  4. Let <code><i>sch</i></code> be an expression of type <code><i>run-loop-scheduler</i></code>. The expression  <code>execution::schedule(<i>sch</i>)</code> is not potentially-throwing and has type <code><i>run-loop-sender</i></code>.
 
   <pre highlight="c++">
   class <i>run-loop-sender</i>;
@@ -6767,9 +6745,9 @@ enum class forward_progress_guarantee {
 
   3. Let <code><i>s</i></code> be an expression of type <code><i>run-loop-sender</i></code>, let <code><i>r</i></code> be an expression such that <code>decltype(<i>r</i>)</code> models the `receiver_of` concept, and let `C` be either `set_value_t` or `set_stopped_t`. Then:
 
-    * The expression <code>execution::connect(<i>s</i>, <i>r</i>)</code> has type <code><i>run-loop-opstate</i>&lt;decay_t&lt;decltype(<i>r</i>)>></code> and is potentially throwing if and only if the initialiation of <code>decay_t&lt;decltype(<i>r</i>)></code> from <code><i>r</i></code> is potentially throwing.
+    * The expression <code>execution::connect(<i>s</i>, <i>r</i>)</code> has type <code><i>run-loop-opstate</i>&lt;decay_t&lt;decltype(<i>r</i>)>></code> and is potentially-throwing if and only if the initialiation of <code>decay_t&lt;decltype(<i>r</i>)></code> from <code><i>r</i></code> is potentially-throwing.
 
-    * The expression <code>get_completion_scheduler&lt;C>(get_env(<i>s</i>))</code> is not potentially throwing, has type <code><i>run-loop-scheduler</i></code>, and compares equal to the <code><i>run-loop-scheduler</i></code> instance from which <code><i>s</i></code> was obtained.
+    * The expression <code>get_completion_scheduler&lt;C>(get_env(<i>s</i>))</code> is not potentially-throwing, has type <code><i>run-loop-scheduler</i></code>, and compares equal to the <code><i>run-loop-scheduler</i></code> instance from which <code><i>s</i></code> was obtained.
 
   <pre highlight="c++">
   template&lt;receiver_of R> // arguments are not associated entities ([lib.tmpl-heads])
@@ -6802,7 +6780,7 @@ enum class forward_progress_guarantee {
         }
         </pre>
 
-#### Constructor and destructor <b>[exec.run_loop.ctor]</b> #### {#spec-execution.contexts.run_loop.ctor}
+#### Constructor and destructor <b>[exec.run.loop.ctor]</b> #### {#spec-execution.contexts.run_loop.ctor}
 
     <pre highlight="c++">
     run_loop::run_loop() noexcept;
@@ -6816,7 +6794,7 @@ enum class forward_progress_guarantee {
 
     1. <i>Effects:</i> If <i>count</i> is not `0` or if <i>state</i> is <i>running</i>, invokes `terminate()`. Otherwise, has no effects.
 
-#### Member functions <b>[exec.run_loop.members]</b> #### {#spec-execution.contexts.run_loop.members}
+#### Member functions <b>[exec.run.loop.members]</b> #### {#spec-execution.contexts.run_loop.members}
 
     <pre highlight="c++">
     <i>run-loop-opstate-base</i>* run_loop::pop_front();
@@ -6868,11 +6846,11 @@ enum class forward_progress_guarantee {
 
     2. <i>Synchronization:</i> This operation synchronizes with all `pop_front` operations on this object.
 
-## Coroutine utilities <b>[exec.coro_utils]</b> ## {#spec-execution.coro_utils}
+## Coroutine utilities <b>[exec.coro.utils]</b> ## {#spec-execution.coro_utils}
 
-### `execution::as_awaitable` <b>[exec.as_awaitable]</b> ### {#spec-execution.coro_utils.as_awaitable}
+### `execution::as_awaitable` <b>[exec.as.awaitable]</b> ### {#spec-execution.coro_utils.as_awaitable}
 
-1. `as_awaitable` is used to transform an object into one that is awaitable within a particular coroutine. This section makes use of the following exposition-only entities:
+1. `as_awaitable` transforms an object into one that is awaitable within a particular coroutine. This section makes use of the following exposition-only entities:
 
     <pre highlight="c++">
     template&lt;class S, class E>
@@ -6940,7 +6918,7 @@ enum class forward_progress_guarantee {
 
             Let `r` be an rvalue expression of type <code><i>awaitable-receiver</i></code>, let `cr` be a `const` lvalue that refers to `r`, let `vs...` be an arbitrary function parameter pack of types `Vs...`, and let `err` be an arbitrary expression of type `Err`. Then:
 
-              1. If `constructible_from<result_t, Vs...>` is satisfied, the expression `execution::set_value(r, vs...)` is not potentially throwing and is equivalent to:
+              1. If `constructible_from<result_t, Vs...>` is satisfied, the expression `execution::set_value(r, vs...)` is equivalent to:
 
                   <pre highlight="c++">
                   try {
@@ -6953,14 +6931,14 @@ enum class forward_progress_guarantee {
 
                   Otherwise, `execution::set_value(r, vs...)` is ill-formed.
 
-              2. The expression `execution::set_error(r, err)` is not potentially throwing and is equivalent to:
+              2. The expression `execution::set_error(r, err)` is equivalent to:
 
                   <pre highlight="c++">
-                  r.result_ptr_->emplace&lt;2>(<i>AS_EXCEPT_PTR</i>(err));
+                  r.result_ptr_->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err));
                   r.continuation_.resume();
                   </pre>
 
-                  where <code><i>AS_EXCEPT_PTR</i>(err)</code> is:
+                  where <code><i>AS-EXCEPT-PTR</i>(err)</code> is:
 
                   1. `err` if `decay_t<Err>` names the same type as `exception_ptr`,
 
@@ -6968,7 +6946,7 @@ enum class forward_progress_guarantee {
 
                   3. Otherwise, `make_exception_ptr(err)`.
 
-              3. The expression `execution::set_stopped(r)` is not potentially throwing and is equivalent to
+              3. The expression `execution::set_stopped(r)` is equivalent to
                 `static_cast<coroutine_handle<>>(r.continuation_.promise().unhandled_stopped()).resume()`.
 
               4. For any expression `tag` whose type satisfies <code><i>forwarding-query</i></code>
@@ -7005,7 +6983,7 @@ enum class forward_progress_guarantee {
 
     4. Otherwise, `e`.
 
-### `execution::with_awaitable_senders` <b>[exec.with_awaitable_senders]</b> ### {#spec-execution.coro_utils.with_awaitable_senders}
+### `execution::with_awaitable_senders` <b>[exec.with.awaitable.senders]</b> ### {#spec-execution.coro_utils.with_awaitable_senders}
 
   1. `with_awaitable_senders`, when used as the base class of a coroutine promise type, makes senders awaitable in that coroutine type.
 
