@@ -6723,7 +6723,7 @@ enum class forward_progress_guarantee {
         run_loop* loop_;
         <i>run-loop-opstate-base</i>* next_;
       };
-      template&lt;receiver_of R>
+      template&lt;receiver_of<completion_signatures<set_value_t()>> R>
         using <i>run-loop-opstate</i> = <i>unspecified</i>; // exposition only
 
       // [exec.run_loop.members] Member functions:
@@ -6772,7 +6772,7 @@ enum class forward_progress_guarantee {
     * The expression <code>get_completion_scheduler&lt;C>(get_env(<i>s</i>))</code> is not potentially throwing, has type <code><i>run-loop-scheduler</i></code>, and compares equal to the <code><i>run-loop-scheduler</i></code> instance from which <code><i>s</i></code> was obtained.
 
   <pre highlight="c++">
-  template&lt;receiver_of R> // arguments are not associated entities ([lib.tmpl-heads])
+  template&lt;receiver_of<completion_signatures<set_value_t()>> R> // arguments are not associated entities ([lib.tmpl-heads])
     struct <i>run-loop-opstate</i>;
   </pre>
 
