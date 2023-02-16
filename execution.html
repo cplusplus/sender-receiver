@@ -3225,10 +3225,8 @@ an operation state constructed from the passed-in sender and receiver.</p>
   <c- n>template</c-> <c- o>&lt;</c-><c- n>class</c-> <c- n>R</c-><c- o>></c->
     <c- k>struct</c-> <c- nc>_op</c-> <c- p>{</c->
       <c- p>[[</c-><c- n>no_unique_address</c-><c- p>]]</c-> <c- n>R</c-> <c- n>rec_</c-><c- p>;</c->
-      <c- n>friend</c-> <c- b>void</c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>start_t</c-><c- p>,</c-> <c- n>_op</c-><c- o>&amp;</c-> <c- n>op</c-><c- p>)</c-> <c- n>noexcept</c-> <c- n>try</c-> <c- p>{</c->
+      <c- n>friend</c-> <c- b>void</c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>start_t</c-><c- p>,</c-> <c- n>_op</c-><c- o>&amp;</c-> <c- n>op</c-><c- p>)</c-> <c- n>noexcept</c-> <c- p>{</c->
         <c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>set_value</c-><c- p>((</c-><c- n>R</c-><c- o>&amp;&amp;</c-><c- p>)</c-> <c- n>op</c-><c- p>.</c-><c- n>rec_</c-><c- p>);</c->
-      <c- p>}</c-> <c- n>catch</c-><c- p>(...)</c-> <c- p>{</c->
-        <c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>set_error</c-><c- p>((</c-><c- n>R</c-><c- o>&amp;&amp;</c-><c- p>)</c-> <c- n>op</c-><c- p>.</c-><c- n>rec_</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>current_exception</c-><c- p>());</c->
       <c- p>}</c->
     <c- p>};</c->
 
@@ -3243,9 +3241,7 @@ an operation state constructed from the passed-in sender and receiver.</p>
   <c- k>struct</c-> <c- nc>_sender</c-> <c- p>{</c->
     <c- n>using</c-> <c- n>is_sender</c-> <c- o>=</c-> <c- b>void</c-><c- p>;</c->
     <c- n>using</c-> <c- n>completion_signatures</c-> <c- o>=</c->
-      <c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>completion_signatures</c-><c- o>&lt;</c->
-        <c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>set_value_t</c-><c- p>(),</c->
-        <c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>set_error_t</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>exception_ptr</c-><c- p>)</c-><c- o>></c-><c- p>;</c->
+      <c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>set_value_t</c-><c- p>()</c-><c- o>></c-><c- p>;</c->
 
     <c- n>template</c-> <c- o>&lt;</c-><c- n>class</c-> <c- n>R</c-><c- o>></c->
       <c- n>friend</c-> <c- k>auto</c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>connect_t</c-><c- p>,</c-> <c- n>_sender</c-><c- p>,</c-> <c- n>R</c-><c- o>&amp;&amp;</c-> <c- n>rec</c-><c- p>)</c->
@@ -3279,14 +3275,15 @@ implementing one. The <code class="highlight"><c- n>inline_scheduler</c-></code>
      <p>Customizes <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>schedule</c-></code> to return an instance of the sender type <code class="highlight"><c- n>_sender</c-></code>.</p>
     <li data-md>
      <p>The <code class="highlight"><c- n>_sender</c-></code> type models the <code class="highlight"><c- n>sender</c-></code> concept and provides the metadata
-needed to describe it as a sender of no values that can send an <code class="highlight"><c- n>exception_ptr</c-></code> as an error and that never calls <code class="highlight"><c- n>set_stopped</c-></code>. This
+needed to describe it as a sender of no values
+and that never calls <code class="highlight"><c- n>set_error</c-></code> or <code class="highlight"><c- n>set_stopped</c-></code>. This
 metadata is provided with the help of the <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>completion_signatures</c-></code> utility.</p>
     <li data-md>
      <p>The <code class="highlight"><c- n>_sender</c-></code> type customizes <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> to accept a receiver of no
 values. It returns an instance of type <code class="highlight"><c- n>_op</c-></code> that holds the receiver by
 value.</p>
     <li data-md>
-     <p>The operation state customizes <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>start</c-></code> to call <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>set_value</c-></code> on the receiver, passing any exceptions to <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>set_error</c-></code> as an <code class="highlight"><c- n>exception_ptr</c-></code>.</p>
+     <p>The operation state customizes <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>start</c-></code> to call <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>set_value</c-></code> on the receiver.</p>
    </ol>
    <h4 class="heading settled" data-level="1.6.2" id="example-single-thread"><span class="secno">1.6.2. </span><span class="content">Single thread scheduler</span><a class="self-link" href="#example-single-thread"></a></h4>
    <p>This example shows how to create a scheduler for an execution context that consists of a single
