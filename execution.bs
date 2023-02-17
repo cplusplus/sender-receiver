@@ -730,10 +730,8 @@ class inline_scheduler {
   template <class R>
     struct _op {
       [[no_unique_address]] R rec_;
-      friend void tag_invoke(std::execution::start_t, _op& op) noexcept try {
+      friend void tag_invoke(std::execution::start_t, _op& op) noexcept {
         std::execution::set_value((R&&) op.rec_);
-      } catch(...) {
-        std::execution::set_error((R&&) op.rec_, std::current_exception());
       }
     };
 
@@ -748,9 +746,7 @@ class inline_scheduler {
   struct _sender {
     using is_sender = void;
     using completion_signatures =
-      std::execution::completion_signatures<
-        std::execution::set_value_t(),
-        std::execution::set_error_t(std::exception_ptr)>;
+      std::execution::completion_signatures<std::execution::set_value_t()>;
 
     template <class R>
       friend auto tag_invoke(std::execution::connect_t, _sender, R&& rec)
@@ -786,16 +782,15 @@ implementing one. The `inline_scheduler`:
 1. Customizes `execution::schedule` to return an instance of the sender type
     `_sender`.
 2. The `_sender` type models the `sender` concept and provides the metadata
-    needed to describe it as a sender of no values that can send an
-    `exception_ptr` as an error and that never calls `set_stopped`. This
+    needed to describe it as a sender of no values
+    and that never calls `set_error` or `set_stopped`. This
     metadata is provided with the help of the `execution::completion_signatures`
     utility.
 3. The `_sender` type customizes `execution::connect` to accept a receiver of no
     values. It returns an instance of type `_op` that holds the receiver by
     value.
 4. The operation state customizes `std::execution::start` to call
-    `std::execution::set_value` on the receiver, passing any exceptions to
-    `std::execution::set_error` as an `exception_ptr`.
+    `std::execution::set_value` on the receiver.
 
 ### Single thread scheduler ### {#example-single-thread}
 
@@ -6701,7 +6696,7 @@ enum class forward_progress_guarantee {
         run_loop* loop_;
         <i>run-loop-opstate-base</i>* next_;
       };
-      template&lt;receiver_of R>
+      template&lt;receiver_of<completion_signatures<set_value_t()>> R>
         using <i>run-loop-opstate</i> = <i>unspecified</i>; // exposition only
 
       // [exec.run.loop.members] Member functions:
@@ -6750,7 +6745,7 @@ enum class forward_progress_guarantee {
     * The expression <code>get_completion_scheduler&lt;C>(get_env(<i>s</i>))</code> is not potentially-throwing, has type <code><i>run-loop-scheduler</i></code>, and compares equal to the <code><i>run-loop-scheduler</i></code> instance from which <code><i>s</i></code> was obtained.
 
   <pre highlight="c++">
-  template&lt;receiver_of R> // arguments are not associated entities ([lib.tmpl-heads])
+  template&lt;receiver_of<completion_signatures<set_value_t()>> R> // arguments are not associated entities ([lib.tmpl-heads])
     struct <i>run-loop-opstate</i>;
   </pre>
 
