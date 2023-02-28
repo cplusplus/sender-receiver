@@ -4723,7 +4723,7 @@ enum class forward_progress_guarantee {
 
 4. The `sender_of` concept defines the requirements for a sender type that
     completes with the completion signature specified for the given completion
-    channel.
+    signal.
 
     <pre highlight=c++>
     template &lt;class> struct <i>sender-of-helper</i>; <i>// exposition only</i>
@@ -5037,7 +5037,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::read` <b>[exec.read]</b> #### {#spec-execution.senders.read}
 
-1. `read` creates a sender that retrieves a value from the receiver's associated environment and sends it back to the receiver through the value channel.
+1. `read` creates a sender that retrieves a value from the receiver's associated environment and sends it to the receiver's `set_value` completion function.
 
 2. `read` is a customization point object of an unspecified class type equivalent to:
 
@@ -5414,7 +5414,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::upon_error` <b>[exec.upon.error]</b> #### {#spec-execution.senders.adaptor.upon_error}
 
-1. `upon_error` attaches an invocable as a continuation for the unsuccessful completion of the input sender.
+1. `upon_error` maps an input sender's error completion-signal into a value completion-signal using the provided invocable.
 
 2. The name `upon_error` denotes a customization point object. For
     some subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
@@ -5493,7 +5493,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::upon_stopped` <b>[exec.upon.stopped]</b> #### {#spec-execution.senders.adaptor.upon_stopped}
 
-1. `upon_stopped` attaches an invocable as a continuation for the completion of the input sender using the "stopped" channel.
+1. `upon_stopped` maps an input sender's stopped completion-signal into the value completion-signal using the provided invocable.
 
 2. The name `upon_stopped` denotes a customization point object. For
     some subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
@@ -6126,7 +6126,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::stopped_as_optional` <b>[exec.stopped.as.optional]</b> #### {#spec-execution.senders.adapt.stopped_as_optional}
 
-1. `stopped_as_optional` maps an input sender's stopped signal into the value channel as an empty optional. The value channel is also converted into an optional. The result is a sender that never completes with stopped, reporting cancellation by completing with an empty optional.
+1. `stopped_as_optional` maps an input sender's stopped completion-signal into the value completion-signal as an empty optional. The input sender's value completion-signal is also converted into an optional. The result is a sender that never completes with stopped, reporting cancellation by completing with an empty optional.
 
 2. The name `stopped_as_optional` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`. Let <code><i>get-env-sender</i></code> be an expression such that, when it is `connect`ed with a receiver `r`, `start` on the resulting operation state completes immediately by calling `set_value(r, get_env(r))`. The expression `stopped_as_optional(s)` is expression-equivalent to:
 
@@ -6152,7 +6152,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::stopped_as_error` <b>[exec.stopped.as.error]</b> #### {#spec-execution.senders.adapt.stopped_as_error}
 
-1. `stopped_as_error` maps an input sender's stopped signal into the error channel as a custom exception type. The result is a sender that never completes with stopped, reporting cancellation by completing with an error.
+1. `stopped_as_error` maps an input sender's stopped completion-signal into the error completion-signal as a custom exception type. The result is a sender that never completes with stopped, reporting cancellation by completing with an error.
 
 2. The name `stopped_as_error` denotes a customization point object. For some subexpressions `s` and `e`, let `S` be `decltype((s))` and let `E` be `decltype((e))`. If the type `S` does not satisfy `sender` or if the type `E` doesn't satisfy <code><i>movable-value</i></code>, `stopped_as_error(s, e)` is ill-formed. Otherwise, the expression `stopped_as_error(s, e)` is expression-equivalent to:
 
