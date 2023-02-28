@@ -968,13 +968,13 @@ Calling `execution::on` will ensure that the given sender will be started on the
 In our example, `snd_read` is going to be started on the I/O scheduler.
 This sender will just call the legacy code.
 
-The completion signal will be issued in the I/O execution context, so we have to move it to the work thread pool.
+The completion-signal will be issued in the I/O execution context, so we have to move it to the work thread pool.
 This is achieved with the help of the `execution::transfer` algorithm.
 The rest of the processing (in our case, the last call to `then`) will happen in the work thread pool.
 
 The reader should notice the difference between `execution::on` and `execution::transfer`.
-The `execution::on` algorithm will ensure that the given sender will start in the specified context, and doesn't care where the completion signal for that sender is sent.
-The `execution::transfer` algorithm will not care where the given sender is going to be started, but will ensure that the completion signal of will be transferred to the given context.
+The `execution::on` algorithm will ensure that the given sender will start in the specified context, and doesn't care where the completion-signal for that sender is sent.
+The `execution::transfer` algorithm will not care where the given sender is going to be started, but will ensure that the completion-signal of will be transferred to the given context.
 
 ## What this proposal is **not** ## {#intro-is-not}
 
@@ -1345,7 +1345,7 @@ fail to compile.
 The solution is conceptually quite simple: extend the `sender_traits` mechanism
 to optionally accept a receiver in addition to the sender. The algorithms can
 use <code>sender_traits&lt;<i>Sender</i>, <i>Receiver</i>></code> to inspect the
-async operation's completion signals. The `typed_sender` concept would also need
+async operation's completion-signals. The `typed_sender` concept would also need
 to take an optional receiver parameter. This is the simplest change, and it
 would solve the immediate problem.
 
@@ -1625,12 +1625,12 @@ of the work described by a sender, but we have found those sender algorithms to 
 None of these implementation strategies are acceptable for many classes of parallel runtimes, such as task frameworks (like <a href="https://github.com/STEllAR-GROUP/hpx">HPX</a>) or accelerator runtimes (like CUDA or SYCL).
 
 Therefore, in addition to the `on` sender algorithm from [[P1897R3]], we are proposing a way for senders to advertise what scheduler (and by extension what execution context) they will complete on.
-Any given sender <b>may</b> have <dfn export=true>completion schedulers</dfn> for some or all of the signals (value, error, or stopped) it completes with (for more detail on the completion signals, see [[#design-receivers]]).
+Any given sender <b>may</b> have <dfn export=true>completion schedulers</dfn> for some or all of the signals (value, error, or stopped) it completes with (for more detail on the completion-signals, see [[#design-receivers]]).
 When further work is attached to that sender by invoking sender algorithms, that work will also complete on an appropriate completion scheduler.
 
 ### `execution::get_completion_scheduler` ### {#design-sender-query-get_completion_scheduler}
 
-`get_completion_scheduler` is a query that retrieves the [=completion scheduler=] for a specific completion signal from a sender's environment.
+`get_completion_scheduler` is a query that retrieves the [=completion scheduler=] for a specific completion-signal from a sender's environment.
 For a sender that lacks a completion scheduler query for a given signal, calling `get_completion_scheduler` is ill-formed.
 If a sender advertises a completion scheduler for a signal in this way, that sender <b>must</b> ensure that it [=send|sends=] that signal on an execution agent belonging to an execution context represented by a scheduler returned from this function.
 See [[#design-propagation]] for more details.
@@ -2786,8 +2786,8 @@ A <dfn export=true>receiver</dfn> is a callback that supports more than one chan
 * `set_stopped`, which signals that the operation completed without succeeding (`set_value`) and without failing (`set_error`). This result is often used to indicate that the operation stopped early, typically because it was asked to do so because the result is no
     longer needed.
 
-Exactly one of these channels must be successfully (i.e. without an exception being thrown) invoked on a receiver before it is destroyed; if a call to `set_value` failed with an exception, either `set_error` or `set_stopped` must be invoked on the same receiver. These
-requirements are know as the <dfn export=true>receiver contract</dfn>.
+Once an async operation has been started exactly one of these functions must be invoked
+on a receiver before it is destroyed. These requirements are part of the <dfn export=true>async-function-protocol</dfn>.
 
 While the receiver interface may look novel, it is in fact very similar to the interface of `std::promise`, which provides the first two signals as `set_value` and `set_error`, and it's possible to emulate the third channel with lifetime management of the promise.
 
@@ -2807,7 +2807,7 @@ The return value of [[#design-connect]] must satisfy the operation state concept
 
 ## `execution::connect` ## {#design-connect}
 
-`execution::connect` is a customization point which <dfn lt="connect">connects</dfn> senders with receivers, resulting in an operation state that will ensure that the [=receiver contract=] of the receiver passed to `connect` will be fulfilled.
+`execution::connect` is a customization point which <dfn lt="connect">connects</dfn> senders with receivers, resulting in an operation state that will ensure that if `start` is called that one of the completion-signal operations will be called on the receiver passed to `connect`.
 
 <pre highlight="c++">
 execution::sender auto snd = <i>some input sender</i>;
@@ -2816,8 +2816,8 @@ execution::operation_state auto state = execution::connect(snd, rcv);
 
 execution::start(state);
 // at this point, it is guaranteed that the work represented by state has been submitted
-// to an execution context, and that execution context will eventually fulfill the
-// receiver contract of rcv
+// to an execution context, and that execution context will eventually call one of the
+// completion-signal operations on rcv
 
 // operation states are not movable, and therefore this operation state object must be
 // kept alive until the operation finishes
@@ -3240,8 +3240,15 @@ Insert this section as a new subclause, between Searchers <b>[func.search]</b> a
 <ins>
 <blockquote>
 
-1. The name `std::tag_invoke` denotes a customization point object [customization.point.object]. Given subexpressions `T` and `A...`, the expression `std::tag_invoke(T, A...)` is expression-equivalent [defns.expression-equivalent] to `tag_invoke(T, A...)` 
-with overload resolution performed in a context in which unqualified lookup for `tag_invoke` finds only the declaration
+1. Given a subexpression `E`, let <code><i>REIFY</i>(E)</code> be expression-equivalent to
+    a glvalue with the same type and value as `E` as if by `identity()(E)`.
+
+2. The name `std::tag_invoke` denotes a customization point object [customization.point.object]. 
+    Given subexpressions `T` and `A...`, the expression `std::tag_invoke(T, A...)` is 
+    expression-equivalent [defns.expression-equivalent] to
+    <code>tag_invoke(<i>REIFY</i>(T), <i>REIFY</i>(A)...)</code>
+    with overload resolution performed in a context in which unqualified lookup for `tag_invoke` 
+    finds only the declaration
 
     ```c++
     void tag_invoke();
@@ -3722,7 +3729,7 @@ template&lt;class C>
     <td>`connect`, `start`, `execute`</td>
 </tr>
 <tr>
-    <td>completion signals</td>
+    <td>completion-signals</td>
     <td>called by senders to announce the completion of the work (success, error, or cancellation)</td>
     <td>`set_value`, `set_error`, `set_stopped`</td>
 </tr>
@@ -4138,6 +4145,185 @@ namespace std::execution {
         constructible_from&lt;decay_t&lt;T>, T>;
     </pre>
 
+    For function types `F1` and `F2` denoting `R1(Args1...)` and `R2(Args2...)`
+    respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if 
+    `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
+
+## Asynchronous functions <b>[async.func]</b> ## {#spec-execution-async.func}
+
+Subsections [exec.queries] through [exec.snd] specify a set of interrelated concepts
+for defining asynchronous algorithms. This subsection defines some terms and then
+specifies the [=async function protocol=] that asynchronous algorithms must
+adhere to.
+
+### Terms and definitions <b>[async.defn]</b> ### {#spec-execution-async.defn}
+
+Later sections define the following terms in detail. Below we list them and the
+role they play in the async function protocol.
+
+: query object
+:: A customization point object ([customization.point.object]) that accepts a
+    *queryable* as its first argument and whose call expressions model
+    `regular_invocable` ([concept.regularinvocable]). Query objects impose
+    syntactic and semantic requirements on their return types (which cannot be
+    `void`).
+
+: queryable
+:: A type that responds to zero or more queries. A queryable object ensures
+    that the results of its queries do not depend on the *cv* qualification
+    of the object's type, nor on its value category.
+
+: environment
+:: A queryable object obtainable from a receiver that contains runtime
+    configuration information local to the current operation.
+
+: execution resource
+:: An object, like a thread or a thread pool, that is capable of executing
+    code, and onto which asynchronous operations can be scheduled for
+    execution.
+
+: receiver
+:: An object that receives the results of an asynchronous operation when it
+    completes. It can receive the values on success, an error on failure, or
+    a stopped notification when the operation is cancelled. Additionally,
+    the receiver provides an environment that describes the properties of
+    the 
+
+: operation state
+:: An object responsible for holding the state associated with an asynchronous
+    operation while it is running. That state includes the receiver and the
+    operation states of any nested operations. Operation states are the
+    result of connecting senders and receivers, but they are properly thought
+    of as part of the sender's implementation. Operation states need to be
+    explicitly started.
+
+: sender
+:: An object that encapsulates the description of asynchronous operation,
+    independent of where it will begin execution and what will happen on
+    completion.
+
+: scheduler
+:: A handle to an execution resource that presents a uniform, generic
+    interface for scheduling work onto that resource.
+
+: connect
+:: The act of joining a description of an asynchronous operation -- a
+    sender -- with a consumer of that operation's results -- a receiver.
+    The result of connecting a sender to a receiver is an operation
+    state.
+
+: complete
+:: An asynchronous operation <dfn export=true>completes</dfn> when one of
+    the receiver's completion functions has finished executing. Such a receiver
+    has been completed. A sender completes when the operation state returned
+    from `connect` completes.
+
+: send
+:: When it completes, a sender *sends* its results to a receiver by
+    calling one of the receiver's completion-signal operations,
+    passing the sender's results as arguments.
+
+: completion function
+:: One of `set_value`, `set_error`, or `set_stopped`.
+
+: completion tag
+:: One of `set_value_t`, `set_error_t`, or `set_stopped_t`.
+
+: completion signature
+:: A function type that has one of the following forms:
+    <pre>
+    set_value_t(ValueTypes...)
+    set_error_t(ErrorType)
+    set_stopped_t()</pre>
+
+: completion-signal operation
+:: A valid invocation of a completion function.
+
+: completion scheduler
+:: A scheduler obtainable from a sender's environment that, when present,
+    denotes the scheduler upon which the sender will invoke a completion
+    signal operation. Each completion function may have a different completion
+    scheduler for a particular sender.
+
+: sender algorithm
+:: A function that either takes or returns a sender.
+
+: sender factory
+:: A sender algorithm that takes non-senders as arguments and that returns
+    a sender.
+
+: sender adaptor
+:: A sender algorithm that takes one or more senders and a (possibly empty)
+    set of additional arguments, and that returns a sender.
+
+: sender consumer
+:: A sender algorithm that takes one or more senders and a (possibly empty)
+    set of additional arguments, and that returns a non-sender or `void`.
+
+### Async function protocol <b>[async.protocol]</b> ### {#spec-execution-async.protocol}
+
+The <dfn export=true>async function protocol</dfn> that asynchronous algorithms must
+adhere to.
+
+*  A scheduler may become invalid when the lifetime of the execution resource
+    to which it refers ends, or when the execution resource itself becomes
+    invalid.
+
+* The validity of a sender returned by `schedule(sched)` does not depend on the 
+    lifetime of the scheduler `sched`. It may, however, become invalid when the
+    scheculer that produced it becomes invalid. 
+
+* An operation state obtained by calling `connect` on the result of
+    `scheduler(sched)` may become invalid when the scheduler `sched` becomes
+    invalid.
+
+* The validity of an operation state returned by `connect(snd, rcv)` does not
+    depend on the lifetime of `snd` or `rcv`.
+
+* An operation state shall not be moved or copied once `start()` has begun
+    executing. <span class="wg21note">Operation states are not required to
+    be movable.</span>
+
+* Once `start()` has begun executing, an operation state shall remain valid
+    until a completion-signal operation has begun executing.
+
+* The destructor of an operation state shall be called synchronously, directly
+    or indirectly, from within the execution of the completion-signal operation,
+    or after the completion-signal operation has finished executing.
+
+* A completion-signal operation shall not be called before `start()` has begun
+    executing.
+
+* The receiver to which a sender is connected shall not be copied or moved after
+    `start()` is called on the operation state.
+
+* Once `start()` has been called on an operation state, exactly one of the
+    completion-signal operations shall begin executing on the receiver before
+    the receiver is destroyed. <span class="wg21note">Customarily, the receiver
+    releases resources in its completion-signal operations. This can involve
+    destroying the operation state, which often owns the receiver itself.</note>
+
+* The queryable result of calling `get_env` on a sender or a receiver, and the
+    result of calling a query on such a queryable object, shall remain valid
+    while the sender or receiver is valid.
+
+* The receiver is assumed to be invalid after any expression that, directly or
+    indirectly, causes the destructor of the operation state to be executed.
+
+* Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
+    sender such that `sender_in<S, env_of_t<R>>` is `true`. Let `Sigs...`
+    be the template arguments of the `completion_signatures` specialization
+    named by `completion_signatures_of_t<S, env_of_t<R>>`. Let
+    <code><i>CSO</i></code> be a completion function. If sender `S`
+    potentially evaluates ([basic.def.odr]) <code><i>CSO</i>(r, args...)</code> then there
+    shall be a signature `Sig` in `Sigs...` such that
+    <code><i>MATCHING-SIG</i>(tag_t&lt;<i>CSO</i>>(decltype(args)...), Sig)</code>
+    is `true`. <span class="wg21note">In simpler terms: a sender is not
+    permitted to lie in its completion signatures.</span>
+
+* Once one of the completion-signal operations has finished executing, the
+    async-function-protocol has been satisfied.
+
 ## Queries <b>[exec.queries]</b> ## {#spec-execution.queries}
 
 1. A <i>query object</i> is a customization point object
@@ -4399,25 +4585,17 @@ enum class forward_progress_guarantee {
     for types that do not. Such specializations shall be usable in constant
     expressions ([expr.const]) and have type `const bool`.
 
-3. The receiver’s completion-signal operations have semantic requirements that are collectively known as the <i>receiver contract</i>, described below:
-
-    1. None of a receiver’s completion-signal operations shall be invoked before `execution::start` has been called on the operation state object that was returned by `execution::connect` to connect that receiver to a sender.
-
-    2. Once `execution::start` has been called on the operation state object, exactly one of the receiver’s completion-signal operations shall complete before the receiver is destroyed.
-
-4. Once one of a receiver’s completion-signal operations has completed, the receiver contract has been satisfied.
-
-5. Let `r` be a receiver, `s` be a sender, and `op_state` be an operation state
+4. Let `r` be a receiver, `s` be a sender, and `op_state` be an operation state
     resulting from an `execution::connect(s, r)` call. Let `token` be a stop
     token resulting from an `execution::get_stop_token(std::get_env(r))`
     call. `token` must remain valid at least until a call to a receiver
     completion-signal function of `r` returns successfully. [<i>Note</i>: this
     means that, unless it knows about further guarantees provided by the
-    receiver `r`, the implementation of `op_state` should not use `token` after
-    it makes a call to a receiver completion-signal function of `r`. This also
+    receiver `r`, the implementation of `op_state` can not use `token` after
+    it makes a call to a completion function on `r`. This also
     implies that any stop callbacks registered on `token` by the implementation
-    of `op_state` or `s` must be destroyed before such a call to a receiver
-    completion-signal function of `r`. --<i>end note</i>]
+    of `op_state` or `s` must be destroyed before such a call to a
+    completion function on `r`. --<i>end note</i>]
 
 ### `execution::set_value` <b>[exec.set.value]</b> ### {#spec-execution.receivers.set_value}
 
@@ -4427,8 +4605,8 @@ enum class forward_progress_guarantee {
     it is expression-equivalent to
     <code><i>mandate-nothrow-call</i>(tag_invoke, execution::set_value, R, Vs...)</code>.
 
-2. The expression `execution::set_value(R, Vs...)` satisfies the receiver contract
-    of `R` with a value completion signal with values `Vs...`.
+2. The expression `execution::set_value(R, Vs...)` completes the receiver
+    `R` with a value completion-signal with values `Vs...`.
 
 ### `execution::set_error` <b>[exec.set.error]</b> ### {#spec-execution.receivers.set_error}
 
@@ -4437,8 +4615,8 @@ enum class forward_progress_guarantee {
     is ill-formed if `R` is an lvalue. Otherwise, it is expression-equivalent to
     <code><i>mandate-nothrow-call</i>(tag_invoke, execution::set_error, R, E)</code>.
 
-2. The expression `execution::set_error(R, E)` satisfies the receiver contract
-    of `R` with an error completion signal with error `E`.
+2. The expression `execution::set_error(R, E)` completes the receiver
+    `R` with an error completion-signal with error `E`.
 
 ### `execution::set_stopped` <b>[exec.set.stopped]</b> ### {#spec-execution.receivers.set_stopped}
 
@@ -4447,8 +4625,8 @@ enum class forward_progress_guarantee {
     ill-formed if `R` is an lvalue. Otherwise, it is expression-equivalent to
     <code><i>mandate-nothrow-call</i>(tag_invoke, execution::set_stopped, R)</code>.
 
-2. The expression `execution::set_stopped(R)` satisfies the receiver contract
-    of `R` with a stopped completion signal.
+2. The expression `execution::set_stopped(R)` completes the receiver
+    `R` with a stopped completion-signal.
 
 ## Operation states <b>[exec.opstate]</b> ## {#spec-execution.opstate}
 
@@ -4464,32 +4642,35 @@ enum class forward_progress_guarantee {
         };
     </pre>
 
-2. Any operation state types defined by the implementation are non-movable types.
+2. Library provided operation state types are non-movable.
 
 ### `execution::start` <b>[exec.opstate.start]</b> ### {#spec-execution.opstate.start}
 
 1. `execution::start` starts work represented by an operation state object.
 
-2. The name `execution::start` denotes a customization point object. The expression `execution::start(O)` for some lvalue subexpression `O` is expression-equivalent to:
+2. The name `execution::start` denotes a customization point object. The expression
+    `execution::start(O)` for some subexpression `O` is ill-formed if `O` is an rvalue.
+    Otherwise, it is expression-equivalent to:
 
-    1. `tag_invoke(execution::start, O)`, if that expression is valid. If the function selected by `tag_invoke` does not start the work represented by the operation state `O`, the behavior of calling `execution::start(O)` is undefined.
+    <pre highlight="c++">
+    <i>mandate-nothrow-call</i>(tag_invoke, execution::start, O)
+    </pre>
 
-        * <i>Mandates:</i> The `tag_invoke` expression above is not potentially
-            throwing.
+3. If the function selected by `tag_invoke` does not start the work represented by the operation state `O`, the behavior of calling `execution::start(O)` is undefined.
 
-    2. Otherwise, `execution::start(O)` is ill-formed.
-
-3. The caller of `execution::start(O)` must guarantee that the lifetime of the operation state object `O` extends at least until one of the receiver completion-signal functions of a receiver `R` passed into the `execution::connect` call that produced `O` is ready
+4. The caller of `execution::start(O)` must guarantee that the lifetime of the operation state object `O` extends at least until one of the receiver completion-signal functions of a receiver `R` passed into the `execution::connect` call that produced `O` is ready
     to successfully return. <span class="wg21note">This allows for the receiver to manage the lifetime of the operation state object, if destroying it is the last operation it performs in its completion-signal functions.</span>
 
 ## Senders <b>[exec.snd]</b> ## {#spec-execution.senders}
 
-1. A sender describes a potentially asynchronous operation. A sender's responsibility is to fulfill the receiver contract of a connected receiver by delivering one of the receiver completion-signals.
+1. A sender describes a potentially asynchronous operation. A sender's responsibility
+    is to fulfill the async-function-protocol by executing a completion-signal
+    operation on a receiver connected to it.
 
 ### Sender concepts <b>[exec.snd.concepts]</b> ### {#spec-execution.environment.snd_concepts}
 
 1. The `sender` concept defines the requirements for a sender type.
-    The `sender_in` concept defines the requirements for a sender within a
+    The `sender_in` concept defines the requirements for a sender type within a
     particular execution environment.
     The `sender_to` concept defines the requirements for a sender type capable of
     being connected with a specific receiver type.
@@ -4535,7 +4716,7 @@ enum class forward_progress_guarantee {
     <code><i>valid-completion-signatures</i></code> if it names an instantiation
     of the `completion_signatures` class template.
 
-3. _Remarks:_ Pursuant to [namespace.std], users may specialize `enable_sender` to
+3. <i>Remarks:</i> Pursuant to [namespace.std], users may specialize `enable_sender` to
     `true` for cv-unqualified program-defined types that model `sender`, and `false`
     for types that do not. Such specializations shall be usable in constant
     expressions ([expr.const]) and have type `const bool`.
@@ -4584,6 +4765,13 @@ enum class forward_progress_guarantee {
         </pre>
         -- *end example*]
 
+5. Library-provided sender types:
+      - Always expose an overload of a customization of `execution::connect`
+          that accepts an rvalue sender.
+      - Only expose an overload of a customization of `execution::connect` that
+          accepts an lvalue sender if they model `copy_constructible`.
+      - Model `copy_constructible` if they satisfy `copy_constructible`.
+
 ### Completion signatures <b>[exec.sndtraits]</b> ### {#spec-exec.sndtraits}
 
 #### `execution::completion_signatures_of_t` <b>[exec.complsigs]</b> #### {#spec-exec.complsigs}
@@ -4606,9 +4794,9 @@ enum class forward_progress_guarantee {
     of type <code><i>env-promise</i>&lt;Env></code>, where
     <code><i>env-promise</i>&lt;Env></code> names a class type such that:
 
-    1. For some subexpression `e`, the expression `p.await_transform(e)` is
+    1. For a subexpression `e`, the expression `p.await_transform(e)` is
         expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that
-        expression is well-formed ([exec.as.awaitable]); otherwise, `e`.
+        expression is well-formed ([exec.as.awaitable]); otherwise, `identity()(e)`.
 
     2. `decltype(get_env(as_const(p)))` names the type `const Env&`.
 
@@ -4632,7 +4820,7 @@ enum class forward_progress_guarantee {
 
     3. Otherwise, if <code><i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;E>></code> is `true`, then
 
-        1. If <code><i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>></code> is <code><i>cv</i> void</code> then a prvalue of a type equivalent to:
+        1. If <code><i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>></code> is <code><i>cv</i> void</code> then a prvalue of type:
 
             <pre highlight="c++">
             completion_signatures<
@@ -4641,7 +4829,7 @@ enum class forward_progress_guarantee {
               set_stopped_t()>
             </pre>
 
-        2. Otherwise, a prvalue of a type equivalent to:
+        2. Otherwise, a prvalue of type:
 
             <pre highlight="c++">
             completion_signatures<
@@ -4665,44 +4853,25 @@ enum class forward_progress_guarantee {
         };
         </pre>
 
-7. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
-    sender. If `value_types_of_t<S, env_of_t<R>, Tuple, Variant>` is well
-    formed, it shall name the type
-    <code>Variant&lt;Tuple&lt;Args<i><sub>0</sub></i>...>,
-    Tuple&lt;Args<i><sub>1</sub></i>...>, ...,
-    Tuple&lt;Args<i><sub>N</sub></i>...>>></code>, where the type packs
-    <code>Args<i><sub>0</sub></i></code> through
-    <code>Args<i><sub>N</sub></i></code> are the packs of types the sender `S`
-    passes as arguments to `execution::set_value` (besides the receiver object).
-    Such a sender `S` shall not odr-use ([basic.def.odr]) `execution::set_value(r,
-    args...)`, where `decltype(args)...` is not one of the type packs
-    <code>Args<i><sub>0</sub></i>...</code> through
-    <code>Args<i><sub>N</sub></i>...</code> (ignoring differences in
-    rvalue-reference qualification).
+7. For function types `F1` and `F2` denoting `R1(Args1...)` and `R2(Args2...)`
+    respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if 
+    `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
 
 8. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
-    sender. If `error_types_of_t<S, env_of_t<R>, Variant>` is well-formed, it
-    shall name the type <code>Variant&lt;E<i><sub>0</sub></i>,
-    E<i><sub>1</sub></i>, ..., E<i><sub>N</sub></i>></code>, where the types
-    <code>E<i><sub>0</sub></i></code> through <code>E<i><sub>N</sub></i></code>
-    are the types the sender `S` passes as arguments to `execution::set_error`
-    (besides the receiver object). Such a sender `S` shall not odr-use
-    `execution::set_error(r, e)`, where `decltype(e)` is not one of the types
-    <code>E<i><sub>0</sub></i></code> through <code>E<i><sub>N</sub></i></code>
-    (ignoring differences in rvalue-reference qualification).
-
-9. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
-    sender. If `sends_stopped<S, env_of_t<R>>` is well-formed and
-    `false`, such a sender `S` shall not odr-use `execution::set_stopped(r)`.
-
-10. [<i>Note</i>: The types <code>Args<i><sub>i</sub></i>...</code> and <code>E<i><sub>i</sub></i>...</code> captured in `value_types` and `error_types` can appear in any order.
-     For example, a sender that can yield, in case of an error, either `exception_ptr` or `error_code` can have `error_types` be either `Variant<exception_ptr, error_code>` or `Variant<error_code, exception_ptr>`. --<i>end note</i>]
+    sender such that `sender_in<S, env_of_t<R>>` is `true`. Let `Sigs...`
+    be the template arguments of the `completion_signatures` specialization
+    named by `completion_signatures_of_t<S, env_of_t<R>>`. Let <code><i>SET</i></code>
+    be one of `set_value`, `set_error`, or `set_stopped`. If sender `S`
+    potentially evaluates ([basic.def.odr]) <code><i>SET</i>(r, args...)</code> then there
+    shall be a signature `Sig` in `Sigs...` such that
+    <code><i>MATCHING-SIG</i>(tag_t&lt;<i>SET</i>>(decltype(args)...), Sig)</code>
+    is `true`.
 
 ### `execution::connect` <b>[exec.connect]</b> ### {#spec-execution.senders.connect}
 
-1. `execution::connect` <i>connects</i> a sender with a receiver, producing an operation state object that represents the work that needs to be performed to satisfy the receiver contract of the receiver with values that are the result of the operations described by the sender.
+1. `execution::connect` <i>connects</i> a sender with a receiver, producing an operation state object that represents the operation that needs to be performed to complete the receiver with values that are the result of the operations described by the sender.
 
-2. The name `execution::connect` denotes a customization point object. For some subexpressions `s` and `r`, let `S` be `decltype((s))` and `R` be `decltype((r))`, and let `S'` and `R'` be the decayed types of `S` and `R`, respectively. If `R` does not satisfy `execution::receiver`, `execution::connect(s, r)` is ill-formed. Otherwise, the expression `execution::connect(s, r)` is expression-equivalent to:
+2. The name `execution::connect` denotes a customization point object. For subexpressions `s` and `r`, let `S` be `decltype((s))` and `R` be `decltype((r))`, and let `DS` and `DR` be the decayed types of `S` and `R`, respectively. If `S` does not satisfy `sender` or if `R` does not satisfy `receiver`, `execution::connect(s, r)` is ill-formed. Otherwise, the expression `execution::connect(s, r)` is expression-equivalent to:
 
     1. `tag_invoke(execution::connect, s, r)`, if the constraints below are satisfied. If the function selected by `tag_invoke` does not return an operation state for which `execution::start` starts work described by `s`, the behavior of calling `execution::connect(s, r)` is undefined.
 
@@ -4716,41 +4885,57 @@ enum class forward_progress_guarantee {
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `operation_state`.
 
-    2. Otherwise, <code><i>connect-awaitable</i>(s, r)</code> if <code><i>is-awaitable</i>&lt;S, <i>connect-awaitable-promise</i>></code> is `true` and that expression is valid, where <code><i>connect-awaitable</i></code> is a coroutine equivalent to the following:
+    2. Otherwise, <code><i>connect-awaitable</i>(s, r)</code> if <code><i>is-awaitable</i>&lt;S, <i>connect-awaitable-promise</i>></code> is `true` and that expression is valid, where <code><i>connect-awaitable</i></code> is an exposition-only coroutine defined as follows:
 
         <pre highlight="c++">
-        <i>operation-state-task</i> <i>connect-awaitable</i>(S' s, R' r) requires <i>see-below</i> {
+        template &lt;class Fun, class... Ts>
+        auto <i>suspend-complete</i>(Fun fun, Ts&&... as) noexcept { <i>// exposition only</i>
+          auto fn = [&, fun]() noexcept { fun(static_cast&lt;Ts&&>(as)...); };
+
+          struct awaiter {
+            decltype(fn) fn_;
+
+            bool await_ready() noexcept { return false; }
+            void await_suspend(coroutine_handle<>) noexcept { fn_(); }
+            [[noreturn]] void await_resume() noexcept { unreachable(); }
+          };
+          return awaiter{fn};
+        };
+
+        <i>operation-state-task</i> <i>connect-awaitable</i>(DS s, DR r) requires <i>see below</i> {
+          using V = <i>await-result-type</i>&lt;DS, <i>connect-awaitable-promise</i>>;
           exception_ptr ep;
           try {
-            <i>set-value-expr</i>
+            if constexpr (same_as&lt;V, void>) {
+              co_await (co_await std::move(s), <i>suspend-complete</i>(set_value, std::move(r)));
+            } else {
+              co_await <i>suspend-complete</i>(set_value, std::move(r), co_await std::move(s));
+            }
           } catch(...) {
             ep = current_exception();
           }
-          <i>set-error-expr</i>
+          co_await <i>suspend-complete</i>(set_error, std::move(r), std::move(ep));
         }
         </pre>
 
         where <code><i>connect-awaitable-promise</i></code> is the promise type of <code><i>connect-awaitable</i></code>, and where <code><i>connect-awaitable</i></code> suspends at the <i>initial suspends point</i> ([dcl.fct.def.coroutine]), and:
 
-          1. <i>set-value-expr</i> first evaluates `co_await std::move(s)`, then suspends the coroutine and evaluates `execution::set_value(std::move(r))` if <code><i>await-result-type</i>&lt;S, <i>connect-awaitable-promise</i>></code> is <code><i>cv</i> void</code>; otherwise, it evaluates `auto&& res = co_await std::move(s)`, then suspends the coroutine and evaluates `execution::set_value(std::move(r), std::forward<decltype(res)>(res))`.
+          1. <code><i>operation-state-task</i></code> is a type that models
+            `operation_state`. For an lvalue subexpression `o` of type
+            <code><i>operation-state-task</i></code>, `execution::start(o)` resumes the
+            <code><i>connect-awaitable</i></code> coroutine, advancing it
+            past the initial suspend point. Its destructor destroys the
+            <code><i>connect-awaitable</i></code> coroutine.
 
-            If the call to `execution::set_value` exits with an exception, the coroutine is resumed and the exception is immediately propagated in the context of the coroutine.
+          2. Let `p` be an lvalue denoting the promise object of a
+            <code><i>connect-awaitable</i></code> coroutine. `get_env(p)` is
+            expression-equivalent to `get_env(as_const(r))`.
 
-            [<i>Note</i>: If the call to `execution::set_value` exits normally, then the <code><i>connect-awaitable</i></code> coroutine is never resumed. --<i>end note</i>]
+          3. The expression `p.unhandled_stopped()` is expression-equivalent to `(execution::set_stopped(std::move(r)), noop_coroutine())`.
 
-          2. <i>set-error-expr</i> first suspends the coroutine and then executes `execution::set_error(std::move(r), std::move(ep))`.
+          4. For an expression `e`, the expression `p.await_transform(e)` is expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that expression is well-formed ([exec.as.awaitable]); otherwise, it is expression-equivalent to `identity()(e)`.
 
-            [<i>Note</i>: The <code><i>connect-awaitable</i></code> coroutine is never resumed after the call to `execution::set_error`. --<i>end note</i>]
-
-          3. <code><i>operation-state-task</i></code> is a type that models `operation_state`. Its `execution::start` resumes the <code><i>connect-awaitable</i></code> coroutine, advancing it past the initial suspend point.
-
-          4. Let `p` be an lvalue reference to the promise of the <code><i>connect-awaitable</i></code> coroutine, let `b` be a `const` lvalue reference to the receiver `r`. Then `get_env(p)` is expression-equivalent to `get_env(b)`.
-
-          5. The expression `p.unhandled_stopped()` is expression-equivalent to `(execution::set_stopped(std::move(r)), noop_coroutine())`.
-
-          6. For some expression `e`, the expression `p.await_transform(e)` is expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that expression is well-formed ([exec.as.awaitable]); otherwise, it is expression-equivalent to `e`.
-
-        Let `Res` be <code><i>await-result-type</i>&lt;S, <i>connect-awaitable-promise</i>></code>, and let `Vs...` be an empty parameter pack if `Res` is <code><i>cv</i> void</code>, or a pack containing the single type `Res` otherwise. The operand of the <i>requires-clause</i> of <code><i>connect-awaitable</i></code> is equivalent to `receiver_of<R, Sigs>` where `Sigs` names the type:
+        Let `V` be <code><i>await-result-type</i>&lt;S, <i>connect-awaitable-promise</i>></code>, and let `Vs...` be an empty parameter pack if `V` is <code>void</code>, or a pack containing the single type `V` otherwise. The operand of the <i>requires-clause</i> of <code><i>connect-awaitable</i></code> is `receiver_of<R, Sigs>` where `Sigs` names the type:
 
             <pre highlight="c++">
             completion_signatures&lt;
@@ -4760,8 +4945,6 @@ enum class forward_progress_guarantee {
             </pre>
 
     3. Otherwise, `execution::connect(s, r)` is ill-formed.
-
-3. Standard sender types shall always expose an rvalue-qualified overload of a customization of `execution::connect`. Standard sender types shall only expose an lvalue-qualified overload of a customization of `execution::connect` if they are copyable.
 
 ### Sender factories <b>[exec.factories]</b> ### {#spec-execution.senders.factories}
 
@@ -5421,16 +5604,16 @@ enum class forward_progress_guarantee {
 
         4. Given subexpressions `s2` and `e`, where `s2` is a sender returned
             from <code><i>let-cpo</i>(s, f)</code> or a copy of such, let `S2` be
-            `decltype((s2))`, let `E` be `decltype((e))`, and let `S'` be
+            `decltype((s2))`, let `E` be `decltype((e))`, and let `DS` be
             `copy_cvref_t<S2, S>`. Then the type of
             `tag_invoke(get_completion_signatures, s2, e)` is specified as
             follows:
 
-            1. If `sender_in<S', E>` is `false`, the expression
+            1. If `sender_in<DS, E>` is `false`, the expression
                 `tag_invoke(get_completion_signatures, s2, e)` is ill-formed.
 
             2. Otherwise, let `Sigs...` be the set of template arguments of the
-                `completion_signatures` specialization named by `completion_signatures_of_t<S', E>`,
+                `completion_signatures` specialization named by `completion_signatures_of_t<DS, E>`,
                 let `Sigs2...` be the set of function types in `Sigs...` whose return type
                 is <code><i>set-cpo</i></code>, and let `Rest...` be the set of function types
                 in `Sigs...` but not `Sigs2...`.
@@ -5494,7 +5677,7 @@ enum class forward_progress_guarantee {
 
         4. Given subexpressions `s2` and `e` where `s2` is a sender returned
             from `bulk` or a copy of such, let `S2` be `decltype((s2))`, let
-            `E` be `decltype((e))`, let `S'` be `copy_cvref_t<S2, S>`, let `Shape` be
+            `E` be `decltype((e))`, let `DS` be `copy_cvref_t<S2, S>`, let `Shape` be
             `decltype((shape))` and let <code><i>nothrow-callable</i></code> be the alias template:
 
               <pre highlight="c++">
@@ -5504,18 +5687,18 @@ enum class forward_progress_guarantee {
               </pre>
 
             1. If any of the types in the <code><i>type-list</i></code> named by
-                <code>value_types_of_t&lt;S', E, <i>nothrow-callable</i>,
+                <code>value_types_of_t&lt;DS, E, <i>nothrow-callable</i>,
                 <i>type-list</i>></code> are `false_type`, then the type of
                 `tag_invoke(get_completion_signatures, s2, e)` shall be
                 equivalent to:
 
                 <pre highlight="c++">
                 make_completion_signatures&lt;
-                  S', E, completion_signatures&lt;set_error_t(exception_ptr)>>
+                  DS, E, completion_signatures&lt;set_error_t(exception_ptr)>>
                 </pre>
 
             2. Otherwise, the type of `tag_invoke(get_completion_signatures, s2,
-                e)` shall be equivalent to `completion_signatures_of_t<S', E>`.
+                e)` shall be equivalent to `completion_signatures_of_t<DS, E>`.
 
     4. If the function selected above does not return a sender which invokes
         `f(i, args...)` for each `i` of type `Shape` from `0` to `shape` when
@@ -5569,7 +5752,7 @@ enum class forward_progress_guarantee {
                 into `sh_state`. It then notifies the operation states in
                 `sh_state`'s list of operation states that the results are ready.
 
-            3. When `execution::set_stopped(r)` is called, it then notifies the
+            3. When `execution::set_stopped(r)` is called, notifies the
                 operation states in `sh_state`'s list of operation states that
                 the results are ready.
 
@@ -5606,13 +5789,12 @@ enum class forward_progress_guarantee {
 
         6. When `execution::start(op_state)` is called:
 
-            * If `r`'s receiver contract has already been satisfied, then let
-                <code><i>Signal</i></code> be whichever receiver completion-signal
-                was used to complete r's receiver contract ([exec.recv]). Calls
-                <code><i>Signal</i>(out_r', args2...)</code>, where `args2...` is a
-                pack of const lvalues referencing the subobjects of `sh_state` that
-                have been saved by the original call to <code><i>Signal</i>(r,
-                args...)</code> and returns.
+            * If one of `r`'s completion functions has executed, then let
+                <code><i>Signal</i></code> be the completion function that was
+                called. Calls <code><i>Signal</i>(out_r', args2...)</code>,
+                where `args2...` is a pack of const lvalues referencing the
+                subobjects of `sh_state` that have been saved by the original
+                call to <code><i>Signal</i>(r, args...)</code> and returns.
 
             * Otherwise, it emplace constructs the stop callback optional with
                 the arguments `execution::get_stop_token(get_env(out_r'))` and
@@ -5632,9 +5814,9 @@ enum class forward_progress_guarantee {
                   * Otherwise, `execution::start(op_state2)` is called.
 
         7. When `r` completes it will notify `op_state` that the result are
-            ready. Let <code><i>Signal</i></code> be whichever receiver
-            completion-signal was used to complete `r`'s receiver contract
-            ([exec.recv]). `op_state`'s stop callback optional is reset. Then
+            ready. Let <code><i>Signal</i></code> be whichever
+            completion function was called on receiver `r`. `op_state`'s
+            stop callback optional is reset. Then
             <code><i>Signal</i>(std::move(out_r'), args2...)</code> is called,
             where `args2...` is a pack of const lvalues referencing the subobjects of
             `sh_state` that have been saved by the original call to
@@ -5685,9 +5867,8 @@ enum class forward_progress_guarantee {
         from `split(s)` or a copy of such, `r2` is the receiver
         to which `s2` is connected, and `args` is the pack of subexpressions
         passed to `r`'s completion-signal operation <code><i>CSO</i></code>
-        when `s` completes. `s2` shall satisfy `r2`'s receiver contract
-        ([exec.recv]) by invoking <code><i>CSO</i>(r2, args2...)</code> where
-        `args2` is a pack of const lvalue references to objects decay-copied from
+        when `s` completes. `s2` shall invoke <code><i>CSO</i>(r2, args2...)</code>
+        where `args2` is a pack of const lvalue references to objects decay-copied from
         `args`, or by calling <code>set_error(r2, e2)</code> for some subexpression
         `e2`. The objects passed to `r2`'s completion-signal operation shall
         be valid until after the completion of the invocation of `r2`'s completion-
@@ -5765,18 +5946,18 @@ enum class forward_progress_guarantee {
             `tag_invoke(get_completion_signatures, s2, e)` shall be as follows:
 
             1. For each type <code>S<i><sub>i</sub></i></code> in `Ss...`, let
-                <code>S'<i><sub>i</sub></i></code> name the type
+                <code>DS<i><sub>i</sub></i></code> name the type
                 <code>copy_cvref_t&lt;S2, S<i><sub>i</sub></i>></code>. If for
-                any type <code>S'<i><sub>i</sub></i></code>, the type
-                <code>completion_signatures_of_t&lt;S'<i><sub>i</sub></i>,
+                any type <code>DS<i><sub>i</sub></i></code>, the type
+                <code>completion_signatures_of_t&lt;DS<i><sub>i</sub></i>,
                 WE></code> is ill-formed, the expression of
                 `tag_invoke(get_completion_signatures, s2, e)` is
                 ill-formed.
 
-            2. Otherwise, for each type <code>S'<i><sub>i</sub></i></code>, let
+            2. Otherwise, for each type <code>DS<i><sub>i</sub></i></code>, let
                 <code>Sigs<i><sub>i</sub></i>...</code> be the set of template
                 arguments in the instantiation of `completion_signatures` named
-                by <code>completion_signatures_of_t&lt;S'<i><sub>i</sub></i>,
+                by <code>completion_signatures_of_t&lt;DS<i><sub>i</sub></i>,
                 WE></code>, and let <code>C<i><sub>i</sub></i></code> be the
                 count of function types in
                 <code>Sigs<i><sub>i</sub></i>...</code> for which the return
@@ -5841,7 +6022,7 @@ enum class forward_progress_guarantee {
     1. `tag_invoke(execution::transfer_when_all, sch, s...)`, if that expression
         is valid. If the function selected by `tag_invoke` does not return a
         sender that sends a concatenation of values sent by `s...` when they all
-        complete with `set_value`, or does not send its completion signals,
+        complete with `set_value`, or does not send its completion-signals,
         other than ones resulting from a scheduling error, on an execution agent
         belonging to the associated execution context of `sch`, the behavior of
         calling `execution::transfer_when_all(sch, s...)` is undefined.
@@ -6038,9 +6219,8 @@ enum class forward_progress_guarantee {
                 and returns the results of calling `get_token()` on `sh_state`'s
                 stop source.
 
-            5. `r` shares ownership of `sh_state` with `s2`. After `r`'s
-                receiver contract has been completed, it releases its ownership
-                of `sh_state`.
+            5. `r` shares ownership of `sh_state` with `s2`. After `r`
+                has been completed, it releases its ownership of `sh_state`.
 
         3. Calls `std::get_env(s)` and decay-copies the result into
             `sh_state`.
@@ -6072,12 +6252,12 @@ enum class forward_progress_guarantee {
 
         6. When `execution::start(op_state)` is called:
 
-            * If `r`'s receiver contract has already been satisfied, then let
-                <code><i>Signal</i></code> be whichever receiver completion-signal
-                was used to complete `r`'s receiver contract ([exec.recv]). Calls
-                <code><i>Signal</i>(out_r', args2...)</code>, where `args2...` is a
+            * If `r` has already been completed, then let
+                <code><i>CF</i></code> be whichever completion function
+                was used to complete `r`. Calls
+                <code><i>CF</i>(out_r', args2...)</code>, where `args2...` is a
                 pack of xvalues referencing the subobjects of `sh_state` that have
-                been saved by the original call to <code><i>Signal</i>(r,
+                been saved by the original call to <code><i>CF</i>(r,
                 args...)</code> and returns.
 
             * Otherwise, it emplace constructs the stop callback optional with
@@ -6095,17 +6275,17 @@ enum class forward_progress_guarantee {
                 of the completion of `r`.
 
         7. When `r` completes it will notify `op_state` that the result are
-            ready. Let <code><i>Signal</i></code> be whichever receiver
-            completion-signal was used to complete `r`'s receiver contract
-            ([exec.recv]). `op_state`'s stop callback optional is reset. Then
-            <code><i>Signal</i>(std::move(out_r'), args2...)</code> is called,
+            ready. Let <code><i>CF</i></code> be whichever
+            completion function was used to complete `r`. `op_state`'s stop
+            callback optional is reset. Then
+            <code><i>CF</i>(std::move(out_r'), args2...)</code> is called,
             where `args2...` is a pack of xvalues referencing the subobjects of
             `sh_state` that have been saved by the original call to
-            <code><i>Signal</i>(r, args...)</code>.
+            <code><i>CF</i>(r, args...)</code>.
 
         8. [*Note:* If sender `s2` is destroyed without being connected to a
             receiver, or if it is connected but the operation state is destroyed
-            without having been started, then when `r`'s receiver contract
+            without having been started, then when `r`
             completes and it releases its shared ownership of `sh_state`,
             `sh_state` will be destroyed and the results of the operation are
             discarded. -- *end note*]
@@ -6152,8 +6332,7 @@ enum class forward_progress_guarantee {
       from `ensure_started(s)` or a copy of such, `r2` is the receiver
       to which `s2` is connected, and `args` is the pack of subexpressions
       passed to `r`'s completion-signal operation <code><i>CSO</i></code>
-      when `s` completes. `s2` shall satisfy `r2`'s receiver contract
-      ([exec.recv]) by invoking <code><i>CSO</i>(r2, args2...)</code> where
+      when `s` completes. `s2` shall invoke <code><i>CSO</i>(r2, args2...)</code> where
       `args2` is a pack of xvalue references to objects decay-copied from
       `args`, or by calling <code>set_error(r2, e2)</code> for some subexpression
       `e2`. The objects passed to `r2`'s completion-signal operation shall
@@ -6475,9 +6654,9 @@ enum class forward_progress_guarantee {
 
 ### `execution::completion_signatures` <b>[exec.utils.cmplsigs]</b> ### {#spec-execution.snd_rec_utils.completion_sigs}
 
-1. `completion_signatures` describes the completion signals of a receiver that
+1. `completion_signatures` describes the completion-signals of a receiver that
     a sender may invoke. Its template argument list is a list of function types corresponding
-    to the signatures of the receiver's completion signals.
+    to the signatures of the receiver's completion-signals.
 
 2. [<i>Example:</i>
      <pre highlight="c++">
@@ -6696,7 +6875,7 @@ enum class forward_progress_guarantee {
         run_loop* loop_;
         <i>run-loop-opstate-base</i>* next_;
       };
-      template&lt;receiver_of<completion_signatures<set_value_t()>> R>
+      template&lt;receiver_of&lt;completion_signatures&lt;set_value_t()>> R>
         using <i>run-loop-opstate</i> = <i>unspecified</i>; // exposition only
 
       // [exec.run.loop.members] Member functions:
@@ -6745,7 +6924,7 @@ enum class forward_progress_guarantee {
     * The expression <code>get_completion_scheduler&lt;C>(get_env(<i>s</i>))</code> is not potentially-throwing, has type <code><i>run-loop-scheduler</i></code>, and compares equal to the <code><i>run-loop-scheduler</i></code> instance from which <code><i>s</i></code> was obtained.
 
   <pre highlight="c++">
-  template&lt;receiver_of<completion_signatures<set_value_t()>> R> // arguments are not associated entities ([lib.tmpl-heads])
+  template&lt;receiver_of&lt;completion_signatures&lt;set_value_t()>> R> // arguments are not associated entities ([lib.tmpl-heads])
     struct <i>run-loop-opstate</i>;
   </pre>
 
