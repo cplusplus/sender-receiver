@@ -4781,14 +4781,20 @@ enum class forward_progress_guarantee {
 
 2. For a subexpression `c`, let <code><i>GET-AWAITER</i>(c, p)</code> be
     expression-equivalent to the series of transformations and conversions
-    applied to `c` as the operand of an *await-expression* in a coroutine as
-    described by [expr.await]/3.2-4, where `p` is an lvalue refering to the
-    coroutine's promise type, `P`. <span class="wg21note">This includes the
-    invocation of the promise type's `await_transform` member if any, the
-    invocation of the `operator co_await` picked by overload resolution if
-    any, and any necessary implicit conversions.</span>
+    applied to `c` as the operand of an *await-expression* in a coroutine,
+    resulting in lvalue <i>`e`</i> as described by [expr.await]/3.2-4, where `p`
+    is an lvalue refering to the coroutine's promise type, `P`. <span
+    class="wg21note">This includes the invocation of the promise type's
+    `await_transform` member if any, the invocation of the `operator co_await`
+    picked by overload resolution if any, and any necessary implicit
+    conversions and materializations.</span>
 
-3. Let <code><i>is-awaitable</i></code> be the following exposition-only concept:
+    <div class="ed-note">I have opened
+    [cwg#250](https://github.com/cplusplus/CWG/issues/250) to give these
+    transformations a term-of-art so we can more easily refer to it here.</div>
+
+3. Let <code><i>is-awaitable</i></code> be the following exposition-only
+    concept:
 
     <pre highlight="c++">
     template &lt;class T>
@@ -4804,13 +4810,13 @@ enum class forward_progress_guarantee {
 
     template &lt;class C, class P>
     concept <i>is-awaitable</i> =
-      requires (C&& c, P& p) {
-        { <i>GET-AWAITER</i>(std::forward&lt;C>(c), p) } -> <i>is-awaiter</i>&lt;P>;
+      requires (C (*fc)() noexcept, P& p) {
+        { <i>GET-AWAITER</i>(fc(), p) } -> <i>is-awaiter</i>&lt;P>;
       };
     </pre>
 
     <code><i>await-suspend-result</i>&lt;T></code> is `true` if and only if one
-      one of the following is `true`:
+      of the following is `true`:
     
         - `T` is `void`.
         - `T` is `bool`.
@@ -4846,7 +4852,7 @@ enum class forward_progress_guarantee {
     </pre>
 
     <span class="wg21note">Specializations of <code><i>env-promise</i></code>
-      are only used for the purpose of type computation. Its members need not be
+      are only used for the purpose of type computation; its members need not be
       defined.</span>
 
 ### Completion signatures <b>[exec.sndtraits]</b> ### {#spec-exec.sndtraits}
@@ -4905,7 +4911,8 @@ enum class forward_progress_guarantee {
 
     1. If `sizeof...(Ts)` is greater than zero, <code><i>variant-or-empty&lt;Ts...></i></code> names the type `variant<Us...>` where `Us...` is the pack `decay_t<Ts>...` with duplicate types removed.
 
-    2. Otherwise, <code><i>variant-or-empty&lt;Ts...></i></code> names an unspecified class type equivalent to the following:
+    2. Otherwise, <code><i>variant-or-empty&lt;Ts...></i></code> names the
+        unspecified class type:
 
         <pre highlight="c++">
         struct <i>empty-variant</i> {
@@ -5099,7 +5106,7 @@ enum class forward_progress_guarantee {
 
 1. `read` creates a sender that retrieves a value from the receiver's associated environment and sends it to the receiver's `set_value` completion function.
 
-2. `read` is a customization point object of an unspecified class type equivalent to:
+2. `read` is a customization point object of the unspecified class type:
 
     <pre highlight=c++>
     template &lt;class Tag>
@@ -5835,8 +5842,8 @@ enum class forward_progress_guarantee {
               * A reference to `sh_state`,
               * A stop callback of type
                 <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
-                where <code><i>stop-callback-fn</i></code> is an implementation
-                defined class type equivalent to the following:
+                where <code><i>stop-callback-fn</i></code> is the unspecified
+                class type:
 
                 <pre highlight="c++">
                 struct <i>stop-callback-fn</i> {
@@ -5975,7 +5982,7 @@ enum class forward_progress_guarantee {
 
             * Each operation state <code>child_op<i><sub>i</sub></i></code>,
             * A stop source of type `in_place_stop_source`,
-            * A stop callback of type <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>, where <code><i>stop-callback-fn</i></code> is an unspecified class type equivalent to the following:
+            * A stop callback of type <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>, where <code><i>stop-callback-fn</i></code> is the unspecified class type:
 
                 <pre highlight="c++">
                 struct <i>stop-callback-fn</i> {
@@ -6296,8 +6303,8 @@ enum class forward_progress_guarantee {
               * A reference to `sh_state`,
               * A stop callback of type
                 <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
-                where <code><i>stop-callback-fn</i></code> is an implementation
-                defined class type equivalent to the following:
+                where <code><i>stop-callback-fn</i></code> is the unspecified
+                class type:
 
                 <pre highlight="c++">
                 struct <i>stop-callback-fn</i> {
