@@ -4909,10 +4909,13 @@ enum class forward_progress_guarantee {
 4. The exposition-only type <code><i>variant-or-empty&lt;Ts...></i></code> is
      defined as follows:
 
-    1. If `sizeof...(Ts)` is greater than zero, <code><i>variant-or-empty&lt;Ts...></i></code> names the type `variant<Us...>` where `Us...` is the pack `decay_t<Ts>...` with duplicate types removed.
+    1. If `sizeof...(Ts)` is greater than zero,
+        <code><i>variant-or-empty&lt;Ts...></i></code> names the type
+        `variant<Us...>` where `Us...` is the pack `decay_t<Ts>...` with
+        duplicate types removed.
 
     2. Otherwise, <code><i>variant-or-empty&lt;Ts...></i></code> names the
-        unspecified class type:
+        exposition-only class type:
 
         <pre highlight="c++">
         struct <i>empty-variant</i> {
@@ -4925,14 +4928,14 @@ enum class forward_progress_guarantee {
     `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
 
 6. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
-    sender such that `sender_in<S, env_of_t<R>>` is `true`. Let `Sigs...`
-    be the template arguments of the `completion_signatures` specialization
-    named by `completion_signatures_of_t<S, env_of_t<R>>`. Let <code><i>SET</i></code>
-    be one of `set_value`, `set_error`, or `set_stopped`. If sender `S`
-    potentially evaluates ([basic.def.odr]) <code><i>SET</i>(r, args...)</code> then there
-    shall be a signature `Sig` in `Sigs...` such that
-    <code><i>MATCHING-SIG</i>(tag_t&lt;<i>SET</i>>(decltype(args)...), Sig)</code>
-    is `true`.
+    sender such that `sender_in<S, env_of_t<R>>` is `true`. Let `Sigs...` be the
+    template arguments of the `completion_signatures` specialization named by
+    `completion_signatures_of_t<S, env_of_t<R>>`. Let <code><i>CSO</i></code> be
+    a completion function. If sender `S` or its operation state cause the
+    expression <code><i>CSO</i>(r, args...)</code> to be potentially evaluated
+    ([basic.def.odr]) then there shall be a signature `Sig` in `Sigs...` such
+    that <code><i>MATCHING-SIG</i>(tag_t&lt;<i>CSO</i>>(decltype(args)...),
+    Sig)</code> is `true`.
 
 ### `execution::connect` <b>[exec.connect]</b> ### {#spec-execution.senders.connect}
 
