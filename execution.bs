@@ -2325,19 +2325,19 @@ We will propose a customization point for combining schedulers with policies in 
 
 <pre highlight="c++">
 template&lt;class ExecutionPolicy>
-<i>implementation-defined</i> executing_on(
+<i>unspecified</i> executing_on(
     execution::scheduler auto scheduler,
     ExecutionPolicy && policy
 );
 </pre>
 
-This function would return an object of an implementation-defined type which can be used in place of an execution policy as the first argument to one of the parallel algorithms. The overload selected by that object should execute its computation as requested by
+This function would return an object of an unspecified type which can be used in place of an execution policy as the first argument to one of the parallel algorithms. The overload selected by that object should execute its computation as requested by
 `policy` while using `scheduler` to create any work to be run. The expression may be ill-formed if `scheduler` is not able to support the given policy.
 
 The existing parallel algorithms are synchronous; all of the effects performed by the computation are complete before the algorithm returns to its caller. This remains unchanged with the `executing_on` customization point.
 
 In the future, we expect additional papers will propose asynchronous forms of the parallel algorithms which (1) return senders rather than values or `void` and (2) where a customization point pairing a sender with an execution policy would similarly be used to
-obtain an object of implementation-defined type to be provided as the first argument to the algorithm.
+obtain an object of unspecified type to be provided as the first argument to the algorithm.
 
 ## User-facing sender factories ## {#design-sender-factories}
 
@@ -2846,7 +2846,7 @@ execution::sender auto initial = execution::schedule(cuda_sch);
 // let's call it cuda::schedule_sender&lt;>
 
 execution::sender auto next = execution::then(cuda_sch, []{ return 1; });
-// the type of next is a standard-library implementation-defined sender adaptor
+// the type of next is a standard-library unspecified sender adaptor
 // that wraps the cuda sender
 // let's call it execution::then_sender_adaptor&lt;cuda::schedule_sender&lt;>>
 
@@ -4667,7 +4667,7 @@ enum class forward_progress_guarantee {
     is to fulfill the async-function-protocol by executing a completion-signal
     operation on a receiver connected to it.
 
-### Sender concepts <b>[exec.snd.concepts]</b> ### {#spec-execution.environment.snd_concepts}
+### Sender concepts <b>[exec.snd.concepts]</b> ### {#spec-execution.snd.concepts}
 
 1. The `sender` concept defines the requirements for a sender type.
     The `sender_in` concept defines the requirements for a sender type within a
@@ -4713,7 +4713,7 @@ enum class forward_progress_guarantee {
     </pre>
 
 2. A type `Sigs` satisfies and models the exposition-only concept
-    <code><i>valid-completion-signatures</i></code> if it names an instantiation
+    <code><i>valid-completion-signatures</i></code> if it names a specialization
     of the `completion_signatures` class template.
 
 3. <i>Remarks:</i> Pursuant to [namespace.std], users may specialize `enable_sender` to
@@ -4772,35 +4772,94 @@ enum class forward_progress_guarantee {
           accepts an lvalue sender if they model `copy_constructible`.
       - Model `copy_constructible` if they satisfy `copy_constructible`.
 
+### Awaitable helpers <b>[exec.awaitables]</b> ### {#spec.exec-awaitables}
+
+1. The sender concepts recognize awaitables as valid senders. For this clause
+    ([exec]), an <dfn export=true>awaitable</dfn> is an expression that would be
+    well-formed as the operand of a `co_await` expression within a given
+    context.
+
+2. For a subexpression `c`, let <code><i>GET-AWAITER</i>(c, p)</code> be
+    expression-equivalent to the series of transformations and conversions
+    applied to `c` as the operand of an *await-expression* in a coroutine as
+    described by [expr.await]/3.2-4, where `p` is an lvalue refering to the
+    coroutine's promise type, `P`. <span class="wg21note">This includes the
+    invocation of the promise type's `await_transform` member if any, the
+    invocation of the `operator co_await` picked by overload resolution if
+    any, and any necessary implicit conversions.</span>
+
+3. Let <code><i>is-awaitable</i></code> be the following exposition-only concept:
+
+    <pre highlight="c++">
+    template &lt;class T>
+    concept <i>await-suspend-result</i> = <i>see below</i>;
+
+    template &lt;class A, class P>
+    concept <i>is-awaiter</i> = <i>// exposition only</i>
+      requires (A& a, coroutine_handle&lt;P> h) {
+        a.await_ready() ? 1 : 0;
+        { a.await_suspend(h) } -> <i>await-suspend-result</i>;
+        a.await_resume();
+      };
+
+    template &lt;class C, class P>
+    concept <i>is-awaitable</i> =
+      requires (C&& c, P& p) {
+        { <i>GET-AWAITER</i>(std::forward&lt;C>(c), p) } -> <i>is-awaiter</i>&lt;P>;
+      };
+    </pre>
+
+    <code><i>await-suspend-result</i>&lt;T></code> is `true` if and only if one
+      one of the following is `true`:
+    
+        - `T` is `void`.
+        - `T` is `bool`.
+        - `T` is a specialization of `coroutine_handle`.
+
+3. For a subexpression `c` such that `decltype((c))` is type `C`, and
+    an lvalue `p` of type `P`, <code><i>await-result-type</i>&lt;C, P></code>
+    names the type <code>decltype(<i>GET-AWAITER</i>(c, p).await_resume())</code>.
+
+4. Let <code><i>env-promise</i></code> be the exposition-only class template:
+
+    <pre highlight="c++">
+    template &lt;class Env>
+    struct <i>env-promise</i> {
+      <i>unspecified</i> get_return_object() noexcept;
+      <i>unspecified</i> initial_suspend() noexcept;
+      <i>unspecified</i> final_suspend() noexcept;
+      void unhandled_exception() noexcept;
+      void return_void() noexcept;
+      coroutine_handle&lt;> unhandled_stopped() noexcept;
+
+      template &lt;class T>
+      decltype(auto) await_transform(T&& value) noexcept {
+        if constexpr (tag_invocable&lt;as_awaitable_t, T, <i>env-promise</i>&>) {
+          return tag_invoke(as_awaitable, static_cast&lt;T&&>(value), *this);
+        } else {
+          return static_cast&lt;T&&>(value);
+        }
+      }
+
+      friend const Env& tag_invoke(get_env_t, const <i>env-promise</i>&) noexcept;
+    };
+    </pre>
+
+    <span class="wg21note">Specializations of <code><i>env-promise</i></code>
+      are only used for the purpose of type computation. Its members need not be
+      defined.</span>
+
 ### Completion signatures <b>[exec.sndtraits]</b> ### {#spec-exec.sndtraits}
 
 #### `execution::completion_signatures_of_t` <b>[exec.complsigs]</b> #### {#spec-exec.complsigs}
 
 1. The alias template `completion_signatures_of_t` obtains from a sender the list of completion signatures it may complete with.
 
-2. `completion_signatures_of_t` also recognizes awaitables as senders. For this clause ([exec]):
-
-    1. An <i>awaitable</i> is an expression that would be well-formed as the operand of a `co_await` expression within a given context.
-
-    2. For any type `T`, <code><i>is-awaitable</i>&lt;T></code> is `true` if and only if an expression of that type is an awaitable as described above within the context of a coroutine whose promise type does not define a member `await_transform`. For a coroutine promise type `P`, <code><i>is-awaitable</i>&lt;T, P></code> is `true` if and only if an expression of that type is an awaitable as described above within the context of a coroutine whose promise type is `P`.
-
-    3. For an awaitable `a` such that `decltype((a))` is type `A`, <code><i>await-result-type</i>&lt;A></code> is an alias for <code>decltype(<i>e</i>)</code>, where <code><i>e</i></code> is `a`'s <i>await-resume</i> expression ([expr.await]) within the context of a coroutine whose promise type does not define a member `await_transform`. For a coroutine promise type `P`, <code><i>await-result-type</i>&lt;A, P></code> is an alias for <code>decltype(<i>e</i>)</code>, where <code><i>e</i></code> is `a`'s <i>await-resume</i> expression ([expr.await]) within the context of a coroutine whose promise type is `P`.
-
-3. For types `S` and `E`, the type `completion_signatures_of_t<S, E>` is an
+2. For types `S` and `E`, the type `completion_signatures_of_t<S, E>` is an
     alias for `decltype(get_completion_signatures(declval<S>(), declval<E>()))`
     if that expression is well-formed.
 
-4. Given an execution environment type `Env`, let `p` be a non-`const` lvalue
-    of type <code><i>env-promise</i>&lt;Env></code>, where
-    <code><i>env-promise</i>&lt;Env></code> names a class type such that:
-
-    1. For a subexpression `e`, the expression `p.await_transform(e)` is
-        expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that
-        expression is well-formed ([exec.as.awaitable]); otherwise, `identity()(e)`.
-
-    2. `decltype(get_env(as_const(p)))` names the type `const Env&`.
-
-5. `get_completion_signatures` is a customization point object. Let
+3. `get_completion_signatures` is a customization point object. Let
     `s` be an expression such that `decltype((s))` is `S`, and let `e` be an
     expression such that `decltype((e))` is `E`. Then
     `get_completion_signatures(s, e)` is expression-equivalent to:
@@ -4820,7 +4879,8 @@ enum class forward_progress_guarantee {
 
     3. Otherwise, if <code><i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;E>></code> is `true`, then
 
-        1. If <code><i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>></code> is <code><i>cv</i> void</code> then a prvalue of type:
+        1. If <code><i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>></code>
+            is <code>void</code> then a prvalue of type:
 
             <pre highlight="c++">
             completion_signatures<
@@ -4840,12 +4900,12 @@ enum class forward_progress_guarantee {
 
     4. Otherwise, `get_completion_signatures(s, e)` is ill-formed.
 
-6. The exposition-only type <code><i>variant-or-empty&lt;Ts...></i></code> is
+4. The exposition-only type <code><i>variant-or-empty&lt;Ts...></i></code> is
      defined as follows:
 
     1. If `sizeof...(Ts)` is greater than zero, <code><i>variant-or-empty&lt;Ts...></i></code> names the type `variant<Us...>` where `Us...` is the pack `decay_t<Ts>...` with duplicate types removed.
 
-    2. Otherwise, <code><i>variant-or-empty&lt;Ts...></i></code> names an implementation defined class type equivalent to the following:
+    2. Otherwise, <code><i>variant-or-empty&lt;Ts...></i></code> names an unspecified class type equivalent to the following:
 
         <pre highlight="c++">
         struct <i>empty-variant</i> {
@@ -4853,11 +4913,11 @@ enum class forward_progress_guarantee {
         };
         </pre>
 
-7. For function types `F1` and `F2` denoting `R1(Args1...)` and `R2(Args2...)`
+5. For function types `F1` and `F2` denoting `R1(Args1...)` and `R2(Args2...)`
     respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if 
     `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
 
-8. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
+6. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
     sender such that `sender_in<S, env_of_t<R>>` is `true`. Let `Sigs...`
     be the template arguments of the `completion_signatures` specialization
     named by `completion_signatures_of_t<S, env_of_t<R>>`. Let <code><i>SET</i></code>
@@ -5915,7 +5975,7 @@ enum class forward_progress_guarantee {
 
             * Each operation state <code>child_op<i><sub>i</sub></i></code>,
             * A stop source of type `in_place_stop_source`,
-            * A stop callback of type <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>, where <code><i>stop-callback-fn</i></code> is an implementation defined class type equivalent to the following:
+            * A stop callback of type <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>, where <code><i>stop-callback-fn</i></code> is an unspecified class type equivalent to the following:
 
                 <pre highlight="c++">
                 struct <i>stop-callback-fn</i> {
@@ -5956,7 +6016,7 @@ enum class forward_progress_guarantee {
 
             2. Otherwise, for each type <code>DS<i><sub>i</sub></i></code>, let
                 <code>Sigs<i><sub>i</sub></i>...</code> be the set of template
-                arguments in the instantiation of `completion_signatures` named
+                arguments in the specialization of `completion_signatures` named
                 by <code>completion_signatures_of_t&lt;DS<i><sub>i</sub></i>,
                 WE></code>, and let <code>C<i><sub>i</sub></i></code> be the
                 count of function types in
@@ -6713,7 +6773,7 @@ enum class forward_progress_guarantee {
     </pre>
 
     2. Let `Fns...` be a template parameter pack of the arguments of the
-        `completion_signatures` instantiation named by
+        `completion_signatures` specialization named by
         `completion_signatures_of_t<S, E>`, let <code><i>TagFns</i></code> be a
         template parameter pack of the function types in `Fns` whose return types
         are `Tag`, and let
@@ -6769,7 +6829,7 @@ enum class forward_progress_guarantee {
 1. `make_completion_signatures` is an alias template used to adapt the
     completion signatures of a sender. It takes a sender, and environment, and
     several other template arguments that apply modifications to the sender's
-    completion signatures to generate a new instantiation of
+    completion signatures to generate a new specialization of
     `completion_signatures`.
 
 2. [<i>Example:</i>
@@ -6849,7 +6909,7 @@ enum class forward_progress_guarantee {
         2. Otherwise, `make_completion_signatures<Sndr, Env, AddlSigs, SetValue,
             SetError, SetStopped>` names the type `completion_signatures<Sigs...>`
             where `Sigs...` is the unique set of types in all the template arguments
-            of all the `completion_signatures` instantiations in `[AddlSigs, Vs..., Es..., Ss]`.
+            of all the `completion_signatures` specializations in `[AddlSigs, Vs..., Es..., Ss]`.
 
 ## Execution contexts <b>[exec.ctx]</b> ## {#spec-execution.contexts}
 
@@ -6901,7 +6961,7 @@ enum class forward_progress_guarantee {
     class <i>run-loop-scheduler</i>;
     </pre>
 
-  1. <code><i>run-loop-scheduler</i></code> is an implementation defined type that models the `scheduler` concept.
+  1. <code><i>run-loop-scheduler</i></code> is an unspecified type that models the `scheduler` concept.
 
   2. Instances of <code><i>run-loop-scheduler</i></code> remain valid until the end of the lifetime of the `run_loop` instance from which they were obtained.
 
@@ -6913,7 +6973,7 @@ enum class forward_progress_guarantee {
   class <i>run-loop-sender</i>;
   </pre>
 
-  1. <code><i>run-loop-sender</i></code> is an implementation-defined type such that <code>sender_of&lt;<i>run-loop-sender</i>, set_value_t()></code> is `true`. Additionally, the types reported by its `error_types` associated type is `exception_ptr`, and the value of its `sends_stopped` trait is `true`.
+  1. <code><i>run-loop-sender</i></code> is an unspecified type such that <code>sender_of&lt;<i>run-loop-sender</i>, set_value_t()></code> is `true`. Additionally, the types reported by its `error_types` associated type is `exception_ptr`, and the value of its `sends_stopped` trait is `true`.
 
   2. An instance of <code><i>run-loop-sender</i></code> remains valid until the end of the lifetime of its associated `run_loop` instance.
 
@@ -7037,7 +7097,7 @@ enum class forward_progress_guarantee {
 
     template &lt;class S, class P>
       concept <i>awaitable-sender</i> =
-        <i>single-sender</i>&lt;S, <i>ENV_OF</i>(P)> &amp;&amp;
+        <i>single-sender</i>&lt;S, <i>ENV-OF</i>(P)> &amp;&amp;
         sender_to&lt;S, <i>awaitable-receiver</i>> &amp;&amp; // see below
         requires (P&amp; p) {
           { p.unhandled_stopped() } -> convertible_to&lt;coroutine_handle&lt;>>;
@@ -7047,7 +7107,7 @@ enum class forward_progress_guarantee {
       class <i>sender-awaitable</i>;
     </pre>
 
-    where <code><i>ENV_OF</i>(P)</code> names the type `env_of_t<P>` if that type
+    where <code><i>ENV-OF</i>(P)</code> names the type `env_of_t<P>` if that type
     is well-formed, or <code>empty_env</code> otherwise.
 
     1. Alias template <i>single-sender-value-type</i> is defined as follows:
@@ -7064,7 +7124,7 @@ enum class forward_progress_guarantee {
         template &lt;class S, class P> // arguments are not associated entities ([lib.tmpl-heads])
         class <i>sender-awaitable</i> {
           struct unit {};
-          using value_t = <i>single-sender-value-type</i>&lt;S, <i>ENV_OF</i>(P)>;
+          using value_t = <i>single-sender-value-type</i>&lt;S, <i>ENV-OF</i>(P)>;
           using result_t = conditional_t&lt;is_void_v&lt;value_t>, unit, value_t>;
           struct <i>awaitable-receiver</i>;
 
@@ -7149,9 +7209,16 @@ enum class forward_progress_guarantee {
 
         * <i>Mandates:</i> <code><i>is-awaitable</i>&lt;A, P></code> is `true`, where `A` is the type of the `tag_invoke` expression above.
 
-    2. Otherwise, `e` if <code><i>is-awaitable</i>&lt;E></code> is `true`.
-        <span class="wg21note">The condition is not <code><i>is-awaitable</i>&lt;E, P></code>
-        as that creates the potential for constraint recursion.</span>
+    2. Otherwise, `e` if <code><i>is-awaitable</i>&lt;E, <i>U</i>></code> is
+        `true`, where <code><i>U</i></code> is an unspecified class type that
+        lacks a member named `await_transform`. <span class="wg21note">The
+        condition is not <code><i>is-awaitable</i>&lt;E, P></code> as that
+        creates the potential for constraint recursion.</span>
+
+        * <i>Preconditions:</i> <code><i>is-awaitable</i>&lt;E, P></code> is
+            `true` and the expression `co_await e` in a coroutine with promise
+            type <code><i>U</i></code> is expression-equivalent to the same
+            expression in a coroutine with promise type `P`.
 
     3. Otherwise, <code><i>sender-awaitable</i>{e, p}</code> if <code><i>awaitable-sender</i>&lt;E, P></code> is `true`.
 
