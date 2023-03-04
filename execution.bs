@@ -4980,8 +4980,8 @@ enum class forward_progress_guarantee {
 
     -- <i>end example</i>]
 
-7. If the specification of a sender adaptor requires that the implementation of the `get_completion_signatures` customization point adds the signature `set_error_t(exception_ptr)` as an additional signature, but a customization of that sender adaptor never
-    calls the `exception_ptr` overload of `set_error`, that customization is allowed to omit the `set_error_t(exception_ptr)` additional signature from its implementation of the `get_completion_signatures` sender query.
+7. If the specification of a sender adaptor requires that the implementation of the `get_completion_signatures` customization point adds signatures of the form <code>set_error_t([<i>cv</i>]<sub>opt</sub> exception_ptr [ref]<sub>opt</sub>)</code>, but a customization of that sender adaptor never
+    calls `set_error` with an `exception_ptr`, that customization is allowed to omit the `exception_ptr` error completion signature(s) from its implementation of `get_completion_signatures`.
 
 #### Sender adaptor closure objects <b>[exec.adapt.objects]</b> #### {#spec-execution.senders.adaptor.objects}
 
