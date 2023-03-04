@@ -1560,7 +1560,7 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version fd948879c, updated Thu Feb 16 10:17:42 2023 -0800" name="generator">
+  <meta content="Bikeshed version 077497365, updated Thu Mar 2 15:15:29 2023 -0800" name="generator">
   <link href="https://wg21.link/P2300" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
 <style>
@@ -1874,10 +1874,10 @@ figcaption:not(.no-marker)::before {
 .dfn-panel {
     position: absolute;
     z-index: 35;
-    height: auto;
-    width: -webkit-fit-content;
-    width: fit-content;
+    width: 20em;
+    min-width: min-content;
     max-width: 300px;
+    height: auto;
     max-height: 500px;
     overflow: auto;
     padding: 0.5em 0.75em;
@@ -1885,6 +1885,7 @@ figcaption:not(.no-marker)::before {
     background: var(--dfnpanel-bg);
     color: var(--dfnpanel-text);
     border: outset 0.2em;
+    white-space: normal; /* in case it's moved into a pre */
 }
 .dfn-panel:not(.on) { display: none; }
 .dfn-panel * { margin: 0; padding: 0; text-indent: 0; }
@@ -2233,7 +2234,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R7<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-02-16">2023-02-16</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-03-04">2023-03-04</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -7102,8 +7103,8 @@ applies to any sender returned from a function that is selected by the implement
 </pre>
      <p>-- <i>end example</i>]</p>
     <li data-md>
-     <p>If the specification of a sender adaptor requires that the implementation of the <code class="highlight"><c- n>get_completion_signatures</c-></code> customization point adds the signature <code class="highlight"><c- n>set_error_t</c-><c- p>(</c-><c- n>exception_ptr</c-><c- p>)</c-></code> as an additional signature, but a customization of that sender adaptor never
-calls the <code class="highlight"><c- n>exception_ptr</c-></code> overload of <code class="highlight"><c- n>set_error</c-></code>, that customization is allowed to omit the <code class="highlight"><c- n>set_error_t</c-><c- p>(</c-><c- n>exception_ptr</c-><c- p>)</c-></code> additional signature from its implementation of the <code class="highlight"><c- n>get_completion_signatures</c-></code> sender query.</p>
+     <p>If the specification of a sender adaptor requires that the implementation of the <code class="highlight"><c- n>get_completion_signatures</c-></code> customization point adds signatures of the form <code class="highlight"><c- n>set_error_t</c-><c- p>([</c-><i><c- n>cv</c-></i><c- p>]</c-><sub><c- n>opt</c-></sub> <c- n>exception_ptr</c-> <c- p>[</c-><c- n>ref</c-><c- p>]</c-><sub><c- n>opt</c-></sub><c- p>)</c-></code>, but a customization of that sender adaptor never
+calls <code class="highlight"><c- n>set_error</c-></code> with an <code class="highlight"><c- n>exception_ptr</c-></code>, that customization is allowed to omit the <code class="highlight"><c- n>exception_ptr</c-></code> error completion signature(s) from its implementation of <code class="highlight"><c- n>get_completion_signatures</c-></code>.</p>
    </ol>
    <h5 class="heading settled" data-level="11.7.5.2" id="spec-execution.senders.adaptor.objects"><span class="secno">11.7.5.2. </span><span class="content">Sender adaptor closure objects <b>[exec.adapt.objects]</b></span><a class="self-link" href="#spec-execution.senders.adaptor.objects"></a></h5>
    <ol>
@@ -9240,7 +9241,7 @@ is well-formed, or <code class="highlight"><c- n>empty_env</c-></code> otherwise
    <dt id="biblio-p2280r2">[P2280r2]
    <dd>Barry Revzin. <a href="https://wg21.link/p2280r2"><cite>Using unknown references in constant expressions</cite></a>. 15 May 2021. URL: <a href="https://wg21.link/p2280r2">https://wg21.link/p2280r2</a>
   </dl>
-  <aside aria-labelledby="infopaneltitle-for-algorithm" class="dfn-panel" data-for="algorithm" id="infopanel-for-algorithm" role="dialog">
+  <aside aria-labelledby="infopaneltitle-for-algorithm" class="dfn-panel" data-for="algorithm" id="infopanel-for-algorithm">
    <span id="infopaneltitle-for-algorithm" style="display:none">Info about the 'algorithm' definition.</span><b><a href="#algorithm">#algorithm</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-algorithm">4.20. User-facing sender factories</a>
@@ -9248,7 +9249,7 @@ is well-formed, or <code class="highlight"><c- n>empty_env</c-></code> otherwise
     <li><a href="#ref-for-algorithm②">4.22. User-facing sender consumers</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-send" class="dfn-panel" data-for="send" id="infopanel-for-send" role="dialog">
+  <aside aria-labelledby="infopaneltitle-for-send" class="dfn-panel" data-for="send" id="infopanel-for-send">
    <span id="infopaneltitle-for-send" style="display:none">Info about the 'send' definition.</span><b><a href="#send">#send</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-send">4.5.1. execution::get_completion_scheduler</a>
@@ -9260,13 +9261,13 @@ is well-formed, or <code class="highlight"><c- n>empty_env</c-></code> otherwise
     <li><a href="#ref-for-send⑥">5.8. All senders are typed</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-sender-algorithms" class="dfn-panel" data-for="sender-algorithms" id="infopanel-for-sender-algorithms" role="dialog">
+  <aside aria-labelledby="infopaneltitle-for-sender-algorithms" class="dfn-panel" data-for="sender-algorithms" id="infopanel-for-sender-algorithms">
    <span id="infopaneltitle-for-sender-algorithms" style="display:none">Info about the 'sender algorithms' definition.</span><b><a href="#sender-algorithms">#sender-algorithms</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-sender-algorithms">4.3. Senders describe work</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-completion-schedulers" class="dfn-panel" data-for="completion-schedulers" id="infopanel-for-completion-schedulers" role="dialog">
+  <aside aria-labelledby="infopaneltitle-for-completion-schedulers" class="dfn-panel" data-for="completion-schedulers" id="infopanel-for-completion-schedulers">
    <span id="infopaneltitle-for-completion-schedulers" style="display:none">Info about the 'completion schedulers' definition.</span><b><a href="#completion-schedulers">#completion-schedulers</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-completion-schedulers">4.5.1. execution::get_completion_scheduler</a>
@@ -9282,33 +9283,33 @@ is well-formed, or <code class="highlight"><c- n>empty_env</c-></code> otherwise
     <li><a href="#ref-for-completion-schedulers①⓪">5.4. Sender algorithms are customizable</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-sender-factory" class="dfn-panel" data-for="sender-factory" id="infopanel-for-sender-factory" role="dialog">
+  <aside aria-labelledby="infopaneltitle-for-sender-factory" class="dfn-panel" data-for="sender-factory" id="infopanel-for-sender-factory">
    <span id="infopaneltitle-for-sender-factory" style="display:none">Info about the 'sender factory' definition.</span><b><a href="#sender-factory">#sender-factory</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-sender-factory">4.4. Senders are composable through sender algorithms</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-sender-adaptor" class="dfn-panel" data-for="sender-adaptor" id="infopanel-for-sender-adaptor" role="dialog">
+  <aside aria-labelledby="infopaneltitle-for-sender-adaptor" class="dfn-panel" data-for="sender-adaptor" id="infopanel-for-sender-adaptor">
    <span id="infopaneltitle-for-sender-adaptor" style="display:none">Info about the 'sender adaptor' definition.</span><b><a href="#sender-adaptor">#sender-adaptor</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-sender-adaptor">4.4. Senders are composable through sender algorithms</a>
     <li><a href="#ref-for-sender-adaptor①">5.4. Sender algorithms are customizable</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-sender-consumer" class="dfn-panel" data-for="sender-consumer" id="infopanel-for-sender-consumer" role="dialog">
+  <aside aria-labelledby="infopaneltitle-for-sender-consumer" class="dfn-panel" data-for="sender-consumer" id="infopanel-for-sender-consumer">
    <span id="infopaneltitle-for-sender-consumer" style="display:none">Info about the 'sender consumer' definition.</span><b><a href="#sender-consumer">#sender-consumer</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-sender-consumer">4.4. Senders are composable through sender algorithms</a>
     <li><a href="#ref-for-sender-consumer①">5.4. Sender algorithms are customizable</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-receiver-contract" class="dfn-panel" data-for="receiver-contract" id="infopanel-for-receiver-contract" role="dialog">
+  <aside aria-labelledby="infopaneltitle-for-receiver-contract" class="dfn-panel" data-for="receiver-contract" id="infopanel-for-receiver-contract">
    <span id="infopaneltitle-for-receiver-contract" style="display:none">Info about the 'receiver contract' definition.</span><b><a href="#receiver-contract">#receiver-contract</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-receiver-contract">5.3. execution::connect</a>
    </ul>
   </aside>
-  <aside aria-labelledby="infopaneltitle-for-connect" class="dfn-panel" data-for="connect" id="infopanel-for-connect" role="dialog">
+  <aside aria-labelledby="infopaneltitle-for-connect" class="dfn-panel" data-for="connect" id="infopanel-for-connect">
    <span id="infopaneltitle-for-connect" style="display:none">Info about the 'connects' definition.</span><b><a href="#connect">#connect</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-connect">4.21.13. execution::ensure_started</a>
@@ -9388,7 +9389,6 @@ is well-formed, or <code class="highlight"><c- n>empty_env</c-></code> otherwise
             panelWrapper.style.height = "0px";
             dfn.insertAdjacentElement("afterend", panelWrapper);
             dfn.setAttribute('role', 'button');
-            dfn.setAttribute('aria-haspopup', 'menu');
             dfn.setAttribute('aria-expanded', 'false')
             dfn.tabIndex = 0;
             dfn.classList.add('has-dfn-panel');
