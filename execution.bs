@@ -130,7 +130,7 @@ h5 {
 
 # Introduction # {#intro}
 
-This paper proposes a self-contained design for a Standard C++ framework for managing asynchronous execution on generic execution contexts. It is based on the ideas in [[P0443R14]] and its companion papers.
+This paper proposes a self-contained design for a Standard C++ framework for managing asynchronous execution on generic execution resources. It is based on the ideas in [[P0443R14]] and its companion papers.
 
 ## Motivation ## {#motivation}
 
@@ -146,11 +146,11 @@ This paper proposes a Standard C++ model for asynchrony, based around three key 
 
 ## Priorities ## {#priorities}
 
-* Be composable and generic, allowing users to write code that can be used with many different types of execution contexts.
+* Be composable and generic, allowing users to write code that can be used with many different types of execution resources.
 * Encapsulate common asynchronous patterns in customizable and reusable algorithms, so users don't have to invent things themselves.
 * Make it easy to be correct by construction.
-* Support the diversity of execution contexts and execution agents, because not all execution agents are created equal; some are less capable than others, but not less important.
-* Allow everything to be customized by an execution context, including transfer to other execution contexts, but don't require that execution contexts customize everything.
+* Support the diversity of execution resources and execution agents, because not all execution agents are created equal; some are less capable than others, but not less important.
+* Allow everything to be customized by an execution resource, including transfer to other execution resources, but don't require that execution resources customize everything.
 * Care about all reasonable use cases, domains and platforms.
 * Errors must be propagated, but error handling must not present a burden.
 * Support cancellation, which is not an error.
@@ -204,7 +204,7 @@ sender auto async_inclusive_scan(scheduler auto sch,                          //
 
   return transfer_just(sch, std::move(partials))                              // 5
        | bulk(tile_count,                                                     // 6
-           [=](std::size_t i, std::vector<double>& partials) {                // 7
+           [ = ](std::size_t i, std::vector<double>& partials) {              // 7
              auto start = i * tile_size;                                      // 8
              auto end   = std::min(input.size(), (i + 1) * tile_size);        // 8
              partials[i + 1] = *--std::inclusive_scan(begin(input) + start,   // 9
@@ -218,7 +218,7 @@ sender auto async_inclusive_scan(scheduler auto sch,                          //
              return std::move(partials);                                      // 13
            })
        | bulk(tile_count,                                                     // 14
-           [=](std::size_t i, std::vector<double>& partials) {                // 14
+           [ = ](std::size_t i, std::vector<double>& partials) {              // 14
              auto start = i * tile_size;                                      // 14
              auto end   = std::min(input.size(), (i + 1) * tile_size);        // 14
              std::for_each(begin(output) + start, begin(output) + end,        // 14
@@ -226,7 +226,7 @@ sender auto async_inclusive_scan(scheduler auto sch,                          //
              );
            })
        | then(                                                                // 15
-           [=](std::vector<double>&& partials) {                              // 15
+           [ = ](std::vector<double>&& partials) {                            // 15
              return output;                                                   // 15
            });                                                                // 15
 }
@@ -235,7 +235,7 @@ sender auto async_inclusive_scan(scheduler auto sch,                          //
 This example builds an asynchronous computation of an inclusive scan:
 
 1. It scans a sequence of `double`s (represented as the `std::span<const double>` `input`) and stores the result in another sequence of `double`s (represented as `std::span<double>` `output`).
-2. It takes a scheduler, which specifies what execution context the scan should be launched on.
+2. It takes a scheduler, which specifies what execution resource the scan should be launched on.
 3. It also takes a `tile_count` parameter that controls the number of execution agents that will be spawned.
 4. First we need to allocate temporary storage needed for the algorithm, which we'll do with a `std::vector`, `partials`. We need one `double` of temporary storage for each execution agent we create.
 5. Next we'll create our initial sender with [[#design-sender-factory-transfer_just]]. This sender will send the temporary storage, which we've moved into the sender. The sender has a completion scheduler of `sch`, which means the next item in the chain will use `sch`.
@@ -717,7 +717,7 @@ This example does the following:
 7. Defines a `_retry_sender` that implements the `connect` customization point to return
     an operation state constructed from the passed-in sender and receiver.
 
-8. `_retry_sender` also implements the `get_completion_signatures` customization point to describe the ways this sender may complete when executed in a particular execution context.
+8. `_retry_sender` also implements the `get_completion_signatures` customization point to describe the ways this sender may complete when executed in a particular execution resource.
 
 ## Examples: Schedulers ## {#example-schedulers}
 
@@ -794,8 +794,8 @@ implementing one. The `inline_scheduler`:
 
 ### Single thread scheduler ### {#example-single-thread}
 
-This example shows how to create a scheduler for an execution context that consists of a single
-thread. It is implemented in terms of a lower-level execution context called `std::execution::run_loop`.
+This example shows how to create a scheduler for an execution resource that consists of a single
+thread. It is implemented in terms of a lower-level execution resource called `std::execution::run_loop`.
 
 ```c++
 class single_thread_context {
@@ -843,7 +843,7 @@ In this section we look at some examples of how one would use senders to impleme
 
 General application context:
 * server application that processes images
-* execution contexts:
+* execution resources:
     - 1 dedicated thread for network I/O
     - N worker threads used for CPU-intensive work
     - M threads for auxiliary I/O
@@ -857,7 +857,7 @@ Example context:
 - we are looking at the flow of processing an HTTP request and sending back the response
 - show how one can break the (slightly complex) flow into steps with `execution::let_*` functions
 - different phases of processing HTTP requests are broken down into separate concerns
-- each part of the processing might use different execution contexts (details not shown in this example)
+- each part of the processing might use different execution resources (details not shown in this example)
 - error handling is generic, regardless which component fails; we always send the right response to the clients
 
 Goals:
@@ -903,7 +903,7 @@ ex::sender auto snd =
     schedule_request_start(the_read_requests_ctx)
     // make sure the request is valid; throw if not
     | ex::let_value(validate_request)
-    // process the request in a function that may be using a different execution context
+    // process the request in a function that may be using a different execution resource
     | ex::let_value(handle_request)
     // If there are errors transform them into proper responses
     | ex::let_error(error_to_response)
@@ -923,9 +923,9 @@ All our functions return `execution::sender` objects, so that they can all gener
 For example, regardless where an error is generated (reading request, validating request or handling the response), we would have one common block to handle the error, and following error flows is easy.
 
 Also, because of using `execution::sender` objects at any step, we might expect any of these steps to be completely asynchronous; the overall flow doesn't care.
-Regardless of the execution context in which the steps, or part of the steps are executed in, the flow is still the same.
+Regardless of the execution resource in which the steps, or part of the steps are executed in, the flow is still the same.
 
-### Moving between execution contexts with `execution::on` and `execution::transfer` ### {#example-server-on}
+### Moving between execution resources with `execution::on` and `execution::transfer` ### {#example-server-on}
 
 Example context:
 - reading data from the socket before processing the request
@@ -933,7 +933,7 @@ Example context:
 - no processing of the data needs to be done on the I/O context
 
 Goals:
-- show how one can change the execution context
+- show how one can change the execution resource
 - exemplify the use of `on` and `transfer` algorithms
 
 
@@ -960,15 +960,15 @@ auto snd =
 ex::start_detached(std::move(snd));
 ```
 
-The example assume that we need to wrap some legacy code of reading sockets, and handle execution context switching.
+The example assume that we need to wrap some legacy code of reading sockets, and handle execution resource switching.
 (This style of reading from socket may not be the most efficient one, but it's working for our purposes.)
-For performance reasons, the reading from the socket needs to be done on the I/O thread, and all the processing needs to happen on a work-specific execution context (i.e., thread pool).
+For performance reasons, the reading from the socket needs to be done on the I/O thread, and all the processing needs to happen on a work-specific execution resource (i.e., thread pool).
 
 Calling `execution::on` will ensure that the given sender will be started on the given scheduler.
 In our example, `snd_read` is going to be started on the I/O scheduler.
 This sender will just call the legacy code.
 
-The completion-signal will be issued in the I/O execution context, so we have to move it to the work thread pool.
+The completion-signal will be issued in the I/O execution resource, so we have to move it to the work thread pool.
 This is achieved with the help of the `execution::transfer` algorithm.
 The rest of the processing (in our case, the last call to `then`) will happen in the work thread pool.
 
@@ -1009,7 +1009,7 @@ essential when writing user code using standard execution concepts; we have also
     [[#design-dispatch]].
 9. A specific thread pool implementation is omitted, as per LEWG direction.
 10. Some additional utilities are added:
-    * <b>`run_loop`</b>: An execution context that provides a multi-producer,
+    * <b>`run_loop`</b>: An execution resource that provides a multi-producer,
         single-consumer, first-in-first-out work queue.
     * <b>`receiver_adaptor`</b>: A utility for algorithm authors for defining one
         receiver type in terms of another.
@@ -1055,7 +1055,7 @@ Libunifex has several concrete schedulers in addition to the `run_loop` suggeste
 
 In addition to the proposed interfaces and the additional schedulers, it has several important extensions to the facilities described in this paper, which demonstrate directions in which these abstractions may be evolved over time, including:
 
-* Timed schedulers, which permit scheduling work on an execution context at a particular time or after a particular duration has elapsed. In addition, it provides time-based algorithms.
+* Timed schedulers, which permit scheduling work on an execution resource at a particular time or after a particular duration has elapsed. In addition, it provides time-based algorithms.
 * File I/O schedulers, which permit filesystem I/O to be scheduled.
 * Two complementary abstractions for streams (asynchronous ranges), and a set of stream-based algorithms.
 
@@ -1077,13 +1077,13 @@ The authors are aware of a number of other implementations of sender/receiver fr
 
     HPX is a general purpose C++ runtime system for parallel and distributed applications that has been under active development since 2007. HPX exposes a uniform, standards-oriented API, and keeps abreast of the latest standards and proposals. It is used in a wide variety of high-performance applications.
 
-    The sender/receiver implementation in HPX has been under active development since May 2020. It is used to erase the overhead of futures and to make it possible to write efficient generic asynchronous algorithms that are agnostic to their execution context. In HPX, algorithms can migrate execution between execution contexts, even to GPUs and back, using a uniform standard interface with sender/receiver.
+    The sender/receiver implementation in HPX has been under active development since May 2020. It is used to erase the overhead of futures and to make it possible to write efficient generic asynchronous algorithms that are agnostic to their execution resource. In HPX, algorithms can migrate execution between execution resources, even to GPUs and back, using a uniform standard interface with sender/receiver.
 
     Far and away, the HPX team has the greatest usage experience outside Facebook. Mikael Simberg summarizes the experience as follows:
 
     > Summarizing, for us the major benefits of sender/receiver compared to the old model are:
     >
-    > 1. Proper hooks for transitioning between execution contexts.
+    > 1. Proper hooks for transitioning between execution resources.
     > 2. The adaptors. Things like `let_value` are really nice additions.
     > 3. Separation of the error channel from the value channel (also cancellation, but we don't have much use for it at the moment). Even from a teaching perspective having to explain that the future `f2` in the continuation will always be ready here `f1.then([](future<T> f2) {...})` is enough of a reason to separate the channels. All the other obvious reasons apply as well of course.
     > 4. For futures we have a thing called `hpx::dataflow` which is an optimized version of `when_all(...).then(...)` which avoids intermediate allocations. With the sender/receiver `when_all(...) | then(...)` we get that "for free".
@@ -1334,7 +1334,7 @@ std::this_thread::sync_wait(std::move(task));
 </pre>
 
 The code above is attempting to schedule some work onto the `sync_wait`'s
-`run_loop` execution context. But `let_value` only returns a typed sender when
+`run_loop` execution resource. But `let_value` only returns a typed sender when
 the input sender is typed. As we explained above, `get_scheduler()` is not
 typed, so `task` is likewise not typed. Since `task` isn't typed, it cannot be
 passed to `sync_wait` which is expecting a typed sender. The above code would
@@ -1474,7 +1474,7 @@ The changes since R2 are as follows:
 
 <b>Enhancements:</b>
 
-    * Add `run_loop` execution context.
+    * Add `run_loop` execution resource.
     * Add `receiver_adaptor` utility to simplify writing receivers.
     * Require a scheduler's sender to model `sender_of` and provide a completion scheduler.
     * Specify the cancellation scope of the `when_all` algorithm.
@@ -1522,66 +1522,104 @@ Initial revision.
 
 The following three sections describe the entirety of the proposed design.
 
-* [[#design-intro]] describes the conventions used through the rest of the design sections, as well as an example illustrating how we envision code will be written using this proposal.
-* [[#design-user]] describes all the functionality from the perspective we intend for users: it describes the various concepts they will interact with, and what their programming model is.
-* [[#design-implementer]] describes the machinery that allows for that programming model to function, and the information contained there is necessary for people implementing senders and sender algorithms (including the standard library ones) - but is not necessary to use senders productively.
+* [[#design-intro]] describes the conventions used through the rest of the
+    design sections, as well as an example illustrating how we envision code will
+    be written using this proposal.
+* [[#design-user]] describes all the functionality from the perspective we
+    intend for users: it describes the various concepts they will interact with,
+    and what their programming model is.
+* [[#design-implementer]] describes the machinery that allows for that
+    programming model to function, and the information contained there is
+    necessary for people implementing senders and sender algorithms (including the
+    standard library ones) - but is not necessary to use senders productively.
 
 ## Conventions ## {#design-conventions}
 
 The following conventions are used throughout the design section:
 
-  1. The namespace proposed in this paper is the same as in [[P0443R14]]: `std::execution`; however, for brevity, the `std::` part of this name is omitted. When you see `execution::foo`, treat that as `std::execution::foo`.
-  2. Universal references and explicit calls to `std::move`/`std::forward` are omitted in code samples and signatures for simplicity; assume universal references and perfect forwarding unless stated otherwise.
-  3. None of the names proposed here are names that we are particularly attached to; consider the names to be reasonable placeholders that can freely be changed, should the committee want to do so.
+  1. The namespace proposed in this paper is the same as in [[P0443R14]]:
+      `std::execution`; however, for brevity, the `std::` part of this name is
+      omitted. When you see `execution::foo`, treat that as
+      `std::execution::foo`.
+  2. Universal references and explicit calls to `std::move`/`std::forward` are
+      omitted in code samples and signatures for simplicity; assume universal
+      references and perfect forwarding unless stated otherwise.
+  3. None of the names proposed here are names that we are particularly attached
+      to; consider the names to be reasonable placeholders that can freely be
+      changed, should the committee want to do so.
 
 ## Queries and algorithms ## {#design-queries-and-algorithms}
 
-A <dfn export=true>query</dfn> is a `std::invocable` that takes some set of objects (usually one) as parameters and returns facts about those objects without modifying them. Queries are usually customization point objects, but in some cases may be functions.
+A **query** is a callable that takes some set of objects (usually one) as
+parameters and returns facts about those objects without modifying them. Queries
+are usually customization point objects, but in some cases may be functions.
 
-An <dfn export=true>algorithm</dfn> is a `std::invocable` that takes some set of objects as parameters and causes those objects to do something. Algorithms are usually customization point objects, but in some cases may be functions.
+An **algorithm** is a callable that takes some set of objects as parameters and
+causes those objects to do something. Algorithms are usually customization point
+objects, but in some cases may be functions.
 
 # Design - user side # {#design-user}
 
-## Execution contexts describe the place of execution ## {#design-contexts}
+## Execution resources describe the place of execution ## {#design-contexts}
 
-An <dfn export=true>execution context</dfn> is a resource that represents the *place* where execution will happen. This could be a concrete resource - like a specific thread pool object, or a GPU - or a more abstract one, like the current thread of execution. Execution contexts
-don't need to have a representation in code; they are simply a term describing certain properties of execution of a function.
+An [=execution resource=] is a resource that represents the *place* where
+execution will happen. This could be a concrete resource - like a specific
+thread pool object, or a GPU - or a more abstract one, like the current thread
+of execution. Execution contexts don't need to have a representation in code;
+they are simply a term describing certain properties of execution of a function.
 
-## Schedulers represent execution contexts ## {#design-schedulers}
+## Schedulers represent execution resources ## {#design-schedulers}
 
-A <dfn export=true>scheduler</dfn> is a lightweight handle that represents a strategy for scheduling work onto an *execution context*. Since execution contexts don't necessarily manifest in C++ code, it's not possible to program
-directly against their API. A scheduler is a solution to that problem: the scheduler concept is defined by a single sender algorithm, `schedule`, which returns a sender that will complete on an execution context determined
-by the scheduler. Logic that you want to run on that context can be placed in the receiver's completion-signalling method.
+A [=scheduler=] is a lightweight handle that represents a strategy for
+scheduling work onto an execution resource. Since execution resources don't
+necessarily manifest in C++ code, it's not possible to program directly against
+their API. A scheduler is a solution to that problem: the scheduler concept is
+defined by a single sender algorithm, `schedule`, which returns a sender that
+will complete on an execution resource determined by the scheduler. Logic that
+you want to run on that context can be placed in the receiver's
+completion-signalling method.
 
 <pre highlight="c++">
 execution::scheduler auto sch = thread_pool.scheduler();
 execution::sender auto snd = execution::schedule(sch);
 // snd is a sender (see below) describing the creation of a new execution resource
-// on the execution context associated with sch
+// on the execution resource associated with sch
 </pre>
 
 Note that a particular scheduler type may provide other kinds of scheduling operations
-which are supported by its associated execution context. It is not limited to scheduling
+which are supported by its associated execution resource. It is not limited to scheduling
 purely using the `execution::schedule` API.
 
 Future papers will propose additional scheduler concepts that extend `scheduler`
 to add other capabilities. For example:
-* A `time_scheduler` concept that extends `scheduler` to support time-based scheduling.
-    Such a concept might provide access to `schedule_after(sched, duration)`, `schedule_at(sched, time_point)` and `now(sched)` APIs.
-* Concepts that extend `scheduler` to support opening, reading and writing files asynchronously.
-* Concepts that extend `scheduler` to support connecting, sending data and receiving data over the network asynchronously.
+
+* A `time_scheduler` concept that extends `scheduler` to support time-based
+    scheduling. Such a concept might provide access to `schedule_after(sched,
+    duration)`, `schedule_at(sched, time_point)` and `now(sched)` APIs.
+* Concepts that extend `scheduler` to support opening, reading and writing files
+    asynchronously.
+* Concepts that extend `scheduler` to support connecting, sending data and
+    receiving data over the network asynchronously.
 
 ## Senders describe work ## {#design-senders}
 
-A <dfn export=true>sender</dfn> is an object that describes work. Senders are similar to futures in existing asynchrony designs, but unlike futures, the work that is being done to arrive at the values they will *send* is also directly described by the sender object itself. A
-sender is said to <dfn export=true>send</dfn> some values if a receiver connected (see [[#design-connect]]) to that sender will eventually *receive* said values.
+A [=sender=] is an object that describes work. Senders are similar to futures in
+existing asynchrony designs, but unlike futures, the work that is being done to
+arrive at the values they will *send* is also directly described by the sender
+object itself. A sender is said to *send* some values if a receiver connected
+(see [[#design-connect]]) to that sender will eventually *receive* said values.
 
-The primary defining sender algorithm is [[#design-connect]]; this function, however, is not a user-facing API; it is used to facilitate communication between senders and various sender algorithms, but end user code is not expected to invoke
-it directly.
+The primary defining sender algorithm is [[#design-connect]]; this function,
+however, is not a user-facing API; it is used to facilitate communication
+between senders and various sender algorithms, but end user code is not expected
+to invoke it directly.
 
-The way user code is expected to interact with senders is by using [=sender algorithms=].
-This paper proposes an initial set of such sender algorithms, which are described in [[#design-composable]], [[#design-sender-factories]], [[#design-sender-adaptors]], and [[#design-sender-consumers]].
-For example, here is how a user can create a new sender on a scheduler, attach a continuation to it, and then wait for execution of the continuation to complete:
+The way user code is expected to interact with senders is by using [=sender
+algorithms=]. This paper proposes an initial set of such sender algorithms,
+which are described in [[#design-composable]], [[#design-sender-factories]],
+[[#design-sender-adaptors]], and [[#design-sender-consumers]]. For example, here
+is how a user can create a new sender on a scheduler, attach a continuation to
+it, and then wait for execution of the continuation to complete:
 
 <pre highlight="c++">
 execution::scheduler auto sch = thread_pool.scheduler();
@@ -1602,37 +1640,39 @@ A successful asynchronous framework must provide an intuitive story for composit
 
 The true power and utility of senders is in their composability.
 With senders, users can describe generic execution pipelines and graphs, and then run them on and across a variety of different schedulers.
-Senders are composed using <dfn export=true>sender algorithms</dfn>:
+Senders are composed using [=sender algorithms=]:
 
 * [=sender factories=], algorithms that take no senders and return a sender.
-* [=sender adaptors=], algorithms that take (and potentially `execution::connect`) senders and return a sender.
-* [=sender consumers=], algorithms that take (and potentially `execution::connect`) senders and do not return a sender.
+* [=sender adaptors=], algorithms that take (and potentially
+    `execution::connect`) senders and return a sender.
+* [=sender consumers=], algorithms that take (and potentially
+    `execution::connect`) senders and do not return a sender.
 
 ## Senders can propagate completion schedulers ## {#design-propagation}
 
-One of the goals of executors is to support a diverse set of execution contexts, including traditional thread pools, task and fiber frameworks (like <a href="https://github.com/STEllAR-GROUP/hpx">HPX</a> and [Legion](https://github.com/StanfordLegion/legion)), and GPUs and other accelerators (managed by runtimes such as CUDA or SYCL).
+One of the goals of executors is to support a diverse set of execution resources, including traditional thread pools, task and fiber frameworks (like <a href="https://github.com/STEllAR-GROUP/hpx">HPX</a> and [Legion](https://github.com/StanfordLegion/legion)), and GPUs and other accelerators (managed by runtimes such as CUDA or SYCL).
 On many of these systems, not all execution agents are created equal and not all functions can be run on all execution agents.
-Having precise control over the execution context used for any given function call being submitted is important on such systems, and the users of standard execution facilities will expect to be able to express such requirements.
+Having precise control over the execution resource used for any given function call being submitted is important on such systems, and the users of standard execution facilities will expect to be able to express such requirements.
 
 [[P0443R14]] was not always clear about the <i>place of execution</i> of any given piece of code.
 Precise control was present in the two-way execution API present in earlier executor designs, but it has so far been missing from the senders design. There has been a proposal ([[P1897R3]]) to provide a number of sender algorithms that would enforce certain rules on the places of execution
 of the work described by a sender, but we have found those sender algorithms to be insufficient for achieving the best performance on all platforms that are of interest to us. The implementation strategies that we are aware of result in one of the following situations:
 
-  1. trying to submit work to one execution context (such as a CPU thread pool) from another execution context (such as a GPU or a task framework), which assumes that all execution agents are as capable as a `std::thread` (which they aren't).
-  2. forcibly interleaving two adjacent execution graph nodes that are both executing on one execution context (such as a GPU) with glue code that runs on another execution context (such as a CPU), which is prohibitively expensive for some execution contexts (such as CUDA or SYCL).
-  3. having to customise most or all sender algorithms to support an execution context, so that you can avoid problems described in 1. and 2, which we believe is impractical and brittle based on months of field experience attempting this in [Agency](https://github.com/agency-library/agency).
+  1. trying to submit work to one execution resource (such as a CPU thread pool) from another execution resource (such as a GPU or a task framework), which assumes that all execution agents are as capable as a `std::thread` (which they aren't).
+  2. forcibly interleaving two adjacent execution graph nodes that are both executing on one execution resource (such as a GPU) with glue code that runs on another execution resource (such as a CPU), which is prohibitively expensive for some execution resources (such as CUDA or SYCL).
+  3. having to customise most or all sender algorithms to support an execution resource, so that you can avoid problems described in 1. and 2, which we believe is impractical and brittle based on months of field experience attempting this in [Agency](https://github.com/agency-library/agency).
 
 None of these implementation strategies are acceptable for many classes of parallel runtimes, such as task frameworks (like <a href="https://github.com/STEllAR-GROUP/hpx">HPX</a>) or accelerator runtimes (like CUDA or SYCL).
 
-Therefore, in addition to the `on` sender algorithm from [[P1897R3]], we are proposing a way for senders to advertise what scheduler (and by extension what execution context) they will complete on.
-Any given sender <b>may</b> have <dfn export=true>completion schedulers</dfn> for some or all of the signals (value, error, or stopped) it completes with (for more detail on the completion-signals, see [[#design-receivers]]).
+Therefore, in addition to the `on` sender algorithm from [[P1897R3]], we are proposing a way for senders to advertise what scheduler (and by extension what execution resource) they will complete on.
+Any given sender <b>may</b> have [=completion schedulers=] for some or all of the signals (value, error, or stopped) it completes with (for more detail on the completion-signals, see [[#design-receivers]]).
 When further work is attached to that sender by invoking sender algorithms, that work will also complete on an appropriate completion scheduler.
 
 ### `execution::get_completion_scheduler` ### {#design-sender-query-get_completion_scheduler}
 
-`get_completion_scheduler` is a query that retrieves the [=completion scheduler=] for a specific completion-signal from a sender's environment.
+`get_completion_scheduler` is a query that retrieves the completion scheduler for a specific completion-signal from a sender's environment.
 For a sender that lacks a completion scheduler query for a given signal, calling `get_completion_scheduler` is ill-formed.
-If a sender advertises a completion scheduler for a signal in this way, that sender <b>must</b> ensure that it [=send|sends=] that signal on an execution agent belonging to an execution context represented by a scheduler returned from this function.
+If a sender advertises a completion scheduler for a signal in this way, that sender <b>must</b> ensure that it [=send|sends=] that signal on an execution agent belonging to an execution resource represented by a scheduler returned from this function.
 See [[#design-propagation]] for more details.
 
 <pre highlight="c++">
@@ -1662,12 +1702,12 @@ execution::scheduler auto completion_sch3 =
 
 ## Execution context transitions are explicit ## {#design-transitions}
 
-[[P0443R14]] does not contain any mechanisms for performing an execution context transition. The only sender algorithm that can create a sender that will move execution to a *specific* execution context is `execution::schedule`, which does not take an input sender.
-That means that there's no way to construct sender chains that traverse different execution contexts. This is necessary to fulfill the promise of senders being able to replace two-way executors, which had this capability.
+[[P0443R14]] does not contain any mechanisms for performing an execution resource transition. The only sender algorithm that can create a sender that will move execution to a *specific* execution resource is `execution::schedule`, which does not take an input sender.
+That means that there's no way to construct sender chains that traverse different execution resources. This is necessary to fulfill the promise of senders being able to replace two-way executors, which had this capability.
 
-We propose that, for senders advertising their [=completion scheduler=], all execution context transitions <b>must</b> be explicit; running user code anywhere but where they defined it to run <b>must</b> be considered a bug.
+We propose that, for senders advertising their [=completion scheduler=], all execution resource transitions <b>must</b> be explicit; running user code anywhere but where they defined it to run <b>must</b> be considered a bug.
 
-The `execution::transfer` sender adaptor performs a transition from one execution context to another:
+The `execution::transfer` sender adaptor performs a transition from one execution resource to another:
 
 <pre highlight="c++">
 execution::scheduler auto sch1 = ...;
@@ -1698,16 +1738,19 @@ this resource. In such a sender, calling `execution::connect` consumes the sende
 the call the input sender is no longer valid. Such a sender will also typically be move-only so that
 it can maintain unique ownership of that resource.
 
-A <dfn export=true>single-shot sender</dfn> can only be connected to a receiver at most once. Its implementation of
-`execution::connect` only has overloads for an rvalue-qualified sender. Callers must pass the sender
-as an rvalue to the call to `execution::connect`, indicating that the call consumes the sender.
+A <dfn export=true>single-shot sender</dfn> can only be connected to a receiver
+at most once. Its implementation of `execution::connect` only has overloads for
+an rvalue-qualified sender. Callers must pass the sender as an rvalue to the
+call to `execution::connect`, indicating that the call consumes the sender.
 
-A <dfn export=true>multi-shot sender</dfn> can be connected to multiple receivers and can be launched multiple
-times. Multi-shot senders customise `execution::connect` to accept an lvalue reference to the
-sender. Callers can indicate that they want the sender to remain valid after the call to `execution::connect`
-by passing an lvalue reference to the sender to call these overloads. Multi-shot senders should also define
-overloads of `execution::connect` that accept rvalue-qualified senders to allow the sender to be also used in places
-where only a single-shot sender is required.
+A <dfn export=true>multi-shot sender</dfn> can be connected to multiple
+receivers and can be launched multiple times. Multi-shot senders customise
+`execution::connect` to accept an lvalue reference to the sender. Callers can
+indicate that they want the sender to remain valid after the call to
+`execution::connect` by passing an lvalue reference to the sender to call these
+overloads. Multi-shot senders should also define overloads of
+`execution::connect` that accept rvalue-qualified senders to allow the sender to
+be also used in places where only a single-shot sender is required.
 
 If the user of a sender does not require the sender to remain valid after connecting it to a
 receiver then it can pass an rvalue-reference to the sender to the call to `execution::connect`.
@@ -2077,7 +2120,7 @@ to the eager operation in the case that the sender representing the eager work
 is destroyed before it has been joined (assuming strategy (5) or (6) listed
 above is chosen).
 
-### Eager senders cannot access execution context from the receiver ### {#design-lazy-algorithms-context}
+### Eager senders cannot access execution resource from the receiver ### {#design-lazy-algorithms-context}
 
 In sender/receiver, contextual information is passed from parent operations to
 their children by way of receivers. Information like stop tokens, allocators,
@@ -2091,7 +2134,7 @@ child operations, which may complete before a receiver is ever attached.
 
 ## Schedulers advertise their forward progress guarantees ## {#design-fpg}
 
-To decide whether a scheduler (and its associated execution context) is sufficient for a specific task, it may be necessary to know what kind of forward progress guarantees it provides for the execution agents it creates. The C++ Standard defines the following
+To decide whether a scheduler (and its associated execution resource) is sufficient for a specific task, it may be necessary to know what kind of forward progress guarantees it provides for the execution agents it creates. The C++ Standard defines the following
 forward progress guarantees:
 
 * <i>concurrent</i>, which requires that a thread makes progress <i>eventually</i>;
@@ -2341,7 +2384,7 @@ obtain an object of unspecified type to be provided as the first argument to the
 
 ## User-facing sender factories ## {#design-sender-factories}
 
-A <dfn export=true>sender factory</dfn> is an [=algorithm=] that takes no senders as parameters and returns a sender.
+A [=sender factory=] is an algorithm that takes no senders as parameters and returns a sender.
 
 ### `execution::schedule` ### {#design-sender-factory-schedule}
 
@@ -2478,9 +2521,9 @@ This code uses the fact that `sync_wait` associates a scheduler with the receive
 
 ## User-facing sender adaptors ## {#design-sender-adaptors}
 
-A <dfn export=true>sender adaptor</dfn> is an [=algorithm=] that takes one or more senders, which it may `execution::connect`, as parameters, and returns a sender, whose completion is related to the sender arguments it has received.
+A [=sender adaptor=] is an algorithm that takes one or more senders, which it may `execution::connect`, as parameters, and returns a sender, whose completion is related to the sender arguments it has received.
 
-Sender adaptors are <i>lazy</i>, that is, they are never allowed to submit any work for execution prior to the returned sender being <dfn lt="start" export=true>started</dfn> later on, and are also guaranteed to not start any input senders passed into them. Sender consumers
+Sender adaptors are <i>lazy</i>, that is, they are never allowed to submit any work for execution prior to the returned sender being [=started=] later on, and are also guaranteed to not start any input senders passed into them. Sender consumers
 such as [[#design-sender-consumer-start_detached]] and [[#design-sender-consumer-sync_wait]] start senders.
 
 For more implementer-centric description of starting senders, see [[#design-laziness]].
@@ -2582,7 +2625,7 @@ execution::sender auto on(
 );
 </pre>
 
-Returns a sender which, when started, will start the provided sender on an execution agent belonging to the execution context associated with the provided scheduler. This returned sender has no [=completion scheduler|completion schedulers=].
+Returns a sender which, when started, will start the provided sender on an execution agent belonging to the execution resource associated with the provided scheduler. This returned sender has no [=completion scheduler|completion schedulers=].
 
 ### `execution::into_variant` ### {#design-sender-adaptor-into_variant}
 
@@ -2655,7 +2698,7 @@ execution::sender auto when_all_with_variant(
 );
 </pre>
 
-`when_all` returns a sender that completes once all of the input senders have completed. It is constrained to only accept senders that can complete with a single set of values (_i.e._, it only calls one overload of `set_value` on its receiver). The values sent by this sender are the values sent by each of the input senders, in order of the arguments passed to `when_all`. It completes inline on the execution context on which the last input sender completes, unless stop is requested before `when_all` is started, in which case it completes inline within the call to `start`.
+`when_all` returns a sender that completes once all of the input senders have completed. It is constrained to only accept senders that can complete with a single set of values (_i.e._, it only calls one overload of `set_value` on its receiver). The values sent by this sender are the values sent by each of the input senders, in order of the arguments passed to `when_all`. It completes inline on the execution resource on which the last input sender completes, unless stop is requested before `when_all` is started, in which case it completes inline within the call to `start`.
 
 `when_all_with_variant` does the same, but it adapts all the input senders using `into_variant`, and so it does not constrain the input arguments as `when_all` does.
 
@@ -2707,7 +2750,7 @@ execution::sender auto ensure_started(
 </pre>
 
 Once `ensure_started` returns, it is known that the provided sender has been [=connect|connected=] and `start` has been called on the resulting operation state (see [[#design-states]]); in other words, the work described by the provided sender has been submitted
-for execution on the appropriate execution contexts. Returns a sender which completes when the provided sender completes and sends values equivalent to those of the provided sender.
+for execution on the appropriate execution resources. Returns a sender which completes when the provided sender completes and sends values equivalent to those of the provided sender.
 
 If the returned sender is destroyed before `execution::connect()` is called, or if `execution::connect()` is called but the
 returned operation-state is destroyed before `execution::start()` is called, then a stop-request is sent to the eagerly launched
@@ -2720,7 +2763,7 @@ the operation so that resource release can be sequenced after the completion.
 
 ## User-facing sender consumers ## {#design-sender-consumers}
 
-A <dfn export=true>sender consumer</dfn> is an [=algorithm=] that takes one or more senders, which it may `execution::connect`, as parameters, and does not return a sender.
+A [=sender consumer=] is an algorithm that takes one or more senders, which it may `execution::connect`, as parameters, and does not return a sender.
 
 ### `execution::start_detached` ### {#design-sender-consumer-start_detached}
 
@@ -2779,17 +2822,26 @@ execution::start_detached(work);
 
 ## Receivers serve as glue between senders ## {#design-receivers}
 
-A <dfn export=true>receiver</dfn> is a callback that supports more than one channel. In fact, it supports three of them:
+A [=receiver=] is a callback that supports more than one channel. In fact, it supports three of them:
 
-* `set_value`, which is the moral equivalent of an `operator()` or a function call, which signals successful completion of the operation its execution depends on;
-* `set_error`, which signals that an error has happened during scheduling of the current work, executing the current work, or at some earlier point in the sender chain; and
-* `set_stopped`, which signals that the operation completed without succeeding (`set_value`) and without failing (`set_error`). This result is often used to indicate that the operation stopped early, typically because it was asked to do so because the result is no
-    longer needed.
+* `set_value`, which is the moral equivalent of an `operator()` or a function
+    call, which signals successful completion of the operation its execution
+    depends on;
+* `set_error`, which signals that an error has happened during scheduling of the
+    current work, executing the current work, or at some earlier point in the
+    sender chain; and
+* `set_stopped`, which signals that the operation completed without succeeding
+    (`set_value`) and without failing (`set_error`). This result is often used
+    to indicate that the operation stopped early, typically because it was asked
+    to do so because the result is no longer needed.
 
 Once an async operation has been started exactly one of these functions must be invoked
-on a receiver before it is destroyed. These requirements are part of the <dfn export=true>async-function-protocol</dfn>.
+on a receiver before it is destroyed. These requirements are part of the [=async function protocol=].
 
-While the receiver interface may look novel, it is in fact very similar to the interface of `std::promise`, which provides the first two signals as `set_value` and `set_error`, and it's possible to emulate the third channel with lifetime management of the promise.
+While the receiver interface may look novel, it is in fact very similar to the
+interface of `std::promise`, which provides the first two signals as `set_value`
+and `set_exception`, and it's possible to emulate the third channel with
+lifetime management of the promise.
 
 Receivers are not a part of the end-user-facing API of this proposal; they are necessary to allow unrelated senders communicate with each other, but the only users who will interact with receivers directly are authors of senders.
 
@@ -2797,7 +2849,7 @@ Receivers are what is passed as the second argument to [[#design-connect]].
 
 ## Operation states represent work ## {#design-states}
 
-An <dfn export=true>operation state</dfn> is an object that represents work. Unlike senders, it is not a chaining mechanism; instead, it is a concrete object that packages the work described by a full sender chain, ready to be executed. An operation state is neither movable nor
+An [=operation state=] is an object that represents work. Unlike senders, it is not a chaining mechanism; instead, it is a concrete object that packages the work described by a full sender chain, ready to be executed. An operation state is neither movable nor
 copyable, and its interface consists of a single algorithm: `start`, which serves as the submission point of the work represented by a given operation state.
 
 Operation states are not a part of the user-facing API of this proposal; they are necessary for implementing sender consumers like `execution::ensure_started` and `this_thread::sync_wait`, and the knowledge of them is necessary to implement senders, so the only users who will
@@ -2807,7 +2859,7 @@ The return value of [[#design-connect]] must satisfy the operation state concept
 
 ## `execution::connect` ## {#design-connect}
 
-`execution::connect` is a customization point which <dfn lt="connect">connects</dfn> senders with receivers, resulting in an operation state that will ensure that if `start` is called that one of the completion-signal operations will be called on the receiver passed to `connect`.
+`execution::connect` is a customization point which [=connects=] senders with receivers, resulting in an operation state that will ensure that if `start` is called that one of the completion operations will be called on the receiver passed to `connect`.
 
 <pre highlight="c++">
 execution::sender auto snd = <i>some input sender</i>;
@@ -2816,8 +2868,8 @@ execution::operation_state auto state = execution::connect(snd, rcv);
 
 execution::start(state);
 // at this point, it is guaranteed that the work represented by state has been submitted
-// to an execution context, and that execution context will eventually call one of the
-// completion-signal operations on rcv
+// to an execution resource, and that execution resource will eventually call one of the
+// completion operations on rcv
 
 // operation states are not movable, and therefore this operation state object must be
 // kept alive until the operation finishes
@@ -2898,15 +2950,15 @@ For sender algorithms which accept concepts other than `sender` as their first a
 Contrary to early revisions of this paper, we propose to make all sender adaptors perform strictly lazy submission, unless specified otherwise (the one notable exception in this paper is [[#design-sender-adaptor-ensure_started]], whose sole purpose is to start an
 input sender).
 
- <dfn export=true>Strictly lazy submission</dfn> means that there is a guarantee that no work is submitted to an execution context before a receiver is connected to a sender, and `execution::start` is called on the resulting operation state.
+ <dfn export=true>Strictly lazy submission</dfn> means that there is a guarantee that no work is submitted to an execution resource before a receiver is connected to a sender, and `execution::start` is called on the resulting operation state.
 
 ## Lazy senders provide optimization opportunities ## {#design-fusion}
 
-Because lazy senders fundamentally *describe* work, instead of describing or representing the submission of said work to an execution context, and thanks to the flexibility of the customization of most sender algorithms, they provide an opportunity for fusing
-multiple algorithms in a sender chain together, into a single function that can later be submitted for execution by an execution context. There are two ways this can happen.
+Because lazy senders fundamentally *describe* work, instead of describing or representing the submission of said work to an execution resource, and thanks to the flexibility of the customization of most sender algorithms, they provide an opportunity for fusing
+multiple algorithms in a sender chain together, into a single function that can later be submitted for execution by an execution resource. There are two ways this can happen.
 
 The first (and most common) way for such optimizations to happen is thanks to the structure of the implementation: because all the work is done within callbacks invoked on the completion of an earlier sender, recursively up to the original source of computation,
-the compiler is able to see a chain of work described using senders as a tree of tail calls, allowing for inlining and removal of most of the sender machinery. In fact, when work is not submitted to execution contexts outside of the current thread of execution,
+the compiler is able to see a chain of work described using senders as a tree of tail calls, allowing for inlining and removal of most of the sender machinery. In fact, when work is not submitted to execution resources outside of the current thread of execution,
 compilers are capable of removing the senders abstraction entirely, while still allowing for composition of functions across different parts of a program.
 
 The second way for this to occur is when a sender algorithm is specialized for a specific set of arguments. For instance, we expect that, for senders which are known to have been started already, [[#design-sender-adaptor-ensure_started]] will be an identity transformation,
@@ -2916,10 +2968,10 @@ because the sender algorithm will be specialized for such senders. Similarly, an
 
 Because `execution::transfer` takes a sender as its first argument, it is not actually directly customizable by the target scheduler. This is by design: the target scheduler may not know how to transition <i>from</i> a scheduler such as a CUDA scheduler;
 transitioning away from a GPU in an efficient manner requires making runtime calls that are specific to the GPU in question, and the same is usually true for other kinds of accelerators too (or for scheduler running on remote systems). To avoid this problem,
-specialized schedulers like the ones mentioned here can still hook into the transition mechanism, and inject a sender which will perform a transition to the regular CPU execution context, so that any sender can be attached to it.
+specialized schedulers like the ones mentioned here can still hook into the transition mechanism, and inject a sender which will perform a transition to the regular CPU execution resource, so that any sender can be attached to it.
 
 This, however, is a problem: because customization of sender algorithms must be controlled by the scheduler they will run on (see [[#design-customization]]), the type of the sender returned from `transfer` must be controllable by the target scheduler. Besides, the target
-scheduler may itself represent a specialized execution context, which requires additional work to be performed to transition <i>to</i> it. GPUs and remote node schedulers are once again good examples of such schedulers: executing code on their execution contexts
+scheduler may itself represent a specialized execution resource, which requires additional work to be performed to transition <i>to</i> it. GPUs and remote node schedulers are once again good examples of such schedulers: executing code on their execution resources
 requires making runtime API calls for work submission, and quite possibly for the data movement of the values being sent by the input sender passed into `transfer`.
 
 To allow for such customization from both ends, we propose the inclusion of a secondary transitioning sender adaptor, called `schedule_from`. This adaptor is a form of `schedule`, but takes an additional, second argument: the input sender. This adaptor is not
@@ -4074,7 +4126,7 @@ namespace std::execution {
       requires sender_in&lt;Sndr, Env>
   using make_completion_signatures = completion_signatures&lt;<i>see below</i>>;
 
-  // [exec.ctx], execution contexts
+  // [exec.ctx], execution resources
   class run_loop;
 }
 
@@ -4149,166 +4201,196 @@ namespace std::execution {
     respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if 
     `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
 
-## Asynchronous functions <b>[async.func]</b> ## {#spec-execution-async.func}
+## Asynchronous operations <b>[async.ops]</b> ## {#spec-execution-async.ops}
 
-Subsections [exec.queries] through [exec.snd] specify a set of interrelated concepts
-for defining asynchronous algorithms. This subsection defines some terms and then
-specifies the [=async function protocol=] that asynchronous algorithms must
-adhere to.
+1. An <dfn export=true>execution resource</dfn> is a program entity capable of
+    executing the execution steps of one or more threads of execution.
+    [*Example 1*: The currently active thread, a system-provided thread pool, and
+    an API associated with an external hardware accelerator are all examples of
+    execution resources.] Execution resources execute asynchronous operations.
+    An execution resource may be valid or invalid.
 
-### Terms and definitions <b>[async.defn]</b> ### {#spec-execution-async.defn}
+2. An <dfn export=true>asynchronous operation</dfn> is a distinct unit of
+    program execution that:
+    
+      - may be explicitly <dfn lt="start" export=true>started</dfn>;
 
-Later sections define the following terms in detail. Below we list them and the
-role they play in the async function protocol.
+      - eventually <dfn lt="complete" export=true>completes</dfn> in one of
+          three ways: success, failure, or cancellation; an asychronous
+          operation may only complete once; a successful completion, also known
+          as a <dfn export=true>value completion</dfn> has an associated
+          (possibly empty) set of value results; a failure completion, also
+          known as an <dfn export=true>error completion</dfn> has an associated
+          error result; a cancellation completion, also known as a <dfn
+          export=true>stopped completion</dfn> has no associated result datum;
+      
+      - has associated state known as the <dfn export=true>operation
+          state</dfn>;
 
-: query object
-:: A customization point object ([customization.point.object]) that accepts a
-    *queryable* as its first argument and whose call expressions model
-    `regular_invocable` ([concept.regularinvocable]). Query objects impose
-    syntactic and semantic requirements on their return types (which cannot be
-    `void`).
+      - may suspend and resume on the same or a different execution resource; and
 
-: queryable
-:: A type that responds to zero or more queries. A queryable object ensures
-    that the results of its queries do not depend on the *cv* qualification
-    of the object's type, nor on its value category.
+      - may cause other asychronous operations called <dfn export=true>child
+          operations</dfn> to execute. A child operation is created by a <dfn
+          export=true>parent operation</dfn>.
 
-: environment
-:: A queryable object obtainable from a receiver that contains runtime
-    configuration information local to the current operation.
+    <span class="wg21note">An asynchronous operation may in fact execute
+    synchronously; that is, it may complete during the execution of its start
+    operation on the thread of execution that started it.</span>
 
-: execution resource
-:: An object, like a thread or a thread pool, that is capable of executing
-    code, and onto which asynchronous operations can be scheduled for
-    execution.
+3. The <dfn lt="asychronous operation lifetime" export=true>lifetime of an
+    asynchronous operation</dfn>, also known as the operation's <dfn
+    export=true>async lifetime</dfn>, begins when its start operation begins
+    executing and ends when its completion operation (described below) finishes
+    executing. An asynchronous operation is <dfn lt="structured asynchronous
+    operation" export=true>structured</dfn> when the lifetimes of any child
+    operations nest within the lifetime of the parent operation.
 
-: receiver
-:: An object that receives the results of an asynchronous operation when it
-    completes. It can receive the values on success, an error on failure, or
-    a stopped notification when the operation is cancelled. Additionally,
-    the receiver provides an environment that describes the properties of
-    the 
+4. A <dfn export=true>receiver</dfn> is an aggregation of three handlers for the
+    three possible ways that the asynchronous operation may complete. An
+    asynchronous operation has an associated receiver. The operation completes
+    by invoking the handler of the receiver corresponding to the manner in which
+    the operation completed -- `set_value` for a value completion, `set_error`
+    for an error completion, and `set_stopped` for a stopped completion --
+    passing any results as arguments. These three handlers are known as <dfn
+    export=true>completion functions</dfn>. A completion function is a
+    customization point object ([customization.point.object]) that accepts a
+    reference to a receiver as the first argument and the results of the
+    asynchronous operation as additional arguments. The unqualified types of the
+    completion functions -- `set_value_t`, `set_error_t`, and `set_stopped_t` --
+    are called <dfn export=true>completion tags</dfn>. A valid invocation of a
+    completion function is called a <dfn export=true>completion operation</dfn>.
+    
+5. A receiver is also the means by which the caller of an asynchronous operation
+    (described below) may pass arguments to it. A receiver has an associated
+    environment that is accessed by passing the receiver to the `get_env`
+    customization point object. An <dfn export=true>environment</dfn> is a
+    collection of key/value pairs representing the execution-time properties of
+    the caller. An environment is a queryable object. A <dfn
+    export=true>queryable</dfn> object is a read-only collection of key/value
+    pairs where each key is a customization point object known as a <dfn
+    export=true lt="query object">query object</dfn>. A <dfn
+    export=true>query</dfn> is an invocation of a query object with a queryable
+    object as its first argument and a (possibly empty) set of additional
+    arguments. <span class="wg21note">A query imposes syntactic and semantic
+    requirements on its invocations.</span>
 
-: operation state
-:: An object responsible for holding the state associated with an asynchronous
-    operation while it is running. That state includes the receiver and the
-    operation states of any nested operations. Operation states are the
-    result of connecting senders and receivers, but they are properly thought
-    of as part of the sender's implementation. Operation states need to be
-    explicitly started.
+6. A <dfn export=true>sender</dfn> encapsulates the description of an
+    asynchronous operation; it is also a factory for one or more asynchronous
+    operations. The act of <dfn export=true lt="connect">connecting</dfn> a
+    sender and a receiver results in an operation state. The asynchronous
+    operation or function that evaluates the connect operation that creates an
+    asynchronous operation is known as the operation's <dfn
+    export=true>caller</dfn>. <span class="wg21note">The caller of a child
+    operation is its parent.</span> A sender may be valid or invalid. <span
+    class="wg21note">A sender <dfn lt="send" export=true>sends</dfn> its results
+    by way of the asynchronous operation(s) it produces, and a receiver <dfn
+    lt="receive" export=true>receives</dfn> those results; hence, their
+    names.</span>
 
-: sender
-:: An object that encapsulates the description of asynchronous operation,
-    independent of where it will begin execution and what will happen on
-    completion.
+7. A sender has an associated queryable object known as its <dfn
+    export=true>attributes</dfn> that describe various characteristics of the
+    sender and of the asynchronous operation(s) it produces. A sender's
+    attributes queryable object is accessed by passing the sender to `get_env`.
+    A sender's attributes may contain the sender's completion scheduler(s). If
+    present, a <dfn export=true>completion scheduler</dfn> for a given
+    completion function denotes the scheduler corresponding to the execution
+    resource on which that completion function will execute, if invoked, for an
+    async operation obtained from that sender. A sender may have a different
+    completion scheduler for each completion function. <span class="wg21note">A
+    sender obtained from a scheduler is required to have that scheduler itself
+    as the sender's completion scheduler for value completions.</span>
 
-: scheduler
-:: A handle to an execution resource that presents a uniform, generic
-    interface for scheduling work onto that resource.
+7. A <dfn export=true>completion signature</dfn> is a function type that
+    describes a completion operation. An asychronous operation has a finite set
+    of possible completion signatures. For a completion operation of the form
+    <code><i>completion-function</i>(<i>receiver</i>, <i>results</i>...)</code>,
+    where <code><i>receiver</i></code> is a subexpression refering to a receiver
+    object and <code><i>results</i></code> is a (possibly empty) pack of
+    subexpressions representing the results of the asynchronous operation, the
+    completion signature is
+    <code><i>completion-tag</i>(<i>decltype((results))</i>...)</code>, where
+    <code><i>completion-tag</i></code> is the completion tag associated with
+    <code><i>completion-function</i></code>. Together, a sender type and an
+    environment type `E` uniquely determine the set of completion signatures of
+    the operation state that results from connecting the sender with a receiver
+    whose environment has type `E`. <span class="wg21note">The type of the
+    receiver does not effect an operation state's completion signatures, only
+    the type of the receiver's environment.</span>
 
-: connect
-:: The act of joining a description of an asynchronous operation -- a
-    sender -- with a consumer of that operation's results -- a receiver.
-    The result of connecting a sender to a receiver is an operation
-    state.
+8. A <dfn export=true>scheduler</dfn> is an abstraction of an execution resource
+    with a uniform, generic interface for scheduling work onto that resource. It
+    is a factory for senders whose asynchronous operations execute value
+    completions on a thread of execution belonging to the scheduler's associated
+    execution resource. Such senders are obtained by calling `schedule`, passing
+    the scheduler as the only argument. `schedule` is a customization point
+    object. A sender returned from `schedule` produces asynchronous operation(s)
+    that, on success, execute a value completion with an empty set of value
+    results. Multiple schedulers may refer to the same execution resource. A
+    scheduler may be valid or invalid. A scheduler becomes invalid when the
+    execution resource it refers to becomes invalid. Schedulers satisfy
+    `copyable` and `equality_comparable`. If two schedulers compare equal, they
+    refer to the same execution resource. A sender produced by a scheduler
+    becomes invalid when the execution resource to which the scheduler refers
+    becomes invalid.
 
-: complete
-:: An asynchronous operation <dfn export=true>completes</dfn> when one of
-    the receiver's completion functions has finished executing. Such a receiver
-    has been completed. A sender completes when the operation state returned
-    from `connect` completes.
+9. A <dfn export=true>sender algorithm</dfn> is a function that takes and/or
+    returns a sender. There are three categories of sender algorithms:
 
-: send
-:: When it completes, a sender *sends* its results to a receiver by
-    calling one of the receiver's completion-signal operations,
-    passing the sender's results as arguments.
+    * A <dfn export=true>sender factory</dfn> is a function that takes
+        non-senders as arguments and that returns a sender.
 
-: completion function
-:: One of `set_value`, `set_error`, or `set_stopped`.
+    * A <dfn export=true>sender adaptor</dfn> is a function that takes one or
+        more senders and a (possibly empty) set of additional arguments, and
+        that returns a sender.
 
-: completion tag
-:: One of `set_value_t`, `set_error_t`, or `set_stopped_t`.
-
-: completion signature
-:: A function type that has one of the following forms:
-    <pre>
-    set_value_t(ValueTypes...)
-    set_error_t(ErrorType)
-    set_stopped_t()</pre>
-
-: completion-signal operation
-:: A valid invocation of a completion function.
-
-: completion scheduler
-:: A scheduler obtainable from a sender's environment that, when present,
-    denotes the scheduler upon which the sender will invoke a completion
-    signal operation. Each completion function may have a different completion
-    scheduler for a particular sender.
-
-: sender algorithm
-:: A function that either takes or returns a sender.
-
-: sender factory
-:: A sender algorithm that takes non-senders as arguments and that returns
-    a sender.
-
-: sender adaptor
-:: A sender algorithm that takes one or more senders and a (possibly empty)
-    set of additional arguments, and that returns a sender.
-
-: sender consumer
-:: A sender algorithm that takes one or more senders and a (possibly empty)
-    set of additional arguments, and that returns a non-sender or `void`.
+    * A <dfn export=true>sender consumer</dfn> is a function that takes one or
+        more senders and a (possibly empty) set of additional arguments, and
+        whose return type is not the type of a sender.
 
 ### Async function protocol <b>[async.protocol]</b> ### {#spec-execution-async.protocol}
 
 The <dfn export=true>async function protocol</dfn> that asynchronous algorithms must
 adhere to.
 
-*  A scheduler may become invalid when the lifetime of the execution resource
-    to which it refers ends, or when the execution resource itself becomes
-    invalid.
+*  A scheduler may become invalid when the execution resource to which it refers
+    becomes invalid.
 
-* The validity of a sender returned by `schedule(sched)` does not depend on the 
-    lifetime of the scheduler `sched`. It may, however, become invalid when the
-    scheculer that produced it becomes invalid. 
+* A sender obtained from a scheduler, and any operation states obtained from
+    that sender, may become invalid when the execution resource to which the
+    scheduler refers becomes invalid.
 
-* An operation state obtained by calling `connect` on the result of
-    `scheduler(sched)` may become invalid when the scheduler `sched` becomes
-    invalid.
+* For a sender `s` and a receiver `r`, the validity of an operation state
+    returned by `connect(s, r)` does not depend on the lifetimes of either `s`
+    or `r`.
 
-* The validity of an operation state returned by `connect(snd, rcv)` does not
-    depend on the lifetime of `snd` or `rcv`.
+* An operation state shall not be moved or copied during the lifetime of its
+    associated asynchronous operation ([async.ops]). <span
+    class="wg21note">Operation states are not required to be movable.</span>
 
-* An operation state shall not be moved or copied once `start()` has begun
-    executing. <span class="wg21note">Operation states are not required to
-    be movable.</span>
-
-* Once `start()` has begun executing, an operation state shall remain valid
-    until a completion-signal operation has begun executing.
-
-* The destructor of an operation state shall be called synchronously, directly
-    or indirectly, from within the execution of the completion-signal operation,
-    or after the completion-signal operation has finished executing.
-
-* A completion-signal operation shall not be called before `start()` has begun
+* An operation state shall remain valid until a completion operation has begun
     executing.
 
-* The receiver to which a sender is connected shall not be copied or moved after
-    `start()` is called on the operation state.
+* After the lifetime of an async operation ends, its operation state and its
+    associated receiver may be invalid. <span class="wg21note">After invoking
+    a completion operation, it is not safe for either an operation state or
+    its receiver to access any of their data members.</span>
 
-* Once `start()` has been called on an operation state, exactly one of the
-    completion-signal operations shall begin executing on the receiver before
-    the receiver is destroyed. <span class="wg21note">Customarily, the receiver
-    releases resources in its completion-signal operations. This can involve
-    destroying the operation state, which often owns the receiver itself.</note>
+* An asynchronous operation shall not invoke a completion operation before its
+    start operation has begun executing.
+
+* The receiver to which a sender is connected shall not be copied or moved from
+    the time when the asynchronous operation has started until the start of the
+    invocation of one of the completion functions.
+
+* Once an asynchronous operation has started, exactly one of the completion
+    operations shall begin executing its associated receiver before the receiver
+    is destroyed. <span class="wg21note">Customarily, the receiver releases
+    resources in its completion operations. This can involve destroying the
+    operation state, which often owns the receiver itself.</note>
 
 * The queryable result of calling `get_env` on a sender or a receiver, and the
     result of calling a query on such a queryable object, shall remain valid
     while the sender or receiver is valid.
-
-* The receiver is assumed to be invalid after any expression that, directly or
-    indirectly, causes the destructor of the operation state to be executed.
 
 * Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
     sender such that `sender_in<S, env_of_t<R>>` is `true`. Let `Sigs...`
@@ -4321,7 +4403,7 @@ adhere to.
     is `true`. <span class="wg21note">In simpler terms: a sender is not
     permitted to lie in its completion signatures.</span>
 
-* Once one of the completion-signal operations has finished executing, the
+* Once one of the completion operations has finished executing, the
     async-function-protocol has been satisfied.
 
 ## Queries <b>[exec.queries]</b> ## {#spec-execution.queries}
@@ -4331,10 +4413,20 @@ adhere to.
     first argument a `queryable` object, and for each such invocation that is
     valid, produces a value of the corresponding property of the object.
 
-2. Unless otherwise specified, given a queryable object `e`, a query object
-    <code><i>Q</i></code>, and a pack of subexpressions `args`, the value
-    returned by the expression <code><i>Q</i>(e, args...)</code> is valid as
-    long as `e` is valid.
+2. Given a subexpression `e` that refers to a queryable object `q`, a query
+    object <code><i>F</i></code>, and a (possibly empty) pack of subexpressions
+    `args`, the expression <code><i>F</i>(e, args...)</code> is equal to
+    ([concepts.equality]) the expression <code><i>F</i>(c, args...)</code> where
+    `c` is a `const` lvalue reference to `q`.
+
+3. The type of a query expression may not be `void`.
+
+4. The expression <code><i>F</i>(e, args...)</code> is equality-preserving
+    ([concepts.equality]) and does not modify the function object or the
+    arguments.
+
+5. Unless otherwise specified, the value returned by the expression
+    <code><i>F</i>(e, args...)</code> is valid as long as `e` is valid.
 
 ### `queryable` concept <b>[exec.queryable]</b> ### {#spec-execution.queryable}
 
@@ -4344,9 +4436,9 @@ adhere to.
     </pre>
 
 1. Let `e` be an object of type `E`. The type `E` models `queryable` if for each callable
-    object <code><i>Q</i></code> and a pack of subexpressions `args`, if
-    <code>requires { <i>Q</i>(e, args...) }</code> is `true` then
-    <code><i>Q</i>(e, args...)</code> meets any semantic requirements imposed by `Q`.
+    object <code><i>F</i></code> and a pack of subexpressions `args`, if
+    <code>requires { <i>F</i>(e, args...) }</code> is `true` then
+    <code><i>F</i>(e, args...)</code> meets any semantic requirements imposed by `F`.
 
 ### `std::get_env` <b>[exec.get.env]</b> ### {#spec-execution.environment.get_env}
 
@@ -4491,13 +4583,13 @@ enum class forward_progress_guarantee {
             `scheduler`.
 
 3. If, for some sender `s` and customization point object `CPO`, `get_completion_scheduler<decltype(CPO)>(get_env(s))` is well-formed and results in a scheduler `sch`, and the sender `s` invokes `CPO(r, args...)`, for some receiver `r` that has been connected to
-    `s`, with additional arguments `args...`, on an execution agent that does not belong to the associated execution context of `sch`, the behavior is undefined.
+    `s`, with additional arguments `args...`, on an execution agent that does not belong to the associated execution resource of `sch`, the behavior is undefined.
 
 4. The expression `forwarding_query(get_completion_scheduler<CPO>)` has value `true`.
 
 ## Schedulers <b>[exec.sched] </b> ## {#spec-execution.schedulers}
 
-1. The `scheduler` concept defines the requirements of a type that allows for scheduling of work on its <i>associated execution context</i>.
+1. The `scheduler` concept defines the requirements of a type that allows for scheduling of work on its <i>associated execution resource</i>.
 
     <pre highlight=c++>
     template&lt;class S>
@@ -4518,7 +4610,7 @@ enum class forward_progress_guarantee {
 
 4. None of these member functions, nor a scheduler type's `schedule` function, shall introduce data races as a result of concurrent invocations of those functions from different threads.
 
-5. For any two (possibly const) values `s1` and `s2` of some scheduler type `S`, `s1 == s2` shall return `true` only if both `s1` and `s2` are handles to the same associated execution context.
+5. For any two (possibly const) values `s1` and `s2` of some scheduler type `S`, `s1 == s2` shall return `true` only if both `s1` and `s2` are handles to the same associated execution resource.
 
 6. For a given scheduler expression `s`, the expression `get_completion_scheduler<set_value_t>(std::get_env(schedule(s)))` shall compare equal to `s`.
 
@@ -4532,7 +4624,7 @@ enum class forward_progress_guarantee {
     values, an error, or it may be cancelled. A receiver has three principal
     operations corresponding to the three ways an asynchronous operation may
     complete: `set_value`, `set_error`, and `set_stopped`. These are
-    collectively known as a receiver’s completion-signal operations.
+    collectively known as a receiver’s completion operations.
 
 2. An <i>execution environment</i> is a queryable object ([exec.queryable]) that contains
     state associated with the completion of an asynchronous operation. Every receiver
@@ -5024,7 +5116,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::schedule` <b>[exec.schedule]</b> #### {#spec-execution.senders.schedule}
 
-1. `schedule` obtains a sender associated with a scheduler, which can be used to describe work to be started on that scheduler's associated execution context.
+1. `schedule` obtains a sender associated with a scheduler, which can be used to describe work to be started on that scheduler's associated execution resource.
 
 2. The name `schedule` denotes a customization point object. For some subexpression `s`, the expression `schedule(s)` is expression-equivalent to:
 
@@ -5090,7 +5182,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::transfer_just` <b>[exec.transfer.just]</b> #### {#spec-execution.senders.transfer_just}
 
-1. `transfer_just` creates a sender that propagates a set of values to a connected receiver on an execution agent belonging to the associated execution context of a specified scheduler.
+1. `transfer_just` creates a sender that propagates a set of values to a connected receiver on an execution agent belonging to the associated execution resource of a specified scheduler.
 
 2. The name `transfer_just` denotes a customization point object. For some subexpressions `s` and `vs...`, let `S` be `decltype((s))` and `Vs...` be `decltype((vs))`. If `S` does not satisfy `scheduler`, or any type `V` in `Vs` does not
     satisfy <code><i>movable-value</i></code>, `transfer_just(s, vs...)` is ill-formed. Otherwise, `transfer_just(s, vs...)` is expression-equivalent to:
@@ -5264,7 +5356,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::on` <b>[exec.on]</b> #### {#spec-execution.senders.adapt.on}
 
-1. `on` adapts a sender into a sender that will start the input sender on an execution agent belonging to a specific execution context.
+1. `on` adapts a sender into a sender that will start the input sender on an execution agent belonging to a specific execution resource.
 
 2. Let <code><i>replace-scheduler</i>(e, sch)</code> be an expression denoting an object `e'` such that `get_scheduler(e)` returns a copy of `sch`, and `tag_invoke(tag, e', args...)` is expression-equivalent to `tag(e, args...)`
     for all arguments `args...` and for all `tag` whose type satisfies <code><i>forwarding-query</i></code> and is not `get_scheduler_t`.
@@ -5272,7 +5364,7 @@ enum class forward_progress_guarantee {
 3. The name `on` denotes a customization point object. For some subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If `Sch` does not satisfy `scheduler`, or `S` does not satisfy `sender`,
     `on` is ill-formed. Otherwise, the expression `on(sch, s)` is expression-equivalent to:
 
-    1. `tag_invoke(on, sch, s)`, if that expression is valid. If the function selected above does not return a sender which starts `s` on an execution agent of the associated execution context of `sch` when
+    1. `tag_invoke(on, sch, s)`, if that expression is valid. If the function selected above does not return a sender which starts `s` on an execution agent of the associated execution resource of `sch` when
         started, the behavior of calling `on(sch, s)` is undefined.
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
@@ -5321,7 +5413,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
 
-1. `transfer` adapts a sender into a sender with a different associated `set_value` completion scheduler. [<i>Note</i>: it results in a transition between different execution contexts when executed. --<i>end note</i>]
+1. `transfer` adapts a sender into a sender with a different associated `set_value` completion scheduler. [<i>Note</i>: it results in a transition between different execution resources when executed. --<i>end note</i>]
 
 2. The name `transfer` denotes a customization point object. For some subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If `Sch` does not satisfy `scheduler`, or `S` does not satisfy
     `sender`, `transfer` is ill-formed. Otherwise, the expression `transfer(s, sch)` is expression-equivalent to:
@@ -5352,14 +5444,14 @@ enum class forward_progress_guarantee {
 
 #### `execution::schedule_from` <b>[exec.schedule.from]</b> #### {#spec-execution.senders.adaptors.schedule_from}
 
-1. `schedule_from` schedules work dependent on the completion of a sender onto a scheduler's associated execution context. [<i>Note</i>: `schedule_from` is not meant to be used in user code; it is used in the implementation of
+1. `schedule_from` schedules work dependent on the completion of a sender onto a scheduler's associated execution resource. [<i>Note</i>: `schedule_from` is not meant to be used in user code; it is used in the implementation of
     `transfer`. -<i>end note</i>]
 
 3. The name `schedule_from` denotes a customization point object. For some subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If `Sch` does not satisfy `scheduler`, or `S` does not satisfy
     `sender`, `schedule_from` is ill-formed. Otherwise, the expression `schedule_from(sch, s)` is expression-equivalent to:
 
     1. `tag_invoke(schedule_from, sch, s)`, if that expression is valid. If the function selected by `tag_invoke` does not return a sender which completes on an execution agent belonging to the associated
-        execution context of `sch` and sends signals equivalent to those sent by `s`, the behavior of calling `schedule_from(sch, s)` is undefined.
+        execution resource of `sch` and sends signals equivalent to those sent by `s`, the behavior of calling `schedule_from(sch, s)` is undefined.
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
 
@@ -5936,11 +6028,11 @@ enum class forward_progress_guarantee {
         described above, `s2` be a sender returned
         from `split(s)` or a copy of such, `r2` is the receiver
         to which `s2` is connected, and `args` is the pack of subexpressions
-        passed to `r`'s completion-signal operation <code><i>CSO</i></code>
+        passed to `r`'s completion operation <code><i>CSO</i></code>
         when `s` completes. `s2` shall invoke <code><i>CSO</i>(r2, args2...)</code>
         where `args2` is a pack of const lvalue references to objects decay-copied from
         `args`, or by calling <code>set_error(r2, e2)</code> for some subexpression
-        `e2`. The objects passed to `r2`'s completion-signal operation shall
+        `e2`. The objects passed to `r2`'s completion operation shall
         be valid until after the completion of the invocation of `r2`'s completion-
         signal operation.
 
@@ -6094,7 +6186,7 @@ enum class forward_progress_guarantee {
         sender that sends a concatenation of values sent by `s...` when they all
         complete with `set_value`, or does not send its completion-signals,
         other than ones resulting from a scheduling error, on an execution agent
-        belonging to the associated execution context of `sch`, the behavior of
+        belonging to the associated execution resource of `sch`, the behavior of
         calling `transfer_when_all(sch, s...)` is undefined.
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
@@ -6401,11 +6493,11 @@ enum class forward_progress_guarantee {
       described above, `s2` be a sender returned
       from `ensure_started(s)` or a copy of such, `r2` is the receiver
       to which `s2` is connected, and `args` is the pack of subexpressions
-      passed to `r`'s completion-signal operation <code><i>CSO</i></code>
+      passed to `r`'s completion operation <code><i>CSO</i></code>
       when `s` completes. `s2` shall invoke <code><i>CSO</i>(r2, args2...)</code> where
       `args2` is a pack of xvalue references to objects decay-copied from
       `args`, or by calling <code>set_error(r2, e2)</code> for some subexpression
-      `e2`. The objects passed to `r2`'s completion-signal operation shall
+      `e2`. The objects passed to `r2`'s completion operation shall
       be valid until after the completion of the invocation of `r2`'s completion-
       signal operation.
 
@@ -6537,7 +6629,7 @@ enum class forward_progress_guarantee {
     1. `tag_invoke(execute, sch, f)`, if that expression is valid. If
         the function selected by `tag_invoke` does not invoke the function `f`
         (or an object decay-copied from `f`) on an execution agent belonging to
-        the associated execution context of `sch`, or if it does not call
+        the associated execution resource of `sch`, or if it does not call
         `std::terminate` if an error occurs after control is returned to the
         caller, the behavior of calling `execute`
         is undefined.
@@ -6923,11 +7015,11 @@ enum class forward_progress_guarantee {
 
 ## Execution contexts <b>[exec.ctx]</b> ## {#spec-execution.contexts}
 
-1. This section specifies some execution contexts on which work can be scheduled.
+1. This section specifies some execution resources on which work can be scheduled.
 
 ### `run_loop` <b>[exec.run.loop]</b> ### {#spec-execution.contexts.run_loop}
 
-1. A `run_loop` is an execution context on which work can be scheduled. It maintains a simple, thread-safe first-in-first-out queue of work. Its `run()` member function removes elements from the queue and executes them in a loop on whatever thread of execution calls `run()`.
+1. A `run_loop` is an execution resource on which work can be scheduled. It maintains a simple, thread-safe first-in-first-out queue of work. Its `run()` member function removes elements from the queue and executes them in a loop on whatever thread of execution calls `run()`.
 
 2. A `run_loop` instance has an associated <i>count</i> that corresponds to the number of work items that are in its queue. Additionally, a `run_loop` has an associated <i>state</i> that can be one of <i>starting</i>, <i>running</i>, or <i>finishing</i>.
 
