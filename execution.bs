@@ -1700,7 +1700,7 @@ execution::scheduler auto completion_sch3 =
 // completion_sch3 is equivalent to gpu_sched
 </pre>
 
-## Execution context transitions are explicit ## {#design-transitions}
+## Execution resource transitions are explicit ## {#design-transitions}
 
 [[P0443R14]] does not contain any mechanisms for performing an execution resource transition. The only sender algorithm that can create a sender that will move execution to a *specific* execution resource is `execution::schedule`, which does not take an input sender.
 That means that there's no way to construct sender chains that traverse different execution resources. This is necessary to fulfill the promise of senders being able to replace two-way executors, which had this capability.
@@ -2836,7 +2836,7 @@ A [=receiver=] is a callback that supports more than one channel. In fact, it su
     to do so because the result is no longer needed.
 
 Once an async operation has been started exactly one of these functions must be invoked
-on a receiver before it is destroyed. These requirements are part of the [=async function protocol=].
+on a receiver before it is destroyed.
 
 While the receiver interface may look novel, it is in fact very similar to the
 interface of `std::promise`, which provides the first two signals as `set_value`
@@ -2964,7 +2964,7 @@ compilers are capable of removing the senders abstraction entirely, while still 
 The second way for this to occur is when a sender algorithm is specialized for a specific set of arguments. For instance, we expect that, for senders which are known to have been started already, [[#design-sender-adaptor-ensure_started]] will be an identity transformation,
 because the sender algorithm will be specialized for such senders. Similarly, an implementation could recognize two subsequent [[#design-sender-adaptor-bulk]]s of compatible shapes, and merge them together into a single submission of a GPU kernel.
 
-## Execution context transitions are two-step ## {#design-transition-details}
+## Execution resource transitions are two-step ## {#design-transition-details}
 
 Because `execution::transfer` takes a sender as its first argument, it is not actually directly customizable by the target scheduler. This is by design: the target scheduler may not know how to transition <i>from</i> a scheduler such as a CUDA scheduler;
 transitioning away from a GPU in an efficient manner requires making runtime calls that are specific to the GPU in question, and the same is usually true for other kinds of accelerators too (or for scheduler running on remote systems). To avoid this problem,
@@ -3165,7 +3165,7 @@ In subclause [conforming], after [lib.types.movedfrom], add the following new su
     associated entities*"", any template arguments do not contribute to the
     associated entities ([basic.lookup.argdep]) of a function call where a
     specialization of the class template is an associated entity. In such a case,
-    the class template may be implemented as an alias template referring to a
+    the class template can be implemented as an alias template referring to a
     templated class, or as a class template where the template arguments
     themselves are templated classes.
 
@@ -3183,7 +3183,7 @@ In subclause [conforming], after [lib.types.movedfrom], add the following new su
     int x = f(S&lt;N::A>{});  // error: N::f not a candidate
     </pre>
 
-    The template `S` specified above may be implemented as
+    The template `S` specified above can be implemented as
 
     <pre highlight="c++">
     template&lt;class T>
@@ -3295,11 +3295,11 @@ Insert this section as a new subclause, between Searchers <b>[func.search]</b> a
 1. Given a subexpression `E`, let <code><i>REIFY</i>(E)</code> be expression-equivalent to
     a glvalue with the same type and value as `E` as if by `identity()(E)`.
 
-2. The name `std::tag_invoke` denotes a customization point object [customization.point.object]. 
-    Given subexpressions `T` and `A...`, the expression `std::tag_invoke(T, A...)` is 
+2. The name `std::tag_invoke` denotes a customization point object [customization.point.object].
+    Given subexpressions `T` and `A...`, the expression `std::tag_invoke(T, A...)` is
     expression-equivalent [defns.expression-equivalent] to
     <code>tag_invoke(<i>REIFY</i>(T), <i>REIFY</i>(A)...)</code>
-    with overload resolution performed in a context in which unqualified lookup for `tag_invoke` 
+    with overload resolution performed in a context in which unqualified lookup for `tag_invoke`
     finds only the declaration
 
     ```c++
@@ -3441,7 +3441,7 @@ This is the subject of core issue [[cwg2517|2517]].
         on the shared stop state.
 
         1. If `t.stop_requested()` evaluates to `true` at the time `callback` is
-            registered then `callback` may be invoked on the thread executing
+            registered then `callback` can be invoked on the thread executing
             `cb`'s constructor.
 
         2. If `callback` is invoked then, if `t` and `u` reference the same shared stop
@@ -4198,142 +4198,167 @@ namespace std::execution {
     </pre>
 
     For function types `F1` and `F2` denoting `R1(Args1...)` and `R2(Args2...)`
-    respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if 
+    respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if
     `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
 
 ## Asynchronous operations <b>[async.ops]</b> ## {#spec-execution-async.ops}
 
 1. An <dfn export=true>execution resource</dfn> is a program entity capable of
-    executing the execution steps of one or more threads of execution.
-    [*Example 1*: The currently active thread, a system-provided thread pool, and
-    an API associated with an external hardware accelerator are all examples of
+    evaluating the expressions of one or more threads of execution. [*Example
+    1*: The currently active thread, a system-provided thread pool, and an API
+    associated with an external hardware accelerator are all examples of
     execution resources.] Execution resources execute asynchronous operations.
-    An execution resource may be valid or invalid.
+    An execution resource is either valid or invalid.
 
 2. An <dfn export=true>asynchronous operation</dfn> is a distinct unit of
     program execution that:
-    
-      - may be explicitly <dfn lt="start" export=true>started</dfn>;
 
-      - eventually <dfn lt="complete" export=true>completes</dfn> in one of
-          three ways: success, failure, or cancellation; an asychronous
-          operation may only complete once; a successful completion, also known
-          as a <dfn export=true>value completion</dfn> has an associated
-          (possibly empty) set of value results; a failure completion, also
-          known as an <dfn export=true>error completion</dfn> has an associated
-          error result; a cancellation completion, also known as a <dfn
-          export=true>stopped completion</dfn> has no associated result datum;
-      
-      - has associated state known as the <dfn export=true>operation
-          state</dfn>;
+      - can be explicitly <dfn lt="start" export=true>started</dfn>; an
+          asynchronous operation can only be started once;
 
-      - may suspend and resume on the same or a different execution resource; and
+      - eventually <dfn lt="complete" export=true>completes</dfn> in exactly one
+          of three modes: success, failure, or cancellation; the mode in which
+          an asynchronous operation completes is known as the operation's <dfn
+          export=true>disposition</dfn>; an asychronous operation can only
+          complete once; a successful completion, also known as a <dfn
+          export=true>value completion</dfn> has an associated (possibly empty)
+          set of value results; a failure completion, also known as an <dfn
+          export=true>error completion</dfn> has an associated error result; a
+          cancellation completion, also known as a <dfn export=true>stopped
+          completion</dfn> has no associated result datum; an asynchronous
+          operation's <dfn export=true>result</dfn> is its disposition and
+          its (possibly empty) set of result datums.
 
-      - may cause other asychronous operations called <dfn export=true>child
-          operations</dfn> to execute. A child operation is created by a <dfn
-          export=true>parent operation</dfn>.
+      - can suspend and resume on the same or a different execution resource;
+          and
 
-    <span class="wg21note">An asynchronous operation may in fact execute
-    synchronously; that is, it may complete during the execution of its start
+      - can create and start other asychronous operations called <dfn
+          export=true>child operations</dfn>. A child operation is an
+          asynchronous operation created by the parent operation and that the
+          parent's completion depends on. A <dfn export=true>parent
+          operation</dfn> is the asynchronous operation that created a
+          particular child operation. The <dfn export=true>caller</dfn> of an
+          asynchronous operation is the asynchronous operation or function that
+          created it.
+
+    <span class="wg21note">An asynchronous operation can in fact execute
+    synchronously; that is, it can complete during the execution of its start
     operation on the thread of execution that started it.</span>
 
-3. The <dfn lt="asychronous operation lifetime" export=true>lifetime of an
+3. An asynchronous operation has associated state known as its <dfn
+    export=true>operation state</dfn>.
+
+4. An asynchronous operation has an associated environment. An <dfn
+    export=true>environment</dfn> is a collection of key/value pairs
+    representing the execution-time properties of the operation's caller. An
+    environment is a queryable object. A <dfn export=true>queryable object</dfn>
+    is a read-only collection of key/value pairs where each key is a
+    customization point object known as a <dfn export=true lt="query
+    object">query object</dfn>. A <dfn export=true>query</dfn> is an invocation
+    of a query object with a queryable object as its first argument and a
+    (possibly empty) set of additional arguments. The result of a query
+    expression is valid as long as the queryable object is valid. <span
+    class="wg21note">A query imposes syntactic and semantic requirements on its
+    invocations.</span> An asynchronous operation's operation state owns the
+    operation's environment.
+
+5. An asynchronous operation has an associated receiver. A <dfn
+    export=true>receiver</dfn> is an aggregation of three handlers for the three
+    possible ways that the asynchronous operation can complete: a value
+    completion handler for a value completion, an error completion handler for
+    an error completion, and a stopped completion handler for a stopped
+    completion. A receiver has an associated environment. An asynchronous
+    operation's operation state owns the operation's receiver. The environment
+    of an asynchronous operation is equal to its receiver's environment.
+
+6. There are three customization point objects ([customization.point.object])
+    known as <dfn export=true>completion functions</dfn> that each accept an
+    asynchronous operation's receiver as the first argument and the result
+    datums of the asynchronous operation as additional arguments. The value
+    completion function invokes the receiver's value completion handler with the
+    value result datums; likewise for the error completion function and the
+    stopped completion function. Each completion function has an associated type
+    known as its <dfn export=true>completion tag</dfn>. A valid invocation of a
+    completion function is called a <dfn export=true>completion operation</dfn>.
+
+7. The <dfn lt="asychronous operation lifetime" export=true>lifetime of an
     asynchronous operation</dfn>, also known as the operation's <dfn
     export=true>async lifetime</dfn>, begins when its start operation begins
-    executing and ends when its completion operation (described below) finishes
-    executing. An asynchronous operation is <dfn lt="structured asynchronous
-    operation" export=true>structured</dfn> when the lifetimes of any child
-    operations nest within the lifetime of the parent operation.
+    executing and ends when its completion operation begins executing. If the
+    lifetime of an asynchronous operation's associated operation state ends
+    before the lifetime of the asynchronous operation, or if the operation state
+    is moved during the asynchronous operation's lifetime, the behavior is
+    undefined. After an asynchronous operation executes a completion operation,
+    its associated operation state is invalid. Accessing any part of an
+    invalid operation state is undefined behavior.
 
-4. A <dfn export=true>receiver</dfn> is an aggregation of three handlers for the
-    three possible ways that the asynchronous operation may complete. An
-    asynchronous operation has an associated receiver. The operation completes
-    by invoking the handler of the receiver corresponding to the manner in which
-    the operation completed -- `set_value` for a value completion, `set_error`
-    for an error completion, and `set_stopped` for a stopped completion --
-    passing any results as arguments. These three handlers are known as <dfn
-    export=true>completion functions</dfn>. A completion function is a
-    customization point object ([customization.point.object]) that accepts a
-    reference to a receiver as the first argument and the results of the
-    asynchronous operation as additional arguments. The unqualified types of the
-    completion functions -- `set_value_t`, `set_error_t`, and `set_stopped_t` --
-    are called <dfn export=true>completion tags</dfn>. A valid invocation of a
-    completion function is called a <dfn export=true>completion operation</dfn>.
-    
-5. A receiver is also the means by which the caller of an asynchronous operation
-    (described below) may pass arguments to it. A receiver has an associated
-    environment that is accessed by passing the receiver to the `get_env`
-    customization point object. An <dfn export=true>environment</dfn> is a
-    collection of key/value pairs representing the execution-time properties of
-    the caller. An environment is a queryable object. A <dfn
-    export=true>queryable</dfn> object is a read-only collection of key/value
-    pairs where each key is a customization point object known as a <dfn
-    export=true lt="query object">query object</dfn>. A <dfn
-    export=true>query</dfn> is an invocation of a query object with a queryable
-    object as its first argument and a (possibly empty) set of additional
-    arguments. <span class="wg21note">A query imposes syntactic and semantic
-    requirements on its invocations.</span>
+8. An asynchronous operation shall not execute a completion operation before its
+    start operation has begun executing. After its start operation has begun
+    executing, exactly one completion operation shall execute. The lifetime of an
+    asynchronous operation's operation state can end during the execution of the
+    completion operation, but the storage that the operation state occupied
+    shall not be reused or released before the completion operation has finished
+    executing.
 
-6. A <dfn export=true>sender</dfn> encapsulates the description of an
-    asynchronous operation; it is also a factory for one or more asynchronous
-    operations. The act of <dfn export=true lt="connect">connecting</dfn> a
-    sender and a receiver results in an operation state. The asynchronous
-    operation or function that evaluates the connect operation that creates an
-    asynchronous operation is known as the operation's <dfn
-    export=true>caller</dfn>. <span class="wg21note">The caller of a child
-    operation is its parent.</span> A sender may be valid or invalid. <span
-    class="wg21note">A sender <dfn lt="send" export=true>sends</dfn> its results
-    by way of the asynchronous operation(s) it produces, and a receiver <dfn
-    lt="receive" export=true>receives</dfn> those results; hence, their
-    names.</span>
+9. A <dfn export=true>sender</dfn> is a factory for one or more asynchronous
+    operations. <dfn export=true lt="connect">Connecting</dfn> a sender and a
+    receiver creates an asynchronous operation. The asynchronous operation's
+    associated receiver is equal to the receiver used to create it, and its
+    associated environment is equal to the environment associated with the
+    receiver used to create it. The lifetime of an asynchronous operation's
+    associated operation state does not depend on the lifetimes of either the
+    sender or the receiver from which it was created. A sender <dfn lt="send"
+    export=true>sends</dfn> its results by way of the asynchronous operation(s)
+    it produces, and a receiver <dfn lt="receive" export=true>receives</dfn>
+    those results. A sender is either valid or invalid.
 
-7. A sender has an associated queryable object known as its <dfn
+10. A <dfn export=true>scheduler</dfn> is an abstraction of an execution resource
+    with a uniform, generic interface for scheduling work onto that resource. It
+    is a factory for senders whose asynchronous operations execute value
+    completions on a thread of execution belonging to the scheduler's associated
+    execution resource. A <dfn export=true>schedule</dfn> expression obtains
+    such a sender from a scheduler. A <dfn export=true>schedule sender</dfn> is
+    the result of a schedule expression. A schedule sender produces asynchronous
+    operation(s) that, on success, execute a value completion with an empty set
+    of value results. Multiple schedulers can refer to the same execution
+    resource. A scheduler can be valid or invalid. A scheduler becomes invalid
+    when the execution resource to which it refers becomes invalid, as do any
+    schedule senders obtained from the scheduler, and any operation states
+    obtained from those senders.
+
+11. An asynchronous operation has one or more associated completion schedulers. A
+    <dfn export=true>completion scheduler</dfn> of an asynchronous operation is
+    a scheduler whose associated execution resource is used to execute a
+    completion operation for the asynchronous operation. A value completion
+    scheduler is a scheduler on which an asynchronous operation's value
+    completion operation can execute. Likewise for error completion schedulers
+    and stopped completion schedulers.
+
+12. A sender has an associated queryable object known as its <dfn
     export=true>attributes</dfn> that describe various characteristics of the
-    sender and of the asynchronous operation(s) it produces. A sender's
-    attributes queryable object is accessed by passing the sender to `get_env`.
-    A sender's attributes may contain the sender's completion scheduler(s). If
-    present, a <dfn export=true>completion scheduler</dfn> for a given
-    completion function denotes the scheduler corresponding to the execution
-    resource on which that completion function will execute, if invoked, for an
-    async operation obtained from that sender. A sender may have a different
-    completion scheduler for each completion function. <span class="wg21note">A
-    sender obtained from a scheduler is required to have that scheduler itself
-    as the sender's completion scheduler for value completions.</span>
+    sender and of the asynchronous operation(s) it produces. A sender can
+    expose the completion scheduler(s) of its asynchronous operations via
+    its attributes. If present, a value completion scheduler attribute
+    indicates that the sender's asynchronous operations only execute value
+    completion operations on that scheduler's associated execution resource.
+    Likewise for error and stopped completion scheduler attributes.
+    A schedule sender is required to have a value completion scheduler attribute
+    whose value is equal to the scheduler that produced the schedule sender.
 
-7. A <dfn export=true>completion signature</dfn> is a function type that
+13. A <dfn export=true>completion signature</dfn> is a function type that
     describes a completion operation. An asychronous operation has a finite set
-    of possible completion signatures. For a completion operation of the form
-    <code><i>completion-function</i>(<i>receiver</i>, <i>results</i>...)</code>,
-    where <code><i>receiver</i></code> is a subexpression refering to a receiver
-    object and <code><i>results</i></code> is a (possibly empty) pack of
-    subexpressions representing the results of the asynchronous operation, the
-    completion signature is
-    <code><i>completion-tag</i>(<i>decltype((results))</i>...)</code>, where
-    <code><i>completion-tag</i></code> is the completion tag associated with
-    <code><i>completion-function</i></code>. Together, a sender type and an
-    environment type `E` uniquely determine the set of completion signatures of
-    the operation state that results from connecting the sender with a receiver
+    of possible completion signatures. The completion signature's return type is
+    the completion tag associated with the completion function that executes the
+    completion operation. The completion signature's argument types are the
+    types and value categories of the asynchronous operation's result datums,
+    determined as if by `decltype`. Together, a sender type and an environment
+    type `E` uniquely determine the set of completion signatures of the
+    operation state that results from connecting the sender with a receiver
     whose environment has type `E`. <span class="wg21note">The type of the
     receiver does not effect an operation state's completion signatures, only
     the type of the receiver's environment.</span>
 
-8. A <dfn export=true>scheduler</dfn> is an abstraction of an execution resource
-    with a uniform, generic interface for scheduling work onto that resource. It
-    is a factory for senders whose asynchronous operations execute value
-    completions on a thread of execution belonging to the scheduler's associated
-    execution resource. Such senders are obtained by calling `schedule`, passing
-    the scheduler as the only argument. `schedule` is a customization point
-    object. A sender returned from `schedule` produces asynchronous operation(s)
-    that, on success, execute a value completion with an empty set of value
-    results. Multiple schedulers may refer to the same execution resource. A
-    scheduler may be valid or invalid. A scheduler becomes invalid when the
-    execution resource it refers to becomes invalid. Schedulers satisfy
-    `copyable` and `equality_comparable`. If two schedulers compare equal, they
-    refer to the same execution resource. A sender produced by a scheduler
-    becomes invalid when the execution resource to which the scheduler refers
-    becomes invalid.
-
-9. A <dfn export=true>sender algorithm</dfn> is a function that takes and/or
+14. A <dfn export=true>sender algorithm</dfn> is a function that takes and/or
     returns a sender. There are three categories of sender algorithms:
 
     * A <dfn export=true>sender factory</dfn> is a function that takes
@@ -4346,65 +4371,6 @@ namespace std::execution {
     * A <dfn export=true>sender consumer</dfn> is a function that takes one or
         more senders and a (possibly empty) set of additional arguments, and
         whose return type is not the type of a sender.
-
-### Async function protocol <b>[async.protocol]</b> ### {#spec-execution-async.protocol}
-
-The <dfn export=true>async function protocol</dfn> that asynchronous algorithms must
-adhere to.
-
-*  A scheduler may become invalid when the execution resource to which it refers
-    becomes invalid.
-
-* A sender obtained from a scheduler, and any operation states obtained from
-    that sender, may become invalid when the execution resource to which the
-    scheduler refers becomes invalid.
-
-* For a sender `s` and a receiver `r`, the validity of an operation state
-    returned by `connect(s, r)` does not depend on the lifetimes of either `s`
-    or `r`.
-
-* An operation state shall not be moved or copied during the lifetime of its
-    associated asynchronous operation ([async.ops]). <span
-    class="wg21note">Operation states are not required to be movable.</span>
-
-* An operation state shall remain valid until a completion operation has begun
-    executing.
-
-* After the lifetime of an async operation ends, its operation state and its
-    associated receiver may be invalid. <span class="wg21note">After invoking
-    a completion operation, it is not safe for either an operation state or
-    its receiver to access any of their data members.</span>
-
-* An asynchronous operation shall not invoke a completion operation before its
-    start operation has begun executing.
-
-* The receiver to which a sender is connected shall not be copied or moved from
-    the time when the asynchronous operation has started until the start of the
-    invocation of one of the completion functions.
-
-* Once an asynchronous operation has started, exactly one of the completion
-    operations shall begin executing its associated receiver before the receiver
-    is destroyed. <span class="wg21note">Customarily, the receiver releases
-    resources in its completion operations. This can involve destroying the
-    operation state, which often owns the receiver itself.</note>
-
-* The queryable result of calling `get_env` on a sender or a receiver, and the
-    result of calling a query on such a queryable object, shall remain valid
-    while the sender or receiver is valid.
-
-* Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
-    sender such that `sender_in<S, env_of_t<R>>` is `true`. Let `Sigs...`
-    be the template arguments of the `completion_signatures` specialization
-    named by `completion_signatures_of_t<S, env_of_t<R>>`. Let
-    <code><i>CSO</i></code> be a completion function. If sender `S`
-    potentially evaluates ([basic.def.odr]) <code><i>CSO</i>(r, args...)</code> then there
-    shall be a signature `Sig` in `Sigs...` such that
-    <code><i>MATCHING-SIG</i>(tag_t&lt;<i>CSO</i>>(decltype(args)...), Sig)</code>
-    is `true`. <span class="wg21note">In simpler terms: a sender is not
-    permitted to lie in its completion signatures.</span>
-
-* Once one of the completion operations has finished executing, the
-    async-function-protocol has been satisfied.
 
 ## Queries <b>[exec.queries]</b> ## {#spec-execution.queries}
 
@@ -4419,7 +4385,7 @@ adhere to.
     ([concepts.equality]) the expression <code><i>F</i>(c, args...)</code> where
     `c` is a `const` lvalue reference to `q`.
 
-3. The type of a query expression may not be `void`.
+3. The type of a query expression can not be `void`.
 
 4. The expression <code><i>F</i>(e, args...)</code> is equality-preserving
     ([concepts.equality]) and does not modify the function object or the
@@ -4516,7 +4482,7 @@ adhere to.
 
 ### `execution::get_delegatee_scheduler` <b>[exec.get.delegatee.scheduler]</b> ### {#spec-execution.get_delegatee_scheduler}
 
-1. `get_delegatee_scheduler` asks an object for a scheduler that may be used to delegate work to for the purpose of forward progress delegation.
+1. `get_delegatee_scheduler` asks an object for a scheduler that can be used to delegate work to for the purpose of forward progress delegation.
 
 2. The name `get_delegatee_scheduler` denotes a query object. For some
     subexpression `r`, `get_delegatee_scheduler(r)` is expression-equivalent to
@@ -4610,19 +4576,22 @@ enum class forward_progress_guarantee {
 
 4. None of these member functions, nor a scheduler type's `schedule` function, shall introduce data races as a result of concurrent invocations of those functions from different threads.
 
-5. For any two (possibly const) values `s1` and `s2` of some scheduler type `S`, `s1 == s2` shall return `true` only if both `s1` and `s2` are handles to the same associated execution resource.
+5. For any two (possibly `const`) values `s1` and `s2` of some scheduler type `S`, `s1 == s2` shall return `true` only if both `s1` and `s2` are handles to the same associated execution resource.
 
 6. For a given scheduler expression `s`, the expression `get_completion_scheduler<set_value_t>(std::get_env(schedule(s)))` shall compare equal to `s`.
 
-7. A scheduler type's destructor shall not block pending completion of any receivers connected to the sender objects returned from `schedule`. <span class="wg21note">The ability to wait for completion of submitted function objects may be provided by the associated execution
-    context of the scheduler.</span>
+7. A scheduler type's destructor shall not block pending completion of any
+    receivers connected to the sender objects returned from `schedule`. <span
+    class="wg21note">The ability to wait for completion of submitted function
+    objects can be provided by the associated execution resource of the
+    scheduler.</span>
 
 ## Receivers <b>[exec.recv]</b> ## {#spec-execution.receivers}
 
 1. A <i>receiver</i> represents the continuation of an asynchronous operation.
-    An asynchronous operation may complete with a (possibly empty) set of
-    values, an error, or it may be cancelled. A receiver has three principal
-    operations corresponding to the three ways an asynchronous operation may
+    An asynchronous operation can complete with a (possibly empty) set of
+    values, an error, or it can be cancelled. A receiver has three principal
+    operations corresponding to the three ways an asynchronous operation can
     complete: `set_value`, `set_error`, and `set_stopped`. These are
     collectively known as a receiver’s completion operations.
 
@@ -4672,7 +4641,7 @@ enum class forward_progress_guarantee {
         };
     </pre>
 
-3. <i>Remarks:</i> Pursuant to [namespace.std], users may specialize `enable_receiver` to
+3. <i>Remarks:</i> Pursuant to [namespace.std], users can specialize `enable_receiver` to
     `true` for cv-unqualified program-defined types that model `receiver`, and `false`
     for types that do not. Such specializations shall be usable in constant
     expressions ([expr.const]) and have type `const bool`.
@@ -4808,7 +4777,7 @@ enum class forward_progress_guarantee {
     <code><i>valid-completion-signatures</i></code> if it names a specialization
     of the `completion_signatures` class template.
 
-3. <i>Remarks:</i> Pursuant to [namespace.std], users may specialize `enable_sender` to
+3. <i>Remarks:</i> Pursuant to [namespace.std], users can specialize `enable_sender` to
     `true` for cv-unqualified program-defined types that model `sender`, and `false`
     for types that do not. Such specializations shall be usable in constant
     expressions ([expr.const]) and have type `const bool`.
@@ -4909,7 +4878,7 @@ enum class forward_progress_guarantee {
 
     <code><i>await-suspend-result</i>&lt;T></code> is `true` if and only if one
       of the following is `true`:
-    
+
         - `T` is `void`.
         - `T` is `bool`.
         - `T` is a specialization of `coroutine_handle`.
@@ -4951,7 +4920,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::completion_signatures_of_t` <b>[exec.complsigs]</b> #### {#spec-exec.complsigs}
 
-1. The alias template `completion_signatures_of_t` obtains from a sender the list of completion signatures it may complete with.
+1. The alias template `completion_signatures_of_t` obtains from a sender the list of completion signatures it can complete with.
 
 2. For types `S` and `E`, the type `completion_signatures_of_t<S, E>` is an
     alias for `decltype(get_completion_signatures(declval<S>(), declval<E>()))`
@@ -5016,7 +4985,7 @@ enum class forward_progress_guarantee {
         </pre>
 
 5. For function types `F1` and `F2` denoting `R1(Args1...)` and `R2(Args2...)`
-    respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if 
+    respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if
     `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
 
 6. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
@@ -5331,7 +5300,7 @@ enum class forward_progress_guarantee {
 2. An object `t` of type `T` is a pipeable sender adaptor closure object if `T` models `derived_from<sender_adaptor_closure<T>>`, `T` has no other base
     classes of type `sender_adaptor_closure<U>` for any other type `U`, and `T` does not model `sender`.
 
-3. The template parameter `D` for `sender_adaptor_closure` may be an incomplete type. Before any expression of type <code><i>cv</i> D</code> appears as
+3. The template parameter `D` for `sender_adaptor_closure` can be an incomplete type. Before any expression of type <code><i>cv</i> D</code> appears as
     an operand to the `|` operator, `D` shall be complete and model `derived_from<sender_adaptor_closure<D>>`. The behavior of an expression involving an
     object of type <code><i>cv</i> D</code> as an operand to the `|` operator is undefined if overload resolution selects a program-defined `operator|`
     function.
@@ -5897,7 +5866,7 @@ enum class forward_progress_guarantee {
             also reserves space for storing:
 
             * the operation state that results from connecting `s` with `r` described below, and
-            * the sets of values and errors with which `s` may complete, with
+            * the sets of values and errors with which `s` can complete, with
                 the addition of `exception_ptr`.
             * the result of decay-copying `get_env(s)`.
 
@@ -6028,18 +5997,18 @@ enum class forward_progress_guarantee {
         described above, `s2` be a sender returned
         from `split(s)` or a copy of such, `r2` is the receiver
         to which `s2` is connected, and `args` is the pack of subexpressions
-        passed to `r`'s completion operation <code><i>CSO</i></code>
+        passed to `r`'s completion function <code><i>CSO</i></code>
         when `s` completes. `s2` shall invoke <code><i>CSO</i>(r2, args2...)</code>
         where `args2` is a pack of const lvalue references to objects decay-copied from
         `args`, or by calling <code>set_error(r2, e2)</code> for some subexpression
         `e2`. The objects passed to `r2`'s completion operation shall
-        be valid until after the completion of the invocation of `r2`'s completion-
-        signal operation.
+        be valid until after the completion of the invocation of `r2`'s completion
+        operation.
 
 #### `execution::when_all` <b>[exec.when.all]</b> #### {#spec-execution.senders.adaptor.when_all}
 
 1. `when_all` joins multiple sender chains and create a sender whose execution is dependent on all of the input senders that only send a single set of values. `when_all_with_variant`
-    joins multiple sender chains and create a sender whose execution is dependent on all of the input senders, each of which may have one or more sets of sent values.
+    joins multiple sender chains and create a sender whose execution is dependent on all of the input senders, each of which can have one or more sets of sent values.
 
 2. The name `when_all` denotes a customization point object. For some subexpressions <code>s<i><sub>i</sub></i>...</code>, let <code>S<i><sub>i</sub></i>...</code> be <code>decltype((s<i><sub>i</sub></i>))...</code>. The expression <code>when_all(s<i><sub>i</sub></i>...)</code> is ill-formed if any of the following is true:
 
@@ -6174,7 +6143,7 @@ enum class forward_progress_guarantee {
     complete on the specified scheduler.
     `transfer_when_all_with_variant` joins multiple sender
     chains and create a sender whose execution is dependent on all of the input
-    senders, which may have one or more sets of sent values. [<i>Note:</i> this
+    senders, which can have one or more sets of sent values. [<i>Note:</i> this
     can allow for better customization of the adaptors. --<i>end note</i>]
 
 2. The name `transfer_when_all` denotes a customization point object. For some subexpressions `sch` and `s...`, let `Sch` be `decltype(sch)` and `S` be `decltype((s))`. If `Sch` does not satisfy `scheduler`, or any type
@@ -6352,7 +6321,7 @@ enum class forward_progress_guarantee {
             and that also reserves space for storing:
 
             * the operation state that results from connecting `s` with `r` described below, and
-            * the sets of values and errors with which `s` may complete, with
+            * the sets of values and errors with which `s` can complete, with
                 the addition of `exception_ptr`.
             * the result of decay-copying `get_env(s)`.
 
@@ -6493,13 +6462,13 @@ enum class forward_progress_guarantee {
       described above, `s2` be a sender returned
       from `ensure_started(s)` or a copy of such, `r2` is the receiver
       to which `s2` is connected, and `args` is the pack of subexpressions
-      passed to `r`'s completion operation <code><i>CSO</i></code>
+      passed to `r`'s completion function <code><i>CSO</i></code>
       when `s` completes. `s2` shall invoke <code><i>CSO</i>(r2, args2...)</code> where
       `args2` is a pack of xvalue references to objects decay-copied from
       `args`, or by calling <code>set_error(r2, e2)</code> for some subexpression
       `e2`. The objects passed to `r2`'s completion operation shall
-      be valid until after the completion of the invocation of `r2`'s completion-
-      signal operation.
+      be valid until after the completion of the invocation of `r2`'s completion
+      operation.
 
 ### Sender consumers <b>[exec.consumers]</b> ### {#spec-execution.senders.consumers}
 
@@ -6817,7 +6786,7 @@ enum class forward_progress_guarantee {
 ### `execution::completion_signatures` <b>[exec.utils.cmplsigs]</b> ### {#spec-execution.snd_rec_utils.completion_sigs}
 
 1. `completion_signatures` describes the completion-signals of a receiver that
-    a sender may invoke. Its template argument list is a list of function types corresponding
+    a sender can invoke. Its template argument list is a list of function types corresponding
     to the signatures of the receiver's completion-signals.
 
 2. [<i>Example:</i>
