@@ -3752,12 +3752,16 @@ template&lt;class C>
 
 # Execution control library <b>[exec]</b> # {#spec-execution}
 
-1. This Clause describes components supporting execution of function objects [function.objects].
+## General <b>[exec.general]</b> ## {#spec-execution.general}
 
-2. The following subclauses describe the requirements, concepts, and components for execution control primitives as summarized in Table 1.
+1. This Clause describes components supporting execution of function objects
+    [function.objects].
+
+2. The following subclauses describe the requirements, concepts, and components
+    for execution control primitives as summarized in Table 1.
 
 <table>
-<caption>Table 1: Execution control library summary <b>[tab:execution.summary]</b></caption>
+<caption>Table <i>N</i>: Execution control library summary <b>[tab:execution.summary]</b></caption>
 <th><td>Subclause</td><td>Header</td></th>
 <tr style="border-bottom-style: hidden;"><td><a href="#spec-execution.schedulers">[exec.sched]</a></td><td>Schedulers</td><td>`<execution>`</td></tr>
 <tr style="border-bottom-style: hidden;"><td><a href="#spec-execution.receivers">[exec.recv]</a></td><td>Receivers</td><td></td></tr>
@@ -3766,10 +3770,14 @@ template&lt;class C>
 <tr><td><a href="#spec-execution.execute">[exec.execute]</a></td><td>One-way execution</td><td></td></tr>
 </table>
 
-3. [<i>Note:</i> A large number of execution control primitives are customization point objects. For an object one might define multiple types of customization point objects, for which different rules apply. Table 2 shows the types of customization point objects used in the execution control library:
+3. [<i>Note:</i> A large number of execution control primitives are
+    customization point objects. For an object one might define multiple types of
+    customization point objects, for which different rules apply. Table 2 shows
+    the types of customization point objects used in the execution control
+    library:
 
 <table>
-<caption>Table 2: Types of customization point objects in the execution control library <b>[tab:execution.cpos]</b></caption>
+<caption>Table <i>N+1</i>: Types of customization point objects in the execution control library <b>[tab:execution.cpos]</b></caption>
 <tr>
     <th>Customization point object type</th>
     <th>Purpose</th>
@@ -3804,7 +3812,7 @@ template&lt;class C>
             <li>general queries (`get_allocator`, `get_stop_token`, ...)</li>
             <li>environment queries (`get_scheduler`, `get_delegatee_scheduler`, ...)</li>
             <li>scheduler queries (`get_forward_progress_guarantee`, `execute_may_block_caller`, ...)</li>
-            <li>sender queries (`get_completion_scheduler`)</li>
+            <li>sender attribute queries (`get_completion_scheduler`)</li>
         </ul>
     </td>
 </tr>
@@ -3812,11 +3820,250 @@ template&lt;class C>
 
 -- <i>end note</i>]
 
+4. This clause makes use of the following exposition-only entities:
+
+    1. <pre highlight=c++>
+        template &lt;class Fn, class... Args>
+            requires <i>callable</i>&lt;Fn, Args...>
+          constexpr auto <i>mandate-nothrow-call</i>(Fn&& fn, Args&&... args) noexcept
+            -> <i>call-result-t</i>&lt;Fn, Args...> {
+            return std::forward<Fn>(fn)(std::forward<Args>(args)...);
+          }
+        </pre>
+
+        * <i>Mandates:</i> <code><i>nothrow-callable</i>&lt;Fn, Args...></code> is `true`.
+
+    2. <pre highlight=c++>
+        template &lt;class T>
+          concept <i>movable-value</i> =
+            move_constructible&lt;decay_t&lt;T>> &&
+            constructible_from&lt;decay_t&lt;T>, T>;
+        </pre>
+
+    3. For function types `F1` and `F2` denoting `R1(Args1...)` and `R2(Args2...)`
+        respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if
+        `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
+
+## Queries and queryables <b>[exec.queryable]</b> ## {#spec-execution.queryable}
+
+### General <b>[exec.queryable.general]</b> ### {#spec-execution.queryable.general}
+
+1. A <dfn export=true>queryable object</dfn> is a read-only collection of
+    key/value pairs where each key is a customization point object known as a
+    <dfn export=true lt="query object">query object</dfn>. A <dfn
+    export=true>query</dfn> is an invocation of a query object with a queryable
+    object as its first argument and a (possibly empty) set of additional
+    arguments. The result of a query expression is valid as long as the
+    queryable object is valid. <span class="wg21note">A query imposes syntactic
+    and semantic requirements on its invocations.</span>
+
+2. Given a subexpression `e` that refers to a queryable object `q`, a query
+    object <code><i>F</i></code>, and a (possibly empty) pack of subexpressions
+    `args`, the expression <code><i>F</i>(e, args...)</code> is equal to
+    ([concepts.equality]) the expression <code><i>F</i>(c, args...)</code> where
+    `c` is a `const` lvalue reference to `q`.
+
+3. The type of a query expression can not be `void`.
+
+4. The expression <code><i>F</i>(e, args...)</code> is equality-preserving
+    ([concepts.equality]) and does not modify the function object or the
+    arguments.
+
+5. Unless otherwise specified, the value returned by the expression
+    <code><i>F</i>(e, args...)</code> is valid as long as `e` is valid.
+
+### `queryable` concept <b>[exec.queryable.concept]</b> ### {#spec-execution.queryable.concept}
+
+    <pre highlight="c++">
+    template &lt;class T>
+      concept queryable = destructible&lt;T>;
+    </pre>
+
+1. The `queryable` concept specifies the constraints on the types of queryable
+    objects.
+
+2. Let `e` be an object of type `E`. The type `E` models `queryable` if for each
+    callable object <code><i>F</i></code> and a pack of subexpressions `args`,
+    if <code>requires { <i>F</i>(e, args...) }</code> is `true` then
+    <code><i>F</i>(e, args...)</code> meets any semantic requirements imposed by
+    `F`.
+
+## Asynchronous operations <b>[async.ops]</b> ## {#spec-execution-async.ops}
+
+1. An <dfn export=true>execution resource</dfn> is a program entity that manages
+    a (possibly dynamic) set of execution agents
+    ([thread.req.lockable.general]), which it uses to execute parallel work on
+    behalf of callers. [*Example 1*: The currently active thread, a
+    system-provided thread pool, and an API associated with an external hardware
+    accelerator are all examples of execution resources. -- *end example*]
+    Execution resources execute asynchronous operations. An execution resource
+    is either valid or invalid.
+
+2. An <dfn export=true>asynchronous operation</dfn> is a distinct unit of
+    program execution that:
+
+      - can be explicitly <dfn lt="start" export=true>started</dfn>; an
+          asynchronous operation can be started once at most;
+
+      - if started, eventually <dfn lt="complete" export=true>completes</dfn>
+          with a (possibly empty) set of result datums, and in exactly one of
+          three modes: success, failure, or cancellation, known as the
+          operation's <dfn export=true>disposition</dfn>; an asychronous
+          operation can only complete once; a successful completion, also known
+          as a <dfn export=true>value completion</dfn>, can have an arbitrary
+          number of result datums; a failure completion, also known as an <dfn
+          export=true>error completion</dfn>, has a single result datum; a
+          cancellation completion, also known as a <dfn export=true>stopped
+          completion</dfn>, has no result datum; an asynchronous operation's
+          <dfn export=true>async result</dfn> is its disposition and its
+          (possibly empty) set of result datums.
+
+      - can suspend and resume on the same or a different execution resource;
+          and
+
+      - can create and start other asychronous operations called <dfn
+          export=true>child operations</dfn>. A child operation is an
+          asynchronous operation created by the parent operation and that the
+          parent's completion depends on. A <dfn export=true>parent
+          operation</dfn> is the asynchronous operation that created a
+          particular child operation. The <dfn export=true>caller</dfn> of an
+          asynchronous operation is the asynchronous operation or function that
+          created it.
+
+    <span class="wg21note">An asynchronous operation can in fact execute
+    synchronously; that is, it can complete during the execution of its start
+    operation on the thread of execution that started it.</span>
+
+3. An asynchronous operation has associated state known as its <dfn
+    export=true>operation state</dfn>.
+
+    <!-- Mutating any part of an asynchronous
+    operation's operation state is undefined behavior unless performed by the
+    asynchronous operation or a child operation thereof. -->
+
+4. An asynchronous operation has an associated environment. An <dfn
+    export=true>environment</dfn> is a queryable object ([exec.queryable])
+    representing the execution-time properties of the operation's caller. An
+    asynchronous operation's operation state owns the operation's environment.
+
+5. An asynchronous operation has an associated receiver. A <dfn
+    export=true>receiver</dfn> is an aggregation of three handlers for the three
+    asynchronous completion dispositions: a value completion handler for a value
+    completion, an error completion handler for an error completion, and a
+    stopped completion handler for a stopped completion. A receiver has an
+    associated environment. An asynchronous operation's operation state owns the
+    operation's receiver. The environment of an asynchronous operation is equal
+    to its receiver's environment.
+
+6. For each completion disposition, there is a <dfn export=true>completion
+    function</dfn>. A completion function is a customization point object
+    ([customization.point.object]) that accepts an asynchronous operation's
+    receiver as the first argument and the result datums of the asynchronous
+    operation as additional arguments. The value completion function invokes the
+    receiver's value completion handler with the value result datums; likewise
+    for the error completion function and the stopped completion function. A
+    completion function has an associated type known as its <dfn
+    export=true>completion tag</dfn> that names the unqualified type of the
+    completion function. A valid invocation of a completion function is called a
+    <dfn export=true>completion operation</dfn>.
+
+7. The <dfn lt="asychronous operation lifetime" export=true>lifetime of an
+    asynchronous operation</dfn>, also known as the operation's <dfn
+    export=true>async lifetime</dfn>, begins when its start operation begins
+    executing and ends when its completion operation begins executing. If the
+    lifetime of an asynchronous operation's associated operation state ends
+    before the lifetime of the asynchronous operation, the behavior is
+    undefined. After an asynchronous operation executes a completion operation,
+    its associated operation state is invalid. Accessing any part of an invalid
+    operation state is undefined behavior.
+
+8. An asynchronous operation shall not execute a completion operation before its
+    start operation has begun executing. After its start operation has begun
+    executing, exactly one completion operation shall execute. The lifetime of an
+    asynchronous operation's operation state can end during the execution of the
+    completion operation.
+
+9. A <dfn export=true>sender</dfn> is a factory for one or more asynchronous
+    operations. <dfn export=true lt="connect">Connecting</dfn> a sender and a
+    receiver creates an asynchronous operation. The asynchronous operation's
+    associated receiver is equal to the receiver used to create it, and its
+    associated environment is equal to the environment associated with the
+    receiver used to create it. The lifetime of an asynchronous operation's
+    associated operation state does not depend on the lifetimes of either the
+    sender or the receiver from which it was created. A sender <dfn lt="send"
+    export=true>sends</dfn> its results by way of the asynchronous operation(s)
+    it produces, and a receiver <dfn lt="receive" export=true>receives</dfn>
+    those results. A sender is either valid or invalid; it becomes invalid
+    when its parent sender (see below) becomes invalid.
+
+10. A <dfn export=true>scheduler</dfn> is an abstraction of an execution resource
+    with a uniform, generic interface for scheduling work onto that resource. It
+    is a factory for senders whose asynchronous operations execute value
+    completions on an execution agent belonging to the scheduler's associated
+    execution resource. A <dfn export=true>schedule-expression</dfn> obtains
+    such a sender from a scheduler. A <dfn export=true>schedule sender</dfn> is
+    the result of a schedule expression. A schedule sender produces asynchronous
+    operation(s) that, on success, execute a value completion with an empty set
+    of result datums. Multiple schedulers can refer to the same execution
+    resource. A scheduler can be valid or invalid. A scheduler becomes invalid
+    when the execution resource to which it refers becomes invalid, as do any
+    schedule senders obtained from the scheduler, and any operation states
+    obtained from those senders.
+
+11. An asynchronous operation has one or more associated completion schedulers
+    for each of its possible dispositions. A <dfn export=true>completion
+    scheduler</dfn> is a scheduler whose associated execution resource is used
+    to execute a completion operation for an asynchronous operation. A value
+    completion scheduler is a scheduler on which an asynchronous operation's
+    value completion operation can execute. Likewise for error completion
+    schedulers and stopped completion schedulers.
+
+12. A sender has an associated queryable object ([exec.queryable]) known as its
+    <dfn export=true>attributes</dfn> that describes various characteristics of
+    the sender and of the asynchronous operation(s) it produces. For each
+    disposition, there is a query object for reading the associated completion
+    scheduler from a sender's attributes; *i.e.*, a value completion scheduler
+    query object for reading a sender's value completion scheduler, *etc*. If a
+    completion scheduler query is well-formed, the returned completion scheduler
+    is unique for that disposition for any asynchronous operation the sender
+    creates. A schedule sender is required to have a value completion scheduler
+    attribute whose value is equal to the scheduler that produced the schedule
+    sender.
+
+13. A <dfn export=true>completion signature</dfn> is a function type that
+    describes a completion operation. An asychronous operation has a finite set
+    of possible completion signatures. The completion signature's return type is
+    the completion tag associated with the completion function that executes the
+    completion operation. The completion signature's argument types are the
+    types and value categories of the asynchronous operation's result datums,
+    determined as if by `decltype`. Together, a sender type and an environment
+    type `E` uniquely determine the set of completion signatures of an
+    operation state that results from connecting the sender with a receiver
+    whose environment has type `E`. <span class="wg21note">The type of the
+    receiver does not effect an asychronous operation's completion signatures,
+    only the type of the receiver's environment.</span>
+
+14. A <dfn export=true>sender algorithm</dfn> is a function that takes and/or
+    returns a sender. There are three categories of sender algorithms:
+
+    * A <dfn export=true>sender factory</dfn> is a function that takes
+        non-senders as arguments and that returns a sender.
+
+    * A <dfn export=true>sender adaptor</dfn> is a function that takes one or
+        more senders and a (possibly empty) set of additional arguments, and
+        that returns a sender. The returned sender is the <dfn
+        export=true>parent sender</dfn> and the sender arguments to the sender
+        adaptor are its <dfn export=true lt="child sender">child senders</dfn>.
+
+    * A <dfn export=true>sender consumer</dfn> is a function that takes one or
+        more senders and a (possibly empty) set of additional arguments, and
+        whose return type is not the type of a sender.
+
 ## Header `<execution>` synopsis <b>[exec.syn]</b> ## {#spec-execution.syn}
 
 <pre highlight=c++>
 namespace std {
-  // [exec.helpers], helper concepts
+  // [exec.general], helper concepts
   template&lt;class T>
     concept <i>movable-value</i> = <i>see-below</i>; <i>// exposition only</i>
 
@@ -4176,244 +4423,15 @@ namespace std::execution {
 }
 </pre>
 
-## Helper entities <b>[exec.helpers]</b> ## {#spec-execution.helpers}
-
-1. This clause makes use of the following exposition-only entities.
-
-    <pre highlight=c++>
-    template &lt;class Fn, class... Args>
-        requires <i>callable</i>&lt;Fn, Args...>
-      constexpr decltype(auto) <i>mandate-nothrow-call</i>(Fn&& fn, Args&&... args) noexcept {
-        return std::forward<Fn>(fn)(std::forward<Args>(args)...);
-      }
-    </pre>
-
-    * <i>Mandates:</i> <code><i>nothrow-callable</i>&lt;Fn, Args...></code> is `true`.
-
-    <pre highlight=c++>
-    template &lt;class T>
-      concept <i>movable-value</i> = <i>// exposition only</i>
-        move_constructible&lt;decay_t&lt;T>> &&
-        constructible_from&lt;decay_t&lt;T>, T>;
-    </pre>
-
-    For function types `F1` and `F2` denoting `R1(Args1...)` and `R2(Args2...)`
-    respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if
-    `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
-
-## Asynchronous operations <b>[async.ops]</b> ## {#spec-execution-async.ops}
-
-1. An <dfn export=true>execution resource</dfn> is a program entity that manages
-    a (possibly dynamic) set of execution agents ([thread.req.lockable.general]),
-    which it uses to execute parallel work on behalf of callers. [*Example
-    1*: The currently active thread, a system-provided thread pool, and an API
-    associated with an external hardware accelerator are all examples of
-    execution resources.] Execution resources execute asynchronous operations.
-    An execution resource is either valid or invalid.
-
-2. An <dfn export=true>asynchronous operation</dfn> is a distinct unit of
-    program execution that:
-
-      - can be explicitly <dfn lt="start" export=true>started</dfn>; an
-          asynchronous operation can only be started once;
-
-      - eventually <dfn lt="complete" export=true>completes</dfn> in exactly one
-          of three modes: success, failure, or cancellation; the mode in which
-          an asynchronous operation completes is known as the operation's <dfn
-          export=true>disposition</dfn>; an asychronous operation can only
-          complete once; a successful completion, also known as a <dfn
-          export=true>value completion</dfn> has an associated (possibly empty)
-          set of value results; a failure completion, also known as an <dfn
-          export=true>error completion</dfn> has an associated error result; a
-          cancellation completion, also known as a <dfn export=true>stopped
-          completion</dfn> has no associated result datum; an asynchronous
-          operation's <dfn export=true>result</dfn> is its disposition and
-          its (possibly empty) set of result datums.
-
-      - can suspend and resume on the same or a different execution resource;
-          and
-
-      - can create and start other asychronous operations called <dfn
-          export=true>child operations</dfn>. A child operation is an
-          asynchronous operation created by the parent operation and that the
-          parent's completion depends on. A <dfn export=true>parent
-          operation</dfn> is the asynchronous operation that created a
-          particular child operation. The <dfn export=true>caller</dfn> of an
-          asynchronous operation is the asynchronous operation or function that
-          created it.
-
-    <span class="wg21note">An asynchronous operation can in fact execute
-    synchronously; that is, it can complete during the execution of its start
-    operation on the thread of execution that started it.</span>
-
-3. An asynchronous operation has associated state known as its <dfn
-    export=true>operation state</dfn>.
-
-4. An asynchronous operation has an associated environment. An <dfn
-    export=true>environment</dfn> is a collection of key/value pairs
-    representing the execution-time properties of the operation's caller. An
-    environment is a queryable object. A <dfn export=true>queryable object</dfn>
-    is a read-only collection of key/value pairs where each key is a
-    customization point object known as a <dfn export=true lt="query
-    object">query object</dfn>. A <dfn export=true>query</dfn> is an invocation
-    of a query object with a queryable object as its first argument and a
-    (possibly empty) set of additional arguments. The result of a query
-    expression is valid as long as the queryable object is valid. <span
-    class="wg21note">A query imposes syntactic and semantic requirements on its
-    invocations.</span> An asynchronous operation's operation state owns the
-    operation's environment.
-
-5. An asynchronous operation has an associated receiver. A <dfn
-    export=true>receiver</dfn> is an aggregation of three handlers for the three
-    possible ways that the asynchronous operation can complete: a value
-    completion handler for a value completion, an error completion handler for
-    an error completion, and a stopped completion handler for a stopped
-    completion. A receiver has an associated environment. An asynchronous
-    operation's operation state owns the operation's receiver. The environment
-    of an asynchronous operation is equal to its receiver's environment.
-
-6. There are three customization point objects ([customization.point.object])
-    known as <dfn export=true>completion functions</dfn> that each accept an
-    asynchronous operation's receiver as the first argument and the result
-    datums of the asynchronous operation as additional arguments. The value
-    completion function invokes the receiver's value completion handler with the
-    value result datums; likewise for the error completion function and the
-    stopped completion function. A completion function has an associated type
-    known as its <dfn export=true>completion tag</dfn> that names the
-    unqualified type of the completion function. A valid invocation of a
-    completion function is called a <dfn export=true>completion operation</dfn>.
-
-7. The <dfn lt="asychronous operation lifetime" export=true>lifetime of an
-    asynchronous operation</dfn>, also known as the operation's <dfn
-    export=true>async lifetime</dfn>, begins when its start operation begins
-    executing and ends when its completion operation begins executing. If the
-    lifetime of an asynchronous operation's associated operation state ends
-    before the lifetime of the asynchronous operation, or if the operation state
-    is moved during the asynchronous operation's lifetime, the behavior is
-    undefined. After an asynchronous operation executes a completion operation,
-    its associated operation state is invalid. Accessing any part of an
-    invalid operation state is undefined behavior.
-
-8. An asynchronous operation shall not execute a completion operation before its
-    start operation has begun executing. After its start operation has begun
-    executing, exactly one completion operation shall execute. The lifetime of an
-    asynchronous operation's operation state can end during the execution of the
-    completion operation, but the storage that the operation state occupied
-    shall not be reused or released before the completion operation has finished
-    executing.
-
-9. A <dfn export=true>sender</dfn> is a factory for one or more asynchronous
-    operations. <dfn export=true lt="connect">Connecting</dfn> a sender and a
-    receiver creates an asynchronous operation. The asynchronous operation's
-    associated receiver is equal to the receiver used to create it, and its
-    associated environment is equal to the environment associated with the
-    receiver used to create it. The lifetime of an asynchronous operation's
-    associated operation state does not depend on the lifetimes of either the
-    sender or the receiver from which it was created. A sender <dfn lt="send"
-    export=true>sends</dfn> its results by way of the asynchronous operation(s)
-    it produces, and a receiver <dfn lt="receive" export=true>receives</dfn>
-    those results. A sender is either valid or invalid.
-
-10. A <dfn export=true>scheduler</dfn> is an abstraction of an execution resource
-    with a uniform, generic interface for scheduling work onto that resource. It
-    is a factory for senders whose asynchronous operations execute value
-    completions on an execution agent belonging to the scheduler's associated
-    execution resource. A <dfn export=true>schedule-expression</dfn> obtains
-    such a sender from a scheduler. A <dfn export=true>schedule sender</dfn> is
-    the result of a schedule expression. A schedule sender produces asynchronous
-    operation(s) that, on success, execute a value completion with an empty set
-    of value results. Multiple schedulers can refer to the same execution
-    resource. A scheduler can be valid or invalid. A scheduler becomes invalid
-    when the execution resource to which it refers becomes invalid, as do any
-    schedule senders obtained from the scheduler, and any operation states
-    obtained from those senders.
-
-11. An asynchronous operation has one or more associated completion schedulers. A
-    <dfn export=true>completion scheduler</dfn> of an asynchronous operation is
-    a scheduler whose associated execution resource is used to execute a
-    completion operation for the asynchronous operation. A value completion
-    scheduler is a scheduler on which an asynchronous operation's value
-    completion operation can execute. Likewise for error completion schedulers
-    and stopped completion schedulers.
-
-12. A sender has an associated queryable object known as its <dfn
-    export=true>attributes</dfn> that describe various characteristics of the
-    sender and of the asynchronous operation(s) it produces. A sender can
-    expose the completion scheduler(s) of its asynchronous operations via
-    its attributes. If present, a value completion scheduler attribute
-    indicates that the sender's asynchronous operations only execute value
-    completion operations on that scheduler's associated execution resource.
-    Likewise for error and stopped completion scheduler attributes.
-    A schedule sender is required to have a value completion scheduler attribute
-    whose value is equal to the scheduler that produced the schedule sender.
-
-13. A <dfn export=true>completion signature</dfn> is a function type that
-    describes a completion operation. An asychronous operation has a finite set
-    of possible completion signatures. The completion signature's return type is
-    the completion tag associated with the completion function that executes the
-    completion operation. The completion signature's argument types are the
-    types and value categories of the asynchronous operation's result datums,
-    determined as if by `decltype`. Together, a sender type and an environment
-    type `E` uniquely determine the set of completion signatures of the
-    operation state that results from connecting the sender with a receiver
-    whose environment has type `E`. <span class="wg21note">The type of the
-    receiver does not effect an operation state's completion signatures, only
-    the type of the receiver's environment.</span>
-
-14. A <dfn export=true>sender algorithm</dfn> is a function that takes and/or
-    returns a sender. There are three categories of sender algorithms:
-
-    * A <dfn export=true>sender factory</dfn> is a function that takes
-        non-senders as arguments and that returns a sender.
-
-    * A <dfn export=true>sender adaptor</dfn> is a function that takes one or
-        more senders and a (possibly empty) set of additional arguments, and
-        that returns a sender. The returned sender is the <dfn
-        export=true>parent sender</dfn> and the sender arguments to the sender
-        adaptor are its <dfn export=true lt="child sender">child senders</dfn>.
-
-    * A <dfn export=true>sender consumer</dfn> is a function that takes one or
-        more senders and a (possibly empty) set of additional arguments, and
-        whose return type is not the type of a sender.
-
 ## Queries <b>[exec.queries]</b> ## {#spec-execution.queries}
-
-1. Given a subexpression `e` that refers to a queryable object `q`, a query
-    object <code><i>F</i></code>, and a (possibly empty) pack of subexpressions
-    `args`, the expression <code><i>F</i>(e, args...)</code> is equal to
-    ([concepts.equality]) the expression <code><i>F</i>(c, args...)</code> where
-    `c` is a `const` lvalue reference to `q`.
-
-2. The type of a query expression can not be `void`.
-
-3. The expression <code><i>F</i>(e, args...)</code> is equality-preserving
-    ([concepts.equality]) and does not modify the function object or the
-    arguments.
-
-4. Unless otherwise specified, the value returned by the expression
-    <code><i>F</i>(e, args...)</code> is valid as long as `e` is valid.
-
-### `queryable` concept <b>[exec.queryable]</b> ### {#spec-execution.queryable}
-
-    <pre highlight="c++">
-    template &lt;class T>
-      concept queryable = destructible&lt;T>;
-    </pre>
-
-1. The `queryable` concept specifies the constraints on the types of queryable
-    objects ([async.ops]).
-
-1. Let `e` be an object of type `E`. The type `E` models `queryable` if for each callable
-    object <code><i>F</i></code> and a pack of subexpressions `args`, if
-    <code>requires { <i>F</i>(e, args...) }</code> is `true` then
-    <code><i>F</i>(e, args...)</code> meets any semantic requirements imposed by `F`.
 
 ### `std::get_env` <b>[exec.get.env]</b> ### {#spec-execution.environment.get_env}
 
 1. `get_env` is a customization point object. For some subexpression `o` of type
     `O`, `get_env(o)` is expression-equivalent to
 
-    1. `tag_invoke(std::get_env, const_cast<const O&>(o))` if that expression is well-formed.
+    1. `tag_invoke(std::get_env, const_cast<const O&>(o))` if that expression is
+        well-formed.
 
         * <i>Mandates:</i> The type of the expression above satisfies
             `queryable` ([exec.queryable]).
@@ -4422,8 +4440,8 @@ namespace std::execution {
 
 2. The value of `get_env(o)` shall be valid while `o` is valid.
 
-3. When passed a sender object, `get_env` returns the sender's attributes.
-    When passed a receiver, `get_env` returns the receiver's environment.
+3. When passed a sender object, `get_env` returns the sender's attributes. When
+    passed a receiver, `get_env` returns the receiver's environment.
 
 ### `std::forwarding_query` <b>[exec.fwd.env]</b> ### {#spec-execution.forwarding_query}
 
@@ -4440,7 +4458,8 @@ namespace std::execution {
         * <i>Mandates:</i> The expression above has type `bool` and is a core
             constant expressions if `q` is a core constant expression.
 
-    2. Otherwise, `true` if `derived_from<Q, std::forwarding_query_t>` is `true`.
+    2. Otherwise, `true` if `derived_from<Q, std::forwarding_query_t>` is
+        `true`.
 
     3. Otherwise, `false`.
 
@@ -4454,9 +4473,10 @@ namespace std::execution {
 
 1. `get_allocator` asks an object for its associated allocator.
 
-2. The name `get_allocator` denotes a query object. For some subexpression
-    `r`, `get_allocator(r)` is expression-equivalent to
-    <code><i>mandate-nothrow-call</i>(tag_invoke, std::get_allocator, as_const(r))</code>.
+2. The name `get_allocator` denotes a query object. For some subexpression `r`,
+    `get_allocator(r)` is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, std::get_allocator,
+    as_const(r))</code>.
 
         * <i>Mandates:</i> The type of the expression above
             satisfies <i>Allocator</i>.
@@ -4476,13 +4496,15 @@ namespace std::execution {
     1. <code><i>mandate-nothrow-call</i>(tag_invoke, std::get_stop_token,
         as_const(r))</code>, if this expression is well-formed.
 
-        * <i>Mandates:</i> The type of the expression above satisfies `stoppable_token`.
+        * <i>Mandates:</i> The type of the expression above satisfies
+            `stoppable_token`.
 
     2. Otherwise, `never_stop_token{}`.
 
 3. `std::forwarding_query(std::get_stop_token)` is `true`.
 
-4. `get_stop_token()` (with no arguments) is expression-equivalent to `execution::read(std::get_stop_token)` ([exec.read]).
+4. `get_stop_token()` (with no arguments) is expression-equivalent to
+    `execution::read(std::get_stop_token)` ([exec.read]).
 
 ### `execution::get_scheduler` <b>[exec.get.scheduler]</b> ### {#spec-execution.get_scheduler}
 
@@ -4711,8 +4733,7 @@ enum class forward_progress_guarantee {
 ## Operation states <b>[exec.opstate]</b> ## {#spec-execution.opstate}
 
 1. The `operation_state` concept defines the requirements of an operation state
-    type ([async.ops]). `start` is a customization point object that starts the
-    asynchronous operation associated with the operation state object.
+    type ([async.ops]).
 
     <pre highlight=c++>
     template&lt;class O>
@@ -4724,13 +4745,17 @@ enum class forward_progress_guarantee {
         };
     </pre>
 
-2. Library-provided operation state types are non-movable.
+2. If an `operation_state` object is moved during the lifetime of its
+    asynchronous operation ([async.ops]), the behavior is undefined.
+
+3. Library-provided operation state types are non-movable.
 
 ### `execution::start` <b>[exec.opstate.start]</b> ### {#spec-execution.opstate.start}
 
-1. The name `start` denotes a customization point object. The expression
-    `start(O)` for some subexpression `O` is ill-formed if `O` is an rvalue.
-    Otherwise, it is expression-equivalent to:
+1. The name `start` denotes a customization point object that starts
+    ([async.ops]) the asynchronous operation associated with the operation state
+    object. The expression `start(O)` for some subexpression `O` is ill-formed
+    if `O` is an rvalue. Otherwise, it is expression-equivalent to:
 
     <pre highlight="c++">
     <i>mandate-nothrow-call</i>(tag_invoke, start, O)
@@ -5528,8 +5553,9 @@ enum class forward_progress_guarantee {
     1. `tag_invoke(schedule_from, sch, s)`, if that expression is valid. If the
         function selected by `tag_invoke` does not return a sender that
         completes on an execution agent belonging to the associated execution
-        resource of `sch` and completing with the same result ([async.ops]) as
-        `s`, the behavior of calling `schedule_from(sch, s)` is undefined.
+        resource of `sch` and completing with the same async result
+        ([async.ops]) as `s`, the behavior of calling `schedule_from(sch, s)` is
+        undefined.
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
 
