@@ -2420,7 +2420,7 @@ execution::sender auto then1 = execution::then(snd1, [] (double d) {
 });
 
 execution::sender auto snd2 = execution::just(3.14, 42);
-execution::sender auto then2 = execution::then(snd1, [] (double d, int i) {
+execution::sender auto then2 = execution::then(snd2, [] (double d, int i) {
   std::cout << d << ", " << i << "\n";
 });
 
