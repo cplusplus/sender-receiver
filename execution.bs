@@ -1144,12 +1144,17 @@ The changes since R6 are as follows:
 
 <b>Fixes:</b>
 
-  * Make it valid to pass non-variadic templates to the exposition-only
-    alias template <code><i>gather-signatures</i></code>, fixing the definitions
-    of `value_types_of_t`, `error_types_of_t`, and the exposition-only
-    alias template <code><i>sync-wait-type</i></code>.
+  * Make it valid to pass non-variadic templates to the exposition-only alias
+    template <code><i>gather-signatures</i></code>, fixing the definitions of
+    `value_types_of_t`, `error_types_of_t`, and the exposition-only alias
+    template <code><i>sync-wait-type</i></code>.
   * Removed the query forwarding from `receiver_adaptor` that was
     inadvertantly left over from a previous edit.
+  * When adapting a sender to an awaitable with `as_awaitable`, the sender's
+    value result datum is decayed before being stored in the exposition-only
+    `variant`.
+  * Correctly specify the completion signatures of the `schedule_from`
+    algorithm.
 
 <b>Enhancements:</b>
 
@@ -5604,12 +5609,41 @@ enum class forward_progress_guarantee {
           make_completion_signatures&lt;
             schedule_result_t&lt;Sch>,
             E,
-            completion_signatures&lt;set_error_t(exception_ptr)>,
-            <i>no-value-completions</i>>>;
+            <i>potenially-throwing-completions</i>,
+            <i>no-completions</i>>,
+          <i>value-completions</i>,
+          <i>error-completions</i>>;
         </pre>
 
-        where <code><i>no-value-completions</i>&lt;As...></code> names the type `completion_signatures<>`
-        for any set of types `As...`.
+        where <code><i>potentially-throwing-completions</i></code>,
+        <code><i>no-completions</i></code>, <code><i>value-completions</i></code>,
+        and <code><i>error-completions</i></code> are defined as follows:
+
+        <pre>
+        template &lt;class... Ts>
+        using <i>all-nothrow-decay-copyable</i> =
+          boolean_constant&lt;(is_nothrow_constructible_v&lt;decay_t&lt;Ts>, Ts> && ...)>;
+
+        template &lt;class... Ts>
+        using <i>conjunction</i> = boolean_constant<(Ts::value &&...)>;
+
+        using <i>potentially-throwing-completions</i> =
+          conditional_t&lt;
+            error_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>all-nothrow-decay-copyable</i>>::value &&
+              value_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>all-nothrow-decay-copyable</i>, <i>conjunction</i>>::value,
+            completion_signatures&lt;>,
+            completion_signatures&lt;set_error_t(exception_ptr)>;
+
+        template &lt;class...>
+        using <i>no-completions</i> = completion_signatures&lt;>;
+
+        template &lt;class... Ts>
+        using <i>value-completions</i> = completion_signatures&lt;set_value_t(decay_t&lt;Ts>&&...)>;
+
+        template &lt;class T>
+        using <i>error-completions</i> = completion_signatures&lt;set_error_t(decay_t&lt;T>&&)>;
+        </pre>
+
 
 3. For a sender `t` returned from `schedule_from(sch, s)`, `get_env(t)` shall
     return a queryable object `q` such that `get_completion_scheduler<CPO>(q)` returns
@@ -7368,7 +7402,7 @@ enum class forward_progress_guarantee {
 
     1. Alias template <i>single-sender-value-type</i> is defined as follows:
 
-        1. If `value_types_of_t<S, E, Tuple, Variant>` would have the form `Variant<Tuple<T>>`, then <code><i>single-sender-value-type</i>&lt;S, E></code> is an alias for type `T`.
+        1. If `value_types_of_t<S, E, Tuple, Variant>` would have the form `Variant<Tuple<T>>`, then <code><i>single-sender-value-type</i>&lt;S, E></code> is an alias for type `decay_t<T>`.
 
         2. Otherwise, if `value_types_of_t<S, E, Tuple, Variant>` would have the form `Variant<Tuple<>>` or `Variant<>`, then <code><i>single-sender-value-type</i>&lt;S, E></code> is an alias for type `void`.
 
