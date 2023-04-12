@@ -2245,7 +2245,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R7<br><code class="highlight">std::execution</code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-04-04">2023-04-04</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-04-12">2023-04-12</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -3645,13 +3645,17 @@ fit for broad use and for contribution to libc++.</p>
    <p><b>Fixes:</b></p>
    <ul>
     <li data-md>
-     <p>Make it valid to pass non-variadic templates to the exposition-only
-alias template <code class="highlight"><i>gather-signatures</i></code>, fixing the definitions
-of <code class="highlight">value_types_of_t</code>, <code class="highlight">error_types_of_t</code>, and the exposition-only
-alias template <code class="highlight"><i>sync-wait-type</i></code>.</p>
+     <p>Make it valid to pass non-variadic templates to the exposition-only alias
+template <code class="highlight"><i>gather-signatures</i></code>, fixing the definitions of <code class="highlight">value_types_of_t</code>, <code class="highlight">error_types_of_t</code>, and the exposition-only alias
+template <code class="highlight"><i>sync-wait-type</i></code>.</p>
     <li data-md>
      <p>Removed the query forwarding from <code class="highlight">receiver_adaptor</code> that was
 inadvertantly left over from a previous edit.</p>
+    <li data-md>
+     <p>When adapting a sender to an awaitable with <code class="highlight">as_awaitable</code>, the sender’s
+value result datum is decayed before being stored in the exposition-only <code class="highlight">variant</code>.</p>
+    <li data-md>
+     <p>Correctly specify the completion signatures of the <code class="highlight">schedule_from</code> algorithm.</p>
    </ul>
    <p><b>Enhancements:</b></p>
    <ul>
@@ -7622,10 +7626,36 @@ it catches it and calls <code class="highlight">set_error(out_r, current_excepti
   make_completion_signatures&lt;
     schedule_result_t&lt;Sch>,
     E,
-    completion_signatures&lt;set_error_t(exception_ptr)>,
-    <i>no-value-completions</i>>>;
+    <i>potenially-throwing-completions</i>,
+    <i>no-completions</i>>,
+  <i>value-completions</i>,
+  <i>error-completions</i>>;
 </pre>
-       <p>where <code class="highlight"><i>no-value-completions</i>&lt;As...></code> names the type <code class="highlight">completion_signatures&lt;></code> for any set of types <code class="highlight">As...</code>.</p>
+       <p>where <code class="highlight"><i>potentially-throwing-completions</i></code>, <code class="highlight"><i>no-completions</i></code>, <code class="highlight"><i>value-completions</i></code>,
+and <code class="highlight"><i>error-completions</i></code> are defined as follows:</p>
+<pre class="highlight">template &lt;class... Ts>
+using <i>all-nothrow-decay-copyable</i> =
+  boolean_constant&lt;(is_nothrow_constructible_v&lt;decay_t&lt;Ts>, Ts> &amp;&amp; ...)>;
+
+template &lt;class... Ts>
+using <i>conjunction</i> = boolean_constant&lt;(Ts::value &amp;&amp;...)>;
+
+using <i>potentially-throwing-completions</i> =
+  conditional_t&lt;
+    error_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>all-nothrow-decay-copyable</i>>::value &amp;&amp;
+      value_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>all-nothrow-decay-copyable</i>, <i>conjunction</i>>::value,
+    completion_signatures&lt;>,
+    completion_signatures&lt;set_error_t(exception_ptr)>;
+
+template &lt;class...>
+using <i>no-completions</i> = completion_signatures&lt;>;
+
+template &lt;class... Ts>
+using <i>value-completions</i> = completion_signatures&lt;set_value_t(decay_t&lt;Ts>&amp;&amp;...)>;
+
+template &lt;class T>
+using <i>error-completions</i> = completion_signatures&lt;set_error_t(decay_t&lt;T>&amp;&amp;)>;
+</pre>
      </ol>
     <li data-md>
      <p>For a sender <code class="highlight">t</code> returned from <code class="highlight">schedule_from(sch, s)</code>, <code class="highlight">get_env(t)</code> shall
@@ -9288,7 +9318,7 @@ is well-formed, or <code class="highlight">empty_env</code> otherwise.</p>
        <p>Alias template <i>single-sender-value-type</i> is defined as follows:</p>
        <ol>
         <li data-md>
-         <p>If <code class="highlight">value_types_of_t&lt;S, E, Tuple, Variant></code> would have the form <code class="highlight">Variant&lt;Tuple&lt;T>></code>, then <code class="highlight"><i>single-sender-value-type</i>&lt;S, E></code> is an alias for type <code class="highlight">T</code>.</p>
+         <p>If <code class="highlight">value_types_of_t&lt;S, E, Tuple, Variant></code> would have the form <code class="highlight">Variant&lt;Tuple&lt;T>></code>, then <code class="highlight"><i>single-sender-value-type</i>&lt;S, E></code> is an alias for type <code class="highlight">decay_t&lt;T></code>.</p>
         <li data-md>
          <p>Otherwise, if <code class="highlight">value_types_of_t&lt;S, E, Tuple, Variant></code> would have the form <code class="highlight">Variant&lt;Tuple&lt;>></code> or <code class="highlight">Variant&lt;></code>, then <code class="highlight"><i>single-sender-value-type</i>&lt;S, E></code> is an alias for type <code class="highlight">void</code>.</p>
         <li data-md>
