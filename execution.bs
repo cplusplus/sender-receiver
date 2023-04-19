@@ -1155,6 +1155,8 @@ The changes since R6 are as follows:
     `variant`.
   * Correctly specify the completion signatures of the `schedule_from`
     algorithm.
+  * The `sender_of` concept no longer distinguishes between a sender of a
+    type `T` and a sender of a type `T&&`.
 
 <b>Enhancements:</b>
 
@@ -4126,8 +4128,8 @@ namespace std {
     struct empty_env {};
     struct get_env_t;
   }
-  using <i>envs</i>::empty_env;
-  using <i>envs</i>::get_env_t;
+  using <i>envs-envs</i>::empty_env;
+  using <i>envs-envs</i>::get_env_t;
   inline constexpr get_env_t get_env {};
 
   template &lt;class T>
@@ -4215,7 +4217,7 @@ namespace std::execution {
   template &lt;class S, class E = empty_env>
     concept <i>single-sender</i> = <i>see below</i>; // exposition only
 
-  // [exec.sndtraits], completion signatures
+  // [exec.getcomplsigs], completion signatures
   namespace <i>completion-signatures</i> { // exposition only
     struct get_completion_signatures_t;
   }
@@ -4224,7 +4226,7 @@ namespace std::execution {
 
   template &lt;class S, class E = empty_env>
       requires sender_in&lt;S, E>
-    using completion_signatures_of_t = <i>see below</i>;
+    using completion_signatures_of_t = <i>call-result-t</i>&lt;get_completion_signatures_t, S, E>;
 
   template &lt;class... Ts>
     using <i>decayed-tuple</i> = tuple&lt;decay_t&lt;Ts>...>; // exposition only
@@ -4446,6 +4448,23 @@ namespace std::execution {
     struct with_awaitable_senders;
 }
 </pre>
+
+1. The exposition-only type <code><i>variant-or-empty&lt;Ts...></i></code> is
+     defined as follows:
+
+    1. If `sizeof...(Ts)` is greater than zero,
+        <code><i>variant-or-empty&lt;Ts...></i></code> names the type
+        `variant<Us...>` where `Us...` is the pack `decay_t<Ts>...` with
+        duplicate types removed.
+
+    2. Otherwise, <code><i>variant-or-empty&lt;Ts...></i></code> names the
+        exposition-only class type:
+
+        <pre>
+        struct <i>empty-variant</i> {
+          <i>empty-variant</i>() = delete;
+        };
+        </pre>
 
 ## Queries <b>[exec.queries]</b> ## {#spec-execution.queries}
 
@@ -4735,14 +4754,14 @@ enum class forward_progress_guarantee {
 1. `set_value` is a value completion function ([async.ops]). Its associated
     completion tag is `set_value_t`. The expression `set_value(R, Vs...)` for
     some subexpression `R` and pack of subexpressions `Vs` is ill-formed if `R`
-    is an lvalue. Otherwise, it is expression-equivalent to
+    is an lvalue or a `const` rvalue. Otherwise, it is expression-equivalent to
     <code><i>mandate-nothrow-call</i>(tag_invoke, set_value, R, Vs...)</code>.
 
 ### `execution::set_error` <b>[exec.set.error]</b> ### {#spec-execution.receivers.set_error}
 
 1. `set_error` is an error completion function. Its associated completion tag is
     `set_error_t`. The expression `set_error(R, E)` for some subexpressions `R`
-    and `E` is ill-formed if `R` is an lvalue. Otherwise, it is
+    and `E` is ill-formed if `R` is an lvalue or a `const` rvalue. Otherwise, it is
     expression-equivalent to <code><i>mandate-nothrow-call</i>(tag_invoke,
     set_error, R, E)</code>.
 
@@ -4750,7 +4769,7 @@ enum class forward_progress_guarantee {
 
 1. `set_stopped` is a stopped completion function. Its associated completion tag
     is `set_stopped_t`.  The expression `set_stopped(R)` for some subexpression
-    `R` is ill-formed if `R` is an lvalue. Otherwise, it is
+    `R` is ill-formed if `R` is an lvalue or a `const` rvalue. Otherwise, it is
     expression-equivalent to <code><i>mandate-nothrow-call</i>(tag_invoke,
     set_stopped, R)</code>.
 
@@ -4799,8 +4818,8 @@ enum class forward_progress_guarantee {
     type. The `sender_to` concept defines the requirements for a sender type
     that can connect with a specific receiver type. The `get_env` customization
     point object is used to access a sender's associated attributes. The
-    `connect` customization point object is used to connect a sender and a
-    receiver to produce an operation state.
+    `connect` customization point object is used to connect ([async.ops]) a
+    sender and a receiver to produce an operation state.
 
     <pre>
     template &lt;class Sigs>
@@ -4850,7 +4869,9 @@ enum class forward_progress_guarantee {
 
 4. The `sender_of` concept defines the requirements for a sender type that
     completes with the completion signature specified for the given completion
-    function.
+    function. For function types `F1` and `F2` denoting `R1(Args1...)` and
+    `R2(Args2...)` respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is
+    `true` if and only if `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
 
     <pre>
     template &lt;class> struct <i>sender-of-helper</i>; <i>// exposition only</i>
@@ -4865,12 +4886,12 @@ enum class forward_progress_guarantee {
     template &lt;class S, class Sig, class E = empty_env>
       concept sender_of =
         sender_in&lt;S, E> &&
-        same_as&lt;
-          <i>type-list</i>&lt;Sig>,
+        <i>MATCHING-SIG</i>(
+          Sig,
           <i>gather-signatures</i>&lt;  <i>// See [exec.utils.cmplsigs]</i>
             typename <i>sender-of-helper</i>&lt;Sig>::<i>tag</i>,
             S, E,
-            <i>sender-of-helper</i>&lt;Sig>::template <i>as-sig</i>, <i>type-list</i>>>;
+            <i>sender-of-helper</i>&lt;Sig>::template <i>as-sig</i>, type_identity_t>);
     </pre>
 
     1. [*Example:*
@@ -4892,7 +4913,11 @@ enum class forward_progress_guarantee {
         </pre>
         -- *end example*]
 
-5. Library-provided sender types:
+5. For a type `T`, <code><i>SET-VALUE-SIG</i>(T)</code> names the type
+    `set_value_t()` if `T` is *cv* `void`; otherwise, it names the type
+    `set_value_t(T)`.
+
+6. Library-provided sender types:
       - Always expose an overload of a customization of `connect`
           that accepts an rvalue sender.
       - Only expose an overload of a customization of `connect` that
@@ -4901,7 +4926,7 @@ enum class forward_progress_guarantee {
 
 ### Awaitable helpers <b>[exec.awaitables]</b> ### {#spec.exec-awaitables}
 
-1. The sender concepts recognize awaitables as valid senders. For this clause
+1. The sender concepts recognize awaitables as senders. For this clause
     ([exec]), an <dfn export=true>awaitable</dfn> is an expression that would be
     well-formed as the operand of a `co_await` expression within a given
     context.
@@ -4967,7 +4992,7 @@ enum class forward_progress_guarantee {
 
       template &lt;class T>
       T&& await_transform(T&& value) noexcept {
-        return static_cast&lt;T&&>(value);
+        return std::forward&lt;T>(value);
       }
 
       template &lt;class T>
@@ -4975,7 +5000,7 @@ enum class forward_progress_guarantee {
       auto await_transform(T&& value)
         noexcept(nothrow_tag_invocable&lt;as_awaitable_t, T, <i>env-promise</i>&>)
         -> tag_invoke_result_t&lt;as_awaitable_t, T, <i>env-promise</i>&> {
-        return tag_invoke(as_awaitable, static_cast&lt;T&&>(value), *this);
+        return tag_invoke(as_awaitable, std::forward&lt;T>(value), *this);
       }
 
       friend const Env& tag_invoke(get_env_t, const <i>env-promise</i>&) noexcept;
@@ -4986,18 +5011,9 @@ enum class forward_progress_guarantee {
       are only used for the purpose of type computation; its members need not be
       defined.</span>
 
-### Completion signatures <b>[exec.sndtraits]</b> ### {#spec-exec.sndtraits}
+### `execution::get_completion_signatures` <b>[exec.getcomplsigs]</b> ### {#spec-exec.getcomplsigs}
 
-#### `execution::completion_signatures_of_t` <b>[exec.complsigs]</b> #### {#spec-exec.complsigs}
-
-1. The alias template `completion_signatures_of_t` obtains a sender's set of
-    completion signatures for a given environment type.
-
-2. For types `S` and `E`, the type `completion_signatures_of_t<S, E>` is an
-    alias for `decltype(get_completion_signatures(declval<S>(), declval<E>()))`
-    if that expression is well-formed.
-
-3. `get_completion_signatures` is a customization point object. Let `s` be an
+1. `get_completion_signatures` is a customization point object. Let `s` be an
     expression such that `decltype((s))` is `S`, and let `e` be an expression
     such that `decltype((e))` is `E`. Then `get_completion_signatures(s, e)` is
     expression-equivalent to:
@@ -5010,59 +5026,24 @@ enum class forward_progress_guarantee {
             `Sigs` names the type
             `tag_invoke_result_t<get_completion_signatures_t, S, E>`.
 
-    2. Otherwise, if `remove_cvref_t<S>::completion_signatures` is well-formed
-        and names a type, then a value-initialized prvalue of type
-        `remove_cvref_t<S>::completion_signatures`,
+    2. Otherwise, `remove_cvref_t<S>::completion_signatures{}` if that expression is well-formed,
 
         * <i>Mandates:</i> <code><i>valid-completion-signatures</i>&lt;Sigs></code>,
             where `Sigs` names the type `remove_cvref_t<S>::completion_signatures`.
 
-    3. Otherwise, if <code><i>is-awaitable</i>&lt;S,
-        <i>env-promise</i>&lt;E>></code> is `true`, then
-
-        1. If <code><i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>></code>
-            is <code>void</code> then a prvalue of type:
+    3. Otherwise, if <code><i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;E>></code>
+        is `true`, then:
 
             <pre>
             completion_signatures<
-              set_value_t(),
+              <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>>),
               set_error_t(exception_ptr),
-              set_stopped_t()>
-            </pre>
-
-        2. Otherwise, a prvalue of type:
-
-            <pre>
-            completion_signatures<
-              set_value_t(<i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>>),
-              set_error_t(exception_ptr),
-              set_stopped_t()>
+              set_stopped_t()>{}
             </pre>
 
     4. Otherwise, `get_completion_signatures(s, e)` is ill-formed.
 
-4. The exposition-only type <code><i>variant-or-empty&lt;Ts...></i></code> is
-     defined as follows:
-
-    1. If `sizeof...(Ts)` is greater than zero,
-        <code><i>variant-or-empty&lt;Ts...></i></code> names the type
-        `variant<Us...>` where `Us...` is the pack `decay_t<Ts>...` with
-        duplicate types removed.
-
-    2. Otherwise, <code><i>variant-or-empty&lt;Ts...></i></code> names the
-        exposition-only class type:
-
-        <pre>
-        struct <i>empty-variant</i> {
-          <i>empty-variant</i>() = delete;
-        };
-        </pre>
-
-5. For function types `F1` and `F2` denoting `R1(Args1...)` and `R2(Args2...)`
-    respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if
-    `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
-
-6. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
+2. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
     sender such that `sender_in<S, env_of_t<R>>` is `true`. Let `Sigs...` be the
     template arguments of the `completion_signatures` specialization named by
     `completion_signatures_of_t<S, env_of_t<R>>`. Let <code><i>CSO</i></code> be
@@ -5074,9 +5055,7 @@ enum class forward_progress_guarantee {
 
 ### `execution::connect` <b>[exec.connect]</b> ### {#spec-execution.senders.connect}
 
-1. `connect` connects ([async.op]) a sender with a receiver, producing an
-    operation state object that is associated with the resulting asynchronous
-    operation.
+1. `connect` connects ([async.op]) a sender with a receiver.
 
 2. The name `connect` denotes a customization point object. For subexpressions
     `s` and `r`, let `S` be `decltype((s))` and `R` be `decltype((r))`, and let
@@ -5109,7 +5088,7 @@ enum class forward_progress_guarantee {
         <pre>
         template &lt;class Fun, class... Ts>
         auto <i>suspend-complete</i>(Fun fun, Ts&&... as) noexcept { <i>// exposition only</i>
-          auto fn = [&, fun]() noexcept { fun(static_cast&lt;Ts&&>(as)...); };
+          auto fn = [&, fun]() noexcept { fun(std::forward<Ts>(as)...); };
 
           struct awaiter {
             decltype(fn) fn_;
@@ -6484,7 +6463,7 @@ enum class forward_progress_guarantee {
           then(s,
             []&lt;class T>(T&& t) {
               return optional&lt;decay_t&lt;<i>single-sender-value-type</i>&lt;S, E>>>{
-                static_cast&lt;T&&>(t)
+                std::forward<T>(t)
               };
             }
           ),
@@ -7490,7 +7469,7 @@ enum class forward_progress_guarantee {
                 if (result_.index()) == 2)
                   rethrow_exception(get&lt;2>(result_));
                 if constexpr (!is_void_v&lt;value_t>)
-                  return static_cast&lt;value_t&&>(get&lt;1>(result_));
+                  return std::forward<value_t>(get&lt;1>(result_));
                 </pre>
 
 2. `as_awaitable` is a customization point object. For some subexpressions `e` and `p` where `p` is an lvalue, `E` names the type `decltype((e))` and `P` names the type `decltype((p))`, `as_awaitable(e, p)` is expression-equivalent to the following:
@@ -7568,7 +7547,7 @@ enum class forward_progress_guarantee {
       - <i>Effects:</i> equivalent to:
 
         <pre>
-        return as_awaitable(static_cast&lt;Value&&>(value), static_cast&lt;Promise&>(*this));
+        return as_awaitable(std::forward<Value>(value), static_cast&lt;Promise&>(*this));
         </pre>
 
 <pre class=biblio>
