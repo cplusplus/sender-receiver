@@ -1157,6 +1157,8 @@ The changes since R6 are as follows:
     algorithm.
   * The `sender_of` concept no longer distinguishes between a sender of a
     type `T` and a sender of a type `T&&`.
+  * The `just` and `just_error` sender factories now reject C-style arrays
+    instead of silently decaying them to pointers.
 
 <b>Enhancements:</b>
 
