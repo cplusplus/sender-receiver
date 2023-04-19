@@ -1560,7 +1560,7 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version d9bd89757, updated Thu Mar 23 10:06:53 2023 -0700" name="generator">
+  <meta content="Bikeshed version bf22245b8, updated Tue Apr 18 15:53:37 2023 -0700" name="generator">
   <link href="https://wg21.link/P2300" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
 <style>
@@ -1886,8 +1886,7 @@ figcaption:not(.no-marker)::before {
     position: absolute;
     z-index: 35;
     width: 20em;
-    min-width: min-content;
-    max-width: 300px;
+    width: 300px;
     height: auto;
     max-height: 500px;
     overflow: auto;
@@ -1904,8 +1903,15 @@ figcaption:not(.no-marker)::before {
 .dfn-panel a { color: var(--dfnpanel-text); }
 .dfn-panel a:not(:hover) { text-decoration: none !important; border-bottom: none !important; }
 .dfn-panel > b + b { margin-top: 0.25em; }
-.dfn-panel ul { padding: 0; }
-.dfn-panel li { list-style: inside; }
+.dfn-panel ul { padding: 0 0 0 1em; list-style: none; }
+.dfn-panel li a {
+    white-space: pre;
+    display: inline-block;
+    max-width: calc(300px - 1.5em - 1em);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .dfn-panel.activated {
     display: inline-block;
     position: fixed;
@@ -1916,7 +1922,7 @@ figcaption:not(.no-marker)::before {
     max-height: 30vh;
 }
 
-.dfn-paneled { cursor: pointer; }
+.dfn-paneled[role="button"] { cursor: pointer; }
 </style>
 <style>/* style-issues */
 a[href].issue-return {
@@ -2245,7 +2251,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R7<br><code class="highlight">std::execution</code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-04-12">2023-04-12</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-04-19">2023-04-19</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -2556,11 +2562,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
        <ol class="toc">
         <li><a href="#spec-execution.snd.concepts"><span class="secno">11.9.1</span> <span class="content">Sender concepts <b>[exec.snd.concepts]</b></span></a>
         <li><a href="#spec.exec-awaitables"><span class="secno">11.9.2</span> <span class="content">Awaitable helpers <b>[exec.awaitables]</b></span></a>
-        <li>
-         <a href="#spec-exec.sndtraits"><span class="secno">11.9.3</span> <span class="content">Completion signatures <b>[exec.sndtraits]</b></span></a>
-         <ol class="toc">
-          <li><a href="#spec-exec.complsigs"><span class="secno">11.9.3.1</span> <span class="content"><code class="highlight">execution::completion_signatures_of_t</code> <b>[exec.complsigs]</b></span></a>
-         </ol>
+        <li><a href="#spec-exec.getcomplsigs"><span class="secno">11.9.3</span> <span class="content"><code class="highlight">execution::get_completion_signatures</code> <b>[exec.getcomplsigs]</b></span></a>
         <li><a href="#spec-execution.senders.connect"><span class="secno">11.9.4</span> <span class="content"><code class="highlight">execution::connect</code> <b>[exec.connect]</b></span></a>
         <li>
          <a href="#spec-execution.senders.factories"><span class="secno">11.9.5</span> <span class="content">Sender factories <b>[exec.factories]</b></span></a>
@@ -3656,6 +3658,12 @@ inadvertantly left over from a previous edit.</p>
 value result datum is decayed before being stored in the exposition-only <code class="highlight">variant</code>.</p>
     <li data-md>
      <p>Correctly specify the completion signatures of the <code class="highlight">schedule_from</code> algorithm.</p>
+    <li data-md>
+     <p>The <code class="highlight">sender_of</code> concept no longer distinguishes between a sender of a
+type <code class="highlight">T</code> and a sender of a type <code class="highlight">T&amp;&amp;</code>.</p>
+    <li data-md>
+     <p>The <code class="highlight">just</code> and <code class="highlight">just_error</code> sender factories now reject C-style arrays
+instead of silently decaying them to pointers.</p>
    </ul>
    <p><b>Enhancements:</b></p>
    <ul>
@@ -4716,7 +4724,7 @@ int main() {
    <h3 class="heading settled" data-level="4.17" id="design-senders-are-awaitable"><span class="secno">4.17. </span><span class="content">Many senders can be trivially made awaitable</span><a class="self-link" href="#design-senders-are-awaitable"></a></h3>
    <p>If you choose to implement your sender-based algorithms as coroutines, you’ll run into the issue of how to retrieve results from a passed-in sender. This is not a problem. If the coroutine type opts in to sender support -- trivial with the <code class="highlight">execution::with_awaitable_senders</code> utility -- then a large class of senders are transparently awaitable from within the coroutine.</p>
    <p>For example, consider the following trivial implementation of the sender-based <code class="highlight">retry</code> algorithm:</p>
-<pre class="highlight">template &lt;class S>
+<pre class="highlight">template&lt;class S>
   requires <i>single-sender</i>&lt;S&amp;> // See <a href="#spec-execution.coro_utils.as_awaitable">[exec.as.awaitable]</a>
 task&lt;<i>single-sender-value-type</i>&lt;S>> retry(S s) {
   for (;;) {
@@ -5389,42 +5397,42 @@ using S = <i>s-impl</i>&lt;typename <i>hidden</i>&lt;T>::type>;
    <ins>
     <blockquote>
 <pre class="highlight"><i>// expositon only:</i>
-template &lt;class Fn, class... Args>
+template&lt;class Fn, class... Args>
   concept <i>callable</i> =
     requires (Fn&amp;&amp; fn, Args&amp;&amp;... args) {
       std::forward&lt;Fn>(fn)(std::forward&lt;Args>(args)...);
     };
-template &lt;class Fn, class... Args>
+template&lt;class Fn, class... Args>
   concept <i>nothrow-callable</i> =
     <i>callable</i>&lt;Fn, Args...> &amp;&amp;
     requires (Fn&amp;&amp; fn, Args&amp;&amp;... args) {
       { std::forward&lt;Fn>(fn)(std::forward&lt;Args>(args)...) } noexcept;
     };
-template &lt;class Fn, class... Args>
+template&lt;class Fn, class... Args>
   using <i>call-result-t</i> = decltype(declval&lt;Fn>()(declval&lt;Args>()...));
 
 // [func.tag_invoke], tag_invoke
 namespace <i>tag-invoke</i> { <i>// exposition only</i>
   void tag_invoke();
 
-  template &lt;class Tag, class... Args>
+  template&lt;class Tag, class... Args>
     concept tag_invocable =
       requires (Tag&amp;&amp; tag, Args&amp;&amp;... args) {
         tag_invoke(std::forward&lt;Tag>(tag), std::forward&lt;Args>(args)...);
       };
 
-  template &lt;class Tag, class... Args>
+  template&lt;class Tag, class... Args>
     concept nothrow_tag_invocable =
       tag_invocable&lt;Tag, Args...> &amp;&amp;
       requires (Tag&amp;&amp; tag, Args&amp;&amp;... args) {
         { tag_invoke(std::forward&lt;Tag>(tag), std::forward&lt;Args>(args)...) } noexcept;
       };
 
-  template &lt;class Tag, class... Args>
+  template&lt;class Tag, class... Args>
     using tag_invoke_result_t =
       decltype(tag_invoke(declval&lt;Tag>(), declval&lt;Args>()...));
 
-  template &lt;class Tag, class... Args>
+  template&lt;class Tag, class... Args>
     struct tag_invoke_result&lt;Tag, Args...> {
       using type =
         tag_invoke_result_t&lt;Tag, Args...>; <i>// present if and only if tag_invocable&lt;Tag, Args...> is true</i>
@@ -5950,19 +5958,19 @@ library:</p>
      <p>This clause makes use of the following exposition-only entities:</p>
      <ol>
       <li data-md>
-<pre class="highlight">template &lt;class Fn, class... Args>
+<pre class="highlight">template&lt;class Fn, class... Args>
     requires <i>callable</i>&lt;Fn, Args...>
   constexpr auto <i>mandate-nothrow-call</i>(Fn&amp;&amp; fn, Args&amp;&amp;... args) noexcept
     -> <i>call-result-t</i>&lt;Fn, Args...> {
-    return std::forward<fn>(fn)(std::forward<args>(args)...);
+    return std::forward&lt;Fn>(fn)(std::forward&lt;Args>(args)...);
   }
-</args></fn></pre>
+</pre>
        <ul>
         <li data-md>
          <p><i>Mandates:</i> <code class="highlight"><i>nothrow-callable</i>&lt;Fn, Args...></code> is <code class="highlight">true</code>.</p>
        </ul>
       <li data-md>
-<pre class="highlight">template &lt;class T>
+<pre class="highlight">template&lt;class T>
   concept <i>movable-value</i> =
     move_constructible&lt;decay_t&lt;T>> &amp;&amp;
     constructible_from&lt;decay_t&lt;T>, T>;
@@ -5995,7 +6003,7 @@ arguments.</p>
      <p>Unless otherwise specified, the value returned by the expression <code class="highlight"><i>F</i>(e, args...)</code> is valid as long as <code class="highlight">e</code> is valid.</p>
    </ol>
    <h4 class="heading settled" data-level="11.2.2" id="spec-execution.queryable.concept"><span class="secno">11.2.2. </span><span class="content"><code class="highlight">queryable</code> concept <b>[exec.queryable.concept]</b></span><a class="self-link" href="#spec-execution.queryable.concept"></a></h4>
-<pre class="highlight">template &lt;class T>
+<pre class="highlight">template&lt;class T>
   concept queryable = destructible&lt;T>;
 </pre>
    <ol>
@@ -6178,7 +6186,7 @@ whose return type is not the type of a sender.</p>
     concept <i>class-type</i> = <i>decays-to</i>&lt;T, T> &amp;&amp; is_class_v&lt;T>;  <i>// exposition only</i>
 
   // [exec.queryable], queryable objects
-  template &lt;class T>
+  template&lt;class T>
     concept queryable = destructible<t>;
 
   // [exec.queries], queries
@@ -6194,11 +6202,11 @@ whose return type is not the type of a sender.</p>
   inline constexpr get_allocator_t get_allocator{};
   inline constexpr get_stop_token_t get_stop_token{};
 
-  template &lt;class T>
+  template&lt;class T>
     using stop_token_of_t =
       remove_cvref_t&lt;decltype(get_stop_token(declval&lt;T>()))>;
 
-  template &lt;class T>
+  template&lt;class T>
     concept <i>forwarding-query</i> = // exposition only
       forwarding_query(T{});
 
@@ -6206,11 +6214,11 @@ whose return type is not the type of a sender.</p>
     struct empty_env {};
     struct get_env_t;
   }
-  using <i>envs</i>::empty_env;
-  using <i>envs</i>::get_env_t;
+  using <i>envs-envs</i>::empty_env;
+  using <i>envs-envs</i>::get_env_t;
   inline constexpr get_env_t get_env {};
 
-  template &lt;class T>
+  template&lt;class T>
     using env_of_t = decltype(get_env(declval&lt;T>()));
 }
 
@@ -6221,7 +6229,7 @@ namespace std::execution {
     struct get_scheduler_t;
     struct get_delegatee_scheduler_t;
     struct get_forward_progress_guarantee_t;
-    template &lt;class CPO>
+    template&lt;class CPO>
       struct get_completion_scheduler_t;
   }
   using <i>queries</i>::get_scheduler_t;
@@ -6231,21 +6239,21 @@ namespace std::execution {
   inline constexpr get_scheduler_t get_scheduler{};
   inline constexpr get_delegatee_scheduler_t get_delegatee_scheduler{};
   inline constexpr get_forward_progress_guarantee_t get_forward_progress_guarantee{};
-  template &lt;class CPO>
+  template&lt;class CPO>
     inline constexpr get_completion_scheduler_t&lt;CPO> get_completion_scheduler{};
 
   // [exec.sched], schedulers
-  template &lt;class S>
+  template&lt;class S>
     concept scheduler = <i>see-below</i>;
 
   // [exec.recv], receivers
-  template &lt;class R>
+  template&lt;class R>
     inline constexpr bool enable_receiver = <i>see-below</i>;
 
-  template &lt;class R>
+  template&lt;class R>
     concept receiver = <i>see-below</i>;
 
-  template &lt;class R, class Completions>
+  template&lt;class R, class Completions>
     concept receiver_of = <i>see-below</i>;
 
   namespace <i>receivers</i> { // exposition only
@@ -6271,57 +6279,57 @@ namespace std::execution {
   inline constexpr start_t start{};
 
   // [exec.snd], senders
-  template &lt;class S>
+  template&lt;class S>
     inline constexpr bool enable_sender = <i>see below</i>;
 
-  template &lt;class S>
+  template&lt;class S>
     concept sender = <i>see-below</i>;
 
-  template &lt;class S, class E = empty_env>
+  template&lt;class S, class E = empty_env>
     concept sender_in = <i>see-below</i>;
 
-  template &lt;class S, class R>
+  template&lt;class S, class R>
     concept sender_to = <i>see-below</i>;
 
   template &lt;class S, class Sig, class E = empty_env>
     concept sender_of = <i>see below</i>;
 
-  template &lt;class... Ts>
+  template&lt;class... Ts>
     struct <i>type-list</i>; // exposition only
 
-  template &lt;class S, class E = empty_env>
+  template&lt;class S, class E = empty_env>
     using <i>single-sender-value-type</i> = <i>see below</i>; // exposition only
 
-  template &lt;class S, class E = empty_env>
+  template&lt;class S, class E = empty_env>
     concept <i>single-sender</i> = <i>see below</i>; // exposition only
 
-  // [exec.sndtraits], completion signatures
+  // [exec.getcomplsigs], completion signatures
   namespace <i>completion-signatures</i> { // exposition only
     struct get_completion_signatures_t;
   }
   using <i>completion-signatures</i>::get_completion_signatures_t;
   inline constexpr get_completion_signatures_t get_completion_signatures {};
 
-  template &lt;class S, class E = empty_env>
+  template&lt;class S, class E = empty_env>
       requires sender_in&lt;S, E>
-    using completion_signatures_of_t = <i>see below</i>;
+    using completion_signatures_of_t = <i>call-result-t</i>&lt;get_completion_signatures_t, S, E>;
 
-  template &lt;class... Ts>
+  template&lt;class... Ts>
     using <i>decayed-tuple</i> = tuple&lt;decay_t&lt;Ts>...>; // exposition only
 
-  template &lt;class... Ts>
+  template&lt;class... Ts>
     using <i>variant-or-empty</i> = <i>see below</i>; // exposition only
 
   template&lt;class S,
            class E = empty_env,
-           template &lt;class...> class Tuple = <i>decayed-tuple</i>,
-           template &lt;class...> class Variant = <i>variant-or-empty</i>>
+           template&lt;class...> class Tuple = <i>decayed-tuple</i>,
+           template&lt;class...> class Variant = <i>variant-or-empty</i>>
       requires sender_in&lt;S, E>
     using value_types_of_t = <i>see below</i>;
 
   template&lt;class S,
            class Env = empty_env,
-           template &lt;class...> class Variant = <i>variant-or-empty</i>>
+           template&lt;class...> class Variant = <i>variant-or-empty</i>>
       requires sender_in&lt;S, E>
     using error_types_of_t = <i>see below</i>;
 
@@ -6336,7 +6344,7 @@ namespace std::execution {
   using <i>senders-connect</i>::connect_t;
   inline constexpr connect_t connect{};
 
-  template &lt;class S, class R>
+  template&lt;class S, class R>
     using connect_result_t = decltype(connect(declval&lt;S>(), declval&lt;R>()));
 
   // [exec.factories], sender factories
@@ -6353,7 +6361,7 @@ namespace std::execution {
   inline constexpr transfer_just_t transfer_just{};
   inline constexpr <i>unspecified</i> read{};
 
-  template &lt;scheduler S>
+  template&lt;scheduler S>
     using schedule_result_t = decltype(schedule(declval&lt;S>()));
 
   // [exec.adapt], sender adaptors
@@ -6447,32 +6455,32 @@ namespace std::execution {
       receiver Base = <i>unspecified</i>> // arguments are not associated entities ([lib.tmpl-heads])
     class receiver_adaptor;
 
-  template &lt;class Fn>
+  template&lt;class Fn>
     concept <i>completion-signature</i> = <i>// exposition only</i>
       <i>see below</i>;
 
   // [exec.utils.cmplsigs]
-  template &lt;<i>completion-signature</i>... Fns>
+  template&lt;<i>completion-signature</i>... Fns>
     struct completion_signatures {};
 
-  template &lt;class... Args> <i>// exposition only</i>
+  template&lt;class... Args> <i>// exposition only</i>
     using <i>default-set-value</i> =
       completion_signatures&lt;set_value_t(Args...)>;
 
-  template &lt;class Err> <i>// exposition only</i>
+  template&lt;class Err> <i>// exposition only</i>
     using <i>default-set-error</i> =
       completion_signatures&lt;set_error_t(Err)>;
 
-  template &lt;class Sigs> // exposition only
+  template&lt;class Sigs> // exposition only
     concept <i>valid-completion-signatures</i> = <i>see below</i>;
 
   // [exec.utils.mkcmplsigs]
-  template &lt;
+  template&lt;
     sender Sndr,
     class Env = empty_env,
     <i>valid-completion-signatures</i> AddlSigs = completion_signatures&lt;>,
-    template &lt;class...> class SetValue = <i>see below</i>,
-    template &lt;class> class SetError = <i>see below</i>,
+    template&lt;class...> class SetValue = <i>see below</i>,
+    template&lt;class> class SetError = <i>see below</i>,
     <i>valid-completion-signatures</i> SetStopped = completion_signatures&lt;set_stopped_t()>>
       requires sender_in&lt;Sndr, Env>
   using make_completion_signatures = completion_signatures&lt;<i>see below</i>>;
@@ -6491,10 +6499,10 @@ namespace std::this_thread {
 
   namespace <i>this-thread</i> { <i>// exposition only</i>
     struct <i>sync-wait-env</i>; <i>// exposition only</i>
-    template &lt;class S>
+    template&lt;class S>
         requires sender_in&lt;S, <i>sync-wait-env</i>>
       using <i>sync-wait-type</i> = <i>see-below</i>; <i>// exposition only</i>
-    template &lt;class S>
+    template&lt;class S>
       using <i>sync-wait-with-variant-type</i> = <i>see-below</i>; <i>// exposition only</i>
 
     struct sync_wait_t;
@@ -6522,10 +6530,27 @@ namespace std::execution {
   inline constexpr as_awaitable_t as_awaitable;
 
   // [exec.with.awaitable.senders]
-  template &lt;<i>class-type</i> Promise>
+  template&lt;<i>class-type</i> Promise>
     struct with_awaitable_senders;
 }
 </t></pre>
+   <ol>
+    <li data-md>
+     <p>The exposition-only type <code class="highlight"><i>variant-or-empty&lt;Ts...></i></code> is
+ defined as follows:</p>
+     <ol>
+      <li data-md>
+       <p>If <code class="highlight">sizeof...(Ts)</code> is greater than zero, <code class="highlight"><i>variant-or-empty&lt;Ts...></i></code> names the type <code class="highlight">variant&lt;Us...></code> where <code class="highlight">Us...</code> is the pack <code class="highlight">decay_t&lt;Ts>...</code> with
+duplicate types removed.</p>
+      <li data-md>
+       <p>Otherwise, <code class="highlight"><i>variant-or-empty&lt;Ts...></i></code> names the
+exposition-only class type:</p>
+<pre class="highlight">struct <i>empty-variant</i> {
+  <i>empty-variant</i>() = delete;
+};
+</pre>
+     </ol>
+   </ol>
    <h3 class="heading settled" data-level="11.5" id="spec-execution.queries"><span class="secno">11.5. </span><span class="content">Queries <b>[exec.queries]</b></span><a class="self-link" href="#spec-execution.queries"></a></h3>
    <h4 class="heading settled" data-level="11.5.1" id="spec-execution.environment.get_env"><span class="secno">11.5.1. </span><span class="content"><code class="highlight">std::get_env</code> <b>[exec.get.env]</b></span><a class="self-link" href="#spec-execution.environment.get_env"></a></h4>
    <ol>
@@ -6767,13 +6792,13 @@ scheduler.</span></p>
 ([async.ops]). The <code class="highlight">receiver_of</code> concept defines the requirements for a
 receiver type that is usable as the first argument of a set of completion
 operations corresponding to a set of completion signatures. The <code class="highlight">get_env</code> customization point is used to access a receiver’s associated environment.</p>
-<pre class="highlight">template &lt;class R>
+<pre class="highlight">template&lt;class R>
   inline constexpr bool enable_receiver =
     requires {
       typename R::is_receiver;
     };
 
-template &lt;class R>
+template&lt;class R>
   concept receiver =
     enable_receiver&lt;remove_cvref_t&lt;R>> &amp;&amp;
     requires(const remove_cvref_t&lt;R>&amp; r) {
@@ -6782,7 +6807,7 @@ template &lt;class R>
     move_constructible&lt;remove_cvref_t&lt;R>> &amp;&amp;
     constructible_from&lt;remove_cvref_t&lt;R>, R>;
 
-template &lt;class Signature, class R>
+template&lt;class Signature, class R>
   concept <i>valid-completion-for</i> = <i>// exposition only</i>
     requires (Signature* sig) {
         []&lt;class Tag, class... Args>(Tag(*)(Args...))
@@ -6790,7 +6815,7 @@ template &lt;class Signature, class R>
         {}(sig);
     };
 
-template &lt;class R, class Completions>
+template&lt;class R, class Completions>
   concept receiver_of =
     receiver&lt;R> &amp;&amp;
     requires (Completions* completions) {
@@ -6816,12 +6841,12 @@ destroyed before the invocation of the completion operation.</span></p>
     <li data-md>
      <p><code class="highlight">set_value</code> is a value completion function ([async.ops]). Its associated
 completion tag is <code class="highlight">set_value_t</code>. The expression <code class="highlight">set_value(R, Vs...)</code> for
-some subexpression <code class="highlight">R</code> and pack of subexpressions <code class="highlight">Vs</code> is ill-formed if <code class="highlight">R</code> is an lvalue. Otherwise, it is expression-equivalent to <code class="highlight"><i>mandate-nothrow-call</i>(tag_invoke, set_value, R, Vs...)</code>.</p>
+some subexpression <code class="highlight">R</code> and pack of subexpressions <code class="highlight">Vs</code> is ill-formed if <code class="highlight">R</code> is an lvalue or a <code class="highlight">const</code> rvalue. Otherwise, it is expression-equivalent to <code class="highlight"><i>mandate-nothrow-call</i>(tag_invoke, set_value, R, Vs...)</code>.</p>
    </ol>
    <h4 class="heading settled" data-level="11.7.3" id="spec-execution.receivers.set_error"><span class="secno">11.7.3. </span><span class="content"><code class="highlight">execution::set_error</code> <b>[exec.set.error]</b></span><a class="self-link" href="#spec-execution.receivers.set_error"></a></h4>
    <ol>
     <li data-md>
-     <p><code class="highlight">set_error</code> is an error completion function. Its associated completion tag is <code class="highlight">set_error_t</code>. The expression <code class="highlight">set_error(R, E)</code> for some subexpressions <code class="highlight">R</code> and <code class="highlight">E</code> is ill-formed if <code class="highlight">R</code> is an lvalue. Otherwise, it is
+     <p><code class="highlight">set_error</code> is an error completion function. Its associated completion tag is <code class="highlight">set_error_t</code>. The expression <code class="highlight">set_error(R, E)</code> for some subexpressions <code class="highlight">R</code> and <code class="highlight">E</code> is ill-formed if <code class="highlight">R</code> is an lvalue or a <code class="highlight">const</code> rvalue. Otherwise, it is
 expression-equivalent to <code class="highlight"><i>mandate-nothrow-call</i>(tag_invoke,
 set_error, R, E)</code>.</p>
    </ol>
@@ -6829,7 +6854,7 @@ set_error, R, E)</code>.</p>
    <ol>
     <li data-md>
      <p><code class="highlight">set_stopped</code> is a stopped completion function. Its associated completion tag
-is <code class="highlight">set_stopped_t</code>.  The expression <code class="highlight">set_stopped(R)</code> for some subexpression <code class="highlight">R</code> is ill-formed if <code class="highlight">R</code> is an lvalue. Otherwise, it is
+is <code class="highlight">set_stopped_t</code>.  The expression <code class="highlight">set_stopped(R)</code> for some subexpression <code class="highlight">R</code> is ill-formed if <code class="highlight">R</code> is an lvalue or a <code class="highlight">const</code> rvalue. Otherwise, it is
 expression-equivalent to <code class="highlight"><i>mandate-nothrow-call</i>(tag_invoke,
 set_stopped, R)</code>.</p>
    </ol>
@@ -6874,19 +6899,19 @@ operation associated with the operation state <code class="highlight">O</code>, 
 type that can create asynchronous operations given an associated environment
 type. The <code class="highlight">sender_to</code> concept defines the requirements for a sender type
 that can connect with a specific receiver type. The <code class="highlight">get_env</code> customization
-point object is used to access a sender’s associated attributes. The <code class="highlight">connect</code> customization point object is used to connect a sender and a
-receiver to produce an operation state.</p>
-<pre class="highlight">template &lt;class Sigs>
+point object is used to access a sender’s associated attributes. The <code class="highlight">connect</code> customization point object is used to connect ([async.ops]) a
+sender and a receiver to produce an operation state.</p>
+<pre class="highlight">template&lt;class Sigs>
   concept <i>valid-completion-signatures</i> = <i>see below</i>;
 
-template &lt;class S>
+template&lt;class S>
   inline constexpr bool enable_sender =
     requires { typename S::is_sender; };
 
-template &lt;<i>is-awaitable</i>&lt;<i>env-promise</i>&lt;empty_env>> S> <i>// [exec.complsigs]</i>
+template&lt;<i>is-awaitable</i>&lt;<i>env-promise</i>&lt;empty_env>> S> <i>// [exec.awaitables]</i>
   inline constexpr bool enable_sender&lt;S> = true;
 
-template &lt;class S>
+template&lt;class S>
   concept sender =
     enable_sender&lt;remove_cvref_t&lt;S>> &amp;&amp;
     requires (const remove_cvref_t&lt;S>&amp; s) {
@@ -6895,7 +6920,7 @@ template &lt;class S>
     move_constructible&lt;remove_cvref_t&lt;S>> &amp;&amp;
     constructible_from&lt;remove_cvref_t&lt;S>, S>;
 
-template &lt;class S, class E = empty_env>
+template&lt;class S, class E = empty_env>
   concept sender_in =
     sender&lt;S> &amp;&amp;
     requires (S&amp;&amp; s, E&amp;&amp; e) {
@@ -6903,7 +6928,7 @@ template &lt;class S, class E = empty_env>
         <i>valid-completion-signatures</i>;
     };
 
-template &lt;class S, class R>
+template&lt;class S, class R>
   concept sender_to =
     sender_in&lt;S, env_of_t&lt;R>> &amp;&amp;
     receiver_of&lt;R, completion_signatures_of_t&lt;S, env_of_t&lt;R>>> &amp;&amp;
@@ -6920,25 +6945,25 @@ expressions ([expr.const]) and have type <code class="highlight">const bool</cod
     <li data-md>
      <p>The <code class="highlight">sender_of</code> concept defines the requirements for a sender type that
 completes with the completion signature specified for the given completion
-function.</p>
-<pre class="highlight">template &lt;class> struct <i>sender-of-helper</i>; <i>// exposition only</i>
-template &lt;class R, class... As>
+function. For function types <code class="highlight">F1</code> and <code class="highlight">F2</code> denoting <code class="highlight">R1(Args1...)</code> and <code class="highlight">R2(Args2...)</code> respectively, <code class="highlight"><i>MATCHING-SIG</i>(F1, F2)</code> is <code class="highlight">true</code> if and only if <code class="highlight">same_as&lt;R1(Args&amp;&amp;...), R2(Args2&amp;&amp;...)></code> is <code class="highlight">true</code>.</p>
+<pre class="highlight">template&lt;class> struct <i>sender-of-helper</i>; <i>// exposition only</i>
+template&lt;class R, class... As>
   struct <i>sender-of-helper</i>&lt;R(As...)> {
     using <i>tag</i> = R;
 
-    template &lt;class... Bs>
+    template&lt;class... Bs>
       using <i>as-sig</i> = R(Bs...);
   };
 
-template &lt;class S, class Sig, class E = empty_env>
+template&lt;class S, class Sig, class E = empty_env>
   concept sender_of =
     sender_in&lt;S, E> &amp;&amp;
-    same_as&lt;
-      <i>type-list</i>&lt;Sig>,
+    <i>MATCHING-SIG</i>(
+      Sig,
       <i>gather-signatures</i>&lt;  <i>// See [exec.utils.cmplsigs]</i>
         typename <i>sender-of-helper</i>&lt;Sig>::<i>tag</i>,
         S, E,
-        <i>sender-of-helper</i>&lt;Sig>::template <i>as-sig</i>, <i>type-list</i>>>;
+        <i>sender-of-helper</i>&lt;Sig>::template <i>as-sig</i>, type_identity_t>);
 </pre>
      <ol>
       <li data-md>
@@ -6961,6 +6986,8 @@ static_assert(!sender_of&lt;S2, set_stopped_t()>);
        <p>-- <em>end example</em>]</p>
      </ol>
     <li data-md>
+     <p>For a type <code class="highlight">T</code>, <code class="highlight"><i>SET-VALUE-SIG</i>(T)</code> names the type <code class="highlight">set_value_t()</code> if <code class="highlight">T</code> is <em>cv</em> <code class="highlight">void</code>; otherwise, it names the type <code class="highlight">set_value_t(T)</code>.</p>
+    <li data-md>
      <p>Library-provided sender types:</p>
      <ul>
       <li data-md>
@@ -6975,7 +7002,7 @@ static_assert(!sender_of&lt;S2, set_stopped_t()>);
    <h4 class="heading settled" data-level="11.9.2" id="spec.exec-awaitables"><span class="secno">11.9.2. </span><span class="content">Awaitable helpers <b>[exec.awaitables]</b></span><a class="self-link" href="#spec.exec-awaitables"></a></h4>
    <ol>
     <li data-md>
-     <p>The sender concepts recognize awaitables as valid senders. For this clause
+     <p>The sender concepts recognize awaitables as senders. For this clause
 ([exec]), an <dfn data-dfn-type="dfn" data-export id="awaitable">awaitable<a class="self-link" href="#awaitable"></a></dfn> is an expression that would be
 well-formed as the operand of a <code class="highlight">co_await</code> expression within a given
 context.</p>
@@ -6990,10 +7017,10 @@ transformations a term-of-art so we can more easily refer to it here.</div>
     <li data-md>
      <p>Let <code class="highlight"><i>is-awaitable</i></code> be the following exposition-only
 concept:</p>
-<pre class="highlight">template &lt;class T>
+<pre class="highlight">template&lt;class T>
 concept <i>await-suspend-result</i> = <i>see below</i>;
 
-template &lt;class A, class P>
+template&lt;class A, class P>
 concept <i>is-awaiter</i> = <i>// exposition only</i>
   requires (A&amp; a, coroutine_handle&lt;P> h) {
     a.await_ready() ? 1 : 0;
@@ -7001,7 +7028,7 @@ concept <i>is-awaiter</i> = <i>// exposition only</i>
     a.await_resume();
   };
 
-template &lt;class C, class P>
+template&lt;class C, class P>
 concept <i>is-awaitable</i> =
   requires (C (*fc)() noexcept, P&amp; p) {
     { <i>GET-AWAITER</i>(fc(), p) } -> <i>is-awaiter</i>&lt;P>;
@@ -7021,9 +7048,27 @@ concept <i>is-awaitable</i> =
      <p>For a subexpression <code class="highlight">c</code> such that <code class="highlight">decltype((c))</code> is type <code class="highlight">C</code>, and
 an lvalue <code class="highlight">p</code> of type <code class="highlight">P</code>, <code class="highlight"><i>await-result-type</i>&lt;C, P></code> names the type <code class="highlight">decltype(<i>GET-AWAITER</i>(c, p).await_resume())</code>.</p>
     <li data-md>
+     <p>Let <code class="highlight"><i>with-await-transform</i></code> be the exposition-only class template:</p>
+<pre class="highlight">template&lt;class Derived>
+struct <i>with-await-transform</i> {
+  template&lt;class T>
+  T&amp;&amp; await_transform(T&amp;&amp; value) noexcept {
+    return std::forward&lt;T>(value);
+  }
+
+  template&lt;class T>
+    requires tag_invocable&lt;as_awaitable_t, T, Derived&amp;>
+  auto await_transform(T&amp;&amp; value)
+    noexcept(nothrow_tag_invocable&lt;as_awaitable_t, T, Derived&amp;>)
+    -> tag_invoke_result_t&lt;as_awaitable_t, T, Derived&amp;> {
+    return tag_invoke(as_awaitable, std::forward&lt;T>(value), static_cast&lt;Derived&amp;>(*this));
+  }
+};
+</pre>
+    <li data-md>
      <p>Let <code class="highlight"><i>env-promise</i></code> be the exposition-only class template:</p>
-<pre class="highlight">template &lt;class Env>
-struct <i>env-promise</i> {
+<pre class="highlight">template&lt;class Env>
+struct <i>env-promise</i> : <i>with-await-transform</i>&lt;<i>env-promise</i>&lt;Env>> {
   <i>unspecified</i> get_return_object() noexcept;
   <i>unspecified</i> initial_suspend() noexcept;
   <i>unspecified</i> final_suspend() noexcept;
@@ -7031,34 +7076,14 @@ struct <i>env-promise</i> {
   void return_void() noexcept;
   coroutine_handle&lt;> unhandled_stopped() noexcept;
 
-  template &lt;class T>
-  T&amp;&amp; await_transform(T&amp;&amp; value) noexcept {
-    return static_cast&lt;T&amp;&amp;>(value);
-  }
-
-  template &lt;class T>
-    requires tag_invocable&lt;as_awaitable_t, T, <i>env-promise</i>&amp;>
-  auto await_transform(T&amp;&amp; value)
-    noexcept(nothrow_tag_invocable&lt;as_awaitable_t, T, <i>env-promise</i>&amp;>)
-    -> tag_invoke_result_t&lt;as_awaitable_t, T, <i>env-promise</i>&amp;> {
-    return tag_invoke(as_awaitable, static_cast&lt;T&amp;&amp;>(value), *this);
-  }
-
   friend const Env&amp; tag_invoke(get_env_t, const <i>env-promise</i>&amp;) noexcept;
 };
 </pre>
      <p><span class="wg21note">Specializations of <code class="highlight"><i>env-promise</i></code> are only used for the purpose of type computation; its members need not be
   defined.</span></p>
    </ol>
-   <h4 class="heading settled" data-level="11.9.3" id="spec-exec.sndtraits"><span class="secno">11.9.3. </span><span class="content">Completion signatures <b>[exec.sndtraits]</b></span><a class="self-link" href="#spec-exec.sndtraits"></a></h4>
-   <h5 class="heading settled" data-level="11.9.3.1" id="spec-exec.complsigs"><span class="secno">11.9.3.1. </span><span class="content"><code class="highlight">execution::completion_signatures_of_t</code> <b>[exec.complsigs]</b></span><a class="self-link" href="#spec-exec.complsigs"></a></h5>
+   <h4 class="heading settled" data-level="11.9.3" id="spec-exec.getcomplsigs"><span class="secno">11.9.3. </span><span class="content"><code class="highlight">execution::get_completion_signatures</code> <b>[exec.getcomplsigs]</b></span><a class="self-link" href="#spec-exec.getcomplsigs"></a></h4>
    <ol>
-    <li data-md>
-     <p>The alias template <code class="highlight">completion_signatures_of_t</code> obtains a sender’s set of
-completion signatures for a given environment type.</p>
-    <li data-md>
-     <p>For types <code class="highlight">S</code> and <code class="highlight">E</code>, the type <code class="highlight">completion_signatures_of_t&lt;S, E></code> is an
-alias for <code class="highlight">decltype(get_completion_signatures(declval&lt;S>(), declval&lt;E>()))</code> if that expression is well-formed.</p>
     <li data-md>
      <p><code class="highlight">get_completion_signatures</code> is a customization point object. Let <code class="highlight">s</code> be an
 expression such that <code class="highlight">decltype((s))</code> is <code class="highlight">S</code>, and let <code class="highlight">e</code> be an expression
@@ -7073,51 +7098,22 @@ expression is well-formed,</p>
          <p><i>Mandates:</i> <code class="highlight"><i>valid-completion-signatures</i>&lt;Sigs></code>, where <code class="highlight">Sigs</code> names the type <code class="highlight">tag_invoke_result_t&lt;get_completion_signatures_t, S, E></code>.</p>
        </ul>
       <li data-md>
-       <p>Otherwise, if <code class="highlight">remove_cvref_t&lt;S>::completion_signatures</code> is well-formed
-and names a type, then a value-initialized prvalue of type <code class="highlight">remove_cvref_t&lt;S>::completion_signatures</code>,</p>
+       <p>Otherwise, <code class="highlight">remove_cvref_t&lt;S>::completion_signatures{}</code> if that expression is well-formed,</p>
        <ul>
         <li data-md>
          <p><i>Mandates:</i> <code class="highlight"><i>valid-completion-signatures</i>&lt;Sigs></code>,
 where <code class="highlight">Sigs</code> names the type <code class="highlight">remove_cvref_t&lt;S>::completion_signatures</code>.</p>
        </ul>
       <li data-md>
-       <p>Otherwise, if <code class="highlight"><i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;E>></code> is <code class="highlight">true</code>, then</p>
-       <ol>
-        <li data-md>
-         <p>If <code class="highlight"><i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>></code> is <code class="highlight">void</code> then a prvalue of type:</p>
+       <p>Otherwise, if <code class="highlight"><i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;E>></code> is <code class="highlight">true</code>, then:</p>
 <pre class="highlight">completion_signatures&lt;
-  set_value_t(),
+  <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>>),
   set_error_t(exception_ptr),
-  set_stopped_t()>
+  set_stopped_t()>{}
 </pre>
-        <li data-md>
-         <p>Otherwise, a prvalue of type:</p>
-<pre class="highlight">completion_signatures&lt;
-  set_value_t(<i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>>),
-  set_error_t(exception_ptr),
-  set_stopped_t()>
-</pre>
-       </ol>
       <li data-md>
        <p>Otherwise, <code class="highlight">get_completion_signatures(s, e)</code> is ill-formed.</p>
      </ol>
-    <li data-md>
-     <p>The exposition-only type <code class="highlight"><i>variant-or-empty&lt;Ts...></i></code> is
- defined as follows:</p>
-     <ol>
-      <li data-md>
-       <p>If <code class="highlight">sizeof...(Ts)</code> is greater than zero, <code class="highlight"><i>variant-or-empty&lt;Ts...></i></code> names the type <code class="highlight">variant&lt;Us...></code> where <code class="highlight">Us...</code> is the pack <code class="highlight">decay_t&lt;Ts>...</code> with
-duplicate types removed.</p>
-      <li data-md>
-       <p>Otherwise, <code class="highlight"><i>variant-or-empty&lt;Ts...></i></code> names the
-exposition-only class type:</p>
-<pre class="highlight">struct <i>empty-variant</i> {
-  <i>empty-variant</i>() = delete;
-};
-</pre>
-     </ol>
-    <li data-md>
-     <p>For function types <code class="highlight">F1</code> and <code class="highlight">F2</code> denoting <code class="highlight">R1(Args1...)</code> and <code class="highlight">R2(Args2...)</code> respectively, <code class="highlight"><i>MATCHING-SIG</i>(F1, F2)</code> is <code class="highlight">true</code> if and only if <code class="highlight">same_as&lt;R1(Args&amp;&amp;...), R2(Args2&amp;&amp;...)></code> is <code class="highlight">true</code>.</p>
     <li data-md>
      <p>Let <code class="highlight">r</code> be an rvalue receiver of type <code class="highlight">R</code>, and let <code class="highlight">S</code> be the type of a
 sender such that <code class="highlight">sender_in&lt;S, env_of_t&lt;R>></code> is <code class="highlight">true</code>. Let <code class="highlight">Sigs...</code> be the
@@ -7131,52 +7127,79 @@ Sig)</code> is <code class="highlight">true</code>.</p>
    <h4 class="heading settled" data-level="11.9.4" id="spec-execution.senders.connect"><span class="secno">11.9.4. </span><span class="content"><code class="highlight">execution::connect</code> <b>[exec.connect]</b></span><a class="self-link" href="#spec-execution.senders.connect"></a></h4>
    <ol>
     <li data-md>
-     <p><code class="highlight">connect</code> connects ([async.op]) a sender with a receiver, producing an
-operation state object that is associated with the resulting asynchronous
-operation.</p>
+     <p><code class="highlight">connect</code> connects ([async.op]) a sender with a receiver.</p>
     <li data-md>
-     <p>The name <code class="highlight">connect</code> denotes a customization point object. For subexpressions <code class="highlight">s</code> and <code class="highlight">r</code>, let <code class="highlight">S</code> be <code class="highlight">decltype((s))</code> and <code class="highlight">R</code> be <code class="highlight">decltype((r))</code>, and let <code class="highlight">DS</code> and <code class="highlight">DR</code> be the decayed types of <code class="highlight">S</code> and <code class="highlight">R</code>, respectively. If <code class="highlight">S</code> does
-not satisfy <code class="highlight">sender</code> or if <code class="highlight">R</code> does not satisfy <code class="highlight">receiver</code>, <code class="highlight">connect(s, r)</code> is ill-formed. Otherwise, the expression <code class="highlight">connect(s, r)</code> is
-expression-equivalent to:</p>
-     <ol>
-      <li data-md>
-       <p><code class="highlight">tag_invoke(connect, s, r)</code>, if the constraints below are satisfied. If
-the function selected by <code class="highlight">tag_invoke</code> does not return an operation state
-for which <code class="highlight">start</code> starts the associated asynchronous operation, the
-behavior of calling <code class="highlight">connect(s, r)</code> is undefined.</p>
-       <ul>
-        <li data-md>
-         <p><i>Constraints:</i></p>
-<pre class="highlight">sender_in&lt;S, env_of_t&lt;R>> &amp;&amp;
-receiver_of&lt;R, completion_signatures_of_t&lt;S, env_of_t&lt;R>>> &amp;&amp;
-tag_invocable&lt;connect_t, S, R>
+     <p>The name <code class="highlight">connect</code> denotes a customization point object. For subexpressions <code class="highlight">s</code> and <code class="highlight">r</code>, let <code class="highlight">S</code> be <code class="highlight">decltype((s))</code> and <code class="highlight">R</code> be <code class="highlight">decltype((r))</code>, and let <code class="highlight">DS</code> and <code class="highlight">DR</code> be the decayed types of <code class="highlight">S</code> and <code class="highlight">R</code>, respectively.</p>
+    <li data-md>
+     <p>Let <code class="highlight"><i>connect-awaitable-promise</i></code> be the following class:</p>
+<pre class="highlight">struct <i>connect-awaitable-promise</i> : <i>with-await-transform</i>&lt;<i>connect-awaitable-promise</i>> {
+  DR&amp; <i>rcvr</i>; <i>// exposition only</i>
+
+  <i>connect-awaitable-promise</i>(DS&amp;, DR&amp; r) noexcept : <i>rcvr</i>(r) {}
+
+  suspend_always initial_suspend() noexcept { return {}; }
+  [[noreturn]] suspend_always final_suspend() noexcept { std::terminate(); }
+  [[noreturn]] void unhandled_exception() noexcept { std::terminate(); }
+  [[noreturn]] void return_void() noexcept { std::terminate(); }
+
+  coroutine_handle&lt;> unhandled_stopped() noexcept {
+    set_stopped((DR&amp;&amp;) <i>rcvr</i>);
+    return noop_coroutine();
+  }
+
+  <i>operation-state-task</i> get_return_object() noexcept {
+    return <i>operation-state-task</i>{
+      coroutine_handle&lt;<i>connect-awaitable-promise</i>>::from_promise(*this)};
+  }
+
+  friend auto tag_invoke(get_env_t, <i>connect-awaitable-promise</i>&amp; self)
+    noexcept(<i>nothrow-callable</i>&lt;get_env_t, const DR&amp;>) -> env_of_t&lt;const DR&amp;> {
+    return get_env(self.<i>rcvr</i>);
+  }
+};
 </pre>
-        <li data-md>
-         <p><i>Mandates:</i> The type of the <code class="highlight">tag_invoke</code> expression above satisfies <code class="highlight">operation_state</code>.</p>
-       </ul>
-      <li data-md>
-       <p>Otherwise, <code class="highlight"><i>connect-awaitable</i>(s, r)</code> if <code class="highlight"><i>is-awaitable</i>&lt;S, <i>connect-awaitable-promise</i>></code> is <code class="highlight">true</code> and that expression is valid, where <code class="highlight"><i>connect-awaitable</i></code> is an exposition-only coroutine
-defined as follows:</p>
-<pre class="highlight">template &lt;class Fun, class... Ts>
+    <li data-md>
+     <p>Let <code class="highlight"><i>operation-state-task</i></code> be the following class:</p>
+<pre class="highlight">struct <i>operation-state-task</i> {
+  using promise_type = <i>connect-awaitable-promise</i>;
+  coroutine_handle&lt;> <i>coro</i>; <i>// exposition only</i>
+
+  explicit <i>operation-state-task</i>(coroutine_handle&lt;> h) noexcept : <i>coro</i>(h) {}
+  <i>operation-state-task</i>(<i>operation-state-task</i>&amp;&amp; o) noexcept
+    : <i>coro</i>(exchange(o.<i>coro</i>, {})) {}
+  ~<i>operation-state-task</i>() { if (<i>coro</i>) <i>coro</i>.destroy(); }
+
+  friend void tag_invoke(start_t, <i>operation-state-task</i>&amp; self) noexcept {
+    self.<i>coro</i>.resume();
+  }
+};
+</pre>
+    <li data-md>
+     <p>Let <code class="highlight">V</code> name the type <code class="highlight"><i>await-result-type</i>&lt;DS, <i>connect-awaitable-promise</i>></code>, let <code class="highlight">Sigs</code> name the type:</p>
+<pre class="highlight">completion_signatures&lt;<i>SET-VALUE-SIG</i>(V), set_error_t(exception_ptr), set_stopped_t()>
+</pre>
+     <p>and let <code class="highlight"><i>connect-awaitable</i></code> be an exposition-only
+coroutine defined as follows:</p>
+<pre class="highlight">template&lt;class Fun, class... Ts>
 auto <i>suspend-complete</i>(Fun fun, Ts&amp;&amp;... as) noexcept { <i>// exposition only</i>
-  auto fn = [&amp;, fun]() noexcept { fun(static_cast&lt;Ts&amp;&amp;>(as)...); };
+  auto fn = [&amp;, fun]() noexcept { fun(std::forward&lt;Ts>(as)...); };
 
   struct awaiter {
-    decltype(fn) fn_;
+    decltype(fn) <i>fn_</i>;
 
-    bool await_ready() noexcept { return false; }
-    void await_suspend(coroutine_handle&lt;>) noexcept { fn_(); }
+    static bool await_ready() noexcept { return false; }
+    void await_suspend(coroutine_handle&lt;>) noexcept { <i>fn_</i>(); }
     [[noreturn]] void await_resume() noexcept { unreachable(); }
   };
   return awaiter{fn};
 };
 
-<i>operation-state-task</i> <i>connect-awaitable</i>(DS s, DR r) requires <i>see below</i> {
-  using V = <i>await-result-type</i>&lt;DS, <i>connect-awaitable-promise</i>>;
+<i>operation-state-task</i> <i>connect-awaitable</i>(DS s, DR r) requires receiver_of&lt;DR, Sigs> {
   exception_ptr ep;
   try {
     if constexpr (same_as&lt;V, void>) {
-      co_await (co_await std::move(s), <i>suspend-complete</i>(set_value, std::move(r)));
+      co_await std::move(s);
+      co_await <i>suspend-complete</i>(set_value, std::move(r));
     } else {
       co_await <i>suspend-complete</i>(set_value, std::move(r), co_await std::move(s));
     }
@@ -7186,32 +7209,20 @@ auto <i>suspend-complete</i>(Fun fun, Ts&amp;&amp;... as) noexcept { <i>// expos
   co_await <i>suspend-complete</i>(set_error, std::move(r), std::move(ep));
 }
 </pre>
-       <p>where <code class="highlight"><i>connect-awaitable-promise</i></code> is the promise type
-of <code class="highlight"><i>connect-awaitable</i></code>, and where <code class="highlight"><i>connect-awaitable</i></code> suspends at the <i>initial
-suspends point</i> ([dcl.fct.def.coroutine]), and:</p>
-       <ol>
+    <li data-md>
+     <p>If <code class="highlight">S</code> does not satisfy <code class="highlight">sender</code> or if <code class="highlight">R</code> does not satisfy <code class="highlight">receiver</code>, <code class="highlight">connect(s, r)</code> is ill-formed. Otherwise, the expression <code class="highlight">connect(s, r)</code> is
+expression-equivalent to:</p>
+     <ol>
+      <li data-md>
+       <p><code class="highlight">tag_invoke(connect, s, r)</code> if <code class="highlight"><i>connectable-with-tag-invoke</i>&lt;S, R></code> is modeled.</p>
+       <ul>
         <li data-md>
-         <p><code class="highlight"><i>operation-state-task</i></code> is a type that models <code class="highlight">operation_state</code>. For an lvalue subexpression <code class="highlight">o</code> of type <code class="highlight"><i>operation-state-task</i></code>, <code class="highlight">start(o)</code> resumes the <code class="highlight"><i>connect-awaitable</i></code> coroutine, advancing it
-past the initial suspend point. Its destructor destroys the <code class="highlight"><i>connect-awaitable</i></code> coroutine.</p>
-        <li data-md>
-         <p>Let <code class="highlight">p</code> be an lvalue denoting the promise object of a <code class="highlight"><i>connect-awaitable</i></code> coroutine. <code class="highlight">get_env(p)</code> is
-expression-equivalent to <code class="highlight">get_env(as_const(r))</code>.</p>
-        <li data-md>
-         <p>The expression <code class="highlight">p.unhandled_stopped()</code> is expression-equivalent to <code class="highlight">(set_stopped(std::move(r)), noop_coroutine())</code>.</p>
-        <li data-md>
-         <p>For an expression <code class="highlight">e</code>, the expression <code class="highlight">p.await_transform(e)</code> is
-  expression-equivalent to <code class="highlight">tag_invoke(as_awaitable, e, p)</code> if that
-  expression is well-formed ([exec.as.awaitable]); otherwise, it is
-  expression-equivalent to <code class="highlight">identity()(e)</code>.</p>
-       </ol>
-       <p>Let <code class="highlight">V</code> be <code class="highlight"><i>await-result-type</i>&lt;S, <i>connect-awaitable-promise</i>></code>, and let <code class="highlight">Vs...</code> be an empty
-parameter pack if <code class="highlight">V</code> is <code class="highlight">void</code>, or a pack containing the
-single type <code class="highlight">V</code> otherwise. The operand of the <i>requires-clause</i> of <code class="highlight"><i>connect-awaitable</i></code> is <code class="highlight">receiver_of&lt;R, Sigs></code> where <code class="highlight">Sigs</code> names the type:</p>
-<pre class="highlight">completion_signatures&lt;
-  set_value_t(Vs...),
-  set_error_t(exception_ptr),
-  set_stopped_t()>
-</pre>
+         <p><i>Mandates:</i> The type of the <code class="highlight">tag_invoke</code> expression above
+satisfies <code class="highlight">operation_state</code>.</p>
+       </ul>
+      <li data-md>
+       <p>Otherwise, <code class="highlight"><i>connect-awaitable</i>(s, r)</code> if that expression is
+well-formed.</p>
       <li data-md>
        <p>Otherwise, <code class="highlight">connect(s, r)</code> is ill-formed.</p>
      </ol>
@@ -7247,51 +7258,45 @@ complete synchronously in their start operation with a stopped completion
 operation.</p>
     <li data-md>
      <p>Let <code class="highlight">just-sender</code> be the class template:</p>
-<pre class="highlight">template&lt;class Tag, class... Ts>
+<pre class="highlight">template&lt;class Tag, <i>movable-value</i>... Ts>
 struct <i>just-sender</i> { // exposition only
   using is_sender = <i>unspecified</i>;
   using completion_signatures =
-    completion_signatures&lt;Tag(Ts...)>;
+    execution::completion_signatures&lt;Tag(Ts...)>;
 
-  [[no_unique_address]] tuple&lt;Ts...> vs_; // exposition only
+  tuple&lt;Ts...> <i>vs_</i>; // exposition only
 
-  template &lt;class R>
+  template&lt;class R>
   struct operation { // exposition only
-    [[no_unique_address]] tuple&lt;Ts...> vs_; // exposition only
-    R r_; // exposition only
+    tuple&lt;Ts...> <i>vs_</i>; // exposition only
+    R <i>r_</i>; // exposition only
 
     friend void tag_invoke(start_t, operation&amp; s) noexcept {
-      apply([&amp;s](Ts&amp;... values_) {
-        Tag{}(std::move(s.r_), std::move(values_)...);
-      }, s.vs_);
+      apply([&amp;s](Ts&amp;... values) {
+        Tag()(std::move(s.<i>r_</i>), std::move(values)...);
+      }, s.<i>vs_</i>);
     }
   };
 
-  template &lt;receiver_of&lt;completion_signatures> R>
+  template&lt;receiver_of&lt;completion_signatures> R>
     requires (copy_constructible&lt;Ts> &amp;&amp;...)
-  friend operation&lt;decay_t<r>> tag_invoke(connect_t, const <i>just-sender</i>&amp; s, R &amp;&amp; r) {
-    return { s.vs_, std::forward&lt;R>(r) };
+  friend operation&lt;decay_t&lt;R>> tag_invoke(connect_t, const <i>just-sender</i>&amp; s, R &amp;&amp; r) {
+    return { s.<i>vs_</i>, std::forward&lt;R>(r) };
   }
 
-  template &lt;receiver_of&lt;completion_signatures> R>
-  friend operation&lt;decay_t<r>> tag_invoke(connect_t, <i>just-sender</i>&amp;&amp; s, R &amp;&amp; r) {
-    return { std::move(s.vs_), std::forward&lt;R>(r) };
-  }
-
-  friend empty_env tag_invoke(get_env_t, const <i>just-sender</i>&amp;) noexcept {
-    return {};
+  template&lt;receiver_of&lt;completion_signatures> R>
+  friend operation&lt;decay_t&lt;R>> tag_invoke(connect_t, <i>just-sender</i>&amp;&amp; s, R &amp;&amp; r) {
+    return { std::move(s.<i>vs_</i>), std::forward&lt;R>(r) };
   }
 };
-</r></r></pre>
+</pre>
     <li data-md>
      <p>The name <code class="highlight">just</code> denotes a customization point object. For some pack of
-subexpressions <code class="highlight">vs</code>, let <code class="highlight">Vs</code> be the template paramter pack <code class="highlight">decltype((vs))...</code>. If any type <code class="highlight">V</code> in <code class="highlight">Vs</code> does not satisfy <code class="highlight"><i>movable-value</i></code>, <code class="highlight">just(vs...)</code> is ill-formed. Otherwise, <code class="highlight">just(vs...)</code> is expression-equivalent to <code class="highlight"><i>just-sender</i>&lt;set_value_t,
-decay_t&lt;Ts>...>({vs...})</code>.</p>
+subexpressions <code class="highlight">vs</code>, let <code class="highlight">Vs</code> be the template paramter pack <code class="highlight">decltype((vs))</code>. <code class="highlight">just(vs...)</code> is expression-equivalent to <code class="highlight"><i>just-sender</i>&lt;set_value_t,
+remove_cvref_t&lt;Vs>...>({vs...})</code>.</p>
     <li data-md>
      <p>The name <code class="highlight">just_error</code> denotes a customization point object. For some
-subexpression <code class="highlight">err</code>, let <code class="highlight">Err</code> be <code class="highlight">decltype((err))</code>. If <code class="highlight">Err</code> does not
-satisfy <code class="highlight"><i>movable-value</i></code>, <code class="highlight">just_error(err)</code> is ill-formed.
-Otherwise, <code class="highlight">just_error(err)</code> is expression-equivalent to <code class="highlight"><i>just-sender</i>&lt;set_error_t, decay_t&lt;Err>>({err})</code>.</p>
+subexpression <code class="highlight">err</code>, let <code class="highlight">Err</code> be <code class="highlight">decltype((err))</code>. <code class="highlight">just_error(err)</code> is expression-equivalent to <code class="highlight"><i>just-sender</i>&lt;set_error_t, remove_cvref_t&lt;Err>>({err})</code>.</p>
     <li data-md>
      <p>Then name <code class="highlight">just_stopped</code> denotes a customization point object. <code class="highlight">just_stopped()</code> is expression-equivalent to <code class="highlight"><i>just-sender</i>&lt;set_stopped_t>()</code>.</p>
    </ol>
@@ -7331,11 +7336,11 @@ synchronously in its start operation with a value completion result equal to
 a value read from the receiver’s associated environment.</p>
     <li data-md>
      <p><code class="highlight">read</code> is a customization point object of the unspecified class type:</p>
-<pre class="highlight">template &lt;class Tag>
+<pre class="highlight">template&lt;class Tag>
   struct <i>read-sender</i>; // exposition only
 
 struct <i>read-t</i> { // exposition only
-  template &lt;class Tag>
+  template&lt;class Tag>
     constexpr <i>read-sender</i>&lt;Tag> operator()(Tag) const noexcept {
       return {};
     }
@@ -7343,7 +7348,7 @@ struct <i>read-t</i> { // exposition only
 </pre>
     <li data-md>
      <p><code class="highlight"><i>read-sender</i></code> is the exposition-only class template:</p>
-<pre class="highlight">template &lt;class Tag>
+<pre class="highlight">template&lt;class Tag>
   struct <i>read-sender</i> { // exposition only
     using is_sender = <i>unspecified</i>;
     template&lt;class R>
@@ -7422,13 +7427,13 @@ arguments do not contribute to the associated entities
 class template is an associated entity.</p>
      <p>[<em>Example:</em></p>
 <pre class="highlight">namespace <i>sender-adaptors</i> { // exposition only
-  template &lt;class Sch, class S> // arguments are not associated entities ([lib.tmpl-heads])
+  template&lt;class Sch, class S> // arguments are not associated entities ([lib.tmpl-heads])
   class <i>on-sender</i> {
     // ...
   };
 
   struct on_t {
-    template &lt;scheduler Sch, sender S>
+    template&lt;scheduler Sch, sender S>
     <i>on-sender</i>&lt;Sch, S> operator()(Sch&amp;&amp; sch, S&amp;&amp; s) const {
       // ...
     }
@@ -7720,13 +7725,13 @@ to:</p>
     <i>set-value-completions</i>>;
 </pre>
          <p>where <code class="highlight"><i>set-value-completions</i></code> is an alias for:</p>
-<pre class="highlight">template &lt;class... As>
+<pre class="highlight">template&lt;class... As>
   <i>set-value-completions</i> =
     completion_signatures&lt;<i>compl-sig-t</i>&lt;set_value_t, invoke_result_t&lt;F, As...>>>
 </pre>
          <p>and <code class="highlight"><i>set-error-signature</i></code> is an alias for <code class="highlight">completion_signatures&lt;set_error_t(exception_ptr)></code> if any of the types
 in the <code class="highlight"><i>type-list</i></code> named by <code class="highlight">value_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>potentially-throwing</i>, <i>type-list</i>></code> are <code class="highlight">true_type</code>; otherwise, <code class="highlight">completion_signatures&lt;></code>, where <code class="highlight"><i>potentially-throwing</i></code> is the template alias:</p>
-<pre class="highlight">template &lt;class... As>
+<pre class="highlight">template&lt;class... As>
   using <i>potentially-throwing</i> =
     bool_constant&lt;!is_nothrow_invocable_v&lt;F, As...>>;
 </pre>
@@ -7789,13 +7794,13 @@ to:</p>
     <i>default-set-value</i>, <i>set-error-completion</i>>;
 </pre>
          <p>where <code class="highlight"><i>set-error-completion</i></code> is the template alias:</p>
-<pre class="highlight">template &lt;class E>
+<pre class="highlight">template&lt;class E>
   <i>set-error-completion</i> =
     completion_signatures&lt;<i>compl-sig-t</i>&lt;set_value_t, invoke_result_t&lt;F, E>>>
 </pre>
          <p>and <code class="highlight"><i>set-error-signature</i></code> is an alias for <code class="highlight">completion_signatures&lt;set_error_t(exception_ptr)></code> if any of the types
 in the <code class="highlight"><i>type-list</i></code> named by <code class="highlight">error_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>potentially-throwing</i>></code> are <code class="highlight">true_type</code>; otherwise, <code class="highlight">completion_signatures&lt;></code>, where <code class="highlight"><i>potentially-throwing</i></code> is the template alias:</p>
-<pre class="highlight">template &lt;class... Es>
+<pre class="highlight">template&lt;class... Es>
   using <i>potentially-throwing</i> =
     <i>type-list</i>&lt;!bool_constant&lt;is_nothrow_invocable_v&lt;F, Es>>...>;
 </pre>
@@ -7988,7 +7993,7 @@ subexpressions <code class="highlight">s</code>, <code class="highlight">shape</
         <li data-md>
          <p>Given subexpressions <code class="highlight">s2</code> and <code class="highlight">e</code> where <code class="highlight">s2</code> is a sender returned
 from <code class="highlight">bulk</code> or a copy of such, let <code class="highlight">S2</code> be <code class="highlight">decltype((s2))</code>, let <code class="highlight">E</code> be <code class="highlight">decltype((e))</code>, let <code class="highlight">DS</code> be <code class="highlight">copy_cvref_t&lt;S2, S></code>, let <code class="highlight">Shape</code> be <code class="highlight">decltype((shape))</code> and let <code class="highlight"><i>nothrow-callable</i></code> be the alias template:</p>
-<pre class="highlight">template &lt;class... As>
+<pre class="highlight">template&lt;class... As>
   using <i>nothrow-callable</i> =
     bool_constant&lt;is_nothrow_invocable_v&lt;decay_t&lt;F>&amp;, Shape, As...>>;
 </pre>
@@ -8090,9 +8095,9 @@ returns an operation state object <code class="highlight">op_state</code> that c
 where <code class="highlight"><i>stop-callback-fn</i></code> is the unspecified
 class type:</p>
 <pre class="highlight">struct <i>stop-callback-fn</i> {
-  stop_source&amp; stop_src_;
+  stop_source&amp; <i>stop_src_</i>;
   void operator()() noexcept {
-    stop_src_.request_stop();
+    <i>stop_src_</i>.request_stop();
   }
 };
 </pre>
@@ -8148,12 +8153,12 @@ to:</p>
   <i>error-signatures</i>>;
 </pre>
        <p>where <code class="highlight"><i>Es</i></code> is a (possibly empty) template parameter pack, <code class="highlight"><i>value-signatures</i></code> is the alias template:</p>
-<pre class="highlight">template &lt;class... Ts>
+<pre class="highlight">template&lt;class... Ts>
   using <i>value-signatures</i> =
     completion_signatures&lt;set_value_t(const decay_t&lt;Ts>&amp;...)>;
 </pre>
        <p>and <code class="highlight"><i>error-signatures</i></code> is the alias template:</p>
-<pre class="highlight">template &lt;class E>
+<pre class="highlight">template&lt;class E>
   using <i>error-signatures</i> =
     completion_signatures&lt;set_error_t(const decay_t&lt;E>&amp;)>;
 </pre>
@@ -8222,9 +8227,9 @@ with some receiver <code class="highlight">out_r</code> of type <code class="hig
           <li data-md>
            <p>A stop callback of type <code class="highlight">optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>, where <code class="highlight"><i>stop-callback-fn</i></code> is the unspecified class type:</p>
 <pre class="highlight">struct <i>stop-callback-fn</i> {
-  in_place_stop_source&amp; stop_src_;
+  in_place_stop_source&amp; <i>stop_src_</i>;
   void operator()() noexcept {
-    stop_src_.request_stop();
+    <i>stop_src_</i>.request_stop();
   }
 };
 </pre>
@@ -8384,16 +8389,16 @@ a sender <code class="highlight">s2</code>. When <code class="highlight">s2</cod
       <li data-md>
        <p>Given subexpressions <code class="highlight">s2</code> and <code class="highlight">e</code>, where <code class="highlight">s2</code> is a sender returned from <code class="highlight">into_variant</code> or a copy of such, let <code class="highlight">S2</code> be <code class="highlight">decltype((s2))</code> and <code class="highlight">E</code> be <code class="highlight">decltype((e))</code>.
 Let <code class="highlight"><i>into-variant-set-value</i></code> be the class template:</p>
-<pre class="highlight">template &lt;class S, class E>
+<pre class="highlight">template&lt;class S, class E>
 struct <i>into-variant-set-value</i> {
-  template &lt;class ...Args>
+  template&lt;class ...Args>
   using <i>apply</i> = set_value_t(<i>into-variant-type</i>&lt;S, E>);
 };
 </pre>
        <p>Let <code class="highlight"><i>into-variant-is-nothrow</i></code> be the class template:</p>
-<pre class="highlight">template &lt;class S, class E>
+<pre class="highlight">template&lt;class S, class E>
 struct <i>into-variant-is-nothrow</i> {
-  template &lt;class... Args>
+  template&lt;class... Args>
       requires constructible_from&lt;<i>decayed-tuple</i>&lt;Args...>, Args...>
     using <i>apply</i> = bool_constant&lt;noexcept(
       <i>into-variant-type</i>&lt;S, E>(<i>decayed-tuple</i>&lt;Args...>(declval&lt;Args>()...)))>;
@@ -8423,7 +8428,7 @@ struct <i>into-variant-is-nothrow</i> {
       then(s,
         []&lt;class T>(T&amp;&amp; t) {
           return optional&lt;decay_t&lt;<i>single-sender-value-type</i>&lt;S, E>>>{
-            static_cast&lt;T&amp;&amp;>(t)
+            std::forward&lt;T>(t)
           };
         }
       ),
@@ -8529,9 +8534,9 @@ returns an operation state object <code class="highlight">op_state</code> that c
 where <code class="highlight"><i>stop-callback-fn</i></code> is the unspecified
 class type:</p>
 <pre class="highlight">struct <i>stop-callback-fn</i> {
-  stop_source&amp; stop_src_;
+  stop_source&amp; <i>stop_src_</i>;
   void operator()() noexcept {
-    stop_src_.request_stop();
+    <i>stop_src_</i>.request_stop();
   }
 };
 </pre>
@@ -8586,12 +8591,12 @@ to:</p>
   <i>error-types</i>>
 </pre>
        <p>where <code class="highlight"><i>Es</i></code> is a (possibly empty) template parameter pack, <code class="highlight"><i>set-value-signature</i></code> is the alias template:</p>
-<pre class="highlight">template &lt;class... Ts>
+<pre class="highlight">template&lt;class... Ts>
   using <i>set-value-signature</i> =
     completion_signatures&lt;set_value_t(decay_t&lt;Ts>&amp;&amp;...)>;
 </pre>
        <p>and <code class="highlight"><i>error-types</i></code> is the alias template:</p>
-<pre class="highlight">template &lt;class E>
+<pre class="highlight">template&lt;class E>
   using <i>error-types</i> =
     completion_signatures&lt;set_error_t(decay_t&lt;E>&amp;&amp;)>;
 </pre>
@@ -8759,7 +8764,7 @@ caller, the behavior of calling <code class="highlight">execute</code> is undefi
      <p>This section makes use of the following exposition-only entities:</p>
 <pre class="highlight">// [<i>Editorial note:</i> copy_cvref_t as in [[P1450R3]] -- <i>end note</i>]
 // Mandates: is_base_of_v&lt;T, remove_reference_t&lt;U>> is true
-template &lt;class T, class U>
+template&lt;class T, class U>
   copy_cvref_t&lt;U&amp;&amp;, T> <i>c-style-cast</i>(U&amp;&amp; u) noexcept requires <i>decays-to</i>&lt;T, T> {
     return (copy_cvref_t&lt;U&amp;&amp;, T>) std::forward&lt;U>(u);
   }
@@ -8798,7 +8803,7 @@ template &lt;class T, class U>
      <p>Let <code class="highlight"><i>BASE-TYPE</i>(D)</code> be the type of <code class="highlight"><i>GET-BASE</i>(declval&lt;D>())</code>.</p>
     <li data-md>
      <p><code class="highlight">receiver_adaptor&lt;Derived, Base></code> is equivalent to the following:</p>
-<pre class="highlight">template &lt;
+<pre class="highlight">template&lt;
   <i>class-type</i> Derived,
   receiver Base = <i>unspecified</i>> // arguments are not associated entities ([lib.tmpl-heads])
 class receiver_adaptor {
@@ -8808,7 +8813,7 @@ class receiver_adaptor {
 
   // Constructors
   receiver_adaptor() = default;
-  template &lt;class B>
+  template&lt;class B>
       requires <i>HAS-BASE</i> &amp;&amp; constructible_from&lt;Base, B>
     explicit receiver_adaptor(B&amp;&amp; base) : base_(std::forward&lt;B>(base)) {}
 
@@ -8819,17 +8824,17 @@ class receiver_adaptor {
   using get_env = <i>unspecified</i>;
 
   // Member functions
-  template &lt;class Self>
+  template&lt;class Self>
     requires <i>HAS-BASE</i>
   decltype(auto) base(this Self&amp;&amp; self) noexcept {
     return (std::forward&lt;Self>(self).base_);
   }
 
   // [exec.utils.rcvr.adptr.nonmembers] Non-member functions
-  template &lt;class... As>
+  template&lt;class... As>
     friend void tag_invoke(set_value_t, Derived&amp;&amp; self, As&amp;&amp;... as) noexcept;
 
-  template &lt;class E>
+  template&lt;class E>
     friend void tag_invoke(set_error_t, Derived&amp;&amp; self, E&amp;&amp; e) noexcept;
 
   friend void tag_invoke(set_stopped_t, Derived&amp;&amp; self) noexcept;
@@ -8849,7 +8854,7 @@ instantiated.]</p>
 <pre class="highlight">using _int_completion =
   completion_signatures&lt;set_value_t(int)>;
 
-template &lt;receiver_of&lt;_int_completion> R>
+template&lt;receiver_of&lt;_int_completion> R>
   class my_receiver : receiver_adaptor&lt;my_receiver&lt;R>, R> {
     friend receiver_adaptor&lt;my_receiver, R>;
     void set_value() &amp;&amp; {
@@ -8862,7 +8867,7 @@ template &lt;receiver_of&lt;_int_completion> R>
      <p>-- <i>end example</i>]</p>
    </ol>
    <h5 class="heading settled" data-level="11.11.1.1" id="spec-execution.snd_rec_utils.receiver_adaptor.nonmembers"><span class="secno">11.11.1.1. </span><span class="content">Non-member functions <b>[exec.utils.rcvr.adptr.nonmembers]</b></span><a class="self-link" href="#spec-execution.snd_rec_utils.receiver_adaptor.nonmembers"></a></h5>
-<pre class="highlight">template &lt;class... As>
+<pre class="highlight">template&lt;class... As>
   friend void tag_invoke(set_value_t, Derived&amp;&amp; self, As&amp;&amp;... as) noexcept;
 </pre>
    <ol>
@@ -8881,7 +8886,7 @@ template &lt;receiver_of&lt;_int_completion> R>
        <p>Otherwise, <code class="highlight">set_value(<i>GET-BASE</i>(std::move(self)), std::forward&lt;As>(as)...)</code>.</p>
      </ul>
    </ol>
-<pre class="highlight">template &lt;class E>
+<pre class="highlight">template&lt;class E>
   friend void tag_invoke(set_error_t, Derived&amp;&amp; self, E&amp;&amp; e) noexcept;
 </pre>
    <ol>
@@ -8972,13 +8977,13 @@ template &lt;receiver_of&lt;_int_completion> R>
 <pre class="highlight">template&lt;class Fn>
   concept <i>completion-signature</i> = <i>see below</i>;
 
-template &lt;bool>
+template&lt;bool>
   struct <i>indirect-meta-apply</i> {
-    template &lt;template &lt;class...> class T, class... As>
+    template&lt;template&lt;class...> class T, class... As>
       using <i>meta-apply</i> = T&lt;As...>; <i>// exposition only</i>
   };
 
-template &lt;class...>
+template&lt;class...>
   concept <i>always-true</i> = true; <i>// exposition only</i>
 </pre>
      <ol>
@@ -8993,11 +8998,11 @@ template &lt;class...>
          <p><code class="highlight">set_stopped_t()</code></p>
        </ul>
      </ol>
-<pre class="highlight">template &lt;class Tag,
+<pre class="highlight">template&lt;class Tag,
           class S,
           class E,
-          template &lt;class...> class Tuple,
-          template &lt;class...> class Variant>
+          template&lt;class...> class Tuple,
+          template&lt;class...> class Variant>
     requires sender_in&lt;S, E>
   using <i>gather-signatures</i> = <i>see below</i>;
 </pre>
@@ -9016,25 +9021,25 @@ equivalent to:</p>
 valid to use non-variadic templates as <code class="highlight"><i>Variant</i></code> and <code class="highlight"><i>Tuple</i></code> arguments to <code class="highlight"><i>gather-signatures</i></code>.</span></p>
      </ol>
     <li data-md>
-<pre class="highlight">template &lt;<i>completion-signature</i>... Fns>
+<pre class="highlight">template&lt;<i>completion-signature</i>... Fns>
   struct completion_signatures {};
 
-template &lt;class S,
+template&lt;class S,
           class E = empty_env,
-          template &lt;class...> class Tuple = <i>decayed-tuple</i>,
-          template &lt;class...> class Variant = <i>variant-or-empty</i>>
+          template&lt;class...> class Tuple = <i>decayed-tuple</i>,
+          template&lt;class...> class Variant = <i>variant-or-empty</i>>
     requires sender_in&lt;S, E>
   using value_types_of_t =
       <i>gather-signatures</i>&lt;set_value_t, S, E, Tuple, Variant>;
 
-template &lt;class S,
+template&lt;class S,
           class E = empty_env,
-          template &lt;class...> class Variant = <i>variant-or-empty</i>>
+          template&lt;class...> class Variant = <i>variant-or-empty</i>>
     requires sender_in&lt;S, E>
   using error_types_of_t =
       <i>gather-signatures</i>&lt;set_error_t, S, E, type_identity_t, Variant>;
 
-template &lt;class S, class E = empty_env>
+template&lt;class S, class E = empty_env>
     requires sender_in&lt;S, E>
   inline constexpr bool sends_stopped =
       !same_as&lt;
@@ -9055,7 +9060,7 @@ completion signatures to generate a new specialization of <code class="highlight
 // signatures by lvalue-ref qualifying the values, adding an additional
 // exception_ptr error completion if its not already there, and leaving the
 // other completion signatures alone.
-template &lt;class... Args>
+template&lt;class... Args>
   using my_set_value_t =
     completion_signatures&lt;
       set_value_t(add_lvalue_reference_t&lt;Args>...)>;
@@ -9069,21 +9074,21 @@ using my_completion_signatures =
      <p>-- <i>end example</i>]</p>
     <li data-md>
      <p>This section makes use of the following exposition-only entities:</p>
-<pre class="highlight">template &lt;class... As>
+<pre class="highlight">template&lt;class... As>
   using <i>default-set-value</i> =
     completion_signatures&lt;set_value_t(As...)>;
 
-template &lt;class Err>
+template&lt;class Err>
   using <i>default-set-error</i> =
     completion_signatures&lt;set_error_t(Err)>;
 </pre>
     <li data-md>
-<pre class="highlight">template &lt;sender Sndr,
+<pre class="highlight">template&lt;sender Sndr,
           class Env = empty_env,
           <i>valid-completion-signatures</i> AddlSigs =
               completion_signatures&lt;>,
-          template &lt;class...> class SetValue = <i>default-set-value</i>,
-          template &lt;class> class SetError = <i>default-set-error</i>,
+          template&lt;class...> class SetValue = <i>default-set-value</i>,
+          template&lt;class> class SetError = <i>default-set-error</i>,
           <i>valid-completion-signatures</i> SetStopped =
               completion_signatures&lt;set_stopped_t()>>
     requires sender_in&lt;Sndr, Env>
@@ -9142,8 +9147,8 @@ of all the <code class="highlight">completion_signatures</code> specializations 
   class <i>run-loop-sender</i>; // exposition only
   struct <i>run-loop-opstate-base</i> { // exposition only
     virtual void execute() = 0;
-    run_loop* loop_;
-    <i>run-loop-opstate-base</i>* next_;
+    run_loop* <i>loop_</i>;
+    <i>run-loop-opstate-base</i>* <i>next_</i>;
   };
   template&lt;receiver_of&lt;completion_signatures&lt;set_value_t()>> R>
     using <i>run-loop-opstate</i> = <i>unspecified</i>; // exposition only
@@ -9216,7 +9221,7 @@ of all the <code class="highlight">completion_signatures</code> specializations 
       <li data-md>
        <p>The expression <code class="highlight">start(<i>o</i>)</code> is equivalent to the following:</p>
 <pre class="highlight">try {
-  <i>o</i>.loop_->push_back(&amp;<i>o</i>);
+  <i>o</i>.<i>loop_</i>->push_back(&amp;<i>o</i>);
 } catch(...) {
   set_error(std::move(<i>REC</i>(<i>o</i>)), current_exception());
 }
@@ -9300,7 +9305,7 @@ template&lt;class S, class E>
     sender_in&lt;S, E> &amp;&amp;
     requires { typename <i>single-sender-value-type</i>&lt;S, E>; };
 
-template &lt;class S, class P>
+template&lt;class S, class P>
   concept <i>awaitable-sender</i> =
     <i>single-sender</i>&lt;S, <i>ENV-OF</i>(P)> &amp;&amp;
     sender_to&lt;S, <i>awaitable-receiver</i>> &amp;&amp; // see below
@@ -9308,7 +9313,7 @@ template &lt;class S, class P>
       { p.unhandled_stopped() } -> convertible_to&lt;coroutine_handle&lt;>>;
     };
 
-template &lt;class S, class P>
+template&lt;class S, class P>
   class <i>sender-awaitable</i>;
 </pre>
      <p>where <code class="highlight"><i>ENV-OF</i>(P)</code> names the type <code class="highlight">env_of_t&lt;P></code> if that type
@@ -9326,20 +9331,20 @@ is well-formed, or <code class="highlight">empty_env</code> otherwise.</p>
        </ol>
       <li data-md>
        <p>The type <code class="highlight"><i>sender-awaitable</i>&lt;S, P></code> is equivalent to the following:</p>
-<pre class="highlight">template &lt;class S, class P> // arguments are not associated entities ([lib.tmpl-heads])
+<pre class="highlight">template&lt;class S, class P> // arguments are not associated entities ([lib.tmpl-heads])
 class <i>sender-awaitable</i> {
   struct unit {};
   using value_t = <i>single-sender-value-type</i>&lt;S, <i>ENV-OF</i>(P)>;
   using result_t = conditional_t&lt;is_void_v&lt;value_t>, unit, value_t>;
   struct <i>awaitable-receiver</i>;
 
-  variant&lt;monostate, result_t, exception_ptr> result_{};
-  connect_result_t&lt;S, <i>awaitable-receiver</i>> state_;
+  variant&lt;monostate, result_t, exception_ptr> <i>result_</i>{};
+  connect_result_t&lt;S, <i>awaitable-receiver</i>> <i>state_</i>;
 
  public:
   <i>sender-awaitable</i>(S&amp;&amp; s, P&amp; p);
   bool await_ready() const noexcept { return false; }
-  void await_suspend(coroutine_handle&lt;P>) noexcept { start(state_); }
+  void await_suspend(coroutine_handle&lt;P>) noexcept { start(<i>state_</i>); }
   value_t await_resume();
 };
 </pre>
@@ -9348,8 +9353,8 @@ class <i>sender-awaitable</i> {
          <p><code class="highlight"><i>awaitable-receiver</i></code> is equivalent to the following:</p>
 <pre class="highlight">struct <i>awaitable-receiver</i> {
   using is_receiver = <i>unspecified</i>;
-  variant&lt;monostate, result_t, exception_ptr>* result_ptr_;
-  coroutine_handle&lt;P> continuation_;
+  variant&lt;monostate, result_t, exception_ptr>* <i>result_ptr_</i>;
+  coroutine_handle&lt;P> <i>continuation_</i>;
   // ... <i>see below</i>
 };
 </pre>
@@ -9358,17 +9363,17 @@ class <i>sender-awaitable</i> {
           <li data-md>
            <p>If <code class="highlight">constructible_from&lt;result_t, Vs...></code> is satisfied, the expression <code class="highlight">set_value(r, vs...)</code> is equivalent to:</p>
 <pre class="highlight">try {
-  r.result_ptr_->emplace&lt;1>(vs...);
+  r.<i>result_ptr_</i>->emplace&lt;1>(vs...);
 } catch(...) {
-  r.result_ptr_->emplace&lt;2>(current_exception());
+  r.<i>result_ptr_</i>->emplace&lt;2>(current_exception());
 }
-r.continuation_.resume();
+r.<i>continuation_</i>.resume();
 </pre>
            <p>Otherwise, <code class="highlight">set_value(r, vs...)</code> is ill-formed.</p>
           <li data-md>
            <p>The expression <code class="highlight">set_error(r, err)</code> is equivalent to:</p>
-<pre class="highlight">r.result_ptr_->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err));
-r.continuation_.resume();
+<pre class="highlight">r.<i>result_ptr_</i>->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err));
+r.<i>continuation_</i>.resume();
 </pre>
            <p>where <code class="highlight"><i>AS-EXCEPT-PTR</i>(err)</code> is:</p>
            <ol>
@@ -9380,25 +9385,26 @@ r.continuation_.resume();
              <p>Otherwise, <code class="highlight">make_exception_ptr(err)</code>.</p>
            </ol>
           <li data-md>
-           <p>The expression <code class="highlight">set_stopped(r)</code> is equivalent to <code class="highlight">static_cast&lt;coroutine_handle&lt;>>(r.continuation_.promise().unhandled_stopped()).resume()</code>.</p>
+           <p>The expression <code class="highlight">set_stopped(r)</code> is equivalent to <code class="highlight">static_cast&lt;coroutine_handle&lt;>>(r.<i>continuation_</i>.promise().unhandled_stopped()).resume()</code>.</p>
           <li data-md>
-           <p>For any expression <code class="highlight">tag</code> whose type satisfies <code class="highlight"><i>forwarding-query</i></code> and for any pack of subexpressions <code class="highlight">as</code>, <code class="highlight">tag_invoke(tag, get_env(cr), as...)</code> is expression-equivalent to <code class="highlight">tag(get_env(as_const(cr.continuation_.promise())), as...)</code> when that expression is well-formed.</p>
+           <p>For any expression <code class="highlight">tag</code> whose type satisfies <code class="highlight"><i>forwarding-query</i></code> and for any pack of subexpressions <code class="highlight">as</code>, <code class="highlight">tag_invoke(tag, get_env(cr), as...)</code> is expression-equivalent to <code class="highlight">tag(get_env(as_const(cr.<i>continuation_</i>.promise())),
+  as...)</code> when that expression is well-formed.</p>
          </ol>
         <li data-md>
          <p><b><code class="highlight"><i>sender-awaitable</i>::<i>sender-awaitable</i>(S&amp;&amp; s, P&amp; p)</code></b></p>
          <ul>
           <li data-md>
-           <p><i>Effects:</i> initializes <code class="highlight">state_</code> with <code class="highlight">connect(std::forward&lt;S>(s), <i>awaitable-receiver</i>{&amp;result_, coroutine_handle&lt;P>::from_promise(p)})</code>.</p>
+           <p><i>Effects:</i> initializes <i><code class="highlight">state_</code></i> with <code class="highlight">connect(std::forward&lt;S>(s), <i>awaitable-receiver</i>{&amp;<i>result_</i>, coroutine_handle&lt;P>::from_promise(p)})</code>.</p>
          </ul>
         <li data-md>
          <p><b><code class="highlight">value_t <i>sender-awaitable</i>::await_resume()</code></b></p>
          <ul>
           <li data-md>
            <p><i>Effects:</i> equivalent to:</p>
-<pre class="highlight">if (result_.index()) == 2)
-  rethrow_exception(get&lt;2>(result_));
+<pre class="highlight">if (<i>result_</i>.index()) == 2)
+  rethrow_exception(get&lt;2>(<i>result_</i>));
 if constexpr (!is_void_v&lt;value_t>)
-  return static_cast&lt;value_t&amp;&amp;>(get&lt;1>(result_));
+  return std::forward&lt;value_t>(get&lt;1>(<i>result_</i>));
 </pre>
          </ul>
        </ol>
@@ -9434,16 +9440,16 @@ expression in a coroutine with promise type <code class="highlight">P</code>.</p
     <li data-md>
      <p><code class="highlight">with_awaitable_senders</code>, when used as the base class of a coroutine promise type, makes senders awaitable in that coroutine type.</p>
      <p>In addition, it provides a default implementation of <code class="highlight">unhandled_stopped()</code> such that if a sender completes by calling <code class="highlight">set_stopped</code>, it is treated as if an uncatchable "stopped" exception were thrown from the <i>await-expression</i>. In practice, the coroutine is never resumed, and the <code class="highlight">unhandled_stopped</code> of the coroutine caller’s promise type is called.</p>
-<pre class="highlight">template &lt;<i>class-type</i> Promise>
+<pre class="highlight">template&lt;<i>class-type</i> Promise>
   struct with_awaitable_senders {
     template&lt;OtherPromise>
       requires (!same_as&lt;OtherPromise, void>)
     void set_continuation(coroutine_handle&lt;OtherPromise> h) noexcept;
 
-    coroutine_handle&lt;> continuation() const noexcept { return continuation_; }
+    coroutine_handle&lt;> continuation() const noexcept { return <i>continuation_</i>; }
 
     coroutine_handle&lt;> unhandled_stopped() noexcept {
-      return stopped_handler_(continuation_.address());
+      return <i>stopped_handler_</i>(<i>continuation_</i>.address());
     }
 
     template&lt;class Value>
@@ -9454,9 +9460,9 @@ expression in a coroutine with promise type <code class="highlight">P</code>.</p
     [[noreturn]] static coroutine_handle&lt;> default_unhandled_stopped(void*) noexcept {
       terminate();
     }
-    coroutine_handle&lt;> continuation_{}; // exposition only
+    coroutine_handle&lt;> <i>continuation_</i>{}; // exposition only
     // exposition only
-    coroutine_handle&lt;> (*stopped_handler_)(void*) noexcept = &amp;default_unhandled_stopped;
+    coroutine_handle&lt;> (*<i>stopped_handler_</i>)(void*) noexcept = &amp;default_unhandled_stopped;
   };
 </pre>
     <li data-md>
@@ -9464,14 +9470,14 @@ expression in a coroutine with promise type <code class="highlight">P</code>.</p
      <ul>
       <li data-md>
        <p><i>Effects:</i> equivalent to:</p>
-<pre class="highlight">continuation_ = h;
+<pre class="highlight"><i>continuation_</i> = h;
 if constexpr ( requires(OtherPromise&amp; other) { other.unhandled_stopped(); } ) {
-  stopped_handler_ = [](void* p) noexcept -> coroutine_handle&lt;> {
+  <i>stopped_handler_</i> = [](void* p) noexcept -> coroutine_handle&lt;> {
     return coroutine_handle&lt;OtherPromise>::from_address(p)
       .promise().unhandled_stopped();
   };
 } else {
-  stopped_handler_ = default_unhandled_stopped;
+  <i>stopped_handler_</i> = default_unhandled_stopped;
 }
 </pre>
      </ul>
@@ -9480,7 +9486,7 @@ if constexpr ( requires(OtherPromise&amp; other) { other.unhandled_stopped(); } 
      <ul>
       <li data-md>
        <p><i>Effects:</i> equivalent to:</p>
-<pre class="highlight">return as_awaitable(static_cast&lt;Value&amp;&amp;>(value), static_cast&lt;Promise&amp;>(*this));
+<pre class="highlight">return as_awaitable(std::forward&lt;Value>(value), static_cast&lt;Promise&amp;>(*this));
 </pre>
      </ul>
    </ol>
@@ -9687,123 +9693,68 @@ if constexpr ( requires(OtherPromise&amp; other) { other.unhandled_stopped(); } 
    <dt id="biblio-p2280r2">[P2280r2]
    <dd>Barry Revzin. <a href="https://wg21.link/p2280r2"><cite>Using unknown references in constant expressions</cite></a>. 15 May 2021. URL: <a href="https://wg21.link/p2280r2">https://wg21.link/p2280r2</a>
   </dl>
-  <aside aria-labelledby="infopaneltitle-for-execution-resource" class="dfn-panel" data-for="execution-resource" id="infopanel-for-execution-resource">
-   <span id="infopaneltitle-for-execution-resource" style="display:none">Info about the 'execution resource' definition.</span><b><a href="#execution-resource">#execution-resource</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-execution-resource">4.1. Execution resources describe the place of execution</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-start" class="dfn-panel" data-for="start" id="infopanel-for-start">
-   <span id="infopaneltitle-for-start" style="display:none">Info about the 'started' definition.</span><b><a href="#start">#start</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-start">4.21. User-facing sender adaptors</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-operation-state" class="dfn-panel" data-for="operation-state" id="infopanel-for-operation-state">
-   <span id="infopaneltitle-for-operation-state" style="display:none">Info about the 'operation state' definition.</span><b><a href="#operation-state">#operation-state</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-operation-state">5.2. Operation states represent work</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-receiver" class="dfn-panel" data-for="receiver" id="infopanel-for-receiver">
-   <span id="infopaneltitle-for-receiver" style="display:none">Info about the 'receiver' definition.</span><b><a href="#receiver">#receiver</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-receiver">5.1. Receivers serve as glue between senders</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-sender" class="dfn-panel" data-for="sender" id="infopanel-for-sender">
-   <span id="infopaneltitle-for-sender" style="display:none">Info about the 'sender' definition.</span><b><a href="#sender">#sender</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-sender">4.3. Senders describe work</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-connect" class="dfn-panel" data-for="connect" id="infopanel-for-connect">
-   <span id="infopaneltitle-for-connect" style="display:none">Info about the 'Connecting' definition.</span><b><a href="#connect">#connect</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-connect">4.21.13. execution::ensure_started</a>
-    <li><a href="#ref-for-connect①">5.3. execution::connect</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-send" class="dfn-panel" data-for="send" id="infopanel-for-send">
-   <span id="infopaneltitle-for-send" style="display:none">Info about the 'sends' definition.</span><b><a href="#send">#send</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-send">4.5.1. execution::get_completion_scheduler</a>
-    <li><a href="#ref-for-send①">4.9. Senders are joinable</a>
-    <li><a href="#ref-for-send②">4.20.2. execution::just</a>
-    <li><a href="#ref-for-send③">4.20.3. execution::transfer_just</a>
-    <li><a href="#ref-for-send④">4.21.2. execution::then</a>
-    <li><a href="#ref-for-send⑤">4.21.4. execution::let_*</a>
-    <li><a href="#ref-for-send⑥">5.8. All senders are typed</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-scheduler" class="dfn-panel" data-for="scheduler" id="infopanel-for-scheduler">
-   <span id="infopaneltitle-for-scheduler" style="display:none">Info about the 'scheduler' definition.</span><b><a href="#scheduler">#scheduler</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-scheduler">4.2. Schedulers represent execution resources</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-completion-scheduler" class="dfn-panel" data-for="completion-scheduler" id="infopanel-for-completion-scheduler">
-   <span id="infopaneltitle-for-completion-scheduler" style="display:none">Info about the 'completion
-scheduler' definition.</span><b><a href="#completion-scheduler">#completion-scheduler</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-completion-scheduler">4.5. Senders can propagate completion schedulers</a>
-    <li><a href="#ref-for-completion-scheduler①">4.6. Execution resource transitions are explicit</a>
-    <li><a href="#ref-for-completion-scheduler②">4.9. Senders are joinable</a>
-    <li><a href="#ref-for-completion-scheduler③">4.20.2. execution::just</a>
-    <li><a href="#ref-for-completion-scheduler④">4.20.3. execution::transfer_just</a>
-    <li><a href="#ref-for-completion-scheduler⑤">4.20.4. execution::just_error</a>
-    <li><a href="#ref-for-completion-scheduler⑥">4.20.5. execution::just_stopped</a>
-    <li><a href="#ref-for-completion-scheduler⑦">4.21.5. execution::on</a>
-    <li><a href="#ref-for-completion-scheduler⑧">4.21.11. execution::when_all</a>
-    <li><a href="#ref-for-completion-scheduler⑨">4.21.12. execution::transfer_when_all</a>
-    <li><a href="#ref-for-completion-scheduler①⓪">5.4. Sender algorithms are customizable</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-sender-algorithm" class="dfn-panel" data-for="sender-algorithm" id="infopanel-for-sender-algorithm">
-   <span id="infopaneltitle-for-sender-algorithm" style="display:none">Info about the 'sender algorithm' definition.</span><b><a href="#sender-algorithm">#sender-algorithm</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-sender-algorithm">4.3. Senders describe work</a>
-    <li><a href="#ref-for-sender-algorithm①">4.4. Senders are composable through sender algorithms</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-sender-factory" class="dfn-panel" data-for="sender-factory" id="infopanel-for-sender-factory">
-   <span id="infopaneltitle-for-sender-factory" style="display:none">Info about the 'sender factory' definition.</span><b><a href="#sender-factory">#sender-factory</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-sender-factory">4.4. Senders are composable through sender algorithms</a>
-    <li><a href="#ref-for-sender-factory①">4.20. User-facing sender factories</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-sender-adaptor" class="dfn-panel" data-for="sender-adaptor" id="infopanel-for-sender-adaptor">
-   <span id="infopaneltitle-for-sender-adaptor" style="display:none">Info about the 'sender adaptor' definition.</span><b><a href="#sender-adaptor">#sender-adaptor</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-sender-adaptor">4.4. Senders are composable through sender algorithms</a>
-    <li><a href="#ref-for-sender-adaptor①">4.21. User-facing sender adaptors</a>
-    <li><a href="#ref-for-sender-adaptor②">5.4. Sender algorithms are customizable</a>
-   </ul>
-  </aside>
-  <aside aria-labelledby="infopaneltitle-for-sender-consumer" class="dfn-panel" data-for="sender-consumer" id="infopanel-for-sender-consumer">
-   <span id="infopaneltitle-for-sender-consumer" style="display:none">Info about the 'sender consumer' definition.</span><b><a href="#sender-consumer">#sender-consumer</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-sender-consumer">4.4. Senders are composable through sender algorithms</a>
-    <li><a href="#ref-for-sender-consumer①">4.22. User-facing sender consumers</a>
-    <li><a href="#ref-for-sender-consumer②">5.4. Sender algorithms are customizable</a>
-   </ul>
-  </aside>
 <script>/* script-dfn-panel */
 "use strict";
 {
-    function queryAll(sel) {
-        return [].slice.call(document.querySelectorAll(sel));
+    const dfnsJson = window.dfnsJson || {};
+
+    function genDfnPanel({dfnID, url, dfnText, refSections, external}) {
+        return mk.aside({
+            class: "dfn-panel",
+            id: `infopanel-for-${dfnID}`,
+            "data-for": dfnID,
+            "aria-labelled-by":`infopaneltitle-for-${dfnID}`,
+            },
+            mk.span({id:`infopaneltitle-for-${dfnID}`, style:"display:none"},
+                `Info about the '${dfnText}' ${external?"external":""} reference.`),
+            mk.a({href:url}, url),
+            mk.b({}, "Referenced in:"),
+            mk.ul({},
+                ...refSections.map(section=>
+                    mk.li({},
+                        ...section.refs.map((ref, refI)=>
+                            [
+                                mk.a({
+                                    href: `#${ref.id}`
+                                    },
+                                    (refI == 0) ? section.title : `(${refI + 1})`
+                                ),
+                                " ",
+                            ]
+                        ),
+                    ),
+                ),
+            ),
+        );
     }
 
-    // Add popup behavior to all dfns to show the corresponding dfn-panel.
-    var dfns = document.querySelectorAll('.dfn-paneled');
-    for (let dfn of dfns) { insertDfnPopupAction(dfn); }
+    function genAllDfnPanels() {
+        for(const panelData of Object.values(window.dfnpanelData)) {
+            const dfnID = panelData.dfnID;
+            const dfn = document.getElementById(dfnID);
+            if(!dfn) {
+                console.log(`Can't find dfn#${dfnID}.`, panelData);
+            } else {
+                const panel = genDfnPanel(panelData);
+                append(document.body, panel);
+                insertDfnPopupAction(dfn, panel)
+            }
+        }
+    }
 
-    document.body.addEventListener("click", (e) => {
-        // If not handled already, just hide all dfn panels.
-        hideAllDfnPanels();
-    });
+    document.addEventListener("DOMContentLoaded", ()=>{
+        genAllDfnPanels();
+
+        // Add popup behavior to all dfns to show the corresponding dfn-panel.
+        var dfns = queryAll('.dfn-paneled');
+        for(let dfn of dfns) { ; }
+
+        document.body.addEventListener("click", (e) => {
+            // If not handled already, just hide all dfn panels.
+            hideAllDfnPanels();
+        });
+    })
+
 
     function hideAllDfnPanels() {
         // Turn off any currently "on" or "activated" panels.
@@ -9853,49 +9804,255 @@ scheduler' definition.</span><b><a href="#completion-scheduler">#completion-sche
         }
     }
 
-    function insertDfnPopupAction(dfn) {
+    function insertDfnPopupAction(dfn, dfnPanel) {
         // Find dfn panel
-        const dfnPanel = document.querySelector(`.dfn-panel[data-for='${dfn.id}']`);
-        if (dfnPanel) {
-            const panelWrapper = document.createElement('span');
-            panelWrapper.appendChild(dfnPanel);
-            panelWrapper.style.position = "relative";
-            panelWrapper.style.height = "0px";
-            dfn.insertAdjacentElement("afterend", panelWrapper);
-            dfn.setAttribute('role', 'button');
-            dfn.setAttribute('aria-expanded', 'false')
-            dfn.tabIndex = 0;
-            dfn.classList.add('has-dfn-panel');
-            dfn.addEventListener('click', (event) => {
-                showDfnPanel(dfnPanel, dfn);
+        const panelWrapper = document.createElement('span');
+        panelWrapper.appendChild(dfnPanel);
+        panelWrapper.style.position = "relative";
+        panelWrapper.style.height = "0px";
+        dfn.insertAdjacentElement("afterend", panelWrapper);
+        dfn.setAttribute('role', 'button');
+        dfn.setAttribute('aria-expanded', 'false')
+        dfn.tabIndex = 0;
+        dfn.classList.add('has-dfn-panel');
+        dfn.addEventListener('click', (event) => {
+            showDfnPanel(dfnPanel, dfn);
+            event.stopPropagation();
+        });
+        dfn.addEventListener('keypress', (event) => {
+            const kc = event.keyCode;
+            // 32->Space, 13->Enter
+            if(kc == 32 || kc == 13) {
+                toggleDfnPanel(dfnPanel, dfn);
                 event.stopPropagation();
-            });
-            dfn.addEventListener('keypress', (event) => {
-                const kc = event.keyCode;
-                // 32->Space, 13->Enter
-                if(kc == 32 || kc == 13) {
-                    toggleDfnPanel(dfnPanel, dfn);
-                    event.stopPropagation();
-                    event.preventDefault();
-                }
-            });
+                event.preventDefault();
+            }
+        });
 
-            dfnPanel.addEventListener('click', (event) => {
+        dfnPanel.addEventListener('click', (event) => {
+            if (event.target.nodeName == 'A') {
                 pinDfnPanel(dfnPanel);
+            }
+            event.stopPropagation();
+        });
+
+        dfnPanel.addEventListener('keydown', (event) => {
+            if(event.keyCode == 27) { // Escape key
+                hideDfnPanel(dfnPanel, dfn);
                 event.stopPropagation();
-            });
-
-            dfnPanel.addEventListener('keydown', (event) => {
-                if(event.keyCode == 27) { // Escape key
-                    hideDfnPanel(dfnPanel, dfn);
-                    event.stopPropagation();
-                    event.preventDefault();
-                }
-            })
-
-        } else {
-            console.log("Couldn't find .dfn-panel[data-for='" + dfn.id + "']");
-        }
+                event.preventDefault();
+            }
+        })
     }
 }
 </script>
+<script>/* script-dfn-panel-json */
+window.dfnpanelData = {};
+window.dfnpanelData['execution-resource'] = {"dfnID": "execution-resource", "url": "#execution-resource", "dfnText": "execution resource", "refSections": [{"refs": [{"id": "ref-for-execution-resource"}], "title": "4.1. Execution resources describe the place of execution"}], "external": false};
+window.dfnpanelData['start'] = {"dfnID": "start", "url": "#start", "dfnText": "started", "refSections": [{"refs": [{"id": "ref-for-start"}], "title": "4.21. User-facing sender adaptors"}], "external": false};
+window.dfnpanelData['operation-state'] = {"dfnID": "operation-state", "url": "#operation-state", "dfnText": "operation state", "refSections": [{"refs": [{"id": "ref-for-operation-state"}], "title": "5.2. Operation states represent work"}], "external": false};
+window.dfnpanelData['receiver'] = {"dfnID": "receiver", "url": "#receiver", "dfnText": "receiver", "refSections": [{"refs": [{"id": "ref-for-receiver"}], "title": "5.1. Receivers serve as glue between senders"}], "external": false};
+window.dfnpanelData['sender'] = {"dfnID": "sender", "url": "#sender", "dfnText": "sender", "refSections": [{"refs": [{"id": "ref-for-sender"}], "title": "4.3. Senders describe work"}], "external": false};
+window.dfnpanelData['connect'] = {"dfnID": "connect", "url": "#connect", "dfnText": "Connecting", "refSections": [{"refs": [{"id": "ref-for-connect"}], "title": "4.21.13. execution::ensure_started"}, {"refs": [{"id": "ref-for-connect\u2460"}], "title": "5.3. execution::connect"}], "external": false};
+window.dfnpanelData['send'] = {"dfnID": "send", "url": "#send", "dfnText": "sends", "refSections": [{"refs": [{"id": "ref-for-send"}], "title": "4.5.1. execution::get_completion_scheduler"}, {"refs": [{"id": "ref-for-send\u2460"}], "title": "4.9. Senders are joinable"}, {"refs": [{"id": "ref-for-send\u2461"}], "title": "4.20.2. execution::just"}, {"refs": [{"id": "ref-for-send\u2462"}], "title": "4.20.3. execution::transfer_just"}, {"refs": [{"id": "ref-for-send\u2463"}], "title": "4.21.2. execution::then"}, {"refs": [{"id": "ref-for-send\u2464"}], "title": "4.21.4. execution::let_*"}, {"refs": [{"id": "ref-for-send\u2465"}], "title": "5.8. All senders are typed"}], "external": false};
+window.dfnpanelData['scheduler'] = {"dfnID": "scheduler", "url": "#scheduler", "dfnText": "scheduler", "refSections": [{"refs": [{"id": "ref-for-scheduler"}], "title": "4.2. Schedulers represent execution resources"}], "external": false};
+window.dfnpanelData['completion-scheduler'] = {"dfnID": "completion-scheduler", "url": "#completion-scheduler", "dfnText": "completion\nscheduler", "refSections": [{"refs": [{"id": "ref-for-completion-scheduler"}], "title": "4.5. Senders can propagate completion schedulers"}, {"refs": [{"id": "ref-for-completion-scheduler\u2460"}], "title": "4.6. Execution resource transitions are explicit"}, {"refs": [{"id": "ref-for-completion-scheduler\u2461"}], "title": "4.9. Senders are joinable"}, {"refs": [{"id": "ref-for-completion-scheduler\u2462"}], "title": "4.20.2. execution::just"}, {"refs": [{"id": "ref-for-completion-scheduler\u2463"}], "title": "4.20.3. execution::transfer_just"}, {"refs": [{"id": "ref-for-completion-scheduler\u2464"}], "title": "4.20.4. execution::just_error"}, {"refs": [{"id": "ref-for-completion-scheduler\u2465"}], "title": "4.20.5. execution::just_stopped"}, {"refs": [{"id": "ref-for-completion-scheduler\u2466"}], "title": "4.21.5. execution::on"}, {"refs": [{"id": "ref-for-completion-scheduler\u2467"}], "title": "4.21.11. execution::when_all"}, {"refs": [{"id": "ref-for-completion-scheduler\u2468"}], "title": "4.21.12. execution::transfer_when_all"}, {"refs": [{"id": "ref-for-completion-scheduler\u2460\u24ea"}], "title": "5.4. Sender algorithms are customizable"}], "external": false};
+window.dfnpanelData['sender-algorithm'] = {"dfnID": "sender-algorithm", "url": "#sender-algorithm", "dfnText": "sender algorithm", "refSections": [{"refs": [{"id": "ref-for-sender-algorithm"}], "title": "4.3. Senders describe work"}, {"refs": [{"id": "ref-for-sender-algorithm\u2460"}], "title": "4.4. Senders are composable through sender algorithms"}], "external": false};
+window.dfnpanelData['sender-factory'] = {"dfnID": "sender-factory", "url": "#sender-factory", "dfnText": "sender factory", "refSections": [{"refs": [{"id": "ref-for-sender-factory"}], "title": "4.4. Senders are composable through sender algorithms"}, {"refs": [{"id": "ref-for-sender-factory\u2460"}], "title": "4.20. User-facing sender factories"}], "external": false};
+window.dfnpanelData['sender-adaptor'] = {"dfnID": "sender-adaptor", "url": "#sender-adaptor", "dfnText": "sender adaptor", "refSections": [{"refs": [{"id": "ref-for-sender-adaptor"}], "title": "4.4. Senders are composable through sender algorithms"}, {"refs": [{"id": "ref-for-sender-adaptor\u2460"}], "title": "4.21. User-facing sender adaptors"}, {"refs": [{"id": "ref-for-sender-adaptor\u2461"}], "title": "5.4. Sender algorithms are customizable"}], "external": false};
+window.dfnpanelData['sender-consumer'] = {"dfnID": "sender-consumer", "url": "#sender-consumer", "dfnText": "sender consumer", "refSections": [{"refs": [{"id": "ref-for-sender-consumer"}], "title": "4.4. Senders are composable through sender algorithms"}, {"refs": [{"id": "ref-for-sender-consumer\u2460"}], "title": "4.22. User-facing sender consumers"}, {"refs": [{"id": "ref-for-sender-consumer\u2461"}], "title": "5.4. Sender algorithms are customizable"}], "external": false};</script>
+<script>/* script-dom-helper */
+function query(sel) { return document.querySelector(sel); }
+
+function queryAll(sel) { return [...document.querySelectorAll(sel)]; }
+
+function iter(obj) {
+	if(!obj) return [];
+	var it = obj[Symbol.iterator];
+	if(it) return it;
+	return Object.entries(obj);
+}
+
+function mk(tagname, attrs, ...children) {
+	const el = document.createElement(tagname);
+	for(const [k,v] of iter(attrs)) {
+		if(k.slice(0,3) == "_on") {
+			const eventName = k.slice(3);
+			el.addEventListener(eventName, v);
+		} else if(k[0] == "_") {
+			// property, not attribute
+			el[k.slice(1)] = v;
+		} else {
+			if(v === false || v == null) {
+        continue;
+      } else if(v === true) {
+        el.setAttribute(k, "");
+        continue;
+      } else {
+  			el.setAttribute(k, v);
+      }
+		}
+	}
+	append(el, children);
+	return el;
+}
+
+/* Create shortcuts for every known HTML element */
+[
+  "a",
+  "abbr",
+  "acronym",
+  "address",
+  "applet",
+  "area",
+  "article",
+  "aside",
+  "audio",
+  "b",
+  "base",
+  "basefont",
+  "bdo",
+  "big",
+  "blockquote",
+  "body",
+  "br",
+  "button",
+  "canvas",
+  "caption",
+  "center",
+  "cite",
+  "code",
+  "col",
+  "colgroup",
+  "datalist",
+  "dd",
+  "del",
+  "details",
+  "dfn",
+  "dialog",
+  "div",
+  "dl",
+  "dt",
+  "em",
+  "embed",
+  "fieldset",
+  "figcaption",
+  "figure",
+  "font",
+  "footer",
+  "form",
+  "frame",
+  "frameset",
+  "head",
+  "header",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "hr",
+  "html",
+  "i",
+  "iframe",
+  "img",
+  "input",
+  "ins",
+  "kbd",
+  "label",
+  "legend",
+  "li",
+  "link",
+  "main",
+  "map",
+  "mark",
+  "meta",
+  "meter",
+  "nav",
+  "nobr",
+  "noscript",
+  "object",
+  "ol",
+  "optgroup",
+  "option",
+  "output",
+  "p",
+  "param",
+  "pre",
+  "progress",
+  "q",
+  "s",
+  "samp",
+  "script",
+  "section",
+  "select",
+  "small",
+  "source",
+  "span",
+  "strike",
+  "strong",
+  "style",
+  "sub",
+  "summary",
+  "sup",
+  "table",
+  "tbody",
+  "td",
+  "template",
+  "textarea",
+  "tfoot",
+  "th",
+  "thead",
+  "time",
+  "title",
+  "tr",
+  "u",
+  "ul",
+  "var",
+  "video",
+  "wbr",
+  "xmp",
+].forEach(tagname=>{
+	mk[tagname] = (...args) => mk(tagname, ...args);
+});
+
+function* nodesFromChildList(children) {
+	for(const child of children.flat(Infinity)) {
+		if(child instanceof Node) {
+			yield child;
+		} else {
+			yield new Text(child);
+		}
+	}
+}
+function append(el, ...children) {
+	for(const child of nodesFromChildList(children)) {
+		if(el instanceof Node) el.appendChild(child);
+		else el.push(child);
+	}
+	return el;
+}
+
+function insertAfter(el, ...children) {
+	for(const child of nodesFromChildList(children)) {
+		el.parentNode.insertBefore(child, el.nextSibling);
+	}
+	return el;
+}
+
+function clearContents(el) {
+	el.innerHTML = "";
+	return el;
+}
+
+function parseHTML(markup) {
+	if(markup.toLowerCase().trim().indexOf('<!doctype') === 0) {
+		const doc = document.implementation.createHTMLDocument("");
+		doc.documentElement.innerHTML = markup;
+		return doc;
+	} else {
+		const el = mk.template({});
+		el.innerHTML = markup;
+		return el.content;
+	}
+}</script>
