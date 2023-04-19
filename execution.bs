@@ -2345,7 +2345,7 @@ If you choose to implement your sender-based algorithms as coroutines, you'll ru
 For example, consider the following trivial implementation of the sender-based `retry` algorithm:
 
 <pre>
-template &lt;class S>
+template&lt;class S>
   requires <i>single-sender</i>&lt;S&> // See <a href="#spec-execution.coro_utils.as_awaitable">[exec.as.awaitable]</a>
 task&lt;<i>single-sender-value-type</i>&lt;S>> retry(S s) {
   for (;;) {
@@ -3252,42 +3252,42 @@ At the end of this subclause, insert the following declarations into the synopsi
 <blockquote>
 <pre>
 <i>// expositon only:</i>
-template &lt;class Fn, class... Args>
+template&lt;class Fn, class... Args>
   concept <i>callable</i> =
     requires (Fn&& fn, Args&&... args) {
       std::forward&lt;Fn>(fn)(std::forward&lt;Args>(args)...);
     };
-template &lt;class Fn, class... Args>
+template&lt;class Fn, class... Args>
   concept <i>nothrow-callable</i> =
     <i>callable</i>&lt;Fn, Args...> &amp;&amp;
     requires (Fn&& fn, Args&&... args) {
       { std::forward&lt;Fn>(fn)(std::forward&lt;Args>(args)...) } noexcept;
     };
-template &lt;class Fn, class... Args>
+template&lt;class Fn, class... Args>
   using <i>call-result-t</i> = decltype(declval&lt;Fn>()(declval&lt;Args>()...));
 
 // [func.tag_invoke], tag_invoke
 namespace <i>tag-invoke</i> { <i>// exposition only</i>
   void tag_invoke();
 
-  template &lt;class Tag, class... Args>
+  template&lt;class Tag, class... Args>
     concept tag_invocable =
       requires (Tag&& tag, Args&&... args) {
         tag_invoke(std::forward&lt;Tag>(tag), std::forward&lt;Args>(args)...);
       };
 
-  template &lt;class Tag, class... Args>
+  template&lt;class Tag, class... Args>
     concept nothrow_tag_invocable =
       tag_invocable&lt;Tag, Args...> &&
       requires (Tag&& tag, Args&&... args) {
         { tag_invoke(std::forward&lt;Tag>(tag), std::forward&lt;Args>(args)...) } noexcept;
       };
 
-  template &lt;class Tag, class... Args>
+  template&lt;class Tag, class... Args>
     using tag_invoke_result_t =
       decltype(tag_invoke(declval&lt;Tag>(), declval&lt;Args>()...));
 
-  template &lt;class Tag, class... Args>
+  template&lt;class Tag, class... Args>
     struct tag_invoke_result&lt;Tag, Args...> {
       using type =
         tag_invoke_result_t&lt;Tag, Args...>; <i>// present if and only if tag_invocable&lt;Tag, Args...> is true</i>
@@ -3845,18 +3845,18 @@ template&lt;class C>
 4. This clause makes use of the following exposition-only entities:
 
     1. <pre>
-        template &lt;class Fn, class... Args>
+        template&lt;class Fn, class... Args>
             requires <i>callable</i>&lt;Fn, Args...>
           constexpr auto <i>mandate-nothrow-call</i>(Fn&& fn, Args&&... args) noexcept
             -> <i>call-result-t</i>&lt;Fn, Args...> {
-            return std::forward<Fn>(fn)(std::forward<Args>(args)...);
+            return std::forward&lt;Fn>(fn)(std::forward&lt;Args>(args)...);
           }
         </pre>
 
         * <i>Mandates:</i> <code><i>nothrow-callable</i>&lt;Fn, Args...></code> is `true`.
 
     2. <pre>
-        template &lt;class T>
+        template&lt;class T>
           concept <i>movable-value</i> =
             move_constructible&lt;decay_t&lt;T>> &&
             constructible_from&lt;decay_t&lt;T>, T>;
@@ -3897,7 +3897,7 @@ template&lt;class C>
 ### `queryable` concept <b>[exec.queryable.concept]</b> ### {#spec-execution.queryable.concept}
 
     <pre>
-    template &lt;class T>
+    template&lt;class T>
       concept queryable = destructible&lt;T>;
     </pre>
 
@@ -4100,7 +4100,7 @@ namespace std {
     concept <i>class-type</i> = <i>decays-to</i>&lt;T, T> && is_class_v&lt;T>;  <i>// exposition only</i>
 
   // [exec.queryable], queryable objects
-  template &lt;class T>
+  template&lt;class T>
     concept queryable = destructible<T>;
 
   // [exec.queries], queries
@@ -4116,11 +4116,11 @@ namespace std {
   inline constexpr get_allocator_t get_allocator{};
   inline constexpr get_stop_token_t get_stop_token{};
 
-  template &lt;class T>
+  template&lt;class T>
     using stop_token_of_t =
       remove_cvref_t&lt;decltype(get_stop_token(declval&lt;T>()))>;
 
-  template &lt;class T>
+  template&lt;class T>
     concept <i>forwarding-query</i> = // exposition only
       forwarding_query(T{});
 
@@ -4132,7 +4132,7 @@ namespace std {
   using <i>envs-envs</i>::get_env_t;
   inline constexpr get_env_t get_env {};
 
-  template &lt;class T>
+  template&lt;class T>
     using env_of_t = decltype(get_env(declval&lt;T>()));
 }
 
@@ -4143,7 +4143,7 @@ namespace std::execution {
     struct get_scheduler_t;
     struct get_delegatee_scheduler_t;
     struct get_forward_progress_guarantee_t;
-    template &lt;class CPO>
+    template&lt;class CPO>
       struct get_completion_scheduler_t;
   }
   using <i>queries</i>::get_scheduler_t;
@@ -4153,21 +4153,21 @@ namespace std::execution {
   inline constexpr get_scheduler_t get_scheduler{};
   inline constexpr get_delegatee_scheduler_t get_delegatee_scheduler{};
   inline constexpr get_forward_progress_guarantee_t get_forward_progress_guarantee{};
-  template &lt;class CPO>
+  template&lt;class CPO>
     inline constexpr get_completion_scheduler_t&lt;CPO> get_completion_scheduler{};
 
   // [exec.sched], schedulers
-  template &lt;class S>
+  template&lt;class S>
     concept scheduler = <i>see-below</i>;
 
   // [exec.recv], receivers
-  template &lt;class R>
+  template&lt;class R>
     inline constexpr bool enable_receiver = <i>see-below</i>;
 
-  template &lt;class R>
+  template&lt;class R>
     concept receiver = <i>see-below</i>;
 
-  template &lt;class R, class Completions>
+  template&lt;class R, class Completions>
     concept receiver_of = <i>see-below</i>;
 
   namespace <i>receivers</i> { // exposition only
@@ -4193,28 +4193,28 @@ namespace std::execution {
   inline constexpr start_t start{};
 
   // [exec.snd], senders
-  template &lt;class S>
+  template&lt;class S>
     inline constexpr bool enable_sender = <i>see below</i>;
 
-  template &lt;class S>
+  template&lt;class S>
     concept sender = <i>see-below</i>;
 
-  template &lt;class S, class E = empty_env>
+  template&lt;class S, class E = empty_env>
     concept sender_in = <i>see-below</i>;
 
-  template &lt;class S, class R>
+  template&lt;class S, class R>
     concept sender_to = <i>see-below</i>;
 
   template &ltclass S, class Sig, class E = empty_env>
     concept sender_of = <i>see below</i>;
 
-  template &lt;class... Ts>
+  template&lt;class... Ts>
     struct <i>type-list</i>; // exposition only
 
-  template &lt;class S, class E = empty_env>
+  template&lt;class S, class E = empty_env>
     using <i>single-sender-value-type</i> = <i>see below</i>; // exposition only
 
-  template &lt;class S, class E = empty_env>
+  template&lt;class S, class E = empty_env>
     concept <i>single-sender</i> = <i>see below</i>; // exposition only
 
   // [exec.getcomplsigs], completion signatures
@@ -4224,26 +4224,26 @@ namespace std::execution {
   using <i>completion-signatures</i>::get_completion_signatures_t;
   inline constexpr get_completion_signatures_t get_completion_signatures {};
 
-  template &lt;class S, class E = empty_env>
+  template&lt;class S, class E = empty_env>
       requires sender_in&lt;S, E>
     using completion_signatures_of_t = <i>call-result-t</i>&lt;get_completion_signatures_t, S, E>;
 
-  template &lt;class... Ts>
+  template&lt;class... Ts>
     using <i>decayed-tuple</i> = tuple&lt;decay_t&lt;Ts>...>; // exposition only
 
-  template &lt;class... Ts>
+  template&lt;class... Ts>
     using <i>variant-or-empty</i> = <i>see below</i>; // exposition only
 
   template&lt;class S,
            class E = empty_env,
-           template &lt;class...> class Tuple = <i>decayed-tuple</i>,
-           template &lt;class...> class Variant = <i>variant-or-empty</i>>
+           template&lt;class...> class Tuple = <i>decayed-tuple</i>,
+           template&lt;class...> class Variant = <i>variant-or-empty</i>>
       requires sender_in&lt;S, E>
     using value_types_of_t = <i>see below</i>;
 
   template&lt;class S,
            class Env = empty_env,
-           template &lt;class...> class Variant = <i>variant-or-empty</i>>
+           template&lt;class...> class Variant = <i>variant-or-empty</i>>
       requires sender_in&lt;S, E>
     using error_types_of_t = <i>see below</i>;
 
@@ -4258,7 +4258,7 @@ namespace std::execution {
   using <i>senders-connect</i>::connect_t;
   inline constexpr connect_t connect{};
 
-  template &lt;class S, class R>
+  template&lt;class S, class R>
     using connect_result_t = decltype(connect(declval&lt;S>(), declval&lt;R>()));
 
   // [exec.factories], sender factories
@@ -4275,7 +4275,7 @@ namespace std::execution {
   inline constexpr transfer_just_t transfer_just{};
   inline constexpr <i>unspecified</i> read{};
 
-  template &lt;scheduler S>
+  template&lt;scheduler S>
     using schedule_result_t = decltype(schedule(declval&lt;S>()));
 
   // [exec.adapt], sender adaptors
@@ -4369,32 +4369,32 @@ namespace std::execution {
       receiver Base = <i>unspecified</i>> // arguments are not associated entities ([lib.tmpl-heads])
     class receiver_adaptor;
 
-  template &lt;class Fn>
+  template&lt;class Fn>
     concept <i>completion-signature</i> = <i>// exposition only</i>
       <i>see below</i>;
 
   // [exec.utils.cmplsigs]
-  template &lt;<i>completion-signature</i>... Fns>
+  template&lt;<i>completion-signature</i>... Fns>
     struct completion_signatures {};
 
-  template &lt;class... Args> <i>// exposition only</i>
+  template&lt;class... Args> <i>// exposition only</i>
     using <i>default-set-value</i> =
       completion_signatures&lt;set_value_t(Args...)>;
 
-  template &lt;class Err> <i>// exposition only</i>
+  template&lt;class Err> <i>// exposition only</i>
     using <i>default-set-error</i> =
       completion_signatures&lt;set_error_t(Err)>;
 
-  template &lt;class Sigs> // exposition only
+  template&lt;class Sigs> // exposition only
     concept <i>valid-completion-signatures</i> = <i>see below</i>;
 
   // [exec.utils.mkcmplsigs]
-  template &lt;
+  template&lt;
     sender Sndr,
     class Env = empty_env,
     <i>valid-completion-signatures</i> AddlSigs = completion_signatures<>,
-    template &lt;class...> class SetValue = <i>see below</i>,
-    template &lt;class> class SetError = <i>see below</i>,
+    template&lt;class...> class SetValue = <i>see below</i>,
+    template&lt;class> class SetError = <i>see below</i>,
     <i>valid-completion-signatures</i> SetStopped = completion_signatures&lt;set_stopped_t()>>
       requires sender_in&lt;Sndr, Env>
   using make_completion_signatures = completion_signatures&lt;<i>see below</i>>;
@@ -4413,10 +4413,10 @@ namespace std::this_thread {
 
   namespace <i>this-thread</i> { <i>// exposition only</i>
     struct <i>sync-wait-env</i>; <i>// exposition only</i>
-    template &lt;class S>
+    template&lt;class S>
         requires sender_in&lt;S, <i>sync-wait-env</i>>
       using <i>sync-wait-type</i> = <i>see-below</i>; <i>// exposition only</i>
-    template &lt;class S>
+    template&lt;class S>
       using <i>sync-wait-with-variant-type</i> = <i>see-below</i>; <i>// exposition only</i>
 
     struct sync_wait_t;
@@ -4444,7 +4444,7 @@ namespace std::execution {
   inline constexpr as_awaitable_t as_awaitable;
 
   // [exec.with.awaitable.senders]
-  template &lt;<i>class-type</i> Promise>
+  template&lt;<i>class-type</i> Promise>
     struct with_awaitable_senders;
 }
 </pre>
@@ -4702,13 +4702,13 @@ enum class forward_progress_guarantee {
     customization point is used to access a receiver's associated environment.
 
     <pre>
-    template &lt;class R>
+    template&lt;class R>
       inline constexpr bool enable_receiver =
         requires {
           typename R::is_receiver;
         };
 
-    template &lt;class R>
+    template&lt;class R>
       concept receiver =
         enable_receiver&lt;remove_cvref_t&lt;R>> &&
         requires(const remove_cvref_t&lt;R>& r) {
@@ -4717,7 +4717,7 @@ enum class forward_progress_guarantee {
         move_constructible&lt;remove_cvref_t&lt;R>> &&
         constructible_from&lt;remove_cvref_t&lt;R>, R>;
 
-    template &lt;class Signature, class R>
+    template&lt;class Signature, class R>
       concept <i>valid-completion-for</i> = <i>// exposition only</i>
         requires (Signature* sig) {
             []&lt;class Tag, class... Args>(Tag(*)(Args...))
@@ -4725,7 +4725,7 @@ enum class forward_progress_guarantee {
             {}(sig);
         };
 
-    template &lt;class R, class Completions>
+    template&lt;class R, class Completions>
       concept receiver_of =
         receiver&lt;R> &amp;&amp;
         requires (Completions* completions) {
@@ -4822,17 +4822,17 @@ enum class forward_progress_guarantee {
     sender and a receiver to produce an operation state.
 
     <pre>
-    template &lt;class Sigs>
+    template&lt;class Sigs>
       concept <i>valid-completion-signatures</i> = <i>see below</i>;
 
-    template &lt;class S>
+    template&lt;class S>
       inline constexpr bool enable_sender =
         requires { typename S::is_sender; };
 
-    template &lt;<i>is-awaitable</i>&lt;<i>env-promise</i>&lt;empty_env>> S> <i>// [exec.complsigs]</i>
+    template&lt;<i>is-awaitable</i>&lt;<i>env-promise</i>&lt;empty_env>> S> <i>// [exec.awaitables]</i>
       inline constexpr bool enable_sender&lt;S> = true;
 
-    template &lt;class S>
+    template&lt;class S>
       concept sender =
         enable_sender&lt;remove_cvref_t&lt;S>> &&
         requires (const remove_cvref_t&lt;S>& s) {
@@ -4841,7 +4841,7 @@ enum class forward_progress_guarantee {
         move_constructible&lt;remove_cvref_t&lt;S>> &&
         constructible_from&lt;remove_cvref_t&lt;S>, S>;
 
-    template &lt;class S, class E = empty_env>
+    template&lt;class S, class E = empty_env>
       concept sender_in =
         sender&lt;S> &&
         requires (S&& s, E&& e) {
@@ -4849,7 +4849,7 @@ enum class forward_progress_guarantee {
             <i>valid-completion-signatures</i>;
         };
 
-    template &lt;class S, class R>
+    template&lt;class S, class R>
       concept sender_to =
         sender_in&lt;S, env_of_t&lt;R>> &amp;&amp;
         receiver_of&lt;R, completion_signatures_of_t&lt;S, env_of_t&lt;R>>> &amp;&amp;
@@ -4874,16 +4874,16 @@ enum class forward_progress_guarantee {
     `true` if and only if `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
 
     <pre>
-    template &lt;class> struct <i>sender-of-helper</i>; <i>// exposition only</i>
-    template &lt;class R, class... As>
+    template&lt;class> struct <i>sender-of-helper</i>; <i>// exposition only</i>
+    template&lt;class R, class... As>
       struct <i>sender-of-helper</i>&lt;R(As...)> {
         using <i>tag</i> = R;
 
-        template &lt;class... Bs>
+        template&lt;class... Bs>
           using <i>as-sig</i> = R(Bs...);
       };
 
-    template &lt;class S, class Sig, class E = empty_env>
+    template&lt;class S, class Sig, class E = empty_env>
       concept sender_of =
         sender_in&lt;S, E> &&
         <i>MATCHING-SIG</i>(
@@ -4949,10 +4949,10 @@ enum class forward_progress_guarantee {
     concept:
 
     <pre>
-    template &lt;class T>
+    template&lt;class T>
     concept <i>await-suspend-result</i> = <i>see below</i>;
 
-    template &lt;class A, class P>
+    template&lt;class A, class P>
     concept <i>is-awaiter</i> = <i>// exposition only</i>
       requires (A& a, coroutine_handle&lt;P> h) {
         a.await_ready() ? 1 : 0;
@@ -4960,7 +4960,7 @@ enum class forward_progress_guarantee {
         a.await_resume();
       };
 
-    template &lt;class C, class P>
+    template&lt;class C, class P>
     concept <i>is-awaitable</i> =
       requires (C (*fc)() noexcept, P& p) {
         { <i>GET-AWAITER</i>(fc(), p) } -> <i>is-awaiter</i>&lt;P>;
@@ -4978,30 +4978,37 @@ enum class forward_progress_guarantee {
     an lvalue `p` of type `P`, <code><i>await-result-type</i>&lt;C, P></code>
     names the type <code>decltype(<i>GET-AWAITER</i>(c, p).await_resume())</code>.
 
-4. Let <code><i>env-promise</i></code> be the exposition-only class template:
+4. Let <code><i>with-await-transform</i></code> be the exposition-only class template:
 
     <pre>
-    template &lt;class Env>
-    struct <i>env-promise</i> {
+    template&lt;class Derived>
+    struct <i>with-await-transform</i> {
+      template&lt;class T>
+      T&& await_transform(T&& value) noexcept {
+        return std::forward&lt;T>(value);
+      }
+
+      template&lt;class T>
+        requires tag_invocable&lt;as_awaitable_t, T, Derived&>
+      auto await_transform(T&& value)
+        noexcept(nothrow_tag_invocable&lt;as_awaitable_t, T, Derived&>)
+        -> tag_invoke_result_t&lt;as_awaitable_t, T, Derived&> {
+        return tag_invoke(as_awaitable, std::forward&lt;T>(value), static_cast&lt;Derived&>(*this));
+      }
+    };
+    </pre>
+
+5. Let <code><i>env-promise</i></code> be the exposition-only class template:
+
+    <pre>
+    template&lt;class Env>
+    struct <i>env-promise</i> : <i>with-await-transform</i>&lt;<i>env-promise</i>&lt;Env>> {
       <i>unspecified</i> get_return_object() noexcept;
       <i>unspecified</i> initial_suspend() noexcept;
       <i>unspecified</i> final_suspend() noexcept;
       void unhandled_exception() noexcept;
       void return_void() noexcept;
       coroutine_handle&lt;> unhandled_stopped() noexcept;
-
-      template &lt;class T>
-      T&& await_transform(T&& value) noexcept {
-        return std::forward&lt;T>(value);
-      }
-
-      template &lt;class T>
-        requires tag_invocable&lt;as_awaitable_t, T, <i>env-promise</i>&>
-      auto await_transform(T&& value)
-        noexcept(nothrow_tag_invocable&lt;as_awaitable_t, T, <i>env-promise</i>&>)
-        -> tag_invoke_result_t&lt;as_awaitable_t, T, <i>env-promise</i>&> {
-        return tag_invoke(as_awaitable, std::forward&lt;T>(value), *this);
-      }
 
       friend const Env& tag_invoke(get_env_t, const <i>env-promise</i>&) noexcept;
     };
@@ -5059,100 +5066,109 @@ enum class forward_progress_guarantee {
 
 2. The name `connect` denotes a customization point object. For subexpressions
     `s` and `r`, let `S` be `decltype((s))` and `R` be `decltype((r))`, and let
-    `DS` and `DR` be the decayed types of `S` and `R`, respectively. If `S` does
-    not satisfy `sender` or if `R` does not satisfy `receiver`, `connect(s, r)`
-    is ill-formed. Otherwise, the expression `connect(s, r)` is
+    `DS` and `DR` be the decayed types of `S` and `R`, respectively. 
+    
+3. Let <code><i>connect-awaitable-promise</i></code> be the following class:
+
+    <pre>
+    struct <i>connect-awaitable-promise</i> : <i>with-await-transform</i>&lt;<i>connect-awaitable-promise</i>> {
+      DR& <i>rcvr</i>; <i>// exposition only</i>
+
+      <i>connect-awaitable-promise</i>(DS&, DR& r) noexcept : <i>rcvr</i>(r) {}
+
+      suspend_always initial_suspend() noexcept { return {}; }
+      [[noreturn]] suspend_always final_suspend() noexcept { std::terminate(); }
+      [[noreturn]] void unhandled_exception() noexcept { std::terminate(); }
+      [[noreturn]] void return_void() noexcept { std::terminate(); }
+
+      coroutine_handle<> unhandled_stopped() noexcept {
+        set_stopped((DR&&) <i>rcvr</i>);
+        return noop_coroutine();
+      }
+
+      <i>operation-state-task</i> get_return_object() noexcept {
+        return <i>operation-state-task</i>{
+          coroutine_handle&lt;<i>connect-awaitable-promise</i>>::from_promise(*this)};
+      }
+
+      friend auto tag_invoke(get_env_t, <i>connect-awaitable-promise</i>& self)
+        noexcept(<i>nothrow-callable</i>&lt;get_env_t, const DR&>) -> env_of_t&lt;const DR&> {
+        return get_env(self.<i>rcvr</i>);
+      }
+    };
+    </pre>
+
+4. Let <code><i>operation-state-task</i></code> be the following class:
+
+    <pre>
+    struct <i>operation-state-task</i> {
+      using promise_type = <i>connect-awaitable-promise</i>;
+      coroutine_handle<> <i>coro</i>; <i>// exposition only</i>
+
+      explicit <i>operation-state-task</i>(coroutine_handle<> h) noexcept : <i>coro</i>(h) {}
+      <i>operation-state-task</i>(<i>operation-state-task</i>&& o) noexcept
+        : <i>coro</i>(exchange(o.<i>coro</i>, {})) {}
+      ~<i>operation-state-task</i>() { if (<i>coro</i>) <i>coro</i>.destroy(); }
+
+      friend void tag_invoke(start_t, <i>operation-state-task</i>& self) noexcept {
+        self.<i>coro</i>.resume();
+      }
+    };
+    </pre>
+
+5. Let `V` name the type <code><i>await-result-type</i>&lt;DS,
+    <i>connect-awaitable-promise</i>></code>, let `Sigs` name the type:
+    
+    <pre>
+    completion_signatures&lt;<i>SET-VALUE-SIG</i>(V), set_error_t(exception_ptr), set_stopped_t()>
+    </pre>
+
+    and let <code><i>connect-awaitable</i></code> be an exposition-only
+    coroutine defined as follows:
+
+    <pre>
+    template&lt;class Fun, class... Ts>
+    auto <i>suspend-complete</i>(Fun fun, Ts&&... as) noexcept { <i>// exposition only</i>
+      auto fn = [&, fun]() noexcept { fun(std::forward&lt;Ts>(as)...); };
+
+      struct awaiter {
+        decltype(fn) <i>fn_</i>;
+
+        static bool await_ready() noexcept { return false; }
+        void await_suspend(coroutine_handle<>) noexcept { <i>fn_</i>(); }
+        [[noreturn]] void await_resume() noexcept { unreachable(); }
+      };
+      return awaiter{fn};
+    };
+
+    <i>operation-state-task</i> <i>connect-awaitable</i>(DS s, DR r) requires receiver_of&lt;DR, Sigs> {
+      exception_ptr ep;
+      try {
+        if constexpr (same_as&lt;V, void>) {
+          co_await std::move(s);
+          co_await <i>suspend-complete</i>(set_value, std::move(r));
+        } else {
+          co_await <i>suspend-complete</i>(set_value, std::move(r), co_await std::move(s));
+        }
+      } catch(...) {
+        ep = current_exception();
+      }
+      co_await <i>suspend-complete</i>(set_error, std::move(r), std::move(ep));
+    }
+    </pre>
+
+6. If `S` does not satisfy `sender` or if `R` does not satisfy `receiver`,
+    `connect(s, r)` is ill-formed. Otherwise, the expression `connect(s, r)` is
     expression-equivalent to:
 
-    1. `tag_invoke(connect, s, r)`, if the constraints below are satisfied. If
-        the function selected by `tag_invoke` does not return an operation state
-        for which `start` starts the associated asynchronous operation, the
-        behavior of calling `connect(s, r)` is undefined.
+    1. `tag_invoke(connect, s, r)` if
+        <code><i>connectable-with-tag-invoke</i>&lt;S, R></code> is modeled.
 
-        * <i>Constraints:</i>
+        * <i>Mandates:</i> The type of the `tag_invoke` expression above
+            satisfies `operation_state`.
 
-            <pre>
-            sender_in&lt;S, env_of_t&lt;R>> &amp;&amp;
-            receiver_of&lt;R, completion_signatures_of_t&lt;S, env_of_t&lt;R>>> &amp;&amp;
-            tag_invocable&lt;connect_t, S, R>
-            </pre>
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `operation_state`.
-
-    2. Otherwise, <code><i>connect-awaitable</i>(s, r)</code> if
-        <code><i>is-awaitable</i>&lt;S, <i>connect-awaitable-promise</i>></code>
-        is `true` and that expression is valid, where
-        <code><i>connect-awaitable</i></code> is an exposition-only coroutine
-        defined as follows:
-
-        <pre>
-        template &lt;class Fun, class... Ts>
-        auto <i>suspend-complete</i>(Fun fun, Ts&&... as) noexcept { <i>// exposition only</i>
-          auto fn = [&, fun]() noexcept { fun(std::forward<Ts>(as)...); };
-
-          struct awaiter {
-            decltype(fn) fn_;
-
-            bool await_ready() noexcept { return false; }
-            void await_suspend(coroutine_handle<>) noexcept { fn_(); }
-            [[noreturn]] void await_resume() noexcept { unreachable(); }
-          };
-          return awaiter{fn};
-        };
-
-        <i>operation-state-task</i> <i>connect-awaitable</i>(DS s, DR r) requires <i>see below</i> {
-          using V = <i>await-result-type</i>&lt;DS, <i>connect-awaitable-promise</i>>;
-          exception_ptr ep;
-          try {
-            if constexpr (same_as&lt;V, void>) {
-              co_await (co_await std::move(s), <i>suspend-complete</i>(set_value, std::move(r)));
-            } else {
-              co_await <i>suspend-complete</i>(set_value, std::move(r), co_await std::move(s));
-            }
-          } catch(...) {
-            ep = current_exception();
-          }
-          co_await <i>suspend-complete</i>(set_error, std::move(r), std::move(ep));
-        }
-        </pre>
-
-        where <code><i>connect-awaitable-promise</i></code> is the promise type
-        of <code><i>connect-awaitable</i></code>, and where
-        <code><i>connect-awaitable</i></code> suspends at the <i>initial
-        suspends point</i> ([dcl.fct.def.coroutine]), and:
-
-          1. <code><i>operation-state-task</i></code> is a type that models
-            `operation_state`. For an lvalue subexpression `o` of type
-            <code><i>operation-state-task</i></code>, `start(o)` resumes the
-            <code><i>connect-awaitable</i></code> coroutine, advancing it
-            past the initial suspend point. Its destructor destroys the
-            <code><i>connect-awaitable</i></code> coroutine.
-
-          2. Let `p` be an lvalue denoting the promise object of a
-            <code><i>connect-awaitable</i></code> coroutine. `get_env(p)` is
-            expression-equivalent to `get_env(as_const(r))`.
-
-          3. The expression `p.unhandled_stopped()` is expression-equivalent to
-              `(set_stopped(std::move(r)), noop_coroutine())`.
-
-          4. For an expression `e`, the expression `p.await_transform(e)` is
-              expression-equivalent to `tag_invoke(as_awaitable, e, p)` if that
-              expression is well-formed ([exec.as.awaitable]); otherwise, it is
-              expression-equivalent to `identity()(e)`.
-
-        Let `V` be <code><i>await-result-type</i>&lt;S,
-        <i>connect-awaitable-promise</i>></code>, and let `Vs...` be an empty
-        parameter pack if `V` is <code>void</code>, or a pack containing the
-        single type `V` otherwise. The operand of the <i>requires-clause</i> of
-        <code><i>connect-awaitable</i></code> is `receiver_of<R, Sigs>` where
-        `Sigs` names the type:
-
-            <pre>
-            completion_signatures&lt;
-              set_value_t(Vs...),
-              set_error_t(exception_ptr),
-              set_stopped_t()>
-            </pre>
+    2. Otherwise, <code><i>connect-awaitable</i>(s, r)</code> if that expression is
+        well-formed.
 
     3. Otherwise, `connect(s, r)` is ill-formed.
 
@@ -5188,56 +5204,48 @@ enum class forward_progress_guarantee {
 2. Let `just-sender` be the class template:
 
     <pre>
-    template&lt;class Tag, class... Ts>
+    template&lt;class Tag, <i>movable-value</i>... Ts>
     struct <i>just-sender</i> { // exposition only
       using is_sender = <i>unspecified</i>;
       using completion_signatures =
-        completion_signatures&lt;Tag(Ts...)>;
+        execution::completion_signatures&lt;Tag(Ts...)>;
 
-      [[no_unique_address]] tuple&lt;Ts...> vs_; // exposition only
+      tuple&lt;Ts...> <i>vs_</i>; // exposition only
 
-      template &lt;class R>
+      template&lt;class R>
       struct operation { // exposition only
-        [[no_unique_address]] tuple&lt;Ts...> vs_; // exposition only
-        R r_; // exposition only
+        tuple&lt;Ts...> <i>vs_</i>; // exposition only
+        R <i>r_</i>; // exposition only
 
         friend void tag_invoke(start_t, operation& s) noexcept {
-          apply([&s](Ts&... values_) {
-            Tag{}(std::move(s.r_), std::move(values_)...);
-          }, s.vs_);
+          apply([&s](Ts&... values) {
+            Tag()(std::move(s.<i>r_</i>), std::move(values)...);
+          }, s.<i>vs_</i>);
         }
       };
 
-      template &lt;receiver_of&lt;completion_signatures> R>
+      template&lt;receiver_of&lt;completion_signatures> R>
         requires (copy_constructible&ltTs> &&...)
-      friend operation&lt;decay_t<R>> tag_invoke(connect_t, const <i>just-sender</i>& s, R && r) {
-        return { s.vs_, std::forward&lt;R>(r) };
+      friend operation&lt;decay_t&lt;R>> tag_invoke(connect_t, const <i>just-sender</i>& s, R && r) {
+        return { s.<i>vs_</i>, std::forward&lt;R>(r) };
       }
 
-      template &lt;receiver_of&lt;completion_signatures> R>
-      friend operation&lt;decay_t<R>> tag_invoke(connect_t, <i>just-sender</i>&& s, R && r) {
-        return { std::move(s.vs_), std::forward&lt;R>(r) };
-      }
-
-      friend empty_env tag_invoke(get_env_t, const <i>just-sender</i>&) noexcept {
-        return {};
+      template&lt;receiver_of&lt;completion_signatures> R>
+      friend operation&lt;decay_t&lt;R>> tag_invoke(connect_t, <i>just-sender</i>&& s, R && r) {
+        return { std::move(s.<i>vs_</i>), std::forward&lt;R>(r) };
       }
     };
     </pre>
 
 3. The name `just` denotes a customization point object. For some pack of
     subexpressions `vs`, let `Vs` be the template paramter pack
-    `decltype((vs))...`. If any type `V` in `Vs` does not satisfy
-    <code><i>movable-value</i></code>, `just(vs...)` is ill-formed. Otherwise,
-    `just(vs...)` is expression-equivalent to
+    `decltype((vs))`. `just(vs...)` is expression-equivalent to
     <code><i>just-sender</i>&lt;set_value_t,
-    decay_t&lt;Ts>...>({vs...})</i></code>.
+    remove_cvref_t&lt;Vs>...>({vs...})</i></code>.
 
 4. The name `just_error` denotes a customization point object. For some
-    subexpression `err`, let `Err` be `decltype((err))`. If `Err` does not
-    satisfy <code><i>movable-value</i></code>, `just_error(err)` is ill-formed.
-    Otherwise, `just_error(err)` is expression-equivalent to
-    <code><i>just-sender</i>&lt;set_error_t, decay_t&lt;Err>>({err})</i></code>.
+    subexpression `err`, let `Err` be `decltype((err))`. `just_error(err)` is expression-equivalent to
+    <code><i>just-sender</i>&lt;set_error_t, remove_cvref_t&lt;Err>>({err})</i></code>.
 
 5. Then name `just_stopped` denotes a customization point object. `just_stopped()`
     is expression-equivalent to
@@ -5281,11 +5289,11 @@ enum class forward_progress_guarantee {
 2. `read` is a customization point object of the unspecified class type:
 
     <pre>
-    template &lt;class Tag>
+    template&lt;class Tag>
       struct <i>read-sender</i>; // exposition only
 
     struct <i>read-t</i> { // exposition only
-      template &lt;class Tag>
+      template&lt;class Tag>
         constexpr <i>read-sender</i>&lt;Tag> operator()(Tag) const noexcept {
           return {};
         }
@@ -5295,7 +5303,7 @@ enum class forward_progress_guarantee {
 3. <code><i>read-sender</i></code> is the exposition-only class template:
 
     <pre>
-    template &lt;class Tag>
+    template&lt;class Tag>
       struct <i>read-sender</i> { // exposition only
         using is_sender = <i>unspecified</i>;
         template&lt;class R>
@@ -5384,13 +5392,13 @@ enum class forward_progress_guarantee {
 
     <pre>
     namespace <i>sender-adaptors</i> { // exposition only
-      template &lt;class Sch, class S> // arguments are not associated entities ([lib.tmpl-heads])
+      template&lt;class Sch, class S> // arguments are not associated entities ([lib.tmpl-heads])
       class <i>on-sender</i> {
         // ...
       };
 
       struct on_t {
-        template &lt;scheduler Sch, sender S>
+        template&lt;scheduler Sch, sender S>
         <i>on-sender</i>&lt;Sch, S> operator()(Sch&& sch, S&& s) const {
           // ...
         }
@@ -5691,7 +5699,7 @@ enum class forward_progress_guarantee {
             where <code><i>set-value-completions</i></code> is an alias for:
 
             <pre>
-            template &lt;class... As>
+            template&lt;class... As>
               <i>set-value-completions</i> =
                 completion_signatures&lt;<i>compl-sig-t</i>&lt;set_value_t, invoke_result_t&lt;F, As...>>>
             </pre>
@@ -5704,7 +5712,7 @@ enum class forward_progress_guarantee {
             <code><i>potentially-throwing</i></code> is the template alias:
 
             <pre>
-            template &lt;class... As>
+            template&lt;class... As>
               using <i>potentially-throwing</i> =
                 bool_constant&lt;!is_nothrow_invocable_v&lt;F, As...>>;
             </pre>
@@ -5771,7 +5779,7 @@ enum class forward_progress_guarantee {
             where <code><i>set-error-completion</i></code> is the template alias:
 
             <pre>
-            template &lt;class E>
+            template&lt;class E>
               <i>set-error-completion</i> =
                 completion_signatures&lt;<i>compl-sig-t</i>&lt;set_value_t, invoke_result_t&lt;F, E>>>
             </pre>
@@ -5784,7 +5792,7 @@ enum class forward_progress_guarantee {
             <code><i>potentially-throwing</i></code> is the template alias:
 
             <pre>
-            template &lt;class... Es>
+            template&lt;class... Es>
               using <i>potentially-throwing</i> =
                 <i>type-list</i>&lt;!bool_constant&lt;is_nothrow_invocable_v&lt;F, Es>>...>;
             </pre>
@@ -5987,7 +5995,7 @@ enum class forward_progress_guarantee {
             `decltype((shape))` and let <code><i>nothrow-callable</i></code> be the alias template:
 
               <pre>
-              template &lt;class... As>
+              template&lt;class... As>
                 using <i>nothrow-callable</i> =
                   bool_constant&lt;is_nothrow_invocable_v&lt;decay_t&lt;F>&, Shape, As...>>;
               </pre>
@@ -6089,9 +6097,9 @@ enum class forward_progress_guarantee {
 
                 <pre>
                 struct <i>stop-callback-fn</i> {
-                  stop_source& stop_src_;
+                  stop_source& <i>stop_src_</i>;
                   void operator()() noexcept {
-                    stop_src_.request_stop();
+                    <i>stop_src_</i>.request_stop();
                   }
                 };
                 </pre>
@@ -6158,7 +6166,7 @@ enum class forward_progress_guarantee {
         <code><i>value-signatures</i></code> is the alias template:
 
         <pre>
-        template &lt;class... Ts>
+        template&lt;class... Ts>
           using <i>value-signatures</i> =
             completion_signatures&lt;set_value_t(const decay_t&lt;Ts>&amp;...)>;
         </pre>
@@ -6166,7 +6174,7 @@ enum class forward_progress_guarantee {
         and <code><i>error-signatures</i></code> is the alias template:
 
         <pre>
-        template &lt;class E>
+        template&lt;class E>
           using <i>error-signatures</i> =
             completion_signatures&lt;set_error_t(const decay_t&lt;E>&amp;)>;
         </pre>
@@ -6233,9 +6241,9 @@ enum class forward_progress_guarantee {
 
                 <pre>
                 struct <i>stop-callback-fn</i> {
-                  in_place_stop_source& stop_src_;
+                  in_place_stop_source& <i>stop_src_</i>;
                   void operator()() noexcept {
-                    stop_src_.request_stop();
+                    <i>stop_src_</i>.request_stop();
                   }
                 };
                 </pre>
@@ -6416,9 +6424,9 @@ enum class forward_progress_guarantee {
         Let <code><i>into-variant-set-value</i></code> be the class template:
 
         <pre>
-            template &lt;class S, class E>
+            template&lt;class S, class E>
             struct <i>into-variant-set-value</i> {
-              template &lt;class ...Args>
+              template&lt;class ...Args>
               using <i>apply</i> = set_value_t(<i>into-variant-type</i>&lt;S, E>);
             };
         </pre>
@@ -6426,9 +6434,9 @@ enum class forward_progress_guarantee {
         Let <code><i>into-variant-is-nothrow</i></code> be the class template:
 
         <pre>
-            template &lt;class S, class E>
+            template&lt;class S, class E>
             struct <i>into-variant-is-nothrow</i> {
-              template &lt;class... Args>
+              template&lt;class... Args>
                   requires constructible_from&lt;<i>decayed-tuple</i>&lt;Args...>, Args...>
                 using <i>apply</i> = bool_constant&lt;noexcept(
                   <i>into-variant-type</i>&lt;S, E>(<i>decayed-tuple</i>&lt;Args...>(declval&lt;Args>()...)))>;
@@ -6463,7 +6471,7 @@ enum class forward_progress_guarantee {
           then(s,
             []&lt;class T>(T&& t) {
               return optional&lt;decay_t&lt;<i>single-sender-value-type</i>&lt;S, E>>>{
-                std::forward<T>(t)
+                std::forward&lt;T>(t)
               };
             }
           ),
@@ -6570,9 +6578,9 @@ enum class forward_progress_guarantee {
 
                 <pre>
                 struct <i>stop-callback-fn</i> {
-                  stop_source& stop_src_;
+                  stop_source& <i>stop_src_</i>;
                   void operator()() noexcept {
-                    stop_src_.request_stop();
+                    <i>stop_src_</i>.request_stop();
                   }
                 };
                 </pre>
@@ -6643,7 +6651,7 @@ enum class forward_progress_guarantee {
             <code><i>set-value-signature</i></code> is the alias template:
 
             <pre>
-            template &lt;class... Ts>
+            template&lt;class... Ts>
               using <i>set-value-signature</i> =
                 completion_signatures&lt;set_value_t(decay_t&lt;Ts>&amp;&amp;...)>;
             </pre>
@@ -6651,7 +6659,7 @@ enum class forward_progress_guarantee {
             and <code><i>error-types</i></code> is the alias template:
 
             <pre>
-            template &lt;class E>
+            template&lt;class E>
               using <i>error-types</i> =
                 completion_signatures&lt;set_error_t(decay_t&lt;E>&amp;&amp;)>;
             </pre>
@@ -6813,7 +6821,7 @@ enum class forward_progress_guarantee {
     <pre>
     // [<i>Editorial note:</i> copy_cvref_t as in [[P1450R3]] -- <i>end note</i>]
     // Mandates: is_base_of_v&lt;T, remove_reference_t&lt;U>> is true
-    template &lt;class T, class U>
+    template&lt;class T, class U>
       copy_cvref_t&lt;U&amp;&amp;, T> <i>c-style-cast</i>(U&amp;&amp; u) noexcept requires <i>decays-to</i>&lt;T, T> {
         return (copy_cvref_t&lt;U&amp;&amp;, T>) std::forward&lt;U>(u);
       }
@@ -6847,7 +6855,7 @@ enum class forward_progress_guarantee {
 3. `receiver_adaptor<Derived, Base>` is equivalent to the following:
 
     <pre>
-    template &lt;
+    template&lt;
       <i>class-type</i> Derived,
       receiver Base = <i>unspecified</i>> // arguments are not associated entities ([lib.tmpl-heads])
     class receiver_adaptor {
@@ -6857,7 +6865,7 @@ enum class forward_progress_guarantee {
 
       // Constructors
       receiver_adaptor() = default;
-      template &lt;class B>
+      template&lt;class B>
           requires <i>HAS-BASE</i> && constructible_from&lt;Base, B>
         explicit receiver_adaptor(B&& base) : base_(std::forward&lt;B>(base)) {}
 
@@ -6868,17 +6876,17 @@ enum class forward_progress_guarantee {
       using get_env = <i>unspecified</i>;
 
       // Member functions
-      template &lt;class Self>
+      template&lt;class Self>
         requires <i>HAS-BASE</i>
       decltype(auto) base(this Self&amp;&amp; self) noexcept {
         return (std::forward&lt;Self>(self).base_);
       }
 
       // [exec.utils.rcvr.adptr.nonmembers] Non-member functions
-      template &lt;class... As>
+      template&lt;class... As>
         friend void tag_invoke(set_value_t, Derived&amp;&amp; self, As&amp;&amp;... as) noexcept;
 
-      template &lt;class E>
+      template&lt;class E>
         friend void tag_invoke(set_error_t, Derived&amp;&amp; self, E&amp;&amp; e) noexcept;
 
       friend void tag_invoke(set_stopped_t, Derived&amp;&amp; self) noexcept;
@@ -6899,7 +6907,7 @@ enum class forward_progress_guarantee {
      using _int_completion =
        completion_signatures&lt;set_value_t(int)>;
 
-     template &lt;receiver_of&lt;_int_completion> R>
+     template&lt;receiver_of&lt;_int_completion> R>
        class my_receiver : receiver_adaptor&lt;my_receiver&lt;R>, R> {
          friend receiver_adaptor&lt;my_receiver, R>;
          void set_value() && {
@@ -6914,7 +6922,7 @@ enum class forward_progress_guarantee {
 #### Non-member functions <b>[exec.utils.rcvr.adptr.nonmembers]</b> #### {#spec-execution.snd_rec_utils.receiver_adaptor.nonmembers}
 
     <pre>
-    template &lt;class... As>
+    template&lt;class... As>
       friend void tag_invoke(set_value_t, Derived&amp;&amp; self, As&amp;&amp;... as) noexcept;
     </pre>
 
@@ -6931,7 +6939,7 @@ enum class forward_progress_guarantee {
         * Otherwise, <code>set_value(<i>GET-BASE</i>(std::move(self)), std::forward&lt;As>(as)...)</code>.
 
     <pre>
-    template &lt;class E>
+    template&lt;class E>
       friend void tag_invoke(set_error_t, Derived&amp;&amp; self, E&amp;&amp; e) noexcept;
     </pre>
 
@@ -7015,13 +7023,13 @@ enum class forward_progress_guarantee {
     template&lt;class Fn>
       concept <i>completion-signature</i> = <i>see below</i>;
 
-    template &lt;bool>
+    template&lt;bool>
       struct <i>indirect-meta-apply</i> {
-        template &lt;template &lt;class...> class T, class... As>
+        template&lt;template&lt;class...> class T, class... As>
           using <i>meta-apply</i> = T&lt;As...>; <i>// exposition only</i>
       };
 
-    template &lt;class...>
+    template&lt;class...>
       concept <i>always-true</i> = true; <i>// exposition only</i>
     </pre>
 
@@ -7032,11 +7040,11 @@ enum class forward_progress_guarantee {
         * `set_stopped_t()`
 
     <pre>
-    template &lt;class Tag,
+    template&lt;class Tag,
               class S,
               class E,
-              template &lt;class...> class Tuple,
-              template &lt;class...> class Variant>
+              template&lt;class...> class Tuple,
+              template&lt;class...> class Variant>
         requires sender_in&lt;S, E>
       using <i>gather-signatures</i> = <i>see below</i>;
     </pre>
@@ -7067,25 +7075,25 @@ enum class forward_progress_guarantee {
         valid to use non-variadic templates as <code><i>Variant</i></code> and <code><i>Tuple</i></code> arguments to <code><i>gather-signatures</i></code>.</span>
 
 4.  <pre>
-    template &lt;<i>completion-signature</i>... Fns>
+    template&lt;<i>completion-signature</i>... Fns>
       struct completion_signatures {};
 
-    template &lt;class S,
+    template&lt;class S,
               class E = empty_env,
-              template &lt;class...> class Tuple = <i>decayed-tuple</i>,
-              template &lt;class...> class Variant = <i>variant-or-empty</i>>
+              template&lt;class...> class Tuple = <i>decayed-tuple</i>,
+              template&lt;class...> class Variant = <i>variant-or-empty</i>>
         requires sender_in&lt;S, E>
       using value_types_of_t =
           <i>gather-signatures</i>&lt;set_value_t, S, E, Tuple, Variant>;
 
-    template &lt;class S,
+    template&lt;class S,
               class E = empty_env,
-              template &lt;class...> class Variant = <i>variant-or-empty</i>>
+              template&lt;class...> class Variant = <i>variant-or-empty</i>>
         requires sender_in&lt;S, E>
       using error_types_of_t =
           <i>gather-signatures</i>&lt;set_error_t, S, E, type_identity_t, Variant>;
 
-    template &lt;class S, class E = empty_env>
+    template&lt;class S, class E = empty_env>
         requires sender_in&lt;S, E>
       inline constexpr bool sends_stopped =
           !same_as&lt;
@@ -7107,7 +7115,7 @@ enum class forward_progress_guarantee {
     // signatures by lvalue-ref qualifying the values, adding an additional
     // exception_ptr error completion if its not already there, and leaving the
     // other completion signatures alone.
-    template &lt;class... Args>
+    template&lt;class... Args>
       using my_set_value_t =
         completion_signatures&lt;
           set_value_t(add_lvalue_reference_t&lt;Args>...)>;
@@ -7123,22 +7131,22 @@ enum class forward_progress_guarantee {
 3. This section makes use of the following exposition-only entities:
 
     <pre>
-    template &lt;class... As>
+    template&lt;class... As>
       using <i>default-set-value</i> =
         completion_signatures&lt;set_value_t(As...)>;
 
-    template &lt;class Err>
+    template&lt;class Err>
       using <i>default-set-error</i> =
         completion_signatures&lt;set_error_t(Err)>;
     </pre>
 
 4.  <pre>
-    template &lt;sender Sndr,
+    template&lt;sender Sndr,
               class Env = empty_env,
               <i>valid-completion-signatures</i> AddlSigs =
                   completion_signatures&lt;>,
-              template &lt;class...> class SetValue = <i>default-set-value</i>,
-              template &lt;class> class SetError = <i>default-set-error</i>,
+              template&lt;class...> class SetValue = <i>default-set-value</i>,
+              template&lt;class> class SetError = <i>default-set-error</i>,
               <i>valid-completion-signatures</i> SetStopped =
                   completion_signatures&lt;set_stopped_t()>>
         requires sender_in&lt;Sndr, Env>
@@ -7201,8 +7209,8 @@ enum class forward_progress_guarantee {
       class <i>run-loop-sender</i>; // exposition only
       struct <i>run-loop-opstate-base</i> { // exposition only
         virtual void execute() = 0;
-        run_loop* loop_;
-        <i>run-loop-opstate-base</i>* next_;
+        run_loop* <i>loop_</i>;
+        <i>run-loop-opstate-base</i>* <i>next_</i>;
       };
       template&lt;receiver_of&lt;completion_signatures&lt;set_value_t()>> R>
         using <i>run-loop-opstate</i> = <i>unspecified</i>; // exposition only
@@ -7277,7 +7285,7 @@ enum class forward_progress_guarantee {
 
         <pre>
         try {
-          <i>o</i>.loop_->push_back(&<i>o</i>);
+          <i>o</i>.<i>loop_</i>->push_back(&<i>o</i>);
         } catch(...) {
           set_error(std::move(<i>REC</i>(<i>o</i>)), current_exception());
         }
@@ -7364,7 +7372,7 @@ enum class forward_progress_guarantee {
         sender_in&lt;S, E> &amp;&amp;
         requires { typename <i>single-sender-value-type</i>&lt;S, E>; };
 
-    template &lt;class S, class P>
+    template&lt;class S, class P>
       concept <i>awaitable-sender</i> =
         <i>single-sender</i>&lt;S, <i>ENV-OF</i>(P)> &amp;&amp;
         sender_to&lt;S, <i>awaitable-receiver</i>> &amp;&amp; // see below
@@ -7372,7 +7380,7 @@ enum class forward_progress_guarantee {
           { p.unhandled_stopped() } -> convertible_to&lt;coroutine_handle&lt;>>;
         };
 
-    template &lt;class S, class P>
+    template&lt;class S, class P>
       class <i>sender-awaitable</i>;
     </pre>
 
@@ -7390,20 +7398,20 @@ enum class forward_progress_guarantee {
     2. The type <code><i>sender-awaitable</i>&lt;S, P></code> is equivalent to the following:
 
         <pre>
-        template &lt;class S, class P> // arguments are not associated entities ([lib.tmpl-heads])
+        template&lt;class S, class P> // arguments are not associated entities ([lib.tmpl-heads])
         class <i>sender-awaitable</i> {
           struct unit {};
           using value_t = <i>single-sender-value-type</i>&lt;S, <i>ENV-OF</i>(P)>;
           using result_t = conditional_t&lt;is_void_v&lt;value_t>, unit, value_t>;
           struct <i>awaitable-receiver</i>;
 
-          variant&lt;monostate, result_t, exception_ptr> result_{};
-          connect_result_t&lt;S, <i>awaitable-receiver</i>> state_;
+          variant&lt;monostate, result_t, exception_ptr> <i>result_</i>{};
+          connect_result_t&lt;S, <i>awaitable-receiver</i>> <i>state_</i>;
 
          public:
           <i>sender-awaitable</i>(S&& s, P& p);
           bool await_ready() const noexcept { return false; }
-          void await_suspend(coroutine_handle&lt;P>) noexcept { start(state_); }
+          void await_suspend(coroutine_handle&lt;P>) noexcept { start(<i>state_</i>); }
           value_t await_resume();
         };
         </pre>
@@ -7413,8 +7421,8 @@ enum class forward_progress_guarantee {
             <pre>
             struct <i>awaitable-receiver</i> {
               using is_receiver = <i>unspecified</i>;
-              variant&lt;monostate, result_t, exception_ptr>* result_ptr_;
-              coroutine_handle&lt;P> continuation_;
+              variant&lt;monostate, result_t, exception_ptr>* <i>result_ptr_</i>;
+              coroutine_handle&lt;P> <i>continuation_</i>;
               // ... <i>see below</i>
             };
             </pre>
@@ -7425,11 +7433,11 @@ enum class forward_progress_guarantee {
 
                   <pre>
                   try {
-                    r.result_ptr_->emplace&lt;1>(vs...);
+                    r.<i>result_ptr_</i>->emplace&lt;1>(vs...);
                   } catch(...) {
-                    r.result_ptr_->emplace&lt;2>(current_exception());
+                    r.<i>result_ptr_</i>->emplace&lt;2>(current_exception());
                   }
-                  r.continuation_.resume();
+                  r.<i>continuation_</i>.resume();
                   </pre>
 
                   Otherwise, `set_value(r, vs...)` is ill-formed.
@@ -7437,8 +7445,8 @@ enum class forward_progress_guarantee {
               2. The expression `set_error(r, err)` is equivalent to:
 
                   <pre>
-                  r.result_ptr_->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err));
-                  r.continuation_.resume();
+                  r.<i>result_ptr_</i>->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err));
+                  r.<i>continuation_</i>.resume();
                   </pre>
 
                   where <code><i>AS-EXCEPT-PTR</i>(err)</code> is:
@@ -7450,26 +7458,26 @@ enum class forward_progress_guarantee {
                   3. Otherwise, `make_exception_ptr(err)`.
 
               3. The expression `set_stopped(r)` is equivalent to
-                `static_cast<coroutine_handle<>>(r.continuation_.promise().unhandled_stopped()).resume()`.
+                <code>static_cast&lt;coroutine_handle&lt;>>(r.<i>continuation_</i>.promise().unhandled_stopped()).resume()</code>.
 
               4. For any expression `tag` whose type satisfies <code><i>forwarding-query</i></code>
                   and for any pack of subexpressions `as`, `tag_invoke(tag, get_env(cr), as...)`
-                  is expression-equivalent to `tag(get_env(as_const(cr.continuation_.promise())),
-                  as...)` when that expression is well-formed.
+                  is expression-equivalent to <code>tag(get_env(as_const(cr.<i>continuation_</i>.promise())),
+                  as...)</code> when that expression is well-formed.
 
         2. <b><code><i>sender-awaitable</i>::<i>sender-awaitable</i>(S&& s, P& p)</code></b>
 
-            - <i>Effects:</i> initializes `state_` with <code>connect(std::forward&lt;S>(s), <i>awaitable-receiver</i>{&result_, coroutine_handle&lt;P>::from_promise(p)})</code>.
+            - <i>Effects:</i> initializes <i>`state_`</i> with <code>connect(std::forward&lt;S>(s), <i>awaitable-receiver</i>{&<i>result_</i>, coroutine_handle&lt;P>::from_promise(p)})</code>.
 
         3. <b><code>value_t <i>sender-awaitable</i>::await_resume()</code></b>
 
             - <i>Effects:</i> equivalent to:
 
                 <pre>
-                if (result_.index()) == 2)
-                  rethrow_exception(get&lt;2>(result_));
+                if (<i>result_</i>.index()) == 2)
+                  rethrow_exception(get&lt;2>(<i>result_</i>));
                 if constexpr (!is_void_v&lt;value_t>)
-                  return std::forward<value_t>(get&lt;1>(result_));
+                  return std::forward&lt;value_t>(get&lt;1>(<i>result_</i>));
                 </pre>
 
 2. `as_awaitable` is a customization point object. For some subexpressions `e` and `p` where `p` is an lvalue, `E` names the type `decltype((e))` and `P` names the type `decltype((p))`, `as_awaitable(e, p)` is expression-equivalent to the following:
@@ -7500,16 +7508,16 @@ enum class forward_progress_guarantee {
     In addition, it provides a default implementation of `unhandled_stopped()` such that if a sender completes by calling `set_stopped`, it is treated as if an uncatchable "stopped" exception were thrown from the <i>await-expression</i>. In practice, the coroutine is never resumed, and the `unhandled_stopped` of the coroutine caller's promise type is called.
 
     <pre>
-    template &lt;<i>class-type</i> Promise>
+    template&lt;<i>class-type</i> Promise>
       struct with_awaitable_senders {
         template&lt;OtherPromise>
           requires (!same_as&lt;OtherPromise, void>)
         void set_continuation(coroutine_handle&lt;OtherPromise> h) noexcept;
 
-        coroutine_handle&lt;> continuation() const noexcept { return continuation_; }
+        coroutine_handle&lt;> continuation() const noexcept { return <i>continuation_</i>; }
 
         coroutine_handle&lt;> unhandled_stopped() noexcept {
-          return stopped_handler_(continuation_.address());
+          return <i>stopped_handler_</i>(<i>continuation_</i>.address());
         }
 
         template&lt;class Value>
@@ -7520,9 +7528,9 @@ enum class forward_progress_guarantee {
         [[noreturn]] static coroutine_handle&lt;> default_unhandled_stopped(void*) noexcept {
           terminate();
         }
-        coroutine_handle&lt;> continuation_{}; // exposition only
+        coroutine_handle&lt;> <i>continuation_</i>{}; // exposition only
         // exposition only
-        coroutine_handle&lt;> (*stopped_handler_)(void*) noexcept = &default_unhandled_stopped;
+        coroutine_handle&lt;> (*<i>stopped_handler_</i>)(void*) noexcept = &default_unhandled_stopped;
       };
     </pre>
 
@@ -7531,14 +7539,14 @@ enum class forward_progress_guarantee {
       - <i>Effects:</i> equivalent to:
 
         <pre>
-        continuation_ = h;
+        <i>continuation_</i> = h;
         if constexpr ( requires(OtherPromise& other) { other.unhandled_stopped(); } ) {
-          stopped_handler_ = [](void* p) noexcept -> coroutine_handle&lt;> {
+          <i>stopped_handler_</i> = [](void* p) noexcept -> coroutine_handle&lt;> {
             return coroutine_handle&lt;OtherPromise>::from_address(p)
               .promise().unhandled_stopped();
           };
         } else {
-          stopped_handler_ = default_unhandled_stopped;
+          <i>stopped_handler_</i> = default_unhandled_stopped;
         }
         </pre>
 
@@ -7547,7 +7555,7 @@ enum class forward_progress_guarantee {
       - <i>Effects:</i> equivalent to:
 
         <pre>
-        return as_awaitable(std::forward<Value>(value), static_cast&lt;Promise&>(*this));
+        return as_awaitable(std::forward&lt;Value>(value), static_cast&lt;Promise&>(*this));
         </pre>
 
 <pre class=biblio>
