@@ -2337,7 +2337,7 @@ For example, consider the following trivial implementation of the sender-based `
 
 <pre highlight="c++">
 template&lt;class S>
-  requires <i>single-sender</i>&lt;S&> // See <a href="#spec-execution.coro_utils.as_awaitable">[exec.as.awaitable]</a>
+  requires <i>single-sender</i>&lt;S&> // see <a href="#spec-execution.coro_utils.as_awaitable">[exec.as.awaitable]</a>
 task&lt;<i>single-sender-value-type</i>&lt;S>> retry(S s) {
   for (;;) {
     try {
@@ -4860,9 +4860,7 @@ enum class forward_progress_guarantee {
 
 4. The `sender_of` concept defines the requirements for a sender type that
     completes with the completion signature specified for the given completion
-    function. For function types `F1` and `F2` denoting `R1(Args1...)` and
-    `R2(Args2...)` respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is
-    `true` if and only if `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
+    function.
 
     <pre highlight="c++">
     template&lt;class> struct <i>sender-of-helper</i>; <i>// exposition only</i>
@@ -4877,9 +4875,9 @@ enum class forward_progress_guarantee {
     template&lt;class S, class Sig, class E = empty_env>
       concept sender_of =
         sender_in&lt;S, E> &&
-        <i>MATCHING-SIG</i>(
+        <i>MATCHING-SIG</i>( <i>// see [exec.general]</i>
           Sig,
-          <i>gather-signatures</i>&lt;  <i>// See [exec.utils.cmplsigs]</i>
+          <i>gather-signatures</i>&lt;  <i>// see [exec.utils.cmplsigs]</i>
             typename <i>sender-of-helper</i>&lt;Sig>::<i>tag</i>,
             S, E,
             <i>sender-of-helper</i>&lt;Sig>::template <i>as-sig</i>, type_identity_t>);
@@ -5034,7 +5032,7 @@ enum class forward_progress_guarantee {
 
             <pre highlight="c++">
             completion_signatures<
-              <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>>),
+              <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>>), <i>// see [exec.snd.concepts]</i>
               set_error_t(exception_ptr),
               set_stopped_t()>{}
             </pre>
@@ -5049,7 +5047,7 @@ enum class forward_progress_guarantee {
     expression <code><i>CSO</i>(r, args...)</code> to be potentially evaluated
     ([basic.def.odr]) then there shall be a signature `Sig` in `Sigs...` such
     that <code><i>MATCHING-SIG</i>(tag_t&lt;<i>CSO</i>>(decltype(args)...),
-    Sig)</code> is `true`.
+    Sig)</code> is `true` ([exec.general]).
 
 ### `execution::connect` <b>[exec.connect]</b> ### {#spec-execution.senders.connect}
 
@@ -5111,7 +5109,10 @@ enum class forward_progress_guarantee {
     <i>connect-awaitable-promise</i>></code>, let `Sigs` name the type:
     
     <pre highlight="c++">
-    completion_signatures&lt;<i>SET-VALUE-SIG</i>(V), set_error_t(exception_ptr), set_stopped_t()>
+    completion_signatures&lt;
+      <i>SET-VALUE-SIG</i>(V), <i>// see [exec.snd.concepts]</i>
+      set_error_t(exception_ptr),
+      set_stopped_t()>
     </pre>
 
     and let <code><i>connect-awaitable</i></code> be an exposition-only
