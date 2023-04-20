@@ -23,7 +23,7 @@ Markup Shorthands: markdown yes
 Toggle Diffs: no
 No Abstract: yes
 Default Biblio Display: inline
-Default Highlight: text
+Default Highlight: c++
 </pre>
 
 <style>
@@ -41,7 +41,7 @@ table, th, tr, td {
 }
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
-  <!-- color: rgb(0, 136, 0); -->
+  color: rgb(0, 136, 0);
   text-decoration: none;
 }
 .del, del, del *, span.del, span.del * {
@@ -127,18 +127,6 @@ div.wg21note:after, span.wg21note:after {
 h5 {
   font-style: normal; /* turn off italics of h5 headers */
 }
-body {
-  font-family: "Computer Modern Roman";
-  font-size: .9em;
-}
-pre, code, samp {
-  font-family: "Courier New", monospace;
-  color: initial;
-  background-color: white;
-}
-code.highlight {
-  color: initial;
-}
 </style>
 
 # Introduction # {#intro}
@@ -176,7 +164,7 @@ In this section we demonstrate the end-user experience of asynchronous programmi
 
 ### Hello world ### {#example-hello-world}
 
-```
+```c++
 using namespace std::execution;
 
 scheduler auto sch = thread_pool.scheduler();                                 // 1
@@ -201,7 +189,7 @@ This example demonstrates the basics of schedulers, senders, and receivers:
 
 ### Asynchronous inclusive scan ### {#example-async-inclusive-scan}
 
-```
+```c++
 using namespace std::execution;
 
 sender auto async_inclusive_scan(scheduler auto sch,                          // 2
@@ -265,7 +253,7 @@ This example builds an asynchronous computation of an inclusive scan:
 
 ### Asynchronous dynamically-sized read ### {#example-async-dynamically-sized-read}
 
-```
+```c++
 using namespace std::execution;
 
 sender_of<set_value_t(std::size_t)> auto async_read(                          // 1
@@ -321,7 +309,7 @@ This example demonstrates a common asynchronous I/O pattern - reading a payload 
 To get a better feel for how this interface might be used by low-level operations see this example implementation
 of a cancellable `async_recv()` operation for a Windows Socket.
 
-```
+```c++
 struct operation_base : WSAOVERALAPPED {
     using completion_fn = void(operation_base* op, DWORD bytesTransferred, int errorCode) noexcept;
 
@@ -486,7 +474,7 @@ Dietmar Kuehl has a hobby project that implements networking APIs on top of send
 
 Below, I show the part of the echo server code. This code is executed for each client that connects to the echo server. In a loop, it reads input from a socket and echos the input back to the same socket. All of this, including the loop, is implemented with generic async algorithms.
 
-    <pre>
+    <pre highlight="c++">
     outstanding.start(
         EX::repeat_effect_until(
               EX::let_value(
@@ -519,7 +507,7 @@ In this section we show a few simple sender/receiver-based algorithm implementat
 
 ### `then` ### {#example-then}
 
-```
+```c++
 namespace exec = std::execution;
 
 template<class R, class F>
@@ -599,7 +587,7 @@ In detail, it does the following:
 
 ### `retry` ### {#example-retry}
 
-```
+```c++
 using namespace std;
 namespace exec = execution;
 
@@ -738,7 +726,7 @@ In this section we look at some schedulers of varying complexity.
 
 ### Inline scheduler ### {#example-schedulers-inline}
 
-```
+```c++
 class inline_scheduler {
   template <class R>
     struct _op {
@@ -810,7 +798,7 @@ implementing one. The `inline_scheduler`:
 This example shows how to create a scheduler for an execution resource that consists of a single
 thread. It is implemented in terms of a lower-level execution resource called `std::execution::run_loop`.
 
-```
+```c++
 class single_thread_context {
   std::execution::run_loop loop_;
   std::thread thread_;
@@ -877,7 +865,7 @@ Goals:
 - show how one can break more complex flows into steps with let_* functions
 - exemplify the use of `let_value`, `let_error`, `let_stopped`, and `just` algorithms
 
-```
+```c++
 namespace ex = std::execution;
 
 // Returns a sender that yields an http_request object for an incoming request
@@ -929,6 +917,7 @@ ex::sender auto snd =
 // execute the whole flow asynchronously
 ex::start_detached(std::move(snd));
 ```
+
 The example shows how one can separate out the concerns for interpreting requests, validating requests, running the main logic for handling the request, generating error responses, handling cancellation and sending the response back to the client.
 They are all different phases in the application, and can be joined together with the `let_*` functions.
 
@@ -950,7 +939,7 @@ Goals:
 - exemplify the use of `on` and `transfer` algorithms
 
 
-```
+```c++
 namespace ex = std::execution;
 
 size_t legacy_read_from_socket(int sock, char* buffer, size_t buffer_len) {}
@@ -1343,7 +1332,7 @@ This causes knock-on problems since some important algorithms require a typed
 sender, such as `sync_wait`. To illustrate the problem, consider the following
 code:
 
-<pre>
+<pre highlight="c++">
 namespace ex = std::execution;
 
 ex::sender auto task =
@@ -1417,7 +1406,7 @@ Although this change has not yet been made in libunifex, the most widely adopted
 
 For instance, the following Folly code grabs the current executor, schedules a task for execution on that executor, and starts the resulting (scheduled) task by enqueueing it for execution.
 
-```
+```c++
 // From Facebook's Folly open source library:
 template <class T>
 folly::coro::Task<void> CancellableAsyncScope::co_schedule(folly::coro::Task<T>&& task) {
@@ -1603,7 +1592,7 @@ will complete on an execution resource determined by the scheduler. Logic that
 you want to run on that context can be placed in the receiver's
 completion-signalling method.
 
-<pre>
+<pre highlight="c++">
 execution::scheduler auto sch = thread_pool.scheduler();
 execution::sender auto snd = execution::schedule(sch);
 // snd is a sender (see below) describing the creation of a new execution resource
@@ -1645,7 +1634,7 @@ which are described in [[#design-composable]], [[#design-sender-factories]],
 is how a user can create a new sender on a scheduler, attach a continuation to
 it, and then wait for execution of the continuation to complete:
 
-<pre>
+<pre highlight="c++">
 execution::scheduler auto sch = thread_pool.scheduler();
 execution::sender auto snd = execution::schedule(sch);
 execution::sender auto cont = execution::then(snd, []{
@@ -1699,7 +1688,7 @@ For a sender that lacks a completion scheduler query for a given signal, calling
 If a sender advertises a completion scheduler for a signal in this way, that sender <b>must</b> ensure that it [=send|sends=] that signal on an execution agent belonging to an execution resource represented by a scheduler returned from this function.
 See [[#design-propagation]] for more details.
 
-<pre>
+<pre highlight="c++">
 execution::scheduler auto cpu_sched = new_thread_scheduler{};
 execution::scheduler auto gpu_sched = cuda::scheduler();
 
@@ -1733,7 +1722,7 @@ We propose that, for senders advertising their [=completion scheduler=], all exe
 
 The `execution::transfer` sender adaptor performs a transition from one execution resource to another:
 
-<pre>
+<pre highlight="c++">
 execution::scheduler auto sch1 = ...;
 execution::scheduler auto sch2 = ...;
 
@@ -1802,7 +1791,7 @@ This requires that we provide well defined mechanisms for making sure that conne
 
 The `split` sender adaptor facilitates connecting to a sender multiple times, regardless of whether it is single-shot or multi-shot:
 
-<pre>
+<pre highlight="c++">
 auto some_algorithm(execution::sender auto&& input) {
     execution::sender auto multi_shot = split(input);
     // "multi_shot" is guaranteed to be multi-shot,
@@ -1865,7 +1854,7 @@ respond to the cancellation requests.
 
 For example, we can compose the algorithms mentioned above so that child operations
 are cancelled when any one of the multiple cancellation conditions occurs:
-<pre>
+<pre highlight="c++">
 sender auto composed_cancellation_example(auto query) {
   return stop_when(
     timeout(
@@ -2176,7 +2165,7 @@ Pipeable sender adaptors take a sender as their first parameter and have no othe
 
 `a | b` will pass the sender `a` as the first argument to the pipeable sender adaptor `b`. Pipeable sender adaptors support partial application of the parameters after the first. For example, all of the following are equivalent:
 
-<pre>
+<pre highlight="c++">
 execution::bulk(snd, N, [] (std::size_t i, auto d) {});
 execution::bulk(N, [] (std::size_t i, auto d) {})(snd);
 snd | execution::bulk(N, [] (std::size_t i, auto d) {});
@@ -2192,7 +2181,7 @@ Consider the following example where we want to execute first on a CPU thread po
 <th>Example
 <tr>
 <th>Function call <br/> (nested)
-<td><pre>
+<td><pre highlight="c++">
 auto snd = execution::then(
              execution::transfer(
                execution::then(
@@ -2209,7 +2198,7 @@ auto [result] = this_thread::sync_wait(snd).value();
 </pre>
 <tr>
 <th>Function call <br/> (named temporaries)
-<td><pre>
+<td><pre highlight="c++">
 auto snd0 = execution::schedule(thread_pool.scheduler());
 auto snd1 = execution::then(snd0, []{ return 123; });
 auto snd2 = execution::transfer(snd1, cuda::new_stream_scheduler());
@@ -2221,7 +2210,7 @@ auto [result] = *this_thread::sync_wait(snd4);
 </pre>
 <tr>
 <th>Pipe
-<td><pre>
+<td><pre highlight="c++">
 auto snd = execution::schedule(thread_pool.scheduler())
          | execution::then([]{ return 123; })
          | execution::transfer(cuda::new_stream_scheduler())
@@ -2248,7 +2237,7 @@ Senders represent a single unit of asynchronous work. In many cases though, what
 
 Given some expression <code><i>R</i></code> that is a range of senders, consider the following in a coroutine that returns an async generator type:
 
-    <pre>
+    <pre highlight="c++">
     for (auto snd : <i>R</i>) {
       if (auto opt = co_await execution::stopped_as_optional(std::move(snd)))
         co_yield fn(*std::move(opt));
@@ -2269,7 +2258,7 @@ Receivers have three ways they can complete: with success, failure, or cancellat
 
 Often in the case of partial success, the error condition is not fatal nor does it mean the API has failed to satisfy its post-conditions. It is merely an extra piece of information about the nature of the completion. In those cases, "partial success" is another way of saying "success". As a result, it is sensible to pass both the error code and the result (if any) through the value channel, as shown below:
 
-    <pre>
+    <pre highlight="c++">
     // Capture a buffer for read_socket_async to fill in
     execution::just(array&lt;byte, 1024>{})
       | execution::let_value([socket](array&lt;byte, 1024>& buff) {
@@ -2291,7 +2280,7 @@ In other cases, the partial success is more of a partial *failure*. That happens
 
 Another possibility is for an async API to return a *range* of senders: if the API completes with full success, full error, or cancellation, the returned range contains just one sender with the result. Otherwise, if the API partially fails (doesn't satisfy its post-conditions, but some incomplete result is available), the returned range would have *two* senders: the first containing the partial result, and the second containing the error. Such an API might be used in a coroutine as follows:
 
-    <pre>
+    <pre highlight="c++">
     // Declare a buffer for read_socket_async to fill in
     array&lt;byte, 1024> buff;
 
@@ -2329,7 +2318,7 @@ Despite that fact, and despite the fact that the `this_thread::sync_wait`
 algorithm is constrained with the `sender` concept, the following would compile
 and do what the user wants:
 
-```
+```c++
 task<int> doSomeAsyncWork();
 
 int main() {
@@ -2346,7 +2335,7 @@ If you choose to implement your sender-based algorithms as coroutines, you'll ru
 
 For example, consider the following trivial implementation of the sender-based `retry` algorithm:
 
-<pre>
+<pre highlight="c++">
 template&lt;class S>
   requires <i>single-sender</i>&lt;S&> // See <a href="#spec-execution.coro_utils.as_awaitable">[exec.as.awaitable]</a>
 task&lt;<i>single-sender-value-type</i>&lt;S>> retry(S s) {
@@ -2369,7 +2358,7 @@ When your task type's promise inherits from `with_awaitable_senders`, what happe
 
 In order to "catch" this uncatchable stopped exception, one of the calling coroutines in the stack would have to await a sender that maps the stopped channel into either a value or an error. That is achievable with the `execution::let_stopped`, `execution::upon_stopped`, `execution::stopped_as_optional`, or `execution::stopped_as_error` sender adaptors. For instance, we can use `execution::stopped_as_optional` to "catch" the stopped signal and map it into an empty optional as shown below:
 
-```
+```c++
 if (auto opt = co_await execution::stopped_as_optional(some_sender)) {
   // OK, some_sender completed successfully, and opt contains the result.
 } else {
@@ -2390,7 +2379,7 @@ Existing policies, such as `execution::par`, give the implementation permission 
 
 We will propose a customization point for combining schedulers with policies in order to provide control over where work will execute.
 
-<pre>
+<pre highlight="c++">
 template&lt;class ExecutionPolicy>
 <i>unspecified</i> executing_on(
     execution::scheduler auto scheduler,
@@ -2412,7 +2401,7 @@ A [=sender factory=] is an algorithm that takes no senders as parameters and ret
 
 ### `execution::schedule` ### {#design-sender-factory-schedule}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto schedule(
     execution::scheduler auto scheduler
 );
@@ -2420,7 +2409,7 @@ execution::sender auto schedule(
 
 Returns a sender describing the start of a task graph on the provided scheduler. See [[#design-schedulers]].
 
-<pre>
+<pre highlight="c++">
 execution::scheduler auto sch1 = get_system_thread_pool().scheduler();
 
 execution::sender auto snd1 = execution::schedule(sch1);
@@ -2429,7 +2418,7 @@ execution::sender auto snd1 = execution::schedule(sch1);
 
 ### `execution::just` ### {#design-sender-factory-just}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto just(
     auto ...&& values
 );
@@ -2437,7 +2426,7 @@ execution::sender auto just(
 
 Returns a sender with no [=completion scheduler|completion schedulers=], which [=send|sends=] the provided values. The input values are decay-copied into the returned sender. When the returned sender is connected to a receiver, the values are moved into the operation state if the sender is an rvalue; otherwise, they are copied. Then xvalues referencing the values in the operation state are passed to the receiver's `set_value`.
 
-```
+```c++
 execution::sender auto snd1 = execution::just(3.14);
 execution::sender auto then1 = execution::then(snd1, [] (double d) {
   std::cout << d << "\n";
@@ -2468,7 +2457,7 @@ auto&& [v4] = this_thread::sync_wait(std::move(then4)).value();
 
 ### `execution::transfer_just` ### {#design-sender-factory-transfer_just}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto transfer_just(
     execution::scheduler auto scheduler,
     auto ...&& values
@@ -2477,7 +2466,7 @@ execution::sender auto transfer_just(
 
 Returns a sender whose value [=completion scheduler=] is the provided scheduler, which [=send|sends=] the provided values in the same manner as `just`.
 
-<pre>
+<pre highlight="c++">
 execution::sender auto vals = execution::transfer_just(
     get_system_thread_pool().scheduler(),
     1, 2, 3
@@ -2492,7 +2481,7 @@ This adaptor is included as it greatly simplifies lifting values into senders.
 
 ### `execution::just_error` ### {#design-sender-factory-just_error}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto just_error(
     auto && error
 );
@@ -2502,7 +2491,7 @@ Returns a sender with no [=completion scheduler|completion schedulers=], which c
 
 ### `execution::just_stopped` ### {#design-sender-factory-just_stopped}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto just_stopped();
 </pre>
 
@@ -2510,7 +2499,7 @@ Returns a sender with no [=completion scheduler|completion schedulers=], which c
 
 ### `execution::read` ### {#design-sender-factory-read}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto read(auto tag);
 
 execution::sender auto get_scheduler() {
@@ -2531,7 +2520,7 @@ Returns a sender that reaches into a receiver's environment and pulls out the cu
 
 This can be useful when scheduling nested dependent work. The following sender pulls the current schduler into the value channel and then schedules more work onto it.
 
-    <pre>
+    <pre highlight="c++">
     execution::sender auto task =
       execution::get_scheduler()
         | execution::let_value([](auto sched) {
@@ -2554,7 +2543,7 @@ For more implementer-centric description of starting senders, see [[#design-lazi
 
 ### `execution::transfer` ### {#design-sender-adaptor-transfer}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto transfer(
     execution::sender auto input,
     execution::scheduler auto scheduler
@@ -2563,7 +2552,7 @@ execution::sender auto transfer(
 
 Returns a sender describing the transition from the execution agent of the input sender to the execution agent of the target scheduler. See [[#design-transitions]].
 
-<pre>
+<pre highlight="c++">
 execution::scheduler auto cpu_sched = get_system_thread_pool().scheduler();
 execution::scheduler auto gpu_sched = cuda::scheduler();
 
@@ -2576,7 +2565,7 @@ execution::sender auto gpu_task = execution::transfer(cpu_task, gpu_sched);
 
 ### `execution::then` ### {#design-sender-adaptor-then}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto then(
     execution::sender auto input,
     std::invocable<<i>values-sent-by(input)</i>...> function
@@ -2587,7 +2576,7 @@ execution::sender auto then(
 
 `then` is **guaranteed** to not begin executing `function` until the returned sender is started.
 
-<pre>
+<pre highlight="c++">
 execution::sender auto input = get_input();
 execution::sender auto snd = execution::then(input, [](auto... args) {
     std::print(args...);
@@ -2600,7 +2589,7 @@ This adaptor is included as it is necessary for writing any sender code that act
 
 ### `execution::upon_*` ### {#design-sender-adaptor-upon}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto upon_error(
     execution::sender auto input,
     std::invocable&lt;<i>errors-sent-by(input)</i>...> function
@@ -2616,7 +2605,7 @@ execution::sender auto upon_stopped(
 
 ### `execution::let_*` ### {#design-sender-adaptor-let}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto let_value(
     execution::sender auto input,
     std::invocable<<i>values-sent-by(input)</i>...> function
@@ -2642,7 +2631,7 @@ execution::sender auto let_stopped(
 
 ### `execution::on` ### {#design-sender-adaptor-on}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto on(
     execution::scheduler auto sched,
     execution::sender auto snd
@@ -2653,7 +2642,7 @@ Returns a sender which, when started, will start the provided sender on an execu
 
 ### `execution::into_variant` ### {#design-sender-adaptor-into_variant}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto into_variant(
     execution::sender auto snd
 );
@@ -2663,7 +2652,7 @@ Returns a sender which sends a variant of tuples of all the possible sets of typ
 
 ### `execution::stopped_as_optional` ### {#design-sender-adaptor-stopped_as_optional}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto stopped_as_optional(
     <i>single-sender</i> auto snd
 );
@@ -2673,7 +2662,7 @@ Returns a sender that maps the value channel from a `T` to an `optional<decay_t<
 
 ### `execution::stopped_as_error` ### {#design-sender-adaptor-stopped_as_error}
 
-<pre>
+<pre highlight="c++">
 template&lt;move_constructible Error>
 execution::sender auto stopped_as_error(
     execution::sender auto snd,
@@ -2685,7 +2674,7 @@ Returns a sender that maps the stopped channel to an error of `err`.
 
 ### `execution::bulk` ### {#design-sender-adaptor-bulk}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto bulk(
     execution::sender auto input,
     std::integral auto shape,
@@ -2704,7 +2693,7 @@ parallel computing tasks.
 
 ### `execution::split` ### {#design-sender-adaptor-split}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto split(execution::sender auto sender);
 </pre>
 
@@ -2712,7 +2701,7 @@ If the provided sender is a multi-shot sender, returns that sender. Otherwise, r
 
 ### `execution::when_all` ### {#design-sender-adaptor-when_all}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto when_all(
     execution::sender auto ...inputs
 );
@@ -2730,7 +2719,7 @@ The returned sender has no [=completion scheduler|completion schedulers=].
 
 See [[#design-join]].
 
-<pre>
+<pre highlight="c++">
 execution::scheduler auto sched = thread_pool.scheduler();
 
 execution::sender auto sends_1 = ...;
@@ -2749,7 +2738,7 @@ execution::sender auto final = execution::then(both, [](auto... args){
 
 ### `execution::transfer_when_all` ### {#design-sender-adaptor-transfer_when_all}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto transfer_when_all(
     execution::scheduler auto sched,
     execution::sender auto ...inputs
@@ -2767,7 +2756,7 @@ See [[#design-join]].
 
 ### `execution::ensure_started` ### {#design-sender-adaptor-ensure_started}
 
-<pre>
+<pre highlight="c++">
 execution::sender auto ensure_started(
     execution::sender auto sender
 );
@@ -2791,7 +2780,7 @@ A [=sender consumer=] is an algorithm that takes one or more senders, which it m
 
 ### `execution::start_detached` ### {#design-sender-consumer-start_detached}
 
-<pre>
+<pre highlight="c++">
 void start_detached(
     execution::sender auto sender
 );
@@ -2801,7 +2790,7 @@ Like `ensure_started`, but does not return a value; if the provided sender sends
 
 ### `this_thread::sync_wait` ### {#design-sender-consumer-sync_wait}
 
-<pre>
+<pre highlight="c++">
 auto sync_wait(
     execution::sender auto sender
 ) requires (<i>always-sends-same-values</i>(sender))
@@ -2827,7 +2816,7 @@ to block in a non-deadlock manner).
 
 In addition to the three categories of functions presented above, we also propose to include a convenience function for fire-and-forget eager one-way submission of an invocable to a scheduler, to fulfil the role of one-way executors from P0443.
 
-<pre>
+<pre highlight="c++">
 void execution::execute(
     execution::schedule auto sched,
     std::invocable<void> auto fn
@@ -2836,7 +2825,7 @@ void execution::execute(
 
 Submits the provided function for execution on the provided scheduler, as-if by:
 
-<pre>
+<pre highlight="c++">
 auto snd = execution::schedule(sched);
 auto work = execution::then(snd, fn);
 execution::start_detached(work);
@@ -2885,7 +2874,7 @@ The return value of [[#design-connect]] must satisfy the operation state concept
 
 `execution::connect` is a customization point which [=connects=] senders with receivers, resulting in an operation state that will ensure that if `start` is called that one of the completion operations will be called on the receiver passed to `connect`.
 
-<pre>
+<pre highlight="c++">
 execution::sender auto snd = <i>some input sender</i>;
 execution::receiver auto rcv = <i>some receiver</i>;
 execution::operation_state auto state = execution::connect(snd, rcv);
@@ -2914,7 +2903,7 @@ However, this definition is problematic. Imagine another sender adaptor, `bulk`,
 like `bulk` to have specialized behavior, which invokes a kernel of more than one thread (with its size defined by the call to `bulk`); therefore, we would like to customize `bulk` for CUDA senders to achieve this. However, there's no reason for CUDA kernels to
 necessarily customize the `then` sender adaptor, as the generic implementation is perfectly sufficient. This creates a problem, though; consider the following snippet:
 
-<pre>
+<pre highlight="c++">
 execution::scheduler auto cuda_sch = cuda_scheduler{};
 
 execution::sender auto initial = execution::schedule(cuda_sch);
@@ -2932,7 +2921,7 @@ execution::sender auto kernel_sender = execution::bulk(next, shape, [](int i){ .
 How can we specialize the `bulk` sender adaptor for our wrapped `schedule_sender`? Well, here's one possible approach, taking advantage of ADL (and the fact that the definition of "associated namespace" also recursively enumerates the associated namespaces of all template
 parameters of a type):
 
-<pre>
+<pre highlight="c++">
 namespace cuda::for_adl_purposes {
 template&lt;typename... SentValues>
 class schedule_sender {
@@ -3027,7 +3016,7 @@ sender passed to it, wrapped in `std::optional` to handle the `set_stopped`
 signal. However, this assumes that those values can be represented as a tuple,
 like here:
 
-<pre>
+<pre highlight="c++">
 execution::sender auto sends_1 = ...;
 execution::sender auto sends_2 = ...;
 execution::sender auto sends_3 = ...;
@@ -3047,7 +3036,7 @@ auto [a, b, c] = this_thread::sync_wait(
 This works well for senders that always send the same set of arguments. If we ignore the possibility of having a sender that sends different sets of arguments into a receiver, we can specify the "canonical" (i.e. required to be followed by all senders) form of
 `value_types` of a sender which sends `Types...` to be as follows:
 
-<pre>
+<pre highlight="c++">
 template&lt;template&lt;typename ...> typename TupleLike>
 using value_types = TupleLike<Types...>;
 </pre>
@@ -3058,7 +3047,7 @@ This matter is somewhat complicated by the fact that (1) `set_value` for receive
 consumed, and so on. To accomodate this, [[P0443R14]] also includes a second template parameter to `value_types`, one that represents a variant-like type. If we permit such senders, we would almost certainly need to require that the canonical form of `value_types`
 for *all* senders (to ensure consistency in how they are handled, and to avoid accidentally interpreting a user-provided variant as a sender-provided one) sending the different sets of arguments `Types1...`, `Types2...`, ..., `TypesN...` to be as follows:
 
-<pre>
+<pre highlight="c++">
 template&lt;
     template&lt;typename ...> typename TupleLike,
     template&lt;typename ...> typename VariantLike
@@ -3083,7 +3072,7 @@ One possible solution to (2) above is to place a requirement on `sync_wait` that
 `sync_wait`, which is a simple, user-friendly version of the sender consumer, but requires that `value_types` have only one possible variant, and `sync_wait_with_variant`, which accepts any sender, but returns an optional whose value type is the variant of all the
 possible tuples sent by the input sender:
 
-<pre>
+<pre highlight="c++">
 auto sync_wait_with_variant(
     execution::sender auto sender
 ) -> std::optional&lt;std::variant&lt;
@@ -3123,7 +3112,7 @@ Using `tag_invoke` has the following benefits:
 
 2. It is possible to propagate customizations to a subobject, because the information of which customization point is being resolved is in the type of an argument, and not in the name of the function:
 
-    <pre>
+    <pre highlight="c++">
     // forward most customizations to a subobject
     template&lt;typename Tag, typename ...Args>
     friend auto tag_invoke(Tag && tag, wrapper & self, Args &&... args) {
@@ -3195,7 +3184,7 @@ In subclause [conforming], after [lib.types.movedfrom], add the following new su
 
 2. [*Example:*
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class T> // arguments are not associated entities
     struct S {};
 
@@ -3209,7 +3198,7 @@ In subclause [conforming], after [lib.types.movedfrom], add the following new su
 
     The template `S` specified above can be implemented as
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class T>
     struct <i>s-impl</i> {
       struct type { };
@@ -3221,7 +3210,7 @@ In subclause [conforming], after [lib.types.movedfrom], add the following new su
 
     or as
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class T>
     struct <i>hidden</i> {
       using type = struct _ {
@@ -3252,7 +3241,7 @@ At the end of this subclause, insert the following declarations into the synopsi
 
 <ins>
 <blockquote>
-<pre>
+<pre highlight="c++">
 <i>// expositon only:</i>
 template&lt;class Fn, class... Args>
   concept <i>callable</i> =
@@ -3326,7 +3315,7 @@ Insert this section as a new subclause, between Searchers <b>[func.search]</b> a
     with overload resolution performed in a context in which unqualified lookup for `tag_invoke`
     finds only the declaration
 
-    ```
+    ```c++
     void tag_invoke();
     ```
 
@@ -3345,7 +3334,7 @@ At the beginning of this subclause, insert the following declarations into the s
 
 <ins>
 <blockquote>
-<pre>
+<pre highlight="c++">
 template&lt;template&lt;class> class>
   struct <i>check-type-alias-exists</i>; // exposition-only
 
@@ -3365,7 +3354,7 @@ At the end of this subclause, insert the following declarations into the synopsi
 
 <ins>
 <blockquote>
-<pre>
+<pre highlight="c++">
 // [stoptoken.never], class never_stop_token
 class never_stop_token;
 
@@ -3401,7 +3390,7 @@ Insert this section as a new subclause between Header `<stop_token>` synopsis <b
     with a given callback type. The `unstoppable_token` concept checks for a stop
     token type that does not allow stopping.
 
-<pre>
+<pre highlight="c++">
 template&lt;class T>
   concept stoppable_token =
     copyable&lt;T> &&
@@ -3451,11 +3440,11 @@ This is the subject of core issue [[cwg2517|2517]].
 
     1. The type `T::callback_type<CB>` models:
 
-        <xmp>
+        ```c++
         constructible_from<T, Initializer> &&
         constructible_from<T&, Initializer> &&
         constructible_from<const T, Initializer>
-        </xmp>
+        ```
 
     2. Direct non-list initializing an object `cb` of type `T::callback_type<CB>`
         from `t, init` shall, if `t.stop_possible()` is `true`, construct an
@@ -3493,7 +3482,7 @@ This is the subject of core issue [[cwg2517|2517]].
 
 Modify the synopsis of class `stop_token` in section General <b>[stoptoken.general]</b> as follows:
 
-<pre>
+<pre highlight="c++">
 namespace std {
   class stop_token {
   public:
@@ -3514,7 +3503,7 @@ Insert a new subclause, Class `never_stop_token` <b>[stoptoken.never]</b>, after
 
 1. The class `never_stop_token` provides an implementation of the `unstoppable_token` concept. It provides a stop token interface, but also provides static information that a stop is never possible nor requested.
 
-<pre>
+<pre highlight="c++">
 namespace std
 {
   class never_stop_token {
@@ -3543,7 +3532,7 @@ Insert a new subclause, Class `in_place_stop_token` <b>[stoptoken.inplace]</b>, 
 1. The class `in_place_stop_token` provides an interface for querying whether a stop request has been made (`stop_requested`) or can ever be made (`stop_possible`) using an associated `in_place_stop_source` object ([stopsource.inplace]).
     An `in_place_stop_token` can also be passed to an `in_place_stop_callback` ([stopcallback.inplace]) constructor to register a callback to be called when a stop request has been made from an associated `in_place_stop_source`.
 
-<pre>
+<pre highlight="c++">
 namespace std {
   class in_place_stop_token {
   public:
@@ -3570,13 +3559,13 @@ namespace std {
 
 #### Constructors, copy, and assignment <b>[stoptoken.inplace.cons]</b> #### {#spec-stoptoken.inplace.cons}
 
-<pre>
+<pre highlight="c++">
 in_place_stop_token() noexcept;
 </pre>
 
 1. *Effects*: initializes <code><i>source_</i></code> with `nullptr`.
 
-<pre>
+<pre highlight="c++">
 void swap(stop_token& rhs) noexcept;
 </pre>
 
@@ -3584,7 +3573,7 @@ void swap(stop_token& rhs) noexcept;
 
 #### Members <b>[stoptoken.inplace.mem]</b> #### {#spec-stoptoken.inplace.mem}
 
-<pre>
+<pre highlight="c++">
 [[nodiscard]] bool stop_requested() const noexcept;
 </pre>
 
@@ -3594,7 +3583,7 @@ void swap(stop_token& rhs) noexcept;
     strongly happens before the start of the destructor of the associated
     `in_place_stop_source`, if any ([basic.life]). --*end note*]
 
-<pre>
+<pre highlight="c++">
 [[nodiscard]] bool stop_possible() const noexcept;
 </pre>
 
@@ -3606,7 +3595,7 @@ void swap(stop_token& rhs) noexcept;
 
 #### Non-member functions <b>[stoptoken.inplace.nonmembers]</b> #### {#spec-stoptoken.inplace.nonmembers}
 
-<pre>
+<pre highlight="c++">
 friend void swap(in_place_stop_token& x, in_place_stop_token& y) noexcept;
 </pre>
 
@@ -3623,7 +3612,7 @@ Insert a new subclause, Class `in_place_stop_source` <b>[stopsource.inplace]</b>
     Once a stop request has been made it cannot be withdrawn (a subsequent stop request has no effect).
     All uses of `in_place_stop_token` objects associated with a given `in_place_stop_source` object must happen before the start of the destructor of that `in_place_stop_source` object.
 
-<pre>
+<pre highlight="c++">
 namespace std {
   class in_place_stop_source {
   public:
@@ -3665,7 +3654,7 @@ namespace std {
 
 #### Constructors, copy, and assignment <b>[stopsource.inplace.cons]</b> #### {#spec-stopsource.inplace.cons}
 
-<pre>
+<pre highlight="c++">
 in_place_stop_source() noexcept;
 </pre>
 
@@ -3675,19 +3664,19 @@ in_place_stop_source() noexcept;
 
 #### Members <b>[stopsource.inplace.mem]</b> #### {#spec-stopsource.inplace.mem}
 
-<pre>
+<pre highlight="c++">
 [[nodiscard]] in_place_stop_token get_token() const noexcept;
 </pre>
 
 1. *Returns*: A new associated `in_place_stop_token` object.
 
-<pre>
+<pre highlight="c++">
 [[nodiscard]] bool stop_requested() const noexcept;
 </pre>
 
 3. *Returns*: `true` if the stop state inside `*this` has received a stop request; otherwise, `false`.
 
-<pre>
+<pre highlight="c++">
 bool request_stop() noexcept;
 </pre>
 
@@ -3708,7 +3697,7 @@ Insert a new subclause, Class template `in_place_stop_callback` <b>[stopcallback
 
 1.
 
-    <pre>
+    <pre highlight="c++">
     namespace std {
       template&lt;class Callback>
       class in_place_stop_callback {
@@ -3741,7 +3730,7 @@ Insert a new subclause, Class template `in_place_stop_callback` <b>[stopcallback
 
 #### Constructors and destructor <b>[stopcallback.inplace.cons]</b> #### {#spec-stopcallback.inplace.cons}
 
-<pre>
+<pre highlight="c++">
 template&lt;class C>
   explicit in_place_stop_callback(in_place_stop_token st, C&& cb)
     noexcept(is_nothrow_constructible_v&lt;Callback, C>);
@@ -3763,7 +3752,7 @@ template&lt;class C>
 5. *Remarks*: If evaluating <code>std::forward&lt;Callback>(<i>callback_</i>)()</code>
     exits via an exception, then `terminate` is invoked ([except.terminate]).
 
-<pre>
+<pre highlight="c++">
 ~in_place_stop_callback();
 </pre>
 
@@ -3846,7 +3835,7 @@ template&lt;class C>
 
 4. This clause makes use of the following exposition-only entities:
 
-    1. <pre>
+    1. <pre highlight="c++">
         template&lt;class Fn, class... Args>
             requires <i>callable</i>&lt;Fn, Args...>
           constexpr auto <i>mandate-nothrow-call</i>(Fn&& fn, Args&&... args) noexcept
@@ -3857,7 +3846,7 @@ template&lt;class C>
 
         * <i>Mandates:</i> <code><i>nothrow-callable</i>&lt;Fn, Args...></code> is `true`.
 
-    2. <pre>
+    2. <pre highlight="c++">
         template&lt;class T>
           concept <i>movable-value</i> =
             move_constructible&lt;decay_t&lt;T>> &&
@@ -3898,7 +3887,7 @@ template&lt;class C>
 
 ### `queryable` concept <b>[exec.queryable.concept]</b> ### {#spec-execution.queryable.concept}
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class T>
       concept queryable = destructible&lt;T>;
     </pre>
@@ -4089,7 +4078,7 @@ template&lt;class C>
 
 ## Header `<execution>` synopsis <b>[exec.syn]</b> ## {#spec-execution.syn}
 
-<pre>
+<pre highlight="c++">
 namespace std {
   // [exec.general], helper concepts
   template&lt;class T>
@@ -4462,7 +4451,7 @@ namespace std::execution {
     2. Otherwise, <code><i>variant-or-empty&lt;Ts...></i></code> names the
         exposition-only class type:
 
-        <pre>
+        <pre highlight="c++">
         struct <i>empty-variant</i> {
           <i>empty-variant</i>() = delete;
         };
@@ -4581,7 +4570,7 @@ namespace std::execution {
 
 ### `execution::get_forward_progress_guarantee` <b>[exec.get.forward.progress.guarantee]</b> ### {#spec-execution.get_forward_progress_guarantee}
 
-<pre>
+<pre highlight="c++">
 enum class forward_progress_guarantee {
   concurrent,
   parallel,
@@ -4654,7 +4643,7 @@ enum class forward_progress_guarantee {
     ([async.ops]). `schedule` is a customization point object that accepts a
     scheduler. A valid invocation of `schedule` is a schedule-expression.
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class S>
       concept scheduler =
         queryable&lt;S> &&
@@ -4703,7 +4692,7 @@ enum class forward_progress_guarantee {
     operations corresponding to a set of completion signatures. The `get_env`
     customization point is used to access a receiver's associated environment.
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class R>
       inline constexpr bool enable_receiver =
         requires {
@@ -4780,7 +4769,7 @@ enum class forward_progress_guarantee {
 1. The `operation_state` concept defines the requirements of an operation state
     type ([async.ops]).
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class O>
       concept operation_state =
         queryable&lt;O> &&
@@ -4802,7 +4791,7 @@ enum class forward_progress_guarantee {
     object. The expression `start(O)` for some subexpression `O` is ill-formed
     if `O` is an rvalue. Otherwise, it is expression-equivalent to:
 
-    <pre>
+    <pre highlight="c++">
     <i>mandate-nothrow-call</i>(tag_invoke, start, O)
     </pre>
 
@@ -4823,7 +4812,7 @@ enum class forward_progress_guarantee {
     `connect` customization point object is used to connect ([async.ops]) a
     sender and a receiver to produce an operation state.
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class Sigs>
       concept <i>valid-completion-signatures</i> = <i>see below</i>;
 
@@ -4875,7 +4864,7 @@ enum class forward_progress_guarantee {
     `R2(Args2...)` respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is
     `true` if and only if `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class> struct <i>sender-of-helper</i>; <i>// exposition only</i>
     template&lt;class R, class... As>
       struct <i>sender-of-helper</i>&lt;R(As...)> {
@@ -4897,7 +4886,7 @@ enum class forward_progress_guarantee {
     </pre>
 
     1. [*Example:*
-        <pre>
+        <pre highlight="c++">
         auto s1 = just() | then([]{});
         using S1 = decltype(s1);
 
@@ -4950,7 +4939,7 @@ enum class forward_progress_guarantee {
 3. Let <code><i>is-awaitable</i></code> be the following exposition-only
     concept:
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class T>
     concept <i>await-suspend-result</i> = <i>see below</i>;
 
@@ -4982,7 +4971,7 @@ enum class forward_progress_guarantee {
 
 4. Let <code><i>with-await-transform</i></code> be the exposition-only class template:
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class Derived>
     struct <i>with-await-transform</i> {
       template&lt;class T>
@@ -5002,7 +4991,7 @@ enum class forward_progress_guarantee {
 
 5. Let <code><i>env-promise</i></code> be the exposition-only class template:
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class Env>
     struct <i>env-promise</i> : <i>with-await-transform</i>&lt;<i>env-promise</i>&lt;Env>> {
       <i>unspecified</i> get_return_object() noexcept;
@@ -5043,7 +5032,7 @@ enum class forward_progress_guarantee {
     3. Otherwise, if <code><i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;E>></code>
         is `true`, then:
 
-            <pre>
+            <pre highlight="c++">
             completion_signatures<
               <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>>),
               set_error_t(exception_ptr),
@@ -5072,7 +5061,7 @@ enum class forward_progress_guarantee {
     
 3. Let <code><i>connect-awaitable-promise</i></code> be the following class:
 
-    <pre>
+    <pre highlight="c++">
     struct <i>connect-awaitable-promise</i> : <i>with-await-transform</i>&lt;<i>connect-awaitable-promise</i>> {
       DR& <i>rcvr</i>; <i>// exposition only</i>
 
@@ -5102,7 +5091,7 @@ enum class forward_progress_guarantee {
 
 4. Let <code><i>operation-state-task</i></code> be the following class:
 
-    <pre>
+    <pre highlight="c++">
     struct <i>operation-state-task</i> {
       using promise_type = <i>connect-awaitable-promise</i>;
       coroutine_handle<> <i>coro</i>; <i>// exposition only</i>
@@ -5121,14 +5110,14 @@ enum class forward_progress_guarantee {
 5. Let `V` name the type <code><i>await-result-type</i>&lt;DS,
     <i>connect-awaitable-promise</i>></code>, let `Sigs` name the type:
     
-    <pre>
+    <pre highlight="c++">
     completion_signatures&lt;<i>SET-VALUE-SIG</i>(V), set_error_t(exception_ptr), set_stopped_t()>
     </pre>
 
     and let <code><i>connect-awaitable</i></code> be an exposition-only
     coroutine defined as follows:
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class Fun, class... Ts>
     auto <i>suspend-complete</i>(Fun fun, Ts&&... as) noexcept { <i>// exposition only</i>
       auto fn = [&, fun]() noexcept { fun(std::forward&lt;Ts>(as)...); };
@@ -5205,7 +5194,7 @@ enum class forward_progress_guarantee {
 
 2. Let `just-sender` be the class template:
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class Tag, <i>movable-value</i>... Ts>
     struct <i>just-sender</i> { // exposition only
       using is_sender = <i>unspecified</i>;
@@ -5290,7 +5279,7 @@ enum class forward_progress_guarantee {
 
 2. `read` is a customization point object of the unspecified class type:
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class Tag>
       struct <i>read-sender</i>; // exposition only
 
@@ -5304,7 +5293,7 @@ enum class forward_progress_guarantee {
 
 3. <code><i>read-sender</i></code> is the exposition-only class template:
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class Tag>
       struct <i>read-sender</i> { // exposition only
         using is_sender = <i>unspecified</i>;
@@ -5342,7 +5331,7 @@ enum class forward_progress_guarantee {
     where <code><i>TRY-SET-VALUE</i>(r, e)</code>, for two subexpressions `r` and `e`,
     is equivalent to:
 
-        <pre>
+        <pre highlight="c++">
         try {
           set_value(r, e);
         } catch(...) {
@@ -5392,7 +5381,7 @@ enum class forward_progress_guarantee {
 
     [*Example:*
 
-    <pre>
+    <pre highlight="c++">
     namespace <i>sender-adaptors</i> { // exposition only
       template&lt;class Sch, class S> // arguments are not associated entities ([lib.tmpl-heads])
       class <i>on-sender</i> {
@@ -5423,7 +5412,7 @@ enum class forward_progress_guarantee {
 1. A <i>pipeable sender adaptor closure object</i> is a function object that accepts one or more `sender` arguments and returns a `sender`. For a sender adaptor closure object `C` and an expression `S` such that `decltype((S))` models `sender`, the following
     expressions are equivalent and yield a `sender`:
 
-    <pre>
+    <pre highlight="c++">
     C(S)
     S | C
     </pre>
@@ -5510,7 +5499,7 @@ enum class forward_progress_guarantee {
         Let `E'` be <code>decltype((<i>replace-scheduler</i>(e, sch)))</code>.
         Then the type of `tag_invoke(get_completion_signatures, s1, e)` shall be:
 
-        <pre>
+        <pre highlight="c++">
         make_completion_signatures&lt;
           copy_cvref_t&lt;S1, S>,
           E',
@@ -5591,7 +5580,7 @@ enum class forward_progress_guarantee {
 
     3. Given subexpressions `s2` and `e`, where `s2` is a sender returned from `schedule_from` or a copy of such, let `S2` be `decltype((s2))` and let `E` be `decltype((e))`. Then the type of `tag_invoke(get_completion_signatures, s2, e)` shall be:
 
-        <pre>
+        <pre highlight="c++">
         make_completion_signatures&lt;
           copy_cvref_t&lt;S2, S>,
           E,
@@ -5608,7 +5597,7 @@ enum class forward_progress_guarantee {
         <code><i>no-completions</i></code>, <code><i>value-completions</i></code>,
         and <code><i>error-completions</i></code> are defined as follows:
 
-        <pre>
+        <pre highlight="c++">
         template &lt;class... Ts>
         using <i>all-nothrow-decay-copyable</i> =
           boolean_constant&lt;(is_nothrow_constructible_v&lt;decay_t&lt;Ts>, Ts> && ...)>;
@@ -5692,7 +5681,7 @@ enum class forward_progress_guarantee {
             `tag_invoke(get_completion_signatures, s2, e)` shall be equivalent
             to:
 
-            <pre>
+            <pre highlight="c++">
             make_completion_signatures&lt;
               copy_cvref_t&lt;S2, S>, E, <i>set-error-signature</i>,
                 <i>set-value-completions</i>>;
@@ -5700,7 +5689,7 @@ enum class forward_progress_guarantee {
 
             where <code><i>set-value-completions</i></code> is an alias for:
 
-            <pre>
+            <pre highlight="c++">
             template&lt;class... As>
               <i>set-value-completions</i> =
                 completion_signatures&lt;<i>compl-sig-t</i>&lt;set_value_t, invoke_result_t&lt;F, As...>>>
@@ -5713,7 +5702,7 @@ enum class forward_progress_guarantee {
             are `true_type`; otherwise, `completion_signatures<>`, where
             <code><i>potentially-throwing</i></code> is the template alias:
 
-            <pre>
+            <pre highlight="c++">
             template&lt;class... As>
               using <i>potentially-throwing</i> =
                 bool_constant&lt;!is_nothrow_invocable_v&lt;F, As...>>;
@@ -5772,7 +5761,7 @@ enum class forward_progress_guarantee {
             `tag_invoke(get_completion_signatures, s2, e)` shall be equivalent
             to:
 
-            <pre>
+            <pre highlight="c++">
             make_completion_signatures&lt;
               copy_cvref_t&lt;S2, S>, E, <i>set-error-signature</i>,
                 <i>default-set-value</i>, <i>set-error-completion</i>>;
@@ -5780,7 +5769,7 @@ enum class forward_progress_guarantee {
 
             where <code><i>set-error-completion</i></code> is the template alias:
 
-            <pre>
+            <pre highlight="c++">
             template&lt;class E>
               <i>set-error-completion</i> =
                 completion_signatures&lt;<i>compl-sig-t</i>&lt;set_value_t, invoke_result_t&lt;F, E>>>
@@ -5793,7 +5782,7 @@ enum class forward_progress_guarantee {
             are `true_type`; otherwise, `completion_signatures<>`, where
             <code><i>potentially-throwing</i></code> is the template alias:
 
-            <pre>
+            <pre highlight="c++">
             template&lt;class... Es>
               using <i>potentially-throwing</i> =
                 <i>type-list</i>&lt;!bool_constant&lt;is_nothrow_invocable_v&lt;F, Es>>...>;
@@ -5850,7 +5839,7 @@ enum class forward_progress_guarantee {
             `tag_invoke(get_completion_signatures, s2, e)` shall be equivalent
             to:
 
-            <pre>
+            <pre highlight="c++">
             make_completion_signatures&lt;
               copy_cvref_t&lt;S2, S>, E, <i>set-error-signature</i>,
                 <i>default-set-value</i>, <i>default-set-error</i>, <i>set-stopped-completions</i>>;
@@ -5996,7 +5985,7 @@ enum class forward_progress_guarantee {
             `E` be `decltype((e))`, let `DS` be `copy_cvref_t<S2, S>`, let `Shape` be
             `decltype((shape))` and let <code><i>nothrow-callable</i></code> be the alias template:
 
-              <pre>
+              <pre highlight="c++">
               template&lt;class... As>
                 using <i>nothrow-callable</i> =
                   bool_constant&lt;is_nothrow_invocable_v&lt;decay_t&lt;F>&, Shape, As...>>;
@@ -6008,7 +5997,7 @@ enum class forward_progress_guarantee {
                 `tag_invoke(get_completion_signatures, s2, e)` shall be
                 equivalent to:
 
-                <pre>
+                <pre highlight="c++">
                 make_completion_signatures&lt;
                   DS, E, completion_signatures&lt;set_error_t(exception_ptr)>>
                 </pre>
@@ -6097,7 +6086,7 @@ enum class forward_progress_guarantee {
                 where <code><i>stop-callback-fn</i></code> is the unspecified
                 class type:
 
-                <pre>
+                <pre highlight="c++">
                 struct <i>stop-callback-fn</i> {
                   stop_source& <i>stop_src_</i>;
                   void operator()() noexcept {
@@ -6154,7 +6143,7 @@ enum class forward_progress_guarantee {
         `tag_invoke(get_completion_signatures, s2, e)` shall be equivalent
         to:
 
-        <pre>
+        <pre highlight="c++">
         make_completion_signatures&lt;
           copy_cvref_t&lt;S2, S>,
           E,
@@ -6167,7 +6156,7 @@ enum class forward_progress_guarantee {
         where <code><i>Es</i></code> is a (possibly empty) template parameter pack,
         <code><i>value-signatures</i></code> is the alias template:
 
-        <pre>
+        <pre highlight="c++">
         template&lt;class... Ts>
           using <i>value-signatures</i> =
             completion_signatures&lt;set_value_t(const decay_t&lt;Ts>&amp;...)>;
@@ -6175,7 +6164,7 @@ enum class forward_progress_guarantee {
 
         and <code><i>error-signatures</i></code> is the alias template:
 
-        <pre>
+        <pre highlight="c++">
         template&lt;class E>
           using <i>error-signatures</i> =
             completion_signatures&lt;set_error_t(const decay_t&lt;E>&amp;)>;
@@ -6241,7 +6230,7 @@ enum class forward_progress_guarantee {
             * A stop source of type `in_place_stop_source`,
             * A stop callback of type <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>, where <code><i>stop-callback-fn</i></code> is the unspecified class type:
 
-                <pre>
+                <pre highlight="c++">
                 struct <i>stop-callback-fn</i> {
                   in_place_stop_source& <i>stop_src_</i>;
                   void operator()() noexcept {
@@ -6400,7 +6389,7 @@ enum class forward_progress_guarantee {
 
 2. The template <code><i>into-variant-type</i></code> computes the type sent by a sender returned from `into_variant`.
 
-    <pre>
+    <pre highlight="c++">
         template&lt;class S, class E>
             requires sender_in&lt;S, E>
           using <i>into-variant-type</i> =
@@ -6425,7 +6414,7 @@ enum class forward_progress_guarantee {
     4. Given subexpressions `s2` and `e`, where `s2` is a sender returned from `into_variant` or a copy of such, let `S2` be `decltype((s2))` and `E` be `decltype((e))`.
         Let <code><i>into-variant-set-value</i></code> be the class template:
 
-        <pre>
+        <pre highlight="c++">
             template&lt;class S, class E>
             struct <i>into-variant-set-value</i> {
               template&lt;class ...Args>
@@ -6435,7 +6424,7 @@ enum class forward_progress_guarantee {
 
         Let <code><i>into-variant-is-nothrow</i></code> be the class template:
 
-        <pre>
+        <pre highlight="c++">
             template&lt;class S, class E>
             struct <i>into-variant-is-nothrow</i> {
               template&lt;class... Args>
@@ -6450,7 +6439,7 @@ enum class forward_progress_guarantee {
 
         The type of `tag_invoke(get_completion_signatures_t{}, s2, e)` shall be equivalent to:
 
-        <pre>
+        <pre highlight="c++">
             make_completion_signatures<
                 S2,
                 E,
@@ -6465,7 +6454,7 @@ enum class forward_progress_guarantee {
 
 2. The name `stopped_as_optional` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`. Let <code><i>get-env-sender</i></code> be an expression such that, when it is `connect`ed with a receiver `r`, `start` on the resulting operation state completes immediately by calling `set_value(r, get_env(r))`. The expression `stopped_as_optional(s)` is expression-equivalent to:
 
-    <pre>
+    <pre highlight="c++">
     let_value(
       <i>get-env-sender</i>,
       []&lt;class E>(const E&) requires <i>single-sender</i>&lt;S, E> {
@@ -6494,7 +6483,7 @@ enum class forward_progress_guarantee {
 
 2. The name `stopped_as_error` denotes a customization point object. For some subexpressions `s` and `e`, let `S` be `decltype((s))` and let `E` be `decltype((e))`. If the type `S` does not satisfy `sender` or if the type `E` doesn't satisfy <code><i>movable-value</i></code>, `stopped_as_error(s, e)` is ill-formed. Otherwise, the expression `stopped_as_error(s, e)` is expression-equivalent to:
 
-    <pre>
+    <pre highlight="c++">
     let_stopped(s, [] { return just_error(e); })
     </pre>
 
@@ -6578,7 +6567,7 @@ enum class forward_progress_guarantee {
                 where <code><i>stop-callback-fn</i></code> is the unspecified
                 class type:
 
-                <pre>
+                <pre highlight="c++">
                 struct <i>stop-callback-fn</i> {
                   stop_source& <i>stop_src_</i>;
                   void operator()() noexcept {
@@ -6639,7 +6628,7 @@ enum class forward_progress_guarantee {
         `tag_invoke(get_completion_signatures, s2, e)` shall be equivalent
         to:
 
-            <pre>
+            <pre highlight="c++">
             make_completion_signatures&lt;
               copy_cvref_t&lt;S2, S>,
               <i>ensure-started-env</i>,
@@ -6652,7 +6641,7 @@ enum class forward_progress_guarantee {
             where <code><i>Es</i></code> is a (possibly empty) template parameter pack,
             <code><i>set-value-signature</i></code> is the alias template:
 
-            <pre>
+            <pre highlight="c++">
             template&lt;class... Ts>
               using <i>set-value-signature</i> =
                 completion_signatures&lt;set_value_t(decay_t&lt;Ts>&amp;&amp;...)>;
@@ -6660,7 +6649,7 @@ enum class forward_progress_guarantee {
 
             and <code><i>error-types</i></code> is the alias template:
 
-            <pre>
+            <pre highlight="c++">
             template&lt;class E>
               using <i>error-types</i> =
                 completion_signatures&lt;set_error_t(decay_t&lt;E>&amp;&amp;)>;
@@ -6741,7 +6730,7 @@ enum class forward_progress_guarantee {
     be the type of the expression `get_env(r)` where `r` is an instance of the
     receiver created by the default implementation of `sync_wait`.
 
-    <pre>
+    <pre highlight="c++">
     template&lt;sender_in&lt;<i>sync-wait-env</i>> S>
       using <i>sync-wait-type</i> =
         optional&lt;value_types_of_t&lt;S, <i>sync-wait-env</i>, <i>decayed-tuple</i>, type_identity_t>>;
@@ -6820,7 +6809,7 @@ enum class forward_progress_guarantee {
 
 1. This section makes use of the following exposition-only entities:
 
-    <pre>
+    <pre highlight="c++">
     // [<i>Editorial note:</i> copy_cvref_t as in [[P1450R3]] -- <i>end note</i>]
     // Mandates: is_base_of_v&lt;T, remove_reference_t&lt;U>> is true
     template&lt;class T, class U>
@@ -6833,7 +6822,7 @@ enum class forward_progress_guarantee {
 
 ### `execution::receiver_adaptor` <b>[exec.utils.rcvr.adptr]</b> ### {#spec-execution.snd_rec_utils.rcvr_adptr}
 
-    <pre>
+    <pre highlight="c++">
     template&lt;
         <i>class-type</i> Derived,
         receiver Base = <i>unspecified</i>> // arguments are not associated entities ([lib.tmpl-heads])
@@ -6856,7 +6845,7 @@ enum class forward_progress_guarantee {
 
 3. `receiver_adaptor<Derived, Base>` is equivalent to the following:
 
-    <pre>
+    <pre highlight="c++">
     template&lt;
       <i>class-type</i> Derived,
       receiver Base = <i>unspecified</i>> // arguments are not associated entities ([lib.tmpl-heads])
@@ -6905,7 +6894,7 @@ enum class forward_progress_guarantee {
     instantiated.]
 
 5. [<i>Example:</i>
-     <pre>
+     <pre highlight="c++">
      using _int_completion =
        completion_signatures&lt;set_value_t(int)>;
 
@@ -6923,7 +6912,7 @@ enum class forward_progress_guarantee {
 
 #### Non-member functions <b>[exec.utils.rcvr.adptr.nonmembers]</b> #### {#spec-execution.snd_rec_utils.receiver_adaptor.nonmembers}
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class... As>
       friend void tag_invoke(set_value_t, Derived&amp;&amp; self, As&amp;&amp;... as) noexcept;
     </pre>
@@ -6940,7 +6929,7 @@ enum class forward_progress_guarantee {
 
         * Otherwise, <code>set_value(<i>GET-BASE</i>(std::move(self)), std::forward&lt;As>(as)...)</code>.
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class E>
       friend void tag_invoke(set_error_t, Derived&amp;&amp; self, E&amp;&amp; e) noexcept;
     </pre>
@@ -6957,7 +6946,7 @@ enum class forward_progress_guarantee {
 
         * Otherwise, <code>set_error(<i>GET-BASE</i>(std::move(self)), std::forward&lt;E>(e))</code>.
 
-    <pre>
+    <pre highlight="c++">
     friend void tag_invoke(set_stopped_t, Derived&amp;&amp; self) noexcept;
     </pre>
 
@@ -6973,7 +6962,7 @@ enum class forward_progress_guarantee {
 
         * Otherwise, <code>set_stopped(<i>GET-BASE</i>(std::move(self)))</code>.
 
-    <pre>
+    <pre highlight="c++">
     friend decltype(auto) tag_invoke(get_env_t, const Derived&amp; self)
       noexcept(<i>see below</i>);
     </pre>
@@ -6998,7 +6987,7 @@ enum class forward_progress_guarantee {
     ([async.ops]).
 
 2. [<i>Example:</i>
-     <pre>
+     <pre highlight="c++">
       class my_sender {
         using completion_signatures =
           completion_signatures&lt;
@@ -7021,7 +7010,7 @@ enum class forward_progress_guarantee {
 
 3. This section makes use of the following exposition-only entities:
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class Fn>
       concept <i>completion-signature</i> = <i>see below</i>;
 
@@ -7041,7 +7030,7 @@ enum class forward_progress_guarantee {
         * <code>set_error_t(<i>E</i>)</code>, where <code><i>E</i></code> is an arbitrary type.
         * `set_stopped_t()`
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class Tag,
               class S,
               class E,
@@ -7069,14 +7058,14 @@ enum class forward_progress_guarantee {
         <code><i>TagFns</i></code> and <code><i>META-APPLY</i>(<i>T</i>, <i>As</i>...)</code> is
         equivalent to:
 
-        <pre>
+        <pre highlight="c++">
         typename <i>indirect-meta-apply</i>&lt;<i>always-true</i>&lt;<i>As</i>...>>::template <i>meta-apply</i>&lt;<i>T</i>, <i>As</i>...>;
         </pre>
 
     3. <span class="wg21note">The purpose of <code><i>META-APPLY</i></code> is to make it
         valid to use non-variadic templates as <code><i>Variant</i></code> and <code><i>Tuple</i></code> arguments to <code><i>gather-signatures</i></code>.</span>
 
-4.  <pre>
+4.  <pre highlight="c++">
     template&lt;<i>completion-signature</i>... Fns>
       struct completion_signatures {};
 
@@ -7112,7 +7101,7 @@ enum class forward_progress_guarantee {
     `completion_signatures`.
 
 2. [<i>Example:</i>
-    <pre>
+    <pre highlight="c++">
     // Given a sender S and an environment Env, adapt S's completion
     // signatures by lvalue-ref qualifying the values, adding an additional
     // exception_ptr error completion if its not already there, and leaving the
@@ -7132,7 +7121,7 @@ enum class forward_progress_guarantee {
 
 3. This section makes use of the following exposition-only entities:
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class... As>
       using <i>default-set-value</i> =
         completion_signatures&lt;set_value_t(As...)>;
@@ -7142,7 +7131,7 @@ enum class forward_progress_guarantee {
         completion_signatures&lt;set_error_t(Err)>;
     </pre>
 
-4.  <pre>
+4.  <pre highlight="c++">
     template&lt;sender Sndr,
               class Env = empty_env,
               <i>valid-completion-signatures</i> AddlSigs =
@@ -7204,7 +7193,7 @@ enum class forward_progress_guarantee {
 
 4. [<i>Note:</i> Implementations are encouraged to use an intrusive queue of operation states to hold the work units to make scheduling allocation-free. — <i>end note</i>]
 
-    <pre>
+    <pre highlight="c++">
     class run_loop {
       // [exec.run.loop.types] Associated types
       class <i>run-loop-scheduler</i>; // exposition only
@@ -7236,7 +7225,7 @@ enum class forward_progress_guarantee {
 
 #### Associated types <b>[exec.run.loop.types]</b> #### {#spec-execution.contexts.run_loop.types}
 
-    <pre>
+    <pre highlight="c++">
     class <i>run-loop-scheduler</i>;
     </pre>
 
@@ -7248,7 +7237,7 @@ enum class forward_progress_guarantee {
 
   4. Let <code><i>sch</i></code> be an expression of type <code><i>run-loop-scheduler</i></code>. The expression  <code>schedule(<i>sch</i>)</code> is not potentially-throwing and has type <code><i>run-loop-sender</i></code>.
 
-  <pre>
+  <pre highlight="c++">
   class <i>run-loop-sender</i>;
   </pre>
 
@@ -7262,7 +7251,7 @@ enum class forward_progress_guarantee {
 
     * The expression <code>get_completion_scheduler&lt;C>(get_env(<i>s</i>))</code> is not potentially-throwing, has type <code><i>run-loop-scheduler</i></code>, and compares equal to the <code><i>run-loop-scheduler</i></code> instance from which <code><i>s</i></code> was obtained.
 
-  <pre>
+  <pre highlight="c++">
   template&lt;receiver_of&lt;completion_signatures&lt;set_value_t()>> R> // arguments are not associated entities ([lib.tmpl-heads])
     struct <i>run-loop-opstate</i>;
   </pre>
@@ -7275,7 +7264,7 @@ enum class forward_progress_guarantee {
 
     * The type <code><i>run-loop-opstate</i>&lt;R></code> overrides <code><i>run-loop-opstate-base</i>::execute()</code> such that <code><i>o</i>.execute()</code> is equivalent to the following:
 
-        <pre>
+        <pre highlight="c++">
         if (get_stop_token(<i>REC</i>(<i>o</i>)).stop_requested()) {
           set_stopped(std::move(<i>REC</i>(<i>o</i>)));
         } else {
@@ -7285,7 +7274,7 @@ enum class forward_progress_guarantee {
 
     * The expression <code>start(<i>o</i>)</code> is equivalent to the following:
 
-        <pre>
+        <pre highlight="c++">
         try {
           <i>o</i>.<i>loop_</i>->push_back(&<i>o</i>);
         } catch(...) {
@@ -7295,13 +7284,13 @@ enum class forward_progress_guarantee {
 
 #### Constructor and destructor <b>[exec.run.loop.ctor]</b> #### {#spec-execution.contexts.run_loop.ctor}
 
-    <pre>
+    <pre highlight="c++">
     run_loop::run_loop() noexcept;
     </pre>
 
     1. <i>Postconditions:</i> <i>count</i> is `0` and <i>state</i> is <i>starting</i>.
 
-    <pre>
+    <pre highlight="c++">
     run_loop::~run_loop();
     </pre>
 
@@ -7309,7 +7298,7 @@ enum class forward_progress_guarantee {
 
 #### Member functions <b>[exec.run.loop.members]</b> #### {#spec-execution.contexts.run_loop.members}
 
-    <pre>
+    <pre highlight="c++">
     <i>run-loop-opstate-base</i>* run_loop::pop_front();
     </pre>
 
@@ -7319,7 +7308,7 @@ enum class forward_progress_guarantee {
 
         * <i>count</i> is greater than `0`, in which case an item is removed from the front of the queue, <i>count</i> is decremented by `1`, and the removed item is returned.
 
-    <pre>
+    <pre highlight="c++">
     void run_loop::push_back(<i>run-loop-opstate-base</i>* item);
     </pre>
 
@@ -7327,19 +7316,19 @@ enum class forward_progress_guarantee {
 
     2. <i>Synchronization:</i> This operation synchronizes with the `pop_front` operation that obtains `item`.
 
-    <pre>
+    <pre highlight="c++">
     <i>run-loop-scheduler</i> run_loop::get_scheduler();
     </pre>
 
     1. <i>Returns:</i> an instance of <code><i>run-loop-scheduler</i></code> that can be used to schedule work onto this `run_loop` instance.
 
-    <pre>
+    <pre highlight="c++">
     void run_loop::run();
     </pre>
 
     1. <i>Effects:</i> Equivalent to:
 
-        <pre>
+        <pre highlight="c++">
         while (auto* op = pop_front()) {
           op->execute();
         }
@@ -7351,7 +7340,7 @@ enum class forward_progress_guarantee {
 
     4. <i>Remarks:</i> While the loop is executing, <i>state</i> is <i>running</i>. When <i>state</i> changes, it does so without introducing data races.
 
-    <pre>
+    <pre highlight="c++">
     void run_loop::finish();
     </pre>
 
@@ -7365,7 +7354,7 @@ enum class forward_progress_guarantee {
 
 1. `as_awaitable` transforms an object into one that is awaitable within a particular coroutine. This section makes use of the following exposition-only entities:
 
-    <pre>
+    <pre highlight="c++">
     template&lt;class S, class E>
       using <i>single-sender-value-type</i> = <i>see below</i>;
 
@@ -7399,7 +7388,7 @@ enum class forward_progress_guarantee {
 
     2. The type <code><i>sender-awaitable</i>&lt;S, P></code> is equivalent to the following:
 
-        <pre>
+        <pre highlight="c++">
         template&lt;class S, class P> // arguments are not associated entities ([lib.tmpl-heads])
         class <i>sender-awaitable</i> {
           struct unit {};
@@ -7420,7 +7409,7 @@ enum class forward_progress_guarantee {
 
         1. <code><i>awaitable-receiver</i></code> is equivalent to the following:
 
-            <pre>
+            <pre highlight="c++">
             struct <i>awaitable-receiver</i> {
               using is_receiver = <i>unspecified</i>;
               variant&lt;monostate, result_t, exception_ptr>* <i>result_ptr_</i>;
@@ -7433,7 +7422,7 @@ enum class forward_progress_guarantee {
 
               1. If `constructible_from<result_t, Vs...>` is satisfied, the expression `set_value(r, vs...)` is equivalent to:
 
-                  <pre>
+                  <pre highlight="c++">
                   try {
                     r.<i>result_ptr_</i>->emplace&lt;1>(vs...);
                   } catch(...) {
@@ -7446,7 +7435,7 @@ enum class forward_progress_guarantee {
 
               2. The expression `set_error(r, err)` is equivalent to:
 
-                  <pre>
+                  <pre highlight="c++">
                   r.<i>result_ptr_</i>->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err));
                   r.<i>continuation_</i>.resume();
                   </pre>
@@ -7475,7 +7464,7 @@ enum class forward_progress_guarantee {
 
             - <i>Effects:</i> equivalent to:
 
-                <pre>
+                <pre highlight="c++">
                 if (<i>result_</i>.index()) == 2)
                   rethrow_exception(get&lt;2>(<i>result_</i>));
                 if constexpr (!is_void_v&lt;value_t>)
@@ -7509,7 +7498,7 @@ enum class forward_progress_guarantee {
 
     In addition, it provides a default implementation of `unhandled_stopped()` such that if a sender completes by calling `set_stopped`, it is treated as if an uncatchable "stopped" exception were thrown from the <i>await-expression</i>. In practice, the coroutine is never resumed, and the `unhandled_stopped` of the coroutine caller's promise type is called.
 
-    <pre>
+    <pre highlight="c++">
     template&lt;<i>class-type</i> Promise>
       struct with_awaitable_senders {
         template&lt;OtherPromise>
@@ -7540,7 +7529,7 @@ enum class forward_progress_guarantee {
 
       - <i>Effects:</i> equivalent to:
 
-        <pre>
+        <pre highlight="c++">
         <i>continuation_</i> = h;
         if constexpr ( requires(OtherPromise& other) { other.unhandled_stopped(); } ) {
           <i>stopped_handler_</i> = [](void* p) noexcept -> coroutine_handle&lt;> {
@@ -7556,7 +7545,7 @@ enum class forward_progress_guarantee {
 
       - <i>Effects:</i> equivalent to:
 
-        <pre>
+        <pre highlight="c++">
         return as_awaitable(std::forward&lt;Value>(value), static_cast&lt;Promise&>(*this));
         </pre>
 
