@@ -2,7 +2,7 @@
 Title: `std::execution`
 H1: <code>std::execution</code>
 Shortname: D2300
-Revision: 7
+Revision: 8
 Status: D
 Group: WG21
 Audience: SG1, LEWG
