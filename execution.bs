@@ -4705,23 +4705,23 @@ enum class forward_progress_guarantee {
         requires(const remove_cvref_t&lt;R>& r) {
           { get_env(r) } -> queryable;
         } &&
-        move_constructible&lt;remove_cvref_t&lt;R>> &&
-        constructible_from&lt;remove_cvref_t&lt;R>, R>;
+        move_constructible&lt;remove_cvref_t&lt;R>> &&  <i>// rvalues are movable, and</i>
+        constructible_from&lt;remove_cvref_t&lt;R>, R>; <i>// lvalues are copyable</i>
 
     template&lt;class Signature, class R>
       concept <i>valid-completion-for</i> = <i>// exposition only</i>
         requires (Signature* sig) {
-            []&lt;class Tag, class... Args>(Tag(*)(Args...))
-                requires <i>callable</i>&lt;Tag, remove_cvref_t&lt;R>, Args...>
-            {}(sig);
+          []&lt;class Tag, class... Args>(Tag(*)(Args...))
+              requires <i>callable</i>&lt;Tag, remove_cvref_t&lt;R>, Args...>
+          {}(sig);
         };
 
     template&lt;class R, class Completions>
       concept receiver_of =
         receiver&lt;R> &amp;&amp;
         requires (Completions* completions) {
-            []&lt;<i>valid-completion-for</i>&lt;R>...Sigs>(completion_signatures&lt;Sigs...>*)
-            {}(completions);
+          []&lt;<i>valid-completion-for</i>&lt;R>...Sigs>(completion_signatures&lt;Sigs...>*)
+          {}(completions);
         };
     </pre>
 
@@ -4829,8 +4829,8 @@ enum class forward_progress_guarantee {
         requires (const remove_cvref_t&lt;S>& s) {
           { get_env(s) } -> queryable;
         } &&
-        move_constructible&lt;remove_cvref_t&lt;S>> &&
-        constructible_from&lt;remove_cvref_t&lt;S>, S>;
+        move_constructible&lt;remove_cvref_t&lt;S>> &&  <i>// rvalues are movable, and</i>
+        constructible_from&lt;remove_cvref_t&lt;S>, S>; <i>// lvalues are copyable</i>
 
     template&lt;class S, class E = empty_env>
       concept sender_in =
