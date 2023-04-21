@@ -2240,7 +2240,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R7<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-04-20">2023-04-20</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-04-21">2023-04-21</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -6785,23 +6785,23 @@ operations corresponding to a set of completion signatures. The <code class="hig
     <c- k>requires</c-><c- p>(</c-><c- k>const</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>&amp;</c-> <c- n>r</c-><c- p>)</c-> <c- p>{</c->
       <c- p>{</c-> <c- n>get_env</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-> <c- p>}</c-> <c- o>-></c-> <c- n>queryable</c-><c- p>;</c->
     <c- p>}</c-> <c- o>&amp;&amp;</c->
-    <c- n>move_constructible</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
-    <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>,</c-> <c- n>R</c-><c- o>></c-><c- p>;</c->
+    <c- n>move_constructible</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>></c-> <c- o>&amp;&amp;</c->  <i><c- c1>// rvalues are movable, and</c-></i>
+    <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>,</c-> <c- n>R</c-><c- o>></c-><c- p>;</c-> <i><c- c1>// lvalues are copyable</c-></i>
 
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Signature</c-><c- p>,</c-> <c- k>class</c-> <c- nc>R</c-><c- o>></c->
   <c- k>concept</c-> <i><c- nc>valid</c-><c- o>-</c-><c- n>completion</c-><c- o>-</c-><c- k>for</c-></i> <c- o>=</c-> <i><c- c1>// exposition only</c-></i>
     <c- k>requires</c-> <c- p>(</c-><c- n>Signature</c-><c- o>*</c-> <c- n>sig</c-><c- p>)</c-> <c- p>{</c->
-        <c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>Tag</c-><c- p>(</c-><c- o>*</c-><c- p>)(</c-><c- n>Args</c-><c- p>...))</c->
-            <c- k>requires</c-> <i><c- n>callable</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c->
-        <c- p>{}(</c-><c- n>sig</c-><c- p>);</c->
+      <c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>Tag</c-><c- p>(</c-><c- o>*</c-><c- p>)(</c-><c- n>Args</c-><c- p>...))</c->
+          <c- k>requires</c-> <i><c- n>callable</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c->
+      <c- p>{}(</c-><c- n>sig</c-><c- p>);</c->
     <c- p>};</c->
 
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>R</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Completions</c-><c- o>></c->
   <c- k>concept</c-> <c- nc>receiver_of</c-> <c- o>=</c->
     <c- n>receiver</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-> <c- o>&amp;&amp;</c->
     <c- k>requires</c-> <c- p>(</c-><c- n>Completions</c-><c- o>*</c-> <c- n>completions</c-><c- p>)</c-> <c- p>{</c->
-        <c- p>[]</c-><c- o>&lt;</c-><i><c- n>valid</c-><c- o>-</c-><c- n>completion</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>...</c-><c- n>Sigs</c-><c- o>></c-><c- p>(</c-><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>Sigs</c-><c- p>...</c-><c- o>>*</c-><c- p>)</c->
-        <c- p>{}(</c-><c- n>completions</c-><c- p>);</c->
+      <c- p>[]</c-><c- o>&lt;</c-><i><c- n>valid</c-><c- o>-</c-><c- n>completion</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>...</c-><c- n>Sigs</c-><c- o>></c-><c- p>(</c-><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>Sigs</c-><c- p>...</c-><c- o>>*</c-><c- p>)</c->
+      <c- p>{}(</c-><c- n>completions</c-><c- p>);</c->
     <c- p>};</c->
 </pre>
     <li data-md>
@@ -6896,8 +6896,8 @@ sender and a receiver to produce an operation state.</p>
     <c- k>requires</c-> <c- p>(</c-><c- k>const</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>S</c-><c- o>>&amp;</c-> <c- n>s</c-><c- p>)</c-> <c- p>{</c->
       <c- p>{</c-> <c- n>get_env</c-><c- p>(</c-><c- n>s</c-><c- p>)</c-> <c- p>}</c-> <c- o>-></c-> <c- n>queryable</c-><c- p>;</c->
     <c- p>}</c-> <c- o>&amp;&amp;</c->
-    <c- n>move_constructible</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>S</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
-    <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>S</c-><c- o>></c-><c- p>,</c-> <c- n>S</c-><c- o>></c-><c- p>;</c->
+    <c- n>move_constructible</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>S</c-><c- o>>></c-> <c- o>&amp;&amp;</c->  <i><c- c1>// rvalues are movable, and</c-></i>
+    <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>S</c-><c- o>></c-><c- p>,</c-> <c- n>S</c-><c- o>></c-><c- p>;</c-> <i><c- c1>// lvalues are copyable</c-></i>
 
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>S</c-><c- p>,</c-> <c- k>class</c-> <c- nc>E</c-> <c- o>=</c-> <c- n>empty_env</c-><c- o>></c->
   <c- k>concept</c-> <c- nc>sender_in</c-> <c- o>=</c->
