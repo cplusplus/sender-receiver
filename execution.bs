@@ -4050,7 +4050,7 @@ template&lt;class C>
     describes a completion operation. An asychronous operation has a finite set
     of possible completion signatures. The completion signature's return type is
     the completion tag associated with the completion function that executes the
-    completion operation. The completion signature's argument types are the
+    completion operation. The completion signature's parameter types are the
     types and value categories of the asynchronous operation's result datums.
     Together, a sender type and an environment type `E` determine the set of
     completion signatures of an operation state that results from connecting the
