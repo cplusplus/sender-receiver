@@ -1561,7 +1561,7 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version 5edf5e459, updated Thu Jun 22 11:28:01 2023 -0700" name="generator">
+  <meta content="Bikeshed version b06c00b8e, updated Tue Jul 11 13:41:16 2023 -0700" name="generator">
   <link href="https://wg21.link/P2532" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
 <style>
@@ -2162,7 +2162,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2532R0<br><code class="highlight"><c- n>Removing</c-> <c- n>exception_ptr</c-> <c- n>from</c-> <c- n>the</c-> <c- n>Receiver</c-> <c- n>Concepts</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2023-06-26">2023-06-26</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2023-07-14">2023-07-14</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Author:
@@ -2196,8 +2196,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <li><a href="#no-get-env-default"><span class="secno">2.1</span> <span class="content">Remove the default implementation of the <code class="highlight"><c- n>get_env</c-></code> receiver query.</span></a>
       <li><a href="#receiver-of-completion-signatures"><span class="secno">2.2</span> <span class="content">The <code class="highlight"><c- n>receiver_of</c-></code> concept takes a receiver and an instance of the <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;></c-></code> class template.</span></a>
       <li><a href="#noexcept-set-value"><span class="secno">2.3</span> <span class="content">A receiver’s customization of <code class="highlight"><c- n>set_value</c-></code> is required to be <code class="highlight"><c- k>noexcept</c-></code>.</span></a>
-      <li><a href="#sender-to-requirements"><span class="secno">2.4</span> <span class="content">The <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-></code> concept requires <code class="highlight"><c- n>Rcvr</c-></code> to accept all of <code class="highlight"><c- n>Sndr</c-></code>'s completions.</span></a>
-      <li><a href="#connect-requirements"><span class="secno">2.5</span> <span class="content"><code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code> also requires <code class="highlight"><c- n>rcvr</c-></code> to accept all of <code class="highlight"><c- n>sndr</c-></code>'s completions.</span></a>
+      <li><a href="#sender-to-requirements"><span class="secno">2.4</span> <span class="content">The <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-></code> concept requires <code class="highlight"><c- n>Rcvr</c-></code> to accept all of <code class="highlight"><c- n>Sndr</c-></code>’s completions.</span></a>
+      <li><a href="#connect-requirements"><span class="secno">2.5</span> <span class="content"><code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code> also requires <code class="highlight"><c- n>rcvr</c-></code> to accept all of <code class="highlight"><c- n>sndr</c-></code>’s completions.</span></a>
       <li><a href="#get-completion-signatures"><span class="secno">2.6</span> <span class="content"><code class="highlight"><c- n>get_completion_signatures</c-></code> is required to return an instantiation of the <code class="highlight"><c- n>completion_signatures</c-></code> class template.</span></a>
       <li><a href="#sender-traits-aliases"><span class="secno">2.7</span> <span class="content">The <code class="highlight"><c- n>value_types_of_t</c-></code> and <code class="highlight"><c- n>error_types_of_t</c-></code> template aliases remain.</span></a>
       <li><a href="#make-completion-signatures"><span class="secno">2.8</span> <span class="content">The <code class="highlight"><c- n>make_completion_signatures</c-></code> design is slightly tweaked to be more general.</span></a>
@@ -2313,10 +2313,10 @@ commentary. Commentary is provided below.</p>
     <li data-md>
      <p>A receiver’s customization of <code class="highlight"><c- n>set_value</c-></code> is required to be <code class="highlight"><c- k>noexcept</c-></code>.</p>
     <li data-md>
-     <p>The <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-></code> concept requires <code class="highlight"><c- n>Rcvr</c-></code> to accept all of <code class="highlight"><c- n>Sndr</c-></code>'s
+     <p>The <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-></code> concept requires <code class="highlight"><c- n>Rcvr</c-></code> to accept all of <code class="highlight"><c- n>Sndr</c-></code>’s
 completions.</p>
     <li data-md>
-     <p><code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code> also requires <code class="highlight"><c- n>rcvr</c-></code> to accept all of <code class="highlight"><c- n>sndr</c-></code>'s completions.</p>
+     <p><code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code> also requires <code class="highlight"><c- n>rcvr</c-></code> to accept all of <code class="highlight"><c- n>sndr</c-></code>’s completions.</p>
     <li data-md>
      <p><code class="highlight"><c- n>get_completion_signatures</c-></code> is required to return an instantiation of the <code class="highlight"><c- n>completion_signatures</c-></code> class template; the <code class="highlight"><c- n>value_types_of_t</c-></code> and <code class="highlight"><c- n>error_types_of_t</c-></code> template aliases remain unchanged.</p>
     <li data-md>
@@ -2376,11 +2376,11 @@ cannot complete with an error. <code class="highlight"><c- n>just</c-><c- p>(</c
 successfully send an integer through the value channel. An adaptor such as <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>fun</c-><c- p>)</c-></code> can check whether <code class="highlight"><c- n>fun</c-></code> can ever exit exceptionally when
 called with all the sets of values that <code class="highlight"><c- n>sndr</c-></code> may complete with. If so, the <code class="highlight"><c- n>then</c-></code> sender must add <code class="highlight"><c- n>set_error_t</c-><c- p>(</c-><c- n>exception_ptr</c-><c- p>)</c-></code> to its list of completions.
 Otherwise, it need not.</p>
-   <h3 class="heading settled" data-level="2.4" id="sender-to-requirements"><span class="secno">2.4. </span><span class="content">The <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-></code> concept requires <code class="highlight"><c- n>Rcvr</c-></code> to accept all of <code class="highlight"><c- n>Sndr</c-></code>'s completions.</span><a class="self-link" href="#sender-to-requirements"></a></h3>
+   <h3 class="heading settled" data-level="2.4" id="sender-to-requirements"><span class="secno">2.4. </span><span class="content">The <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-></code> concept requires <code class="highlight"><c- n>Rcvr</c-></code> to accept all of <code class="highlight"><c- n>Sndr</c-></code>’s completions.</span><a class="self-link" href="#sender-to-requirements"></a></h3>
    <p>The <code class="highlight"><c- n>sender_to</c-></code> concept, which checks whether a sender and a receiver can be
 connected, now enforces that the sender’s completion signatures can in fact be
 handled by the receiver. Previously, it only checked that <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code> was well-formed, relying on sender authors to properly constrain their <code class="highlight"><c- n>connect</c-></code> customizations.</p>
-   <h3 class="heading settled" data-level="2.5" id="connect-requirements"><span class="secno">2.5. </span><span class="content"><code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code> also requires <code class="highlight"><c- n>rcvr</c-></code> to accept all of <code class="highlight"><c- n>sndr</c-></code>'s completions.</span><a class="self-link" href="#connect-requirements"></a></h3>
+   <h3 class="heading settled" data-level="2.5" id="connect-requirements"><span class="secno">2.5. </span><span class="content"><code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code> also requires <code class="highlight"><c- n>rcvr</c-></code> to accept all of <code class="highlight"><c- n>sndr</c-></code>’s completions.</span><a class="self-link" href="#connect-requirements"></a></h3>
    <p>For good measure, the <code class="highlight"><c- n>connect</c-></code> customization point also checks whether a
 receiver can receive all of the sender’s possible completions before trying to
 dispatch via <code class="highlight"><c- n>tag_invoke</c-></code> to a <code class="highlight"><c- n>connect</c-></code> customization. This often entirely
@@ -2446,7 +2446,7 @@ completions.</p>
     <li data-md>
      <p>It is not possible to map a single completion signature into multiple
 different completions. For instance, the <code class="highlight"><c- n>let_value</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>fun</c-><c- p>)</c-></code> sender
-adaptor needs to map a set of <code class="highlight"><c- n>sndr</c-></code>'s value types into the set of
+adaptor needs to map a set of <code class="highlight"><c- n>sndr</c-></code>’s value types into the set of
 completions of whatever sender that is returned from <code class="highlight"><c- n>fun</c-><c- p>(</c-><c- n>values</c-><c- p>...)</c-></code>, which
 is likely more than one.</p>
    </ol>
@@ -2495,8 +2495,8 @@ receiver’s <code class="highlight"><c- n>set_value</c-></code>, and if the sen
   <c- p>{</c-> <c- n>execution</c-><c- o>::</c-><c- n>set_value</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>string</c-><c- p>())</c-> <c- p>}</c-> <c- k>noexcept</c-><c- p>;</c->
 <c- p>}</c->
 </pre>
-     <p>Since <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>string</c-></code>'s move constructor is <code class="highlight"><c- k>noexcept</c-></code>, this constraint
-    is satisfied regardless of whether <code class="highlight"><c- n>rcvr</c-></code>'s <code class="highlight"><c- n>set_value</c-></code> customization
+     <p>Since <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>string</c-></code>’s move constructor is <code class="highlight"><c- k>noexcept</c-></code>, this constraint
+    is satisfied regardless of whether <code class="highlight"><c- n>rcvr</c-></code>’s <code class="highlight"><c- n>set_value</c-></code> customization
     accepts the string by value or by reference.</p>
    </ol>
    <h3 class="heading settled" data-level="3.2" id="diagnostics"><span class="secno">3.2. </span><span class="content">Diagnostics</span><a class="self-link" href="#diagnostics"></a></h3>
@@ -2642,7 +2642,7 @@ than it adds, while adding functionality at the same time.</p>
     <del><c- b>bool</c-> <c- n>SendsStopped</c-> <c- o>=</c-> <c- n>completion_signatures_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>>::</c-><c- n>sends_stopped</c-><c- o>></c-></del>
     <ins><i><c- n>valid</c-><c- o>-</c-><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-><c- o>&lt;</c-><c- n>Env</c-><c- o>></c-></i> <c- n>SetStopped</c-> <c- o>=</c-> <c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>set_stopped_t</c-><c- p>()</c-><c- o>>></c-></ins>
       <c- k>requires</c-> <c- n>sender</c-><sndrU0002C env>
-  <c- k>using</c-> <c- n>make_completion_signatures</c-> <c- o>=</c-> <c- n>completion_signatures</c-><c- o>&lt;</c-><i><c- d>/* see below */</c-></i><c- o>></c-><c- p>;</c->
+  <c- k>using</c-> <c- n>make_completion_signatures</c-> <c- o>=</c-> <c- n>completion_signatures</c-><span class="production"><c- o>&lt;&lt;</c-><c- n>i</c-><c- o>></c-><c- d>/* see below */</c-><c- o>&lt;/</c-><c- n>i</c-><c- o>>></c-></span><c- p>;</c->
 </sndrU0002C></pre>
    <h3 class="heading settled" data-level="6.2" id="executionget_env"><span class="secno">6.2. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_env</c-></code></span><a class="self-link" href="#executionget_env"></a></h3>
    <p>Change [exec.get_env] as follows:</p>

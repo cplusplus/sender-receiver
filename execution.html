@@ -1561,7 +1561,7 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version 5edf5e459, updated Thu Jun 22 11:28:01 2023 -0700" name="generator">
+  <meta content="Bikeshed version b06c00b8e, updated Tue Jul 11 13:41:16 2023 -0700" name="generator">
   <link href="https://wg21.link/P2300" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
 <style>
@@ -2246,7 +2246,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-06-26">2023-06-26</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-07-14">2023-07-14</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -3844,7 +3844,7 @@ otherwise could be.</p>
    <p>To get concrete, consider the case of the "<code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code>" sender: when <code class="highlight"><c- n>connect</c-></code>-ed and <code class="highlight"><c- n>start</c-></code>-ed, it queries the receiver for its associated
 scheduler and passes it back to the receiver through the value channel. That
 sender’s "value type" is the type of the <em>receiver’s</em> scheduler. What then
-should <code class="highlight"><c- n>sender_traits</c-><c- o>&lt;</c-><c- n>get_scheduler_sender</c-><c- o>>::</c-><c- n>value_types</c-></code> report for the <code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code>'s value type? It can’t answer because it doesn’t know.</p>
+should <code class="highlight"><c- n>sender_traits</c-><c- o>&lt;</c-><c- n>get_scheduler_sender</c-><c- o>>::</c-><c- n>value_types</c-></code> report for the <code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code>’s value type? It can’t answer because it doesn’t know.</p>
    <p>This causes knock-on problems since some important algorithms require a typed
 sender, such as <code class="highlight"><c- n>sync_wait</c-></code>. To illustrate the problem, consider the following
 code:</p>
@@ -3860,7 +3860,7 @@ code:</p>
 
 <c- n>std</c-><c- o>::</c-><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>task</c-><c- p>));</c->
 </pre>
-   <p>The code above is attempting to schedule some work onto the <code class="highlight"><c- n>sync_wait</c-></code>'s <code class="highlight"><c- n>run_loop</c-></code> execution resource. But <code class="highlight"><c- n>let_value</c-></code> only returns a typed sender when
+   <p>The code above is attempting to schedule some work onto the <code class="highlight"><c- n>sync_wait</c-></code>’s <code class="highlight"><c- n>run_loop</c-></code> execution resource. But <code class="highlight"><c- n>let_value</c-></code> only returns a typed sender when
 the input sender is typed. As we explained above, <code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code> is not
 typed, so <code class="highlight"><c- n>task</c-></code> is likewise not typed. Since <code class="highlight"><c- n>task</c-></code> isn’t typed, it cannot be
 passed to <code class="highlight"><c- n>sync_wait</c-></code> which is expecting a typed sender. The above code would
@@ -3991,7 +3991,7 @@ intermediate operation states and properly scope the <code class="highlight"><c-
     <li data-md>
      <p>Make <code class="highlight"><c- n>as_awaitable</c-></code> a customization point.</p>
     <li data-md>
-     <p>Change <code class="highlight"><c- n>connect</c-></code>'s handling of awaitables to consider those types that are awaitable owing to customization of <code class="highlight"><c- n>as_awaitable</c-></code>.</p>
+     <p>Change <code class="highlight"><c- n>connect</c-></code>’s handling of awaitables to consider those types that are awaitable owing to customization of <code class="highlight"><c- n>as_awaitable</c-></code>.</p>
     <li data-md>
      <p>Add <code class="highlight"><c- n>value_types_of_t</c-></code> and <code class="highlight"><c- n>error_types_of_t</c-></code> alias templates; rename <code class="highlight"><c- n>stop_token_type_t</c-></code> to <code class="highlight"><c- n>stop_token_of_t</c-></code>.</p>
     <li data-md>
@@ -4515,7 +4515,7 @@ senders can be potentially eager. With lazy senders, an algorithm can safely
 assume that a call to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>start</c-></code> on an operation state strictly happens
 before the execution of that async operation. This frees the algorithm from
 needing to resolve potential race conditions. For example, consider an algorithm <code class="highlight"><c- n>sequence</c-></code> that puts async operations in sequence by starting an operation only
-after the preceding one has completed. In an expression like <code class="highlight"><c- n>sequence</c-><c- p>(</c-><c- n>a</c-><c- p>(),</c-> <c- n>then</c-><c- p>(</c-><c- n>src</c-><c- p>,</c-> <c- p>[]</c-> <c- p>{</c-> <c- n>b</c-><c- p>();</c-> <c- p>}),</c-> <c- n>c</c-><c- p>())</c-></code>, one my reasonably assume that <code class="highlight"><c- n>a</c-><c- p>()</c-></code>, <code class="highlight"><c- n>b</c-><c- p>()</c-></code> and <code class="highlight"><c- n>c</c-><c- p>()</c-></code> are sequenced and therefore do not need synchronisation. Eager algorithms
+after the preceding one has completed. In an expression like <code class="highlight"><c- n>sequence</c-><c- p>(</c-><c- n>a</c-><c- p>(),</c-> <c- n>then</c-><c- p>(</c-><c- n>src</c-><c- p>,</c-> <c- p>[]</c-> <c- p>{</c-> <c- n>b</c-><c- p>();</c-> <c- p>}),</c-> <c- n>c</c-><c- p>())</c-></code>, one may reasonably assume that <code class="highlight"><c- n>a</c-><c- p>()</c-></code>, <code class="highlight"><c- n>b</c-><c- p>()</c-></code> and <code class="highlight"><c- n>c</c-><c- p>()</c-></code> are sequenced and therefore do not need synchronisation. Eager algorithms
 break that assumption.</p>
    <p>When an algorithm needs to deal with potentially eager senders, the potential
 race conditions can be resolved one of two ways, neither of which is desirable:</p>
@@ -4855,7 +4855,7 @@ obtain an object of unspecified type to be provided as the first argument to the
 
 <c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-><c- p>(</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>task</c-><c- p>)</c-> <c- p>);</c-> <c- c1>// wait for it to finish</c->
 </pre>
-   <p>This code uses the fact that <code class="highlight"><c- n>sync_wait</c-></code> associates a scheduler with the receiver that it connects with <code class="highlight"><c- n>task</c-></code>. <code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code> reads that scheduler out of the receiver, and passes it to <code class="highlight"><c- n>let_value</c-></code>'s receiver’s <code class="highlight"><c- n>set_value</c-></code> function, which in turn passes it to the lambda. That lambda returns a new sender that uses the scheduler to schedule some nested work onto <code class="highlight"><c- n>sync_wait</c-></code>'s scheduler.</p>
+   <p>This code uses the fact that <code class="highlight"><c- n>sync_wait</c-></code> associates a scheduler with the receiver that it connects with <code class="highlight"><c- n>task</c-></code>. <code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code> reads that scheduler out of the receiver, and passes it to <code class="highlight"><c- n>let_value</c-></code>’s receiver’s <code class="highlight"><c- n>set_value</c-></code> function, which in turn passes it to the lambda. That lambda returns a new sender that uses the scheduler to schedule some nested work onto <code class="highlight"><c- n>sync_wait</c-></code>’s scheduler.</p>
    <h3 class="heading settled" data-level="4.21" id="design-sender-adaptors"><span class="secno">4.21. </span><span class="content">User-facing sender adaptors</span><a class="self-link" href="#design-sender-adaptors"></a></h3>
    <p>A <a data-link-type="dfn" href="#sender-adaptor" id="ref-for-sender-adaptor①">sender adaptor</a> is an algorithm that takes one or more senders, which it may <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code>, as parameters, and returns a sender, whose completion is related to the sender arguments it has received.</p>
    <p>Sender adaptors are <i>lazy</i>, that is, they are never allowed to submit any work for execution prior to the returned sender being <a data-link-type="dfn" href="#start" id="ref-for-start">started</a> later on, and are also guaranteed to not start any input senders passed into them. Sender consumers
@@ -5044,7 +5044,7 @@ senders, retrieving the result of the task graph.</p>
    <p>If the provided sender sends the "stopped" signal instead of values, <code class="highlight"><c- n>sync_wait</c-></code> returns an empty optional.</p>
    <p>For an explanation of the <code class="highlight"><c- k>requires</c-></code> clause, see <a href="#design-typed">§ 5.8 All senders are typed</a>. That clause also explains another sender consumer, built on top of <code class="highlight"><c- n>sync_wait</c-></code>: <code class="highlight"><c- n>sync_wait_with_variant</c-></code>.</p>
    <p class="note" role="note"><span class="marker">Note:</span> This function is specified inside <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>this_thread</c-></code>, and not inside <code class="highlight"><c- n>execution</c-></code>. This is because <code class="highlight"><c- n>sync_wait</c-></code> has to block the <i>current</i> execution agent, but determining what the current execution agent is is not reliable. Since the standard
-does not specify any functions on the current execution agent other than those in <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>this_thread</c-></code>, this is the flavor of this function that is being proposed. If C++ ever obtains fibers, for instance, we expect that a variant of this function called <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>this_fiber</c-><c- o>::</c-><c- n>sync_wait</c-></code> would be provided. We also expect that runtimes with execution agents that use different synchronization mechanisms than <code class="highlight"><c- n>std</c-><c- o>::</c-><c- kr>thread</c-></code>'s will provide their own flavors of <code class="highlight"><c- n>sync_wait</c-></code> as well (assuming their execution agents have the means
+does not specify any functions on the current execution agent other than those in <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>this_thread</c-></code>, this is the flavor of this function that is being proposed. If C++ ever obtains fibers, for instance, we expect that a variant of this function called <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>this_fiber</c-><c- o>::</c-><c- n>sync_wait</c-></code> would be provided. We also expect that runtimes with execution agents that use different synchronization mechanisms than <code class="highlight"><c- n>std</c-><c- o>::</c-><c- kr>thread</c-></code>’s will provide their own flavors of <code class="highlight"><c- n>sync_wait</c-></code> as well (assuming their execution agents have the means
 to block in a non-deadlock manner).</p>
    <h3 class="heading settled" data-level="4.23" id="design-execute"><span class="secno">4.23. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>execute</c-></code></span><a class="self-link" href="#design-execute"></a></h3>
    <p>In addition to the three categories of functions presented above, we also propose to include a convenience function for fire-and-forget eager one-way submission of an invocable to a scheduler, to fulfil the role of one-way executors from P0443.</p>
@@ -5143,7 +5143,7 @@ parameters of a type):</p>
 <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>bulk</c-><c- p>(</c->
     <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- o>&amp;&amp;</c-> <c- n>input</c-><c- p>,</c->
     <c- n>execution</c-><c- o>::</c-><c- n>shape</c-> <c- k>auto</c-> <c- o>&amp;&amp;</c-> <c- n>shape</c-><c- p>,</c->
-    <c- n>invocable</c-><c- o>&lt;</c-><i><c- n>sender</c-><c- o>-</c-><c- n>values</c-><c- p>(</c-><c- n>input</c-><c- p>)</c-></i><c- o>></c-> <c- k>auto</c-> <c- o>&amp;&amp;</c-> <c- n>fn</c-><c- p>)</c->
+    <c- n>invocable</c-><a class="production" data-link-type="type"><c- o>&lt;</c-><c- n>i</c-><c- o>></c-></a> <c- k>auto</c-> <c- o>&amp;&amp;</c-> <c- n>fn</c-><c- p>)</c->
 <c- p>{</c->
     <c- c1>// return a cuda sender representing a bulk kernel launch</c->
 <c- p>}</c->
@@ -5574,12 +5574,12 @@ object of type <code class="highlight"><c- n>Initializer</c-></code>. Then for s
         <li data-md>
          <p>Direct non-list initializing an object <code class="highlight"><c- n>cb</c-></code> of type <code class="highlight"><c- n>T</c-><c- o>::</c-><c- n>callback_type</c-><c- o>&lt;</c-><c- n>CB</c-><c- o>></c-></code> from <code class="highlight"><c- n>t</c-><c- p>,</c-> <c- n>init</c-></code> shall, if <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> is <code class="highlight">true</code>, construct an
 instance, <code class="highlight"><c- n>callback</c-></code>, of type <code class="highlight"><c- n>CB</c-></code>, direct-initialized with <code class="highlight"><c- n>init</c-></code>,
-and register callback with <code class="highlight"><c- n>t</c-></code>'s shared stop state such that <code class="highlight"><c- n>callback</c-></code> will be invoked with an empty argument list if a stop request is made
+and register callback with <code class="highlight"><c- n>t</c-></code>’s shared stop state such that <code class="highlight"><c- n>callback</c-></code> will be invoked with an empty argument list if a stop request is made
 on the shared stop state.</p>
          <ol>
           <li data-md>
            <p>If <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> evaluates to <code class="highlight">true</code> at the time <code class="highlight"><c- n>callback</c-></code> is
-registered then <code class="highlight"><c- n>callback</c-></code> can be invoked on the thread executing <code class="highlight"><c- n>cb</c-></code>'s constructor.</p>
+registered then <code class="highlight"><c- n>callback</c-></code> can be invoked on the thread executing <code class="highlight"><c- n>cb</c-></code>’s constructor.</p>
           <li data-md>
            <p>If <code class="highlight"><c- n>callback</c-></code> is invoked then, if <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> reference the same shared stop
 state, an evaluation of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> will be <code class="highlight">true</code> if the beginning of the invocation of <code class="highlight"><c- n>callback</c-></code> strongly-happens-before the evaluation of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code>.</p>
@@ -7721,7 +7721,7 @@ in the <code class="highlight"><i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i>
 </pre>
        </ol>
      </ol>
-     <p>If the function selected above does not return a sender that invokes <code class="highlight"><c- n>f</c-></code> with the value result datums of <code class="highlight"><c- n>s</c-></code> using <code class="highlight"><c- n>f</c-></code>'s return value as the sender’s value completion, and forwards the non-value completion operations unchanged, the behavior of calling <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is undefined.</p>
+     <p>If the function selected above does not return a sender that invokes <code class="highlight"><c- n>f</c-></code> with the value result datums of <code class="highlight"><c- n>s</c-></code> using <code class="highlight"><c- n>f</c-></code>’s return value as the sender’s value completion, and forwards the non-value completion operations unchanged, the behavior of calling <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is undefined.</p>
    </ol>
    <h5 class="heading settled" data-level="11.9.6.7" id="spec-execution.senders.adaptor.upon_error"><span class="secno">11.9.6.7. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_error</c-></code> <b>[exec.upon.error]</b></span><a class="self-link" href="#spec-execution.senders.adaptor.upon_error"></a></h5>
    <ol>
@@ -7789,7 +7789,7 @@ in the <code class="highlight"><i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i>
 </pre>
        </ol>
      </ol>
-     <p>If the function selected above does not return a sender which invokes <code class="highlight"><c- n>f</c-></code> with the error result datum of <code class="highlight"><c- n>s</c-></code> using <code class="highlight"><c- n>f</c-></code>'s return value as the sender’s value completion, and forwards the non-error completion operations unchanged, the behavior of calling <code class="highlight"><c- n>upon_error</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is undefined.</p>
+     <p>If the function selected above does not return a sender which invokes <code class="highlight"><c- n>f</c-></code> with the error result datum of <code class="highlight"><c- n>s</c-></code> using <code class="highlight"><c- n>f</c-></code>’s return value as the sender’s value completion, and forwards the non-error completion operations unchanged, the behavior of calling <code class="highlight"><c- n>upon_error</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is undefined.</p>
    </ol>
    <h5 class="heading settled" data-level="11.9.6.8" id="spec-execution.senders.adaptor.upon_stopped"><span class="secno">11.9.6.8. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_stopped</c-></code> <b>[exec.upon.stopped]</b></span><a class="self-link" href="#spec-execution.senders.adaptor.upon_stopped"></a></h5>
    <ol>
@@ -7845,8 +7845,8 @@ to:</p>
          <p>where <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>stopped</c-><c- o>-</c-><c- n>completions</c-></i></code> names the type <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;</c-><i><c- n>compl</c-><c- o>-</c-><c- n>sig</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>,</c-> <c- n>invoke_result_t</c-><c- o>&lt;</c-><c- n>F</c-><c- o>>></c-></code>, and <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>error</c-><c- o>-</c-><c- n>signature</c-></i></code> names the type <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>set_error_t</c-><c- p>(</c-><c- n>exception_ptr</c-><c- p>)</c-><c- o>></c-></code> if <code class="highlight"><c- n>is_nothrow_invocable_v</c-><c- o>&lt;</c-><c- n>F</c-><c- o>></c-></code> is <code class="highlight">true</code>, or <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;></c-></code> otherwise.</p>
        </ol>
      </ol>
-     <p>If the function selected above does not return a sender that invokes <code class="highlight"><c- n>f</c-></code> when <code class="highlight"><c- n>s</c-></code> executes a stopped completion, using <code class="highlight"><c- n>f</c-></code>'s return value as the
-sender’s the value completion, and propagates <code class="highlight"><c- n>s</c-></code>'s other completion
+     <p>If the function selected above does not return a sender that invokes <code class="highlight"><c- n>f</c-></code> when <code class="highlight"><c- n>s</c-></code> executes a stopped completion, using <code class="highlight"><c- n>f</c-></code>’s return value as the
+sender’s the value completion, and propagates <code class="highlight"><c- n>s</c-></code>’s other completion
 operations unchanged, the behavior of calling <code class="highlight"><c- n>upon_stopped</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is
 undefined.</p>
    </ol>
@@ -8037,18 +8037,18 @@ the addition of <code class="highlight"><c- n>exception_ptr</c-></code>.</p>
           <li data-md>
            <p>When <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is called, decay-copies
 the expressions <code class="highlight"><c- n>args</c-><c- p>...</c-></code> into <code class="highlight"><c- n>sh_state</c-></code>. It then notifies all
-the operation states in <code class="highlight"><c- n>sh_state</c-></code>'s list of operation states
+the operation states in <code class="highlight"><c- n>sh_state</c-></code>’s list of operation states
 that the results are ready. If any exceptions are thrown, the
 exception is caught and <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>current_exception</c-><c- p>())</c-></code> is called instead.</p>
           <li data-md>
-           <p>When <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is called, decay-copies <code class="highlight"><c- n>e</c-></code> into <code class="highlight"><c- n>sh_state</c-></code>. It then notifies the operation states in <code class="highlight"><c- n>sh_state</c-></code>'s list of operation states that the results are ready.</p>
+           <p>When <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is called, decay-copies <code class="highlight"><c- n>e</c-></code> into <code class="highlight"><c- n>sh_state</c-></code>. It then notifies the operation states in <code class="highlight"><c- n>sh_state</c-></code>’s list of operation states that the results are ready.</p>
           <li data-md>
            <p>When <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> is called, notifies the
-operation states in <code class="highlight"><c- n>sh_state</c-></code>'s list of operation states that
+operation states in <code class="highlight"><c- n>sh_state</c-></code>’s list of operation states that
 the results are ready.</p>
           <li data-md>
            <p><code class="highlight"><c- n>get_env</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> is an expression <code class="highlight"><i><c- n>e</c-></i></code> of type <code class="highlight"><i><c- n>split</c-><c- o>-</c-><c- n>env</c-></i></code> such that <code class="highlight"><c- n>get_stop_token</c-><c- p>(</c-><i><c- n>e</c-></i><c- p>)</c-></code> is well-formed
-and returns the results of calling <code class="highlight"><c- n>get_token</c-><c- p>()</c-></code> on <code class="highlight"><c- n>sh_state</c-></code>'s
+and returns the results of calling <code class="highlight"><c- n>get_token</c-><c- p>()</c-></code> on <code class="highlight"><c- n>sh_state</c-></code>’s
 stop source.</p>
          </ol>
         <li data-md>
@@ -8079,7 +8079,7 @@ class type:</p>
          <p>When <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>op_state</c-><c- p>)</c-></code> is called:</p>
          <ul>
           <li data-md>
-           <p>If one of <code class="highlight"><c- n>r</c-></code>'s completion functions has executed, then let <code class="highlight"><i><c- n>Tag</c-></i></code> be the completion function that was
+           <p>If one of <code class="highlight"><c- n>r</c-></code>’s completion functions has executed, then let <code class="highlight"><i><c- n>Tag</c-></i></code> be the completion function that was
 called. Calls <code class="highlight"><i><c- n>Tag</c-></i><c- p>(</c-><c- n>out_r</c->'<c- p>,</c-> <c- n>args2</c-><c- p>...)</c-></code>,
 where <code class="highlight"><c- n>args2</c-><c- p>...</c-></code> is a pack of const lvalues referencing the
 subobjects of <code class="highlight"><c- n>sh_state</c-></code> that have been saved by the original
@@ -8094,7 +8094,7 @@ state added to the list:</p>
            <ul>
             <li data-md>
              <p>If <code class="highlight"><i><c- n>stop</c-><c- o>-</c-><c- n>src</c-></i><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> is <code class="highlight">true</code>,
-  all of the operation states in <code class="highlight"><c- n>sh_state</c-></code>'s list of operation
+  all of the operation states in <code class="highlight"><c- n>sh_state</c-></code>’s list of operation
   states are notified as if <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> had
   been called.</p>
             <li data-md>
@@ -8104,7 +8104,7 @@ state added to the list:</p>
         <li data-md>
          <p>When <code class="highlight"><c- n>r</c-></code> completes it will notify <code class="highlight"><c- n>op_state</c-></code> that the result are
 ready. Let <code class="highlight"><i><c- n>Tag</c-></i></code> be whichever
-completion function was called on receiver <code class="highlight"><c- n>r</c-></code>. <code class="highlight"><c- n>op_state</c-></code>'s
+completion function was called on receiver <code class="highlight"><c- n>r</c-></code>. <code class="highlight"><c- n>op_state</c-></code>’s
 stop callback optional is reset. Then <code class="highlight"><i><c- n>Tag</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>out_r</c->'<c- p>),</c-> <c- n>args2</c-><c- p>...)</c-></code> is called,
 where <code class="highlight"><c- n>args2</c-><c- p>...</c-></code> is a pack of const lvalues referencing the subobjects of <code class="highlight"><c- n>sh_state</c-></code> that have been saved by the original call to <code class="highlight"><i><c- n>Tag</c-></i><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>.</p>
         <li data-md>
@@ -8140,8 +8140,8 @@ to:</p>
 described above, <code class="highlight"><c- n>s2</c-></code> be a sender returned
 from <code class="highlight"><c- n>split</c-><c- p>(</c-><c- n>s</c-><c- p>)</c-></code> or a copy of such, <code class="highlight"><c- n>r2</c-></code> is the receiver
 to which <code class="highlight"><c- n>s2</c-></code> is connected, and <code class="highlight"><c- n>args</c-></code> is the pack of subexpressions
-passed to <code class="highlight"><c- n>r</c-></code>'s completion function <code class="highlight"><i><c- n>CSO</c-></i></code> when <code class="highlight"><c- n>s</c-></code> completes. <code class="highlight"><c- n>s2</c-></code> shall invoke <code class="highlight"><i><c- n>CSO</c-></i><c- p>(</c-><c- n>r2</c-><c- p>,</c-> <c- n>args2</c-><c- p>...)</c-></code> where <code class="highlight"><c- n>args2</c-></code> is a pack of const lvalue references to objects decay-copied from <code class="highlight"><c- n>args</c-></code>, or by calling <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r2</c-><c- p>,</c-> <c- n>e2</c-><c- p>)</c-></code> for some subexpression <code class="highlight"><c- n>e2</c-></code>. The objects passed to <code class="highlight"><c- n>r2</c-></code>'s completion operation shall
-be valid until after the completion of the invocation of <code class="highlight"><c- n>r2</c-></code>'s completion
+passed to <code class="highlight"><c- n>r</c-></code>’s completion function <code class="highlight"><i><c- n>CSO</c-></i></code> when <code class="highlight"><c- n>s</c-></code> completes. <code class="highlight"><c- n>s2</c-></code> shall invoke <code class="highlight"><i><c- n>CSO</c-></i><c- p>(</c-><c- n>r2</c-><c- p>,</c-> <c- n>args2</c-><c- p>...)</c-></code> where <code class="highlight"><c- n>args2</c-></code> is a pack of const lvalue references to objects decay-copied from <code class="highlight"><c- n>args</c-></code>, or by calling <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r2</c-><c- p>,</c-> <c- n>e2</c-><c- p>)</c-></code> for some subexpression <code class="highlight"><c- n>e2</c-></code>. The objects passed to <code class="highlight"><c- n>r2</c-></code>’s completion operation shall
+be valid until after the completion of the invocation of <code class="highlight"><c- n>r2</c-></code>’s completion
 operation.</p>
      </ol>
    </ol>
@@ -8180,13 +8180,13 @@ with some receiver <code class="highlight"><c- n>out_r</c-></code> of type <code
          <p>For each sender <code class="highlight"><c- n>s</c-><i><sub><c- n>i</c-></sub></i></code>, constructs a receiver <code class="highlight"><c- n>r</c-><i><sub><c- n>i</c-></sub></i></code> such that:</p>
          <ol>
           <li data-md>
-           <p>If <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><i><sub><c- n>i</c-></sub></i><c- p>,</c-> <c- n>t</c-><i><sub><c- n>i</c-></sub></i><c- p>...)</c-></code> is called for every <code class="highlight"><c- n>r</c-><i><sub><c- n>i</c-></sub></i></code>, <code class="highlight"><c- n>op_state</c-></code>'s associated stop callback optional is reset and <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>t</c-><i><sub><c- n>0</c-></sub></i><c- p>...,</c-> <c- n>t</c-><i><sub><c- n>1</c-></sub></i><c- p>...,</c-> <c- p>...,</c-> <c- n>t</c-><i><sub><c- n>n</c-><c- mf>-1</c-></sub></i><c- mf>.</c-><c- p>..)</c-></code> is called, where <code class="highlight"><c- n>n</c-></code> the number of subexpressions in <code class="highlight"><c- n>s</c-><i><sub><c- n>i</c-></sub></i><c- p>...</c-></code>.</p>
+           <p>If <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><i><sub><c- n>i</c-></sub></i><c- p>,</c-> <c- n>t</c-><i><sub><c- n>i</c-></sub></i><c- p>...)</c-></code> is called for every <code class="highlight"><c- n>r</c-><i><sub><c- n>i</c-></sub></i></code>, <code class="highlight"><c- n>op_state</c-></code>’s associated stop callback optional is reset and <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>t</c-><i><sub><c- n>0</c-></sub></i><c- p>...,</c-> <c- n>t</c-><i><sub><c- n>1</c-></sub></i><c- p>...,</c-> <c- p>...,</c-> <c- n>t</c-><i><sub><c- n>n</c-><c- mf>-1</c-></sub></i><c- mf>.</c-><c- p>..)</c-></code> is called, where <code class="highlight"><c- n>n</c-></code> the number of subexpressions in <code class="highlight"><c- n>s</c-><i><sub><c- n>i</c-></sub></i><c- p>...</c-></code>.</p>
           <li data-md>
-           <p>Otherwise, <code class="highlight"><c- n>set_error</c-></code> or <code class="highlight"><c- n>set_stopped</c-></code> was called for at least one receiver <code class="highlight"><c- n>r</c-><i><sub><c- n>i</c-></sub></i></code>. If the first such to complete did so with the call <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r</c-><i><sub><c- n>i</c-></sub></i><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code>, <code class="highlight"><c- n>request_stop</c-></code> is called on <code class="highlight"><c- n>op_state</c-></code>'s associated stop source. When all child operations have completed, <code class="highlight"><c- n>op_state</c-></code>'s associated stop callback optional is reset and <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is called.</p>
+           <p>Otherwise, <code class="highlight"><c- n>set_error</c-></code> or <code class="highlight"><c- n>set_stopped</c-></code> was called for at least one receiver <code class="highlight"><c- n>r</c-><i><sub><c- n>i</c-></sub></i></code>. If the first such to complete did so with the call <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r</c-><i><sub><c- n>i</c-></sub></i><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code>, <code class="highlight"><c- n>request_stop</c-></code> is called on <code class="highlight"><c- n>op_state</c-></code>’s associated stop source. When all child operations have completed, <code class="highlight"><c- n>op_state</c-></code>’s associated stop callback optional is reset and <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is called.</p>
           <li data-md>
-           <p>Otherwise, <code class="highlight"><c- n>request_stop</c-></code> is called on <code class="highlight"><c- n>op_state</c-></code>'s associated stop source. When all child operations have completed, <code class="highlight"><c- n>op_state</c-></code>'s associated stop callback optional is reset and <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>out_r</c-><c- p>)</c-></code> is called.</p>
+           <p>Otherwise, <code class="highlight"><c- n>request_stop</c-></code> is called on <code class="highlight"><c- n>op_state</c-></code>’s associated stop source. When all child operations have completed, <code class="highlight"><c- n>op_state</c-></code>’s associated stop callback optional is reset and <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>out_r</c-><c- p>)</c-></code> is called.</p>
           <li data-md>
-           <p>For each receiver <code class="highlight"><c- n>r</c-><i><sub><c- n>i</c-></sub></i></code>, <code class="highlight"><c- n>get_env</c-><c- p>(</c-><c- n>r</c-><i><sub><c- n>i</c-></sub></i><c- p>)</c-></code> is an expression <code class="highlight"><i><c- n>e</c-></i></code> such that <code class="highlight"><c- n>get_stop_token</c-><c- p>(</c-><i><c- n>e</c-></i><c- p>)</c-></code> is well-formed and returns the results of calling <code class="highlight"><c- n>get_token</c-><c- p>()</c-></code> on <code class="highlight"><c- n>op_state</c-></code>'s associated stop source, and for which <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>tag</c-><c- p>,</c-> <i><c- n>e</c-></i><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is expression-equivalent to <code class="highlight"><c- n>tag</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>out_r</c-><c- p>),</c-> <c- n>args</c-><c- p>...)</c-></code> for all arguments <code class="highlight"><c- n>args</c-><c- p>...</c-></code> and all <code class="highlight"><c- n>tag</c-></code> whose type satisfies <code class="highlight"><i><c- n>forwarding</c-><c- o>-</c-><c- n>query</c-></i></code> and is not <code class="highlight"><c- n>get_stop_token_t</c-></code>.</p>
+           <p>For each receiver <code class="highlight"><c- n>r</c-><i><sub><c- n>i</c-></sub></i></code>, <code class="highlight"><c- n>get_env</c-><c- p>(</c-><c- n>r</c-><i><sub><c- n>i</c-></sub></i><c- p>)</c-></code> is an expression <code class="highlight"><i><c- n>e</c-></i></code> such that <code class="highlight"><c- n>get_stop_token</c-><c- p>(</c-><i><c- n>e</c-></i><c- p>)</c-></code> is well-formed and returns the results of calling <code class="highlight"><c- n>get_token</c-><c- p>()</c-></code> on <code class="highlight"><c- n>op_state</c-></code>’s associated stop source, and for which <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>tag</c-><c- p>,</c-> <i><c- n>e</c-></i><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is expression-equivalent to <code class="highlight"><c- n>tag</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>out_r</c-><c- p>),</c-> <c- n>args</c-><c- p>...)</c-></code> for all arguments <code class="highlight"><c- n>args</c-><c- p>...</c-></code> and all <code class="highlight"><c- n>tag</c-></code> whose type satisfies <code class="highlight"><i><c- n>forwarding</c-><c- o>-</c-><c- n>query</c-></i></code> and is not <code class="highlight"><c- n>get_stop_token_t</c-></code>.</p>
          </ol>
         <li data-md>
          <p>For each sender <code class="highlight"><c- n>s</c-><i><sub><c- n>i</c-></sub></i></code>, calls <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>s</c-><i><sub><c- n>i</c-></sub></i><c- p>,</c-> <c- n>r</c-><i><sub><c- n>i</c-></sub></i><c- p>)</c-></code>, resulting in operation states <code class="highlight"><c- n>child_op</c-><i><sub><c- n>i</c-></sub></i></code>.</p>
@@ -8476,7 +8476,7 @@ it then notifies the operation state that the results are ready.</p>
 awaiting operation state that the results are ready.</p>
           <li data-md>
            <p><code class="highlight"><c- n>get_env</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> is an expression <code class="highlight"><i><c- n>e</c-></i></code> of type <code class="highlight"><i><c- n>ensure</c-><c- o>-</c-><c- n>started</c-><c- o>-</c-><c- n>env</c-></i></code> such that <code class="highlight"><c- n>get_stop_token</c-><c- p>(</c-><i><c- n>e</c-></i><c- p>)</c-></code> is well-formed
-and returns the results of calling <code class="highlight"><c- n>get_token</c-><c- p>()</c-></code> on <code class="highlight"><c- n>sh_state</c-></code>'s
+and returns the results of calling <code class="highlight"><c- n>get_token</c-><c- p>()</c-></code> on <code class="highlight"><c- n>sh_state</c-></code>’s
 stop source.</p>
           <li data-md>
            <p><code class="highlight"><c- n>r</c-></code> shares ownership of <code class="highlight"><c- n>sh_state</c-></code> with <code class="highlight"><c- n>s2</c-></code>. After <code class="highlight"><c- n>r</c-></code> has been completed, it releases its ownership of <code class="highlight"><c- n>sh_state</c-></code>.</p>
@@ -8528,7 +8528,7 @@ of the completion of <code class="highlight"><c- n>r</c-></code>.</p>
         <li data-md>
          <p>When <code class="highlight"><c- n>r</c-></code> completes it will notify <code class="highlight"><c- n>op_state</c-></code> that the result are
 ready. Let <code class="highlight"><i><c- n>CF</c-></i></code> be whichever
-completion function was used to complete <code class="highlight"><c- n>r</c-></code>. <code class="highlight"><c- n>op_state</c-></code>'s stop
+completion function was used to complete <code class="highlight"><c- n>r</c-></code>. <code class="highlight"><c- n>op_state</c-></code>’s stop
 callback optional is reset. Then <code class="highlight"><i><c- n>CF</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>out_r</c->'<c- p>),</c-> <c- n>args2</c-><c- p>...)</c-></code> is called,
 where <code class="highlight"><c- n>args2</c-><c- p>...</c-></code> is a pack of xvalues referencing the subobjects of <code class="highlight"><c- n>sh_state</c-></code> that have been saved by the original call to <code class="highlight"><i><c- n>CF</c-></i><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>.</p>
         <li data-md>
@@ -8569,8 +8569,8 @@ to:</p>
   described above, <code class="highlight"><c- n>s2</c-></code> be a sender returned
   from <code class="highlight"><c- n>ensure_started</c-><c- p>(</c-><c- n>s</c-><c- p>)</c-></code> or a copy of such, <code class="highlight"><c- n>r2</c-></code> is the receiver
   to which <code class="highlight"><c- n>s2</c-></code> is connected, and <code class="highlight"><c- n>args</c-></code> is the pack of subexpressions
-  passed to <code class="highlight"><c- n>r</c-></code>'s completion function <code class="highlight"><i><c- n>CSO</c-></i></code> when <code class="highlight"><c- n>s</c-></code> completes. <code class="highlight"><c- n>s2</c-></code> shall invoke <code class="highlight"><i><c- n>CSO</c-></i><c- p>(</c-><c- n>r2</c-><c- p>,</c-> <c- n>args2</c-><c- p>...)</c-></code> where <code class="highlight"><c- n>args2</c-></code> is a pack of xvalue references to objects decay-copied from <code class="highlight"><c- n>args</c-></code>, or by calling <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r2</c-><c- p>,</c-> <c- n>e2</c-><c- p>)</c-></code> for some subexpression <code class="highlight"><c- n>e2</c-></code>. The objects passed to <code class="highlight"><c- n>r2</c-></code>'s completion operation shall
-  be valid until after the completion of the invocation of <code class="highlight"><c- n>r2</c-></code>'s completion
+  passed to <code class="highlight"><c- n>r</c-></code>’s completion function <code class="highlight"><i><c- n>CSO</c-></i></code> when <code class="highlight"><c- n>s</c-></code> completes. <code class="highlight"><c- n>s2</c-></code> shall invoke <code class="highlight"><i><c- n>CSO</c-></i><c- p>(</c-><c- n>r2</c-><c- p>,</c-> <c- n>args2</c-><c- p>...)</c-></code> where <code class="highlight"><c- n>args2</c-></code> is a pack of xvalue references to objects decay-copied from <code class="highlight"><c- n>args</c-></code>, or by calling <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r2</c-><c- p>,</c-> <c- n>e2</c-><c- p>)</c-></code> for some subexpression <code class="highlight"><c- n>e2</c-></code>. The objects passed to <code class="highlight"><c- n>r2</c-></code>’s completion operation shall
+  be valid until after the completion of the invocation of <code class="highlight"><c- n>r2</c-></code>’s completion
   operation.</p>
    </ol>
    <h4 class="heading settled" data-level="11.9.7" id="spec-execution.senders.consumers"><span class="secno">11.9.7. </span><span class="content">Sender consumers <b>[exec.consumers]</b></span><a class="self-link" href="#spec-execution.senders.consumers"></a></h4>
