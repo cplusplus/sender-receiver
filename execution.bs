@@ -2091,7 +2091,7 @@ before the execution of that async operation. This frees the algorithm from
 needing to resolve potential race conditions. For example, consider an algorithm
 `sequence` that puts async operations in sequence by starting an operation only
 after the preceding one has completed. In an expression like `sequence(a(),
-then(src, [] { b(); }), c())`, one my reasonably assume that `a()`, `b()` and
+then(src, [] { b(); }), c())`, one may reasonably assume that `a()`, `b()` and
 `c()` are sequenced and therefore do not need synchronisation. Eager algorithms
 break that assumption.
 
