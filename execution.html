@@ -2336,22 +2336,23 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li>
      <a href="#revisions"><span class="secno">2</span> <span class="content">Revision history</span></a>
      <ol class="toc">
-      <li><a href="#r7"><span class="secno">2.1</span> <span class="content">R7</span></a>
+      <li><a href="#r8"><span class="secno">2.1</span> <span class="content">R8</span></a>
+      <li><a href="#r7"><span class="secno">2.2</span> <span class="content">R7</span></a>
       <li>
-       <a href="#r6"><span class="secno">2.2</span> <span class="content">R6</span></a>
+       <a href="#r6"><span class="secno">2.3</span> <span class="content">R6</span></a>
        <ol class="toc">
-        <li><a href="#environments-and-attributes"><span class="secno">2.2.1</span> <span class="content">Environments and attributes</span></a>
+        <li><a href="#environments-and-attributes"><span class="secno">2.3.1</span> <span class="content">Environments and attributes</span></a>
        </ol>
-      <li><a href="#r5"><span class="secno">2.3</span> <span class="content">R5</span></a>
+      <li><a href="#r5"><span class="secno">2.4</span> <span class="content">R5</span></a>
       <li>
-       <a href="#r4"><span class="secno">2.4</span> <span class="content">R4</span></a>
+       <a href="#r4"><span class="secno">2.5</span> <span class="content">R4</span></a>
        <ol class="toc">
-        <li><a href="#dependently-typed-senders"><span class="secno">2.4.1</span> <span class="content">Dependently-typed senders</span></a>
+        <li><a href="#dependently-typed-senders"><span class="secno">2.5.1</span> <span class="content">Dependently-typed senders</span></a>
        </ol>
-      <li><a href="#r3"><span class="secno">2.5</span> <span class="content">R3</span></a>
-      <li><a href="#r2"><span class="secno">2.6</span> <span class="content">R2</span></a>
-      <li><a href="#r1"><span class="secno">2.7</span> <span class="content">R1</span></a>
-      <li><a href="#r0"><span class="secno">2.8</span> <span class="content">R0</span></a>
+      <li><a href="#r3"><span class="secno">2.6</span> <span class="content">R3</span></a>
+      <li><a href="#r2"><span class="secno">2.7</span> <span class="content">R2</span></a>
+      <li><a href="#r1"><span class="secno">2.8</span> <span class="content">R1</span></a>
+      <li><a href="#r0"><span class="secno">2.9</span> <span class="content">R0</span></a>
      </ol>
     <li>
      <a href="#design-intro"><span class="secno">3</span> <span class="content">Design - introduction</span></a>
@@ -3637,7 +3638,14 @@ fit for broad use and for contribution to libc++.</p>
      <p><a href="https://stlab.cc/libraries/concurrency/">stlab</a></p>
    </ul>
    <h2 class="heading settled" data-level="2" id="revisions"><span class="secno">2. </span><span class="content">Revision history</span><a class="self-link" href="#revisions"></a></h2>
-   <h3 class="heading settled" data-level="2.1" id="r7"><span class="secno">2.1. </span><span class="content">R7</span><a class="self-link" href="#r7"></a></h3>
+   <h3 class="heading settled" data-level="2.1" id="r8"><span class="secno">2.1. </span><span class="content">R8</span><a class="self-link" href="#r8"></a></h3>
+   <p>The changes since R7 are as follows:</p>
+   <p><b>Fixes:</b></p>
+   <ul>
+    <li data-md>
+     <p><code class="highlight"><c- n>get_env</c-><c- p>(</c-><c- n>obj</c-><c- p>)</c-></code> is required to be nothrow.</p>
+   </ul>
+   <h3 class="heading settled" data-level="2.2" id="r7"><span class="secno">2.2. </span><span class="content">R7</span><a class="self-link" href="#r7"></a></h3>
    <p>The changes since R6 are as follows:</p>
    <p><b>Fixes:</b></p>
    <ul>
@@ -3681,7 +3689,7 @@ argument.</p>
      <p>Add a new subsection describing the async programming model of senders in
 abstract terms. See <a href="#spec-execution-async.ops">§ 11.3 Asynchronous operations [async.ops]</a>.</p>
    </ul>
-   <h3 class="heading settled" data-level="2.2" id="r6"><span class="secno">2.2. </span><span class="content">R6</span><a class="self-link" href="#r6"></a></h3>
+   <h3 class="heading settled" data-level="2.3" id="r6"><span class="secno">2.3. </span><span class="content">R6</span><a class="self-link" href="#r6"></a></h3>
    <p>The changes since R5 are as follows:</p>
    <p><b>Fixes:</b></p>
    <ul>
@@ -3716,7 +3724,7 @@ when used in tandem with poorly-constrained, implicitly convertible types.</p>
      <p>Make the specification of the alias templates <code class="highlight"><c- n>value_types_of_t</c-></code> and <code class="highlight"><c- n>error_types_of_t</c-></code>, and the variable template <code class="highlight"><c- n>sends_done</c-></code> more concise by
 expressing them in terms of a new exposition-only alias template <code class="highlight"><i><c- n>gather</c-><c- o>-</c-><c- n>signatures</c-></i></code>.</p>
    </ul>
-   <h4 class="heading settled" data-level="2.2.1" id="environments-and-attributes"><span class="secno">2.2.1. </span><span class="content">Environments and attributes</span><a class="self-link" href="#environments-and-attributes"></a></h4>
+   <h4 class="heading settled" data-level="2.3.1" id="environments-and-attributes"><span class="secno">2.3.1. </span><span class="content">Environments and attributes</span><a class="self-link" href="#environments-and-attributes"></a></h4>
    <p>In earlier revisions, receivers, senders, and schedulers all were directly
 queryable. In R4, receiver queries were moved into a separate "environment"
 object, obtainable from a receiver with a <code class="highlight"><c- n>get_env</c-></code> accessor. In R6, the
@@ -3732,7 +3740,7 @@ parallel sender algorithms done at NVIDIA suggest the utility of
 forwardable operation state queries. The authors chose to make opstates
 directly queryable since the opstate object is itself required to be kept
 alive for the duration of asynchronous operation.</p>
-   <h3 class="heading settled" data-level="2.3" id="r5"><span class="secno">2.3. </span><span class="content">R5</span><a class="self-link" href="#r5"></a></h3>
+   <h3 class="heading settled" data-level="2.4" id="r5"><span class="secno">2.4. </span><span class="content">R5</span><a class="self-link" href="#r5"></a></h3>
    <p>The changes since R4 are as follows:</p>
    <p><b>Fixes:</b></p>
    <ul>
@@ -3759,7 +3767,7 @@ class, and if found dispatch the <code class="highlight"><c- n>get_env_t</c-></c
      <p><code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>just_error</c-></code>, <code class="highlight"><c- n>just_stopped</c-></code>, and <code class="highlight"><c- n>into_variant</c-></code> have been respecified
 as customization point objects instead of functions, following LEWG guidance.</p>
    </ul>
-   <h3 class="heading settled" data-level="2.4" id="r4"><span class="secno">2.4. </span><span class="content">R4</span><a class="self-link" href="#r4"></a></h3>
+   <h3 class="heading settled" data-level="2.5" id="r4"><span class="secno">2.5. </span><span class="content">R4</span><a class="self-link" href="#r4"></a></h3>
    <p>The changes since R3 are as follows:</p>
    <p><b>Fixes:</b></p>
    <ul>
@@ -3823,7 +3831,7 @@ completion signatures are.</p>
     <li data-md>
      <p><code class="highlight"><c- n>tag_invoke</c-></code> respecified to improve diagnostics.</p>
    </ul>
-   <h4 class="heading settled" data-level="2.4.1" id="dependently-typed-senders"><span class="secno">2.4.1. </span><span class="content">Dependently-typed senders</span><a class="self-link" href="#dependently-typed-senders"></a></h4>
+   <h4 class="heading settled" data-level="2.5.1" id="dependently-typed-senders"><span class="secno">2.5.1. </span><span class="content">Dependently-typed senders</span><a class="self-link" href="#dependently-typed-senders"></a></h4>
    <p><strong>Background:</strong></p>
    <p>In the sender/receiver model, as with coroutines, contextual information about
 the current execution is most naturally propagated from the consumer to the
@@ -3966,7 +3974,7 @@ implementation to enforce this statically, but not required.</p>
      <p>All of the algorithms and examples have been updated to work with
 dependently-typed senders.</p>
    </ul>
-   <h3 class="heading settled" data-level="2.5" id="r3"><span class="secno">2.5. </span><span class="content">R3</span><a class="self-link" href="#r3"></a></h3>
+   <h3 class="heading settled" data-level="2.6" id="r3"><span class="secno">2.6. </span><span class="content">R3</span><a class="self-link" href="#r3"></a></h3>
    <p>The changes since R2 are as follows:</p>
    <p><b>Fixes:</b></p>
    <ul>
@@ -3999,7 +4007,7 @@ intermediate operation states and properly scope the <code class="highlight"><c-
     <li data-md>
      <p>Expand the section on field experience.</p>
    </ul>
-   <h3 class="heading settled" data-level="2.6" id="r2"><span class="secno">2.6. </span><span class="content">R2</span><a class="self-link" href="#r2"></a></h3>
+   <h3 class="heading settled" data-level="2.7" id="r2"><span class="secno">2.7. </span><span class="content">R2</span><a class="self-link" href="#r2"></a></h3>
    <p>The changes since R1 are as follows:</p>
    <ul>
     <li data-md>
@@ -4033,7 +4041,7 @@ intermediate operation states and properly scope the <code class="highlight"><c-
     <li data-md>
      <p>Various fixes of typos and bugs.</p>
    </ul>
-   <h3 class="heading settled" data-level="2.7" id="r1"><span class="secno">2.7. </span><span class="content">R1</span><a class="self-link" href="#r1"></a></h3>
+   <h3 class="heading settled" data-level="2.8" id="r1"><span class="secno">2.8. </span><span class="content">R1</span><a class="self-link" href="#r1"></a></h3>
    <p>The changes since R0 are as follows:</p>
    <ul>
     <li data-md>
@@ -4047,7 +4055,7 @@ intermediate operation states and properly scope the <code class="highlight"><c-
     <li data-md>
      <p>Various fixes of typos and bugs.</p>
    </ul>
-   <h3 class="heading settled" data-level="2.8" id="r0"><span class="secno">2.8. </span><span class="content">R0</span><a class="self-link" href="#r0"></a></h3>
+   <h3 class="heading settled" data-level="2.9" id="r0"><span class="secno">2.9. </span><span class="content">R0</span><a class="self-link" href="#r0"></a></h3>
    <p>Initial revision.</p>
    <h2 class="heading settled" data-level="3" id="design-intro"><span class="secno">3. </span><span class="content">Design - introduction</span><a class="self-link" href="#design-intro"></a></h2>
    <p>The following three sections describe the entirety of the proposed design.</p>
@@ -6554,7 +6562,8 @@ exposition-only class type:</p>
 well-formed.</p>
        <ul>
         <li data-md>
-         <p><i>Mandates:</i> The type of the expression above satisfies <code class="highlight"><c- n>queryable</c-></code> ([exec.queryable]).</p>
+         <p><i>Mandates:</i> The expression above is not potentially throwing, and
+its type satisfies <code class="highlight"><c- n>queryable</c-></code> ([exec.queryable]).</p>
        </ul>
       <li data-md>
        <p>Otherwise, <code class="highlight"><c- n>empty_env</c-><c- p>{}</c-></code>.</p>
@@ -6642,7 +6651,7 @@ subexpression <code class="highlight"><c- n>r</c-></code>, <code class="highligh
        <p><i>Mandates:</i> The type of the expression above satisfies <code class="highlight"><c- n>scheduler</c-></code>.</p>
      </ul>
     <li data-md>
-     <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>get_scheduler</c-><c- p>)</c-></code> is <code class="highlight">true</code>.</p>
+     <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_scheduler</c-><c- p>)</c-></code> is <code class="highlight">true</code>.</p>
     <li data-md>
      <p><code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>get_scheduler</c-><c- p>)</c-></code> ([exec.read]).</p>
    </ol>
@@ -6658,7 +6667,7 @@ subexpression <code class="highlight"><c- n>r</c-></code>, <code class="highligh
        <p><i>Mandates:</i> The type of the expression above is satisfies <code class="highlight"><c- n>scheduler</c-></code>.</p>
      </ul>
     <li data-md>
-     <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>get_delegatee_scheduler</c-><c- p>)</c-></code> is <code class="highlight">true</code>.</p>
+     <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_delegatee_scheduler</c-><c- p>)</c-></code> is <code class="highlight">true</code>.</p>
     <li data-md>
      <p><code class="highlight"><c- n>get_delegatee_scheduler</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>get_delegatee_scheduler</c-><c- p>)</c-></code> ([exec.read]).</p>
    </ol>
