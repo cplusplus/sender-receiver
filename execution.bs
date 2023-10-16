@@ -2932,7 +2932,7 @@ class schedule_sender {
 execution::sender auto bulk(
     execution::sender auto && input,
     execution::shape auto && shape,
-    invocable<<i>sender-values(input)</i>> auto && fn)
+    invocable%lt;<i>sender-values(input)</i>&gt; auto && fn)
 {
     // return a cuda sender representing a bulk kernel launch
 }
@@ -5185,52 +5185,49 @@ enum class forward_progress_guarantee {
 
 #### `execution::just`, `execution::just_error`, `execution::just_stopped` <b>[exec.just]</b> #### {#spec-execution.senders.just}
 
-1. `just` is a factory for senders whose asynchronous operations complete
-    synchronously in their start operation with a value completion operation.
-    `just_error` is a factory for senders whose asynchronous operations complete
-    synchronously in their start operation with an error completion operation.
-    `just_stopped` is a factory for senders whose asynchronous operations
-    complete synchronously in their start operation with a stopped completion
-    operation.
-
+1. `just`, `just_error`, and `just_stopped` are sender factories whose
+    asynchronous operations complete synchronously in their start operation
+    with a value completion operation, an error completion operation, or a
+    stopped completion operation respectively.
+   
 2. Let `just-sender` be the class template:
 
     <pre highlight="c++">
-    template&lt;class Tag, <i>movable-value</i>... Ts>
+    template&lt;class Tag, <i>movable-value</i>... Ts> // arguments are not associated entities ([lib.tmpl-heads])
     struct <i>just-sender</i> { // exposition only
       using is_sender = <i>unspecified</i>;
       using completion_signatures =
         execution::completion_signatures&lt;Tag(Ts...)>;
 
-      tuple&lt;Ts...> <i>vs_</i>; // exposition only
+      tuple&lt;Ts...> <i>vs</i>; // exposition only
 
-      template&lt;class R>
-      struct operation { // exposition only
-        tuple&lt;Ts...> <i>vs_</i>; // exposition only
-        R <i>r_</i>; // exposition only
+      template&lt;class R> // arguments are not associated entities ([lib.tmpl-heads])
+      struct <i>operation</i> { // exposition only
+        tuple&lt;Ts...> <i>vs</i>; // exposition only
+        R <i>r</i>; // exposition only
 
-        friend void tag_invoke(start_t, operation& s) noexcept {
+        friend void tag_invoke(start_t, <i>operation</i>& s) noexcept {
           apply([&s](Ts&... values) {
-            Tag()(std::move(s.<i>r_</i>), std::move(values)...);
-          }, s.<i>vs_</i>);
+            Tag()(std::move(s.<i>r</i>), std::move(values)...);
+          }, s.<i>vs</i>);
         }
       };
 
       template&lt;receiver_of&lt;completion_signatures> R>
         requires (copy_constructible&ltTs> &&...)
-      friend operation&lt;decay_t&lt;R>> tag_invoke(connect_t, const <i>just-sender</i>& s, R && r) {
-        return { s.<i>vs_</i>, std::forward&lt;R>(r) };
+      friend <i>operation</i>&lt;decay_t&lt;R>> tag_invoke(connect_t, const <i>just-sender</i>& s, R && r) {
+        return { s.<i>vs</i>, std::forward&lt;R>(r) };
       }
 
       template&lt;receiver_of&lt;completion_signatures> R>
-      friend operation&lt;decay_t&lt;R>> tag_invoke(connect_t, <i>just-sender</i>&& s, R && r) {
-        return { std::move(s.<i>vs_</i>), std::forward&lt;R>(r) };
+      friend <i>operation</i>&lt;decay_t&lt;R>> tag_invoke(connect_t, <i>just-sender</i>&& s, R && r) {
+        return { std::move(s.<i>vs</i>), std::forward&lt;R>(r) };
       }
     };
     </pre>
 
 3. The name `just` denotes a customization point object. For some pack of
-    subexpressions `vs`, let `Vs` be the template paramter pack
+    subexpressions `vs`, let `Vs` be the template parameter pack
     `decltype((vs))`. `just(vs...)` is expression-equivalent to
     <code><i>just-sender</i>&lt;set_value_t,
     remove_cvref_t&lt;Vs>...>({vs...})</i></code>.
@@ -5245,7 +5242,7 @@ enum class forward_progress_guarantee {
 
 #### `execution::transfer_just` <b>[exec.transfer.just]</b> #### {#spec-execution.senders.transfer_just}
 
-1. `transfer_just` is a factory for senders whose asynchronous operations
+1. `transfer_just` is a sender factory for senders whose asynchronous operations
     execute value completion operations on an execution agent belonging to
     the execution resource associated with a specified scheduler.
 
@@ -5274,9 +5271,9 @@ enum class forward_progress_guarantee {
 
 #### `execution::read` <b>[exec.read]</b> #### {#spec-execution.senders.read}
 
-1. `read` is a factory for a sender whose asynchronous operation completes
-    synchronously in its start operation with a value completion result equal to
-    a value read from the receiver's associated environment.
+1. `read` is a sender factory for a sender whose asynchronous operation
+    completes synchronously in its start operation with a value completion
+    result equal to a value read from the receiver's associated environment.
 
 2. `read` is a customization point object of the unspecified class type:
 
@@ -7552,35 +7549,35 @@ enum class forward_progress_guarantee {
 
 <pre class=biblio>
 {
-	"HPX": {
-		"authors": [
-      "Hartmut Kaiser",
-      "Patrick Diehl",
-      "Adrian S. Lemoine",
-      "Bryce Adelstein Lelbach",
-      "Parsa Amini",
-      "Agustín Berge",
-      "John Biddiscombe",
-      "Steven R. Brandt",
-      "Nikunj Gupta",
-      "Thomas Heller",
-      "Kevin Huck",
-      "Zahra Khatami",
-      "Alireza Kheirkhahan",
-      "Auriane Reverdell",
-      "Shahrzad Shirzad",
-      "Mikael Simberg",
-      "Bibek Wagle",
-      "Weile Wei",
-      "Tianyi Zhang"
-		],
-		"href": "https://doi.org/10.21105/joss.02352",
-		"title": "HPX - The C++ Standard Library for Parallelism and Concurrency",
-    "volume": 5,
-    "number": 53,
-    "pages": 2352,
-		"publisher": "The Open Journal",
-    "journal": "Journal of Open Source Software"
-	}
+    "HPX": {
+        "authors": [
+            "Hartmut Kaiser",
+            "Patrick Diehl",
+            "Adrian S. Lemoine",
+            "Bryce Adelstein Lelbach",
+            "Parsa Amini",
+            "Agustín Berge",
+            "John Biddiscombe",
+            "Steven R. Brandt",
+            "Nikunj Gupta",
+            "Thomas Heller",
+            "Kevin Huck",
+            "Zahra Khatami",
+            "Alireza Kheirkhahan",
+            "Auriane Reverdell",
+            "Shahrzad Shirzad",
+            "Mikael Simberg",
+            "Bibek Wagle",
+            "Weile Wei",
+            "Tianyi Zhang"
+        ],
+        "href": "https://doi.org/10.21105/joss.02352",
+        "title": "HPX - The C++ Standard Library for Parallelism and Concurrency",
+        "volume": 5,
+        "number": 53,
+        "pages": 2352,
+        "publisher": "The Open Journal",
+        "journal": "Journal of Open Source Software"
+    }
 }
 </pre>
