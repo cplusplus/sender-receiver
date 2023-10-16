@@ -1127,6 +1127,14 @@ This proposal also draws heavily from our experience with [Thrust](https://githu
 
 # Revision history # {#revisions}
 
+## R8 ## {#r8}
+
+The changes since R7 are as follows:
+
+<b>Fixes:</b>
+
+  * `get_env(obj)` is required to be nothrow.
+
 ## R7 ## {#r7}
 
 The changes since R6 are as follows:
@@ -4467,8 +4475,8 @@ namespace std::execution {
     1. `tag_invoke(std::get_env, const_cast<const O&>(o))` if that expression is
         well-formed.
 
-        * <i>Mandates:</i> The type of the expression above satisfies
-            `queryable` ([exec.queryable]).
+        * <i>Mandates:</i> The expression above is not potentially throwing, and
+            its type satisfies `queryable` ([exec.queryable]).
 
     2. Otherwise, `empty_env{}`.
 
