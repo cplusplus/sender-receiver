@@ -1561,7 +1561,7 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version b06c00b8e, updated Tue Jul 11 13:41:16 2023 -0700" name="generator">
+  <meta content="Bikeshed version 82ce88815, updated Thu Sep 7 16:33:55 2023 -0700" name="generator">
   <link href="https://wg21.link/P2300" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
 <style>
@@ -2246,7 +2246,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-07-14">2023-07-14</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-10-16">2023-10-16</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -2264,7 +2264,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <dt>Issue Tracking:
      <dd><a href="https://github.com/brycelelbach/wg21_p2300_execution/issues">GitHub</a>
      <dt>Project:
-     <dd>ISO/IEC JTC1/SC22/WG21 14882: Programming Language — C++
+     <dd>ISO/IEC 14882 Programming Languages — C++, ISO/IEC JTC1/SC22/WG21
      <dt>Audience:
      <dd>SG1, LEWG
     </dl>
@@ -5143,7 +5143,7 @@ parameters of a type):</p>
 <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>bulk</c-><c- p>(</c->
     <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- o>&amp;&amp;</c-> <c- n>input</c-><c- p>,</c->
     <c- n>execution</c-><c- o>::</c-><c- n>shape</c-> <c- k>auto</c-> <c- o>&amp;&amp;</c-> <c- n>shape</c-><c- p>,</c->
-    <c- n>invocable</c-><a class="production" data-link-type="type"><c- o>&lt;</c-><c- n>i</c-><c- o>></c-></a> <c- k>auto</c-> <c- o>&amp;&amp;</c-> <c- n>fn</c-><c- p>)</c->
+    <c- n>invocable</c-><c- o>%</c-><c- n>lt</c-><c- p>;</c-><i><c- n>sender</c-><c- o>-</c-><c- n>values</c-><c- p>(</c-><c- n>input</c-><c- p>)</c-></i><c- o>></c-> <c- k>auto</c-> <c- o>&amp;&amp;</c-> <c- n>fn</c-><c- p>)</c->
 <c- p>{</c->
     <c- c1>// return a cuda sender representing a bulk kernel launch</c->
 <c- p>}</c->
@@ -7238,48 +7238,47 @@ satisfies <code class="highlight"><c- n>sender</c-></code>.</p>
    <h5 class="heading settled" data-level="11.9.5.2" id="spec-execution.senders.just"><span class="secno">11.9.5.2. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just_stopped</c-></code> <b>[exec.just]</b></span><a class="self-link" href="#spec-execution.senders.just"></a></h5>
    <ol>
     <li data-md>
-     <p><code class="highlight"><c- n>just</c-></code> is a factory for senders whose asynchronous operations complete
-synchronously in their start operation with a value completion operation. <code class="highlight"><c- n>just_error</c-></code> is a factory for senders whose asynchronous operations complete
-synchronously in their start operation with an error completion operation. <code class="highlight"><c- n>just_stopped</c-></code> is a factory for senders whose asynchronous operations
-complete synchronously in their start operation with a stopped completion
-operation.</p>
+     <p><code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>just_error</c-></code>, and <code class="highlight"><c- n>just_stopped</c-></code> are sender factories whose
+asynchronous operations complete synchronously in their start operation
+with a value completion operation, an error completion operation, or a
+stopped completion operation respectively.</p>
     <li data-md>
      <p>Let <code class="highlight"><c- n>just</c-><c- o>-</c-><c- n>sender</c-></code> be the class template:</p>
-<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i><c- p>...</c-> <c- n>Ts</c-><c- o>></c->
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i><c- p>...</c-> <c- n>Ts</c-><c- o>></c-> <c- c1>// arguments are not associated entities ([lib.tmpl-heads])</c->
 <c- k>struct</c-> <i><c- nc>just</c-><c- o>-</c-><c- n>sender</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
   <c- k>using</c-> <c- n>is_sender</c-> <c- o>=</c-> <i><c- n>unspecified</c-></i><c- p>;</c->
   <c- k>using</c-> <c- n>completion_signatures</c-> <c- o>=</c->
     <c- n>execution</c-><c- o>::</c-><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>(</c-><c- n>Ts</c-><c- p>...)</c-><c- o>></c-><c- p>;</c->
 
-  <c- n>tuple</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-> <i><c- n>vs_</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+  <c- n>tuple</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-> <i><c- n>vs</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
 
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>R</c-><c- o>></c->
-  <c- k>struct</c-> <c- nc>operation</c-> <c- p>{</c-> <c- c1>// exposition only</c->
-    <c- n>tuple</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-> <i><c- n>vs_</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
-    <c- n>R</c-> <i><c- n>r_</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>R</c-><c- o>></c-> <c- c1>// arguments are not associated entities ([lib.tmpl-heads])</c->
+  <c- k>struct</c-> <i><c- nc>operation</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
+    <c- n>tuple</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-> <i><c- n>vs</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- n>R</c-> <i><c- n>r</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
 
-    <c- k>friend</c-> <c- b>void</c-> <c- nf>tag_invoke</c-><c- p>(</c-><c- n>start_t</c-><c- p>,</c-> <c- n>operation</c-><c- o>&amp;</c-> <c- n>s</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
+    <c- k>friend</c-> <c- b>void</c-> <c- nf>tag_invoke</c-><c- p>(</c-><c- n>start_t</c-><c- p>,</c-> <i><c- n>operation</c-></i><c- o>&amp;</c-> <c- n>s</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
       <c- n>apply</c-><c- p>([</c-><c- o>&amp;</c-><c- n>s</c-><c- p>](</c-><c- n>Ts</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>values</c-><c- p>)</c-> <c- p>{</c->
-        <c- n>Tag</c-><c- p>()(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>s</c-><c- p>.</c-><i><c- n>r_</c-></i><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>values</c-><c- p>)...);</c->
-      <c- p>},</c-> <c- n>s</c-><c- p>.</c-><i><c- n>vs_</c-></i><c- p>);</c->
+        <c- n>Tag</c-><c- p>()(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>s</c-><c- p>.</c-><i><c- n>r</c-></i><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>values</c-><c- p>)...);</c->
+      <c- p>},</c-> <c- n>s</c-><c- p>.</c-><i><c- n>vs</c-></i><c- p>);</c->
     <c- p>}</c->
   <c- p>};</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- n>receiver_of</c-><c- o>&lt;</c-><c- n>completion_signatures</c-><c- o>></c-> <c- n>R</c-><c- o>></c->
     <c- k>requires</c-> <c- p>(</c-><c- n>copy_constructible</c-><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-> <c- o>&amp;&amp;</c-><c- p>...)</c->
-  <c- k>friend</c-> <c- n>operation</c-><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>></c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>connect_t</c-><c- p>,</c-> <c- k>const</c-> <i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&amp;</c-> <c- n>s</c-><c- p>,</c-> <c- n>R</c-> <c- o>&amp;&amp;</c-> <c- n>r</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>return</c-> <c- p>{</c-> <c- n>s</c-><c- p>.</c-><i><c- n>vs_</c-></i><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>(</c-><c- n>r</c-><c- p>)</c-> <c- p>};</c->
+  <c- k>friend</c-> <i><c- n>operation</c-></i><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>></c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>connect_t</c-><c- p>,</c-> <c- k>const</c-> <i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&amp;</c-> <c- n>s</c-><c- p>,</c-> <c- n>R</c-> <c- o>&amp;&amp;</c-> <c- n>r</c-><c- p>)</c-> <c- p>{</c->
+    <c- k>return</c-> <c- p>{</c-> <c- n>s</c-><c- p>.</c-><i><c- n>vs</c-></i><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>(</c-><c- n>r</c-><c- p>)</c-> <c- p>};</c->
   <c- p>}</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- n>receiver_of</c-><c- o>&lt;</c-><c- n>completion_signatures</c-><c- o>></c-> <c- n>R</c-><c- o>></c->
-  <c- k>friend</c-> <c- n>operation</c-><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>></c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>connect_t</c-><c- p>,</c-> <i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&amp;&amp;</c-> <c- n>s</c-><c- p>,</c-> <c- n>R</c-> <c- o>&amp;&amp;</c-> <c- n>r</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>return</c-> <c- p>{</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>s</c-><c- p>.</c-><i><c- n>vs_</c-></i><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>(</c-><c- n>r</c-><c- p>)</c-> <c- p>};</c->
+  <c- k>friend</c-> <i><c- n>operation</c-></i><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>></c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>connect_t</c-><c- p>,</c-> <i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&amp;&amp;</c-> <c- n>s</c-><c- p>,</c-> <c- n>R</c-> <c- o>&amp;&amp;</c-> <c- n>r</c-><c- p>)</c-> <c- p>{</c->
+    <c- k>return</c-> <c- p>{</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>s</c-><c- p>.</c-><i><c- n>vs</c-></i><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>(</c-><c- n>r</c-><c- p>)</c-> <c- p>};</c->
   <c- p>}</c->
 <c- p>};</c->
 </pre>
     <li data-md>
      <p>The name <code class="highlight"><c- n>just</c-></code> denotes a customization point object. For some pack of
-subexpressions <code class="highlight"><c- n>vs</c-></code>, let <code class="highlight"><c- n>Vs</c-></code> be the template paramter pack <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>vs</c-><c- p>))</c-></code>. <code class="highlight"><c- n>just</c-><c- p>(</c-><c- n>vs</c-><c- p>...)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>,</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Vs</c-><c- o>></c-><c- p>...</c-><c- o>></c-><c- p>({</c-><c- n>vs</c-><c- p>...})</c-></code>.</p>
+subexpressions <code class="highlight"><c- n>vs</c-></code>, let <code class="highlight"><c- n>Vs</c-></code> be the template parameter pack <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>vs</c-><c- p>))</c-></code>. <code class="highlight"><c- n>just</c-><c- p>(</c-><c- n>vs</c-><c- p>...)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>,</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Vs</c-><c- o>></c-><c- p>...</c-><c- o>></c-><c- p>({</c-><c- n>vs</c-><c- p>...})</c-></code>.</p>
     <li data-md>
      <p>The name <code class="highlight"><c- n>just_error</c-></code> denotes a customization point object. For some
 subexpression <code class="highlight"><c- n>err</c-></code>, let <code class="highlight"><c- n>Err</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>err</c-><c- p>))</c-></code>. <code class="highlight"><c- n>just_error</c-><c- p>(</c-><c- n>err</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>set_error_t</c-><c- p>,</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Err</c-><c- o>>></c-><c- p>({</c-><c- n>err</c-><c- p>})</c-></code>.</p>
@@ -7289,7 +7288,7 @@ subexpression <code class="highlight"><c- n>err</c-></code>, let <code class="hi
    <h5 class="heading settled" data-level="11.9.5.3" id="spec-execution.senders.transfer_just"><span class="secno">11.9.5.3. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer_just</c-></code> <b>[exec.transfer.just]</b></span><a class="self-link" href="#spec-execution.senders.transfer_just"></a></h5>
    <ol>
     <li data-md>
-     <p><code class="highlight"><c- n>transfer_just</c-></code> is a factory for senders whose asynchronous operations
+     <p><code class="highlight"><c- n>transfer_just</c-></code> is a sender factory for senders whose asynchronous operations
 execute value completion operations on an execution agent belonging to
 the execution resource associated with a specified scheduler.</p>
     <li data-md>
@@ -7316,9 +7315,9 @@ where <code class="highlight"><c- n>R</c-></code> is the type of the <code class
    <h5 class="heading settled" data-level="11.9.5.4" id="spec-execution.senders.read"><span class="secno">11.9.5.4. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-></code> <b>[exec.read]</b></span><a class="self-link" href="#spec-execution.senders.read"></a></h5>
    <ol>
     <li data-md>
-     <p><code class="highlight"><c- n>read</c-></code> is a factory for a sender whose asynchronous operation completes
-synchronously in its start operation with a value completion result equal to
-a value read from the receiver’s associated environment.</p>
+     <p><code class="highlight"><c- n>read</c-></code> is a sender factory for a sender whose asynchronous operation
+completes synchronously in its start operation with a value completion
+result equal to a value read from the receiver’s associated environment.</p>
     <li data-md>
      <p><code class="highlight"><c- n>read</c-></code> is a customization point object of the unspecified class type:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- o>></c->
@@ -9632,7 +9631,7 @@ expression in a coroutine with promise type <code class="highlight"><c- n>P</c->
   <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
    <dt id="biblio-cwg2517">[CWG2517]
-   <dd>Richard Smith. <a href="https://wg21.link/cwg2517"><cite>Useless restriction on use of parameter in constraint-expression</cite></a>. 10 June 2019. DR. URL: <a href="https://wg21.link/cwg2517">https://wg21.link/cwg2517</a>
+   <dd>Richard Smith. <a href="https://wg21.link/cwg2517"><cite>Useless restriction on use of parameter in constraint-expression</cite></a>. 10 June 2019. C++23. URL: <a href="https://wg21.link/cwg2517">https://wg21.link/cwg2517</a>
    <dt id="biblio-hpx">[HPX]
    <dd>Hartmut Kaiser; et al. <a href="https://doi.org/10.21105/joss.02352"><cite>HPX - The C++ Standard Library for Parallelism and Concurrency</cite></a>. URL: <a href="https://doi.org/10.21105/joss.02352">https://doi.org/10.21105/joss.02352</a>
    <dt id="biblio-n4885">[N4885]
