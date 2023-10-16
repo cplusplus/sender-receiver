@@ -4558,7 +4558,7 @@ namespace std::execution {
 
         * <i>Mandates:</i> The type of the expression above satisfies `scheduler`.
 
-3. `std::forwarding_query(std::get_scheduler)` is `true`.
+3. `std::forwarding_query(execution::get_scheduler)` is `true`.
 
 4. `get_scheduler()` (with no arguments) is expression-equivalent to `execution::read(get_scheduler)` ([exec.read]).
 
@@ -4572,7 +4572,7 @@ namespace std::execution {
 
         * <i>Mandates:</i> The type of the expression above is satisfies `scheduler`.
 
-3. `std::forwarding_query(std::get_delegatee_scheduler)` is `true`.
+3. `std::forwarding_query(execution::get_delegatee_scheduler)` is `true`.
 
 4. `get_delegatee_scheduler()` (with no arguments) is expression-equivalent to `execution::read(get_delegatee_scheduler)`  ([exec.read]).
 
