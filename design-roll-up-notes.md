@@ -24,3 +24,5 @@ Design changes tweaks by LWG after the Kona meeting
   are no longer needed and are dropped.
 * `ensure_started` and `split` are changed to persist the result of
   calling `get_attrs()` on the input sender.
+
+* ask LEWG about renaming `set_value_t` to `set_value_tag`

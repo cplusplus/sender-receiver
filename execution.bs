@@ -5593,7 +5593,7 @@ enum class forward_progress_guarantee {
           make_completion_signatures&lt;
             schedule_result_t&lt;Sch>,
             E,
-            <i>potenially-throwing-completions</i>,
+            <i>potentially-throwing-completions</i>,
             <i>no-completions</i>>,
           <i>value-completions</i>,
           <i>error-completions</i>>;
