@@ -6797,19 +6797,19 @@ enum class forward_progress_guarantee {
 1. `execute` creates fire-and-forget tasks on a specified scheduler.
 
 2. The name `execute` denotes a customization point object. For some subexpressions `sch` and `f`, let `Sch` be `decltype((sch))` and `F` be `decltype((f))`. If `Sch` does not satisfy `scheduler` or `F` does not satisfy `invocable`,
-    `execute` is ill-formed. Otherwise, `execute` is expression-equivalent to:
+    `execute(sch, f)` is ill-formed. Otherwise, `execute(sch, f)` is expression-equivalent to:
 
-    1. `tag_invoke(execute, sch, f)`, if that expression is valid. If
-        the function selected by `tag_invoke` does not invoke the function `f`
-        (or an object decay-copied from `f`) on an execution agent belonging to
-        the associated execution resource of `sch`, or if it does not call
-        `std::terminate` if an error occurs after control is returned to the
-        caller, the behavior of calling `execute`
-        is undefined.
+    <pre highlight="c++">
+    apply_sender(
+      <i>query-or-default</i>(get_domain, sch, default_domain()),
+      execute, schedule(sch), f)
+    </pre>
+    * <i>Mandates:</i> The type of the expression above is `void`.
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is `void`.
-
-    2. Otherwise, `start_detached(then(schedule(sch), f))`.
+3. For some subexpressions `s` and `f` where `F` is `decltype((f))`,
+   if `F` does not satisfy `invocable`, the expression
+   `execute_t().apply_sender(s, f)` is ill-formed; otherwise it is
+   expression-equivalent to `start_detached(then(s, f))`.
 
 ## Sender/receiver utilities <b>[exec.utils]</b> ## {#spec-execution.snd_rec_utils}
 
