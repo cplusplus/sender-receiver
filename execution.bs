@@ -5806,8 +5806,11 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
     <code><i>forwarding-query</i></code> and is not `get_scheduler_t` or
     `get_domain_t`.
 
-3. The name `on` denotes a customization point object. For some subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If `Sch` does not satisfy `scheduler`, or `S` does not satisfy `sender`,
-    `on(sch, s)` is ill-formed. Otherwise, the expression `on(sch, s)` is expression-equivalent to:
+3. The name `on` denotes a customization point object. For some subexpressions
+    `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If
+    `Sch` does not satisfy `scheduler`, or `S` does not satisfy `sender`,
+    `on(sch, s)` is ill-formed. Otherwise, the expression `on(sch, s)` is
+    expression-equivalent to:
 
         <pre highlight="c++">
         transform_sender(
@@ -5873,34 +5876,57 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 
 #### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
 
-1. `transfer` adapts a sender into a sender with a different associated `set_value` completion scheduler. [<i>Note</i>: it results in a transition between different execution resources when executed. --<i>end note</i>]
+1. `transfer` adapts a sender into a sender with a different associated
+   `set_value` completion scheduler. <span class="wg21note">It results in a
+   transition between different execution resources when executed.</span>
 
-2. The name `transfer` denotes a customization point object. For some subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If `Sch` does not satisfy `scheduler`, or `S` does not satisfy
-    `sender`, `transfer` is ill-formed. Otherwise, the expression `transfer(s, sch)` is expression-equivalent to:
+2. The name `transfer` denotes a customization point object. For some
+    subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be
+    `decltype((s))`. If `Sch` does not satisfy `scheduler`, or `S` does not
+    satisfy `sender`, `transfer(s, sch)` is ill-formed. Otherwise, the
+    expression `transfer(s, sch)` is expression-equivalent to:
 
-    1. `tag_invoke(transfer, get_completion_scheduler<set_value_t>(get_env(s)), s, sch)`, if that expression is valid.
+        <pre highlight="c++">
+        transform_sender(
+          <i>get-sender-domain</i>(s),
+          <i>make-sender</i>(transfer, sch, s));
+        </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    2. Otherwise, `tag_invoke(transfer, s, sch)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    3. Otherwise, `schedule_from(sch, s)`.
-
-    If the function selected above does not return a sender which is a result of
-    a call to `schedule_from(sch, s2)`, where `s2` is a sender which
-    sends values equivalent to those sent by `s`, the behavior of calling
-    `transfer(s, sch)` is undefined.
+    If a sender `S` returned from `transfer(s, sch)` is connected with a
+    receiver `R` with environment `E` such that
+    <code>transform_sender(<i>get-env-domain</i>(E), S, E)</code> does not
+    return a sender that is a result of a call to
+    <code>transform_sender(<i>get-env-domain</i>(E), schedule_from(sch, s2), E)</code>,
+    where `s2` is a sender that sends values equal to those sent by `s`,
+    the behavior of calling `connect(S, R)` is undefined.
 
 3. For a sender `t` returned from `transfer(s, sch)`, `get_env(t)` shall
-    return a queryable object `q` such that `get_completion_scheduler<CPO>(q)` returns
+    return a queryable object `q` such that `get_domain(q)` is expression-equivalent
+    to `get_domain(sch)` and `get_completion_scheduler<CPO>(q)` returns
     a copy of `sch`, where `CPO` is either `set_value_t` or `set_stopped_t`. The
     `get_completion_scheduler<set_error_t>` query is not implemented, as the scheduler
     cannot be guaranteed in case an error is thrown while trying to schedule work on
     the given scheduler object. For all other query objects <code><i>Q</i></code>
-    whose type satisfies <code><i>forwarding-query</i></code>, the expression <code><i>Q</i>(q, args...)</code>
+    whose type satisfies <code><i>forwarding-query</i></code>, the expression
+    <code><i>Q</i>(q, args...)</code>
     shall be equivalent to <code><i>Q</i>(get_env(s), args...)</code>.
+
+4. Let `s` and `e` be subexpressions such that `S` is `decltype((s))`. If
+    <code><i>sender-for</i>&lt;S, transfer_t></code> is `false`, then the expression
+    `transfer_t().transform_sender(s, e)` is ill-formed; otherwise, it
+    is equal to:
+
+        <pre highlight="c++">
+        const auto& env = e;
+        auto domain = <i>get-env-domain</i>(env);
+        auto [tag, data, child] = s;
+        auto tfx = <i>make-transformer-fn</i>(domain, env);
+        return tfx(schedule_from)(std::move(data), std::move(child));
+        </pre>
+
+    <span class="wg21note">This causes the `transfer(s, sch)` sender to become
+    `schedule_from(sch, s)` when it is connected with a receiver whose
+    execution domain does not customize `transfer`.</span>
 
 #### `execution::schedule_from` <b>[exec.schedule.from]</b> #### {#spec-execution.senders.adaptors.schedule_from}
 
