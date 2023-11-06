@@ -5266,6 +5266,10 @@ enum class forward_progress_guarantee {
         datums `as`, the behavior of calling `transfer_just(s, vs...)` is
         undefined.
 
+    Move description of semantics to para 1. Intro blanket wording about customization points dispatching to tag_invoke.
+    If the tag_invoke function select by overload resolution doesn't meet the algorithms specified semantics.
+
+
         * <i>Mandates:</i> `sender_of<R, set_value_t(decay_t<Vs>...), E>`,
             where `R` is the type of the `tag_invoke` expression above, and
             `E` is the type of an environment.
@@ -5303,14 +5307,17 @@ enum class forward_progress_guarantee {
             R r_; // exposition only
 
             friend void tag_invoke(start_t, <i>operation-state</i>& s) noexcept {
-              <i>TRY-SET-VALUE</i>(std::move(s.r_), Tag{}(get_env(s.r_)));
+              <i>TRY-SET-VALUE</i>(std::move(s.r_), Tag()(get_env(s.r_)));
             }
           };
 
+MAKE THIS CONDITIONALLY NOEXCEPT and everywhere. Research how much work that will be.
         template&lt;receiver R>
         friend <i>operation-state</i>&lt;decay_t&lt;R>> tag_invoke(connect_t, <i>read-sender</i>, R && r) {
           return { std::forward&lt;R>(r) };
         }
+
+Capitals for expressions in customization point objects
 
         template&lt;class Env>
             requires <i>callable</i>&lt;Tag, Env>
@@ -5323,7 +5330,7 @@ enum class forward_progress_guarantee {
           friend auto tag_invoke(get_completion_signatures_t, <i>read-sender</i>, Env)
             -> completion_signatures&lt;set_value_t(<i>call-result-t</i>&lt;Tag, Env>)>; <i>// not defined</i>
 
-        friend empty_env tag_invoke(get_env_t, const <i>read-sender</i>&) noexcept {
+        friend empty_env tag_invoke(get_env_t, <i>read-sender</i>) noexcept {
           return {};
         }
       };
@@ -5352,20 +5359,22 @@ enum class forward_progress_guarantee {
     chains. The adaptors also support function call syntax with equivalent
     semantics.
 
+
+This is not implementable because the sender adaptor can copy the input arguments:
+
 3. Unless otherwise specified, a sender adaptor is required to not begin
     executing any functions that would observe or modify any of the arguments
     of the adaptor before the returned sender is connected with a receiver using
-    `connect`, and `start` is called on the resulting operation state. This
-    requirement applies to any function that is selected by the implementation
-    of the sender adaptor.
+    `connect`, and `start` is called on the resulting operation state. [note: This
+    requirement also applies to program-defined customizations of the sender adaptor. --end note] <-- factor out
 
 4. Unless otherwise specified, a parent sender ([async.ops]) with a single child
-    sender `s` has an associated attribute object equal to
+    sender `s` is required to have an associated attribute object equal to
     <code><i>FWD-QUERIES</i>(get_env(s))</code> ([exec.fwd.env]). Unless
-    otherwise specified, a parent sender with more than one child senders has an
-    associated attributes object equal to <code>empty_env{}</code>. These
-    requirements apply to any function that is selected by the implementation of
-    the sender adaptor.
+    otherwise specified, a parent sender with more than one child senders is required to have an
+    associated attributes object equal to <code>empty_env()</code>. [note: These
+    requirements apply to any program-defined customization of the sender adaptor. -- end note]
+  This applies to the library-provided sender adaptors, not program-defined sender adaptors.
 
 5. Unless otherwise specified, when a parent sender is connected to a receiver
     `r`, any receiver used to connect a child sender has an associated
@@ -5382,9 +5391,10 @@ enum class forward_progress_guarantee {
 
     [*Example:*
 
+this example should show code that is an error because of this requirement
     <pre highlight="c++">
     namespace <i>sender-adaptors</i> { // exposition only
-      template&lt;class Sch, class S> // arguments are not associated entities ([lib.tmpl-heads])
+      template&lt;class Sch, class S> // template arguments are not associated entities ([lib.tmpl-heads])
       class <i>on-sender</i> {
         // ...
       };
@@ -5401,6 +5411,7 @@ enum class forward_progress_guarantee {
 
     -- <i>end example</i>]
 
+Relocate to be more general:
 7. If a sender returned from a sender adaptor specified in this subsection is
     specified to include `set_error_t(E)` among its set of completion signatures
     where `decay_t<E>` names the type `exception_ptr`, but the implementation
@@ -5410,8 +5421,15 @@ enum class forward_progress_guarantee {
 
 #### Sender adaptor closure objects <b>[exec.adapt.objects]</b> #### {#spec-execution.senders.adaptor.objects}
 
-1. A <i>pipeable sender adaptor closure object</i> is a function object that accepts one or more `sender` arguments and returns a `sender`. For a sender adaptor closure object `C` and an expression `S` such that `decltype((S))` models `sender`, the following
-    expressions are equivalent and yield a `sender`:
+Can this section be hoisted out into "library-wide requirements" and shared by the ranges section.
+
+Are there non-pipeable sender adaptor closures?
+
+1. A <i>pipeable sender adaptor closure object</i> is a unary function object
+    that accepts one or more `sender` arguments and returns a `sender`. For a
+    sender adaptor closure object `C` and an expression `S` such that
+    the type of `S` models `sender`, the following expressions are equivalent
+    and yield a `sender`:
 
     <pre highlight="c++">
     C(S)
@@ -5438,7 +5456,7 @@ enum class forward_progress_guarantee {
     object of type <code><i>cv</i> D</code> as an operand to the `|` operator is undefined if overload resolution selects a program-defined `operator|`
     function.
 
-4. A <i>pipeable sender adaptor object</i> is a customization point object that accepts a `sender` as its first argument and returns a `sender`.
+4. A <i>sender adaptor object</i> is a customization point object that accepts a `sender` as its first argument and returns a `sender`.
 
 5. If a pipeable sender adaptor object accepts only one argument, then it is a pipeable sender adaptor closure object.
 
