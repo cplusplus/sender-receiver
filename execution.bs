@@ -6056,19 +6056,21 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
     subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
     decayed type of `f`, and let `f'` be an xvalue refering to an object
     decay-copied from `f`. If `S` does not satisfy `sender`, or `F`
-    does not model <code><i>movable-value</i></code>, `then` is
+    does not model <code><i>movable-value</i></code>, `then(s, f)` is
     ill-formed. Otherwise, the expression `then(s, f)` is
     expression-equivalent to:
 
-    1. `tag_invoke(then, get_completion_scheduler<set_value_t>(get_env(s)), s, f)`, if that expression is valid.
+        <pre highlight="c++">
+        transform_sender(
+          <i>get-sender-domain</i>(s),
+          <i>make-then-sender</i>(f, s));
+        </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
+        where <code><i>make-then-sender</i>(f, s)</code> is expression-equivalent to
+        <code><i>make-sender</i>(then, f, s)</code> and returns a sender object
+        `s2` that behaves as follows:
 
-    2. Otherwise, `tag_invoke(then, s, f)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    3. Otherwise, constructs a sender `s2`. When `s2` is connected with some receiver `out_r`, it:
+    1. When `s2` is connected with some receiver `out_r`, it:
 
         1. Constructs a receiver `r` such that:
 
@@ -6085,45 +6087,52 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 
             3. `set_stopped(r)` is expression-equivalent to `set_stopped(out_r)`.
 
-        2. Returns an expression-equivalent to `connect(s, r)`.
+        2. Returns the result of `connect(s, r)`.
 
-        3. Let <code><i>compl-sig-t</i>&lt;Tag, Args...></code> name the type
-            `Tag()` if `Args...` is a template paramter pack containing the
-            single type `void`; otherwise, `Tag(Args...)`. Given
-            subexpressions `s2` and `e` where `s2` is a sender returned from
-            `then` or a copy of such, let `S2` be `decltype((s2))` and let
-            `E` be `decltype((e))`. The type of
-            `tag_invoke(get_completion_signatures, s2, e)` shall be equivalent
-            to:
+    2. Given subexpressions `s2` and `e` where `s2` is a sender returned
+        from `then` or a copy of such, let `S2` be `decltype((s2))` and let
+        `E` be `decltype((e))`. The type of
+        `tag_invoke(get_completion_signatures, s2, e)` shall be:
 
-            <pre highlight="c++">
-            make_completion_signatures&lt;
-              copy_cvref_t&lt;S2, S>, E, <i>set-error-signature</i>,
-                <i>set-value-completions</i>>;
-            </pre>
+        <pre highlight="c++">
+        make_completion_signatures&lt;
+          copy_cvref_t&lt;S2, S>, E, <i>set-error-signature</i>,
+            <i>set-value-completions</i>>
+        </pre>
 
-            where <code><i>set-value-completions</i></code> is an alias for:
+        where <code><i>set-value-completions</i></code> is the alias template:
 
-            <pre highlight="c++">
-            template&lt;class... As>
-              <i>set-value-completions</i> =
-                completion_signatures&lt;<i>compl-sig-t</i>&lt;set_value_t, invoke_result_t&lt;F, As...>>>
-            </pre>
+        <pre highlight="c++">
+        template&lt;class... As>
+          <i>set-value-completions</i> =
+            completion_signatures&lt;<i>SET-VALUE-SIG</i>(invoke_result_t&lt;F, As...>)>
+        </pre>
 
-            and <code><i>set-error-signature</i></code> is an alias for
-            `completion_signatures<set_error_t(exception_ptr)>` if any of the types
-            in the <code><i>type-list</i></code> named by
-            <code>value_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>potentially-throwing</i>, <i>type-list</i>></code>
-            are `true_type`; otherwise, `completion_signatures<>`, where
-            <code><i>potentially-throwing</i></code> is the template alias:
+        and <code><i>set-error-signature</i></code> is an alias for
+        `completion_signatures<set_error_t(exception_ptr)>` if any of the types
+        in the <code><i>type-list</i></code> named by
+        <code>value_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>potentially-throwing</i>, <i>type-list</i>></code>
+        are `true_type`; otherwise, `completion_signatures<>`, where
+        <code><i>potentially-throwing</i></code> is the alias template:
 
-            <pre highlight="c++">
-            template&lt;class... As>
-              using <i>potentially-throwing</i> =
-                bool_constant&lt;!is_nothrow_invocable_v&lt;F, As...>>;
-            </pre>
+        <pre highlight="c++">
+        template&lt;class... As>
+          using <i>potentially-throwing</i> =
+            negation&lt;is_nothrow_invocable&lt;F, As...>>;
+        </pre>
 
-    If the function selected above does not return a sender that invokes `f` with the value result datums of `s` using `f`'s return value as the sender's value completion, and forwards the non-value completion operations unchanged, the behavior of calling `then(s, f)` is undefined.
+    3. Let `S` be the result of calling `then(s, f)` or a copy of such. If `S`
+      is connected with a recevier `R` with environment `E` such that
+      <code>transform_sender(<i>get-env-domain</i>(E), S, E)</code> does not
+      return a sender that:
+      
+          - invokes `f` with the value result datums of `s`,
+          
+          -  uses `f`'s return value as `S`'s value completion, and
+          
+          - forwards the non-value completion operations to `R` unchanged,
+          
+          then the behavior of calling `connect(S, R)` is undefined.
 
 #### `execution::upon_error` <b>[exec.upon.error]</b> #### {#spec-execution.senders.adaptor.upon_error}
 
