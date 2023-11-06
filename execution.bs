@@ -6679,38 +6679,43 @@ enum class forward_progress_guarantee {
 
 1. `start_detached` eagerly starts a sender without the caller needing to manage the lifetimes of any objects.
 
-2. The name `start_detached` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`. If `S` does not satisfy `sender`, `start_detached` is ill-formed. Otherwise, the expression
+2. The name `start_detached` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`.
+   If `S` does not satisfy <code>sender_in&lt;empty_env></code>, `start_detached` is ill-formed. Otherwise, the expression
     `start_detached(s)` is expression-equivalent to:
 
-    1. `tag_invoke(start_detached, get_completion_scheduler<set_value_t>(get_env(s)), s)`, if that expression is valid.
+    <pre highlight="c++">
+    apply_sender(<i>get-sender-domain</i>(s), start_detached, s)
+    </pre>
+    
+    * <i>Mandates:</i> The type of the expression above is `void`.
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is `void`.
-
-    2. Otherwise, `tag_invoke(start_detached, s)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is `void`.
-
-    3. Otherwise:
-
-        1. Let `R` be the type of a receiver, let `r` be an rvalue of type `R`, and let `cr` be a
-            lvalue reference to `const R` such that:
-
-            1. The expression `set_value(r)` is not potentially-throwing and has no effect,
-
-            2. For any subexpression `e`, the expression `set_error(r, e)` is expression-equivalent
-                to `terminate()`,
-
-            3. The expression `set_stopped(r)` is not potentially-throwing and has no effect, and
-
-            4. The expression `get_env(cr)` is expression-equivalent to <code>empty_env{}</code>.
-
-        2. Calls `connect(s, r)`, resulting in an operation state
-            `op_state`, then calls `start(op_state)`.
-
-    If the function selected above does not eagerly start the sender `s` after
+    If the expression above does not eagerly start the sender `s` after
     connecting it with a receiver that ignores value and stopped completion
     operations and calls `terminate()` on error completions, the behavior of
     calling `start_detached(s)` is undefined.
+
+3. Let `s` be a subexpression such that `S` is `decltype((s))`, and let <code><i>detached-receiver</i></code>
+   and <code><i>detached-operation</i></code> be the following exposition-only class types:
+
+   <pre highlight="c++">
+   struct <i>detached-receiver</i> {
+     using is_receiver = <i>unspecified</i>;
+     <i>detached-operation</i>* <i>op</i>; // <i>exposition only</i>
+
+     friend void tag_invoke(set_value_t, <i>detached-receiver</i>&& self) noexcept { delete self.op; }
+     friend void tag_invoke(set_error_t, <i>detached-receiver</i>&&, auto&&) noexcept { terminate(); }
+     friend void tag_invoek(set_stopped_t, <i>detached-receiver</i>&& self) noexcept { delete self.op; }
+     friend empty_env tag_invoke(get_env_t, const <i>detached-receiver</i>&) { return {}; }
+   };
+
+   struct <i>detached-operation</i> {
+     connect_result_t&lt;S, <i>detached-receiver</i>> op; // <i>exposition only</i>
+
+     explicit <i>detached-operation</i>(S&& s)
+       : op(connect(std::forward<S>(s), <i>detached-receiver</i>{this}))
+     {}
+   };
+   </pre>
 
 #### `this_thread::sync_wait` <b>[exec.sync.wait]</b> #### {#spec-execution.senders.consumers.sync_wait}
 
