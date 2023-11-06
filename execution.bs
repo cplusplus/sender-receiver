@@ -6458,27 +6458,30 @@ enum class forward_progress_guarantee {
 
 1. `stopped_as_optional` maps an input sender's stopped completion operation into the value completion operation as an empty optional. The input sender's value completion operation is also converted into an optional. The result is a sender that never completes with stopped, reporting cancellation by completing with an empty optional.
 
-2. The name `stopped_as_optional` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`. Let <code><i>get-env-sender</i></code> be an expression such that, when it is `connect`ed with a receiver `r`, `start` on the resulting operation state completes immediately by calling `set_value(r, get_env(r))`. The expression `stopped_as_optional(s)` is expression-equivalent to:
+2. The name `stopped_as_optional` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`.
+   The expression `stopped_as_optional(s)` is expression-equivalent to:
 
     <pre highlight="c++">
-    let_value(
-      <i>get-env-sender</i>,
-      []&lt;class E>(const E&) requires <i>single-sender</i>&lt;S, E> {
-        return let_stopped(
-          then(s,
-            []&lt;class T>(T&& t) {
-              return optional&lt;decay_t&lt;<i>single-sender-value-type</i>&lt;S, E>>>{
-                std::forward&lt;T>(t)
-              };
-            }
-          ),
-          [] () noexcept {
-            return just(optional&lt;decay_t&lt;<i>single-sender-value-type</i>&lt;S, E>>>{});
-          }
-        );
-      }
-    )
+    transform_sender(
+      <i>get-sender-domain</i>(s),
+      <i>make-sender</i>(stopped_as_optional, <i>unspecified</i>, s))
     </pre>
+
+3. Let `s` and `e` be subexpressions such that `S` is `decltype((s))` and `E` is `decltype((e))`.
+   If either <code><i>sender-for</i>&lt;S, stopped_as_optional_t></code> or <code><i>single-sender</i>&lt;S, E></code> is `false`
+   then the expression `stopped_as_optional_t().transform_sender(s, e)` is ill-formed; otherwise, it is equal to:
+
+   <pre highlight="c++">
+   const auto& env = e;
+   auto domain = <i>get-env-domain</i>(env);
+   auto [tag, data, child] = s;
+   using V = <i>single-sender-value-type&lt;S, E>;
+   auto tfx = <i>make-transformer-fn</i>(domain, env);
+   return tfx(let_stopped)(
+      tfx(then)(std::move(child),
+                []&lt;class T>(T&& t) { return optional<V>(std::forward<T>(t)); }),
+      []() noexcept { return just(optional<V>()); });
+   </pre>
 
 #### `execution::stopped_as_error` <b>[exec.stopped.as.error]</b> #### {#spec-execution.senders.adapt.stopped_as_error}
 
