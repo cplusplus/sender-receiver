@@ -6502,22 +6502,24 @@ enum class forward_progress_guarantee {
     environment such that, given an instance `e`, the expression
     `get_stop_token(e)` is well-formed and has type `stop_token`.
 
-2. The name `ensure_started` denotes a customization point object.
+3. The name `ensure_started` denotes a customization point object.
     For some subexpression `s`, let `S` be `decltype((s))`. If
     <code>sender_in&lt;S, <i>ensure-started-env</i>></code> or
     `constructible_from<decay_t<env_of_t<S>>, env_of_t<S>>` is
     `false`, `ensure_started(s)` is ill-formed. Otherwise, the
     expression `ensure_started(s)` is expression-equivalent to:
 
-    1. `tag_invoke(ensure_started, get_completion_scheduler<set_value_t>(get_env(s)), s)`, if that expression is valid.
+    <pre highlight="c++">
+    transform_sender(
+      <i>get-sender-domain</i>(s),
+      <i>make-sender</i>(ensure_started, s))
+    </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    2. Otherwise, `tag_invoke(ensure_started, s)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    3. Otherwise, constructs a sender `s2`, which:
+    1. Let `s` be a subexpression such that `S` is `decltype((s))`, and let `e...` be a pack of
+       subexpressions such that <code>sizeof...(e) &lt;= 1</code> is `true`.
+       If <code><i>sender-for</i>&lt;S, ensure_started_t></code> is `false`, then the expression
+       `ensure_started_t().transform_sender(s, e...)` is ill-formed; otherwise, it returns
+       a sender `s2`, that:
 
         1. Creates an object `sh_state` that contains a `stop_source`, an
             initially null pointer to an operation state awaitaing completion,
