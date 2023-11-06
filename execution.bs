@@ -6490,8 +6490,24 @@ enum class forward_progress_guarantee {
 2. The name `stopped_as_error` denotes a customization point object. For some subexpressions `s` and `e`, let `S` be `decltype((s))` and let `E` be `decltype((e))`. If the type `S` does not satisfy `sender` or if the type `E` doesn't satisfy <code><i>movable-value</i></code>, `stopped_as_error(s, e)` is ill-formed. Otherwise, the expression `stopped_as_error(s, e)` is expression-equivalent to:
 
     <pre highlight="c++">
-    let_stopped(s, [] { return just_error(e); })
+    transform_sender(
+      <i>get-sender-domain</i>(s),
+      <i>make-sender</i>(stopped_as_error, e, s))
     </pre>
+
+3. Let `s` and `e` be subexpressions such that `S` is `decltype((s))` and `E` is `decltype((e))`.
+   If <code><i>sender_for</i>&lt;S, stopped_as_error_t></code> is `false`, then the expression
+   `stopped_as_error_t().transform_sender(s, e)` is ill-formed; otherwise, it is equal to:
+
+   <pre highlight="c++">
+   const auto& env = e;
+   auto domain = <i>get-env-domain</i>(env);
+   auto [tag, data, child] = s;
+   auto tfx = <i>make-transformer-fn</i>(domain, env);
+   return tfx(let_stopped)(
+       std::move(child),
+       [err = std::move(data)]() mutable { return just_error(std::move(err)); });
+   </pre>
 
 #### `execution::ensure_started` <b>[exec.ensure.started]</b> #### {#spec-execution.senders.adapt.ensure_started}
 
