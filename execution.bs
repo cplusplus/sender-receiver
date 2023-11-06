@@ -5562,20 +5562,52 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     vs...)` is ill-formed. Otherwise, `transfer_just(s, vs...)` is
     expression-equivalent to:
 
-    1. `tag_invoke(transfer_just, s, vs...)`, if that expression is valid. Let
-        `as` be a pack of rvalue subexpressions of types `decay_t<Vs>...`
-        refering to objects direct-initilized from `vs`. If the function
-        selected by `tag_invoke` does not return a sender whose asynchronous
-        operations execute value completion operations on an execution agent
-        belonging to the execution resource associated with `s`, with value result
-        datums `as`, the behavior of calling `transfer_just(s, vs...)` is
-        undefined.
+        <pre highlight="c++">
+        transform_sender(
+          <i>query-or-default</i>(get_domain, sch, default_domain()),
+          <i>make-sender</i>(transfer_just, <i>tuple-like</i>{sch, vs...}));
+        </pre>
 
-        * <i>Mandates:</i> `sender_of<R, set_value_t(decay_t<Vs>...), E>`,
-            where `R` is the type of the `tag_invoke` expression above, and
+
+3. Let `as` be a pack of rvalue subexpressions of types `decay_t<Vs>...`
+    refering to objects direct-initilized from `vs`. If a sender `S` returned
+    from `transfer_just(sch, vs...)`
+    is connected with a receiver `R` with environment `E` such that
+    <code>transform_sender(<i>get-env-domain</i>(E), S, E)</code> does not
+    return a sender whose asynchronous
+    operations execute value completion operations on an execution agent
+    belonging to the execution resource associated with `s`, with value result
+    datums `as`, the behavior of calling `connect(S, R)` is
+    undefined.
+
+        * <i>Mandates:</i> `sender_of<S, set_value_t(decay_t<Vs>...), E>`,
+            where `S` is the type of `transfer_just(sch, vs...)`, and
             `E` is the type of an environment.
 
-    2. Otherwise, `transfer(just(vs...), s)`.
+4. For some subexpression `sch` and pack of subexpressions `vs`, let `s` be a
+    subexpression refering to an object returned from `transform_just(sch, vs...)`
+    or a copy of such. Then
+    `get_completion_scheduler<set_value_t>(get_env(s)) == sch` is `true`,
+    `get_completion_scheduler<set_stopped_t>(get_env(s)) == sch` is `true`, and
+    `get_domain(get_env(s))` is expression-equivalent to `get_domain(sch)`.
+
+5. Let `s` and `e` be subexpressions such that `S` is `decltype((s))`. If
+    <code><i>sender-for</i>&lt;S, transfer_just_t></code> is `false`, then the expression
+    `transfer_just_t().transform_sender(s, e)` is ill-formed; otherwise, it
+    is equal to:
+
+        <pre highlight="c++">
+        const auto& env = e;
+        auto domain = <i>get-env-domain</i>(env);
+        auto [tag, data] = s;
+        auto& [sched, ...vs] = data;
+        auto tfx = <i>make-transformer-fn</i>(domain, env);
+        return tfx(transfer)(tfx(just)(std::move(vs)...), std::move(sched));
+        </pre>
+
+    <span class="wg21note">This causes the `transform_just(sch, vs...)` sender to become
+    `transform(just(vs...), sch)` when it is connected with a receiver whose
+    execution domain does not customize `transform_just`.</span>
 
 #### `execution::read` <b>[exec.read]</b> #### {#spec-execution.senders.read}
 
