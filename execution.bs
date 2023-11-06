@@ -4139,21 +4139,27 @@ namespace std::execution {
   // [exec.queries], queries
   enum class forward_progress_guarantee;
   namespace <i>queries</i> { // exposition only
+    struct get_domain_t;
     struct get_scheduler_t;
     struct get_delegatee_scheduler_t;
     struct get_forward_progress_guarantee_t;
     template&lt;class CPO>
       struct get_completion_scheduler_t;
   }
+  using <i>queries</i>::get_domain_t;
   using <i>queries</i>::get_scheduler_t;
   using <i>queries</i>::get_delegatee_scheduler_t;
   using <i>queries</i>::get_forward_progress_guarantee_t;
   using <i>queries</i>::get_completion_scheduler_t;
+  inline constexpr get_domain_t get_domain{};
   inline constexpr get_scheduler_t get_scheduler{};
   inline constexpr get_delegatee_scheduler_t get_delegatee_scheduler{};
   inline constexpr get_forward_progress_guarantee_t get_forward_progress_guarantee{};
   template&lt;class CPO>
     inline constexpr get_completion_scheduler_t&lt;CPO> get_completion_scheduler{};
+
+  // [exec.domain.default], execution domains
+  struct default_domain;
 
   // [exec.sched], schedulers
   template&lt;class S>
@@ -4250,6 +4256,21 @@ namespace std::execution {
       requires sender_in&lt;S, E>
     inline constexpr bool sends_stopped = <i>see below</i>;
 
+  template &lt;sender Sender>
+    using tag_of_t = see below;
+
+  // [exec.snd.transform], sender transformations
+  template &lt;class Domain, sender Sender, class... Env>
+      requires (sizeof...(Env) &lt;= 1)
+    constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env&... env) noexcept(<i>see below</i>);
+
+  template &lt;class Domain, sender Sender, class Env>
+    constexpr decltype(auto) transform_env(Domain dom, Sender&& sndr, Env&& env) noexcept;
+
+  // [exec.snd.apply], sender algorithm application
+  template &lt;class Domain, class Tag, sender Sender, class... Args>
+    constexpr decltype(auto) apply_sender(Domain dom, Tag, Sender&& sndr, Args&&... args) noexcept(<i>see below</i>);
+
   // [exec.connect], the connect sender algorithm
   namespace <i>senders-connect</i> { // exposition only
     struct connect_t;
@@ -4262,12 +4283,15 @@ namespace std::execution {
 
   // [exec.factories], sender factories
   namespace <i>senders-factories</i> { // exposition only
+    struct just_t;
+    struct just_error_t;
+    struct just_stopped_t;
     struct schedule_t;
     struct transfer_just_t;
   }
-  inline constexpr <i>unspecified</i> just{};
-  inline constexpr <i>unspecified</i> just_error{};
-  inline constexpr <i>unspecified</i> just_stopped{};
+  inline constexpr just just{};
+  inline constexpr just_error_t just_error{};
+  inline constexpr just_stopped_t just_stopped{};
   using <i>senders-factories</i>::schedule_t;
   using <i>senders-factories</i>::transfer_just_t;
   inline constexpr schedule_t schedule{};
@@ -4548,6 +4572,20 @@ namespace std::execution {
 4. `get_stop_token()` (with no arguments) is expression-equivalent to
     `execution::read(std::get_stop_token)` ([exec.read]).
 
+### `execution::get_domain` <b>[exec.get.domain]</b> ### {#spec-execution.get_domain}
+
+1. `get_domain` asks an object for an associated execution domain tag.
+
+2. The name `get_domain` denotes a query object. For some subexpression `r`,
+   `get_domain(r)` is expression-equivalent to
+   <code><i>mandate-nothrow-call</i>(tag_invoke, get_domain, as_const(r))</code>,
+   if this expression is well-formed.
+
+3. `std::forwarding_query(execution::get_domain)` is `true`.
+
+4. `get_domain()` (with no arguments) is expression-equivalent to
+    `execution::read(get_domain)` ([exec.read]).
+
 ### `execution::get_scheduler` <b>[exec.get.scheduler]</b> ### {#spec-execution.get_scheduler}
 
 1. `get_scheduler` asks an object for its associated scheduler.
@@ -4683,7 +4721,11 @@ enum class forward_progress_guarantee {
     `get_completion_scheduler<set_value_t>(std::get_env(schedule(s)))` shall
     compare equal to `s`.
 
-7. A scheduler type's destructor shall not block pending completion of any
+7. For a given scheduler expression `s`, if the expression `get_domain(s)`
+    is well-formed, then the expression `get_domain(get_env(schedule(s)))`
+    is also well-formed and has the same type.
+
+8. A scheduler type's destructor shall not block pending completion of any
     receivers connected to the sender objects returned from `schedule`. <span
     class="wg21note">The ability to wait for completion of submitted function
     objects can be provided by the associated execution resource of the
@@ -4809,6 +4851,109 @@ enum class forward_progress_guarantee {
 
 ## Senders <b>[exec.snd]</b> ## {#spec-execution.senders}
 
+
+
+1. This section makes use of the following exposition-only entities.
+
+    1.  <pre highlight="c++">
+        template &lt;class Tag, class Env, class Default>
+        constexpr decltype(auto) <i>query-with-default</i>(Tag, const Env& env, Default&& value) noexcept(<i>see below</i>);
+        </pre>
+
+        1. <i>Effects:</i> Equivalent to:
+
+            - `return Tag()(env);` if that expression is well-formed,
+
+            - `return static_cast<Default>(std::forward<Default>(value));` otherwise.
+
+        2. <i>Remarks:</i> The expression in the `noexcept` clause is:
+
+                <pre highlight="c++">
+                is_invocable_v&lt;Tag, const Env&> ? is_nothrow_invocable_v&lt;Tag, const Env&>
+                                                : is_nothrow_constructible_v&lt;Default, Default>
+                </pre>
+
+    2.  <pre highlight="c++">
+        template &lt;class Env, class Tag = get_scheduler_t>
+        constexpr auto <i>get-env-domain</i>(const Env& env, Tag tag = {}) noexcept;
+        </pre>
+
+        1. <i>Effects:</i> Equivalent to:
+
+            - `return get_domain(env);` if that expression is well-formed,
+
+            - otherwise, `return get_domain(tag(env));` if that expression is
+              well-formed,
+
+            - otherwise, `return default_domain();`.
+
+    3.  <pre highlight="c++">
+        template &lt;class Sender, class Tag = set_value_t>
+        constexpr auto <i>get-sender-domain</i>(const Sender& sndr, Tag = {}) noexcept;
+        </pre>
+
+        1. <i>Effects:</i> Equivalent to: <code>return <i>get-env-domain</i>(get_env(sndr), get_completion_scheduler<Tag>);</code>.
+
+    4.  <pre highlight="c++">
+        template &lt;class... T>
+        struct <i>tuple-like</i> {
+          T<sub><i>0</i></sub> <i>t<sub>0</sub></i>;      // exposition only
+          T<sub><i>1</i></sub> <i>t<sub>1</sub></i>;      // exposition only
+            ...
+          T<sub><i>n-1</i></sub> <i>t<sub>n-1</sub></i>;   // exposition only
+        };
+        </pre>
+
+        - <span class="wg21note">An expression of type <code><i>tuple-like</i></code> is usable as the initializer
+            of a structured binding declaration [dcl.struct.bind].</span>
+
+    5.  <pre highlight="c++">
+        template &lt;semiregular Tag, <i>movable-value</i> Data, sender... Child>
+        constexpr auto <i>make-sender</i>(Tag, Data&& data, Child&&... child);
+        </pre>
+
+        1. <i>Returns:</i> A prvalue of type <code><i>basic-sender</i>&lt;Tag, decay_t&lt;Data>, decay_t&lt;Child>...></code>
+            where the <code><i>tag</i></code> member has been default-initialized and the
+            <code><i>data</i></code> and <code><i>child<sub>n</sub></i>...</code> members have
+            been direct initialized from their respective forwarded arguments, where
+            <code><i>basic-sender</i></code> is the following exposition-only class template
+            except as noted below:
+
+          <pre highlight="c++">
+          template &lt;class Tag, class Data, class... Child> // arguments are not associated entities ([lib.tmpl-heads])
+          struct <i>basic-sender</i> : <i>unspecified</i> {
+            using is_sender = <i>unspecified</i>;
+            
+            [[no_unique_address]] Tag <i>tag</i>;  // exposition only
+            Data <i>data</i>;          // exposition only
+            Child<sub><i>0</i></sub> <i>child<sub>0</sub></i>;      // exposition only
+            Child<sub><i>1</i></sub> <i>child<sub>1</sub></i>;      // exposition only
+              ...
+            Child<sub><i>n-1</i></sub> <i>child<sub>n-1</sub></i>;   // exposition only
+          };
+          </pre>
+
+        - It is unspecified whether instances of <code><i>basic-sender</i></code> can be
+            aggregate initialized.
+
+        - The unspecified base type has no non-static data members. It may
+            define member functions or hidden friend functions ([hidden.friends]).
+
+        - <span class="wg21note">An expression of type <code><i>basic-sender</i></code> is usable as the
+            initializer of a structured binding declaration
+            [dcl.struct.bind].</span>
+
+    6.  <pre highlight="c++">
+        template &lt;class Domain, class... Env>
+        auto <i>make-transformer-fn</i>(Domain, const Env&... env) {
+          return [&]&lt;class Tag>(Tag) {
+            return [&]&lt;class... Args>(Args&&... args) -> decltype(auto) {
+              return transform_sender(Domain(), Tag()(std::forward&lt;Args>(args)...), env...);
+            };
+          };
+        }
+        </pre>
+
 ### Sender concepts <b>[exec.snd.concepts]</b> ### {#spec-execution.snd.concepts}
 
 1. The `sender` concept defines the requirements for a sender type
@@ -4910,11 +5055,35 @@ enum class forward_progress_guarantee {
         </pre>
         -- *end example*]
 
-5. For a type `T`, <code><i>SET-VALUE-SIG</i>(T)</code> names the type
+5. Let `s` be an expression such that `decltype((s))` is `S`. The type
+   `tag_of_t<S>` is as follows:
+
+      - If the declaration `auto&& [tag, data, ...children] = s;` would be
+        well-formed, `tag_of_t<S>` is an alias for `decltype(auto(tag))`.
+
+      - Otherwise, `tag_of_t<S>` is ill-formed.
+
+    <div class="ed-note">
+    There is no way in standard C++ to determine whether the above declaration
+    is well-formed without causing a hard error, so this presumes compiler
+    magic. However, the author anticipates the adoption of [@P2141R1], which
+    makes it possible to implement this purely in the library. P2141 has already
+    been approved by EWG for C++26.</div>
+
+6. Let <code><i>sender-for</i></code> be an exposition-only concept defined as follows:
+
+    <pre highlight="c++">
+    template &lt;class Sender, class Tag>
+    concept <i>sender-for</i> =
+      sender&lt;Sender> &&
+      same_as&lt;tag_of_t&lt;Sender>, Tag>;
+    </pre>
+
+7. For a type `T`, <code><i>SET-VALUE-SIG</i>(T)</code> names the type
     `set_value_t()` if `T` is *cv* `void`; otherwise, it names the type
     `set_value_t(T)`.
 
-6. Library-provided sender types:
+8. Library-provided sender types:
       - Always expose an overload of a customization of `connect`
           that accepts an rvalue sender.
       - Only expose an overload of a customization of `connect` that
@@ -5015,7 +5184,134 @@ enum class forward_progress_guarantee {
       are only used for the purpose of type computation; its members need not be
       defined.</span>
 
-### `execution::get_completion_signatures` <b>[exec.getcomplsigs]</b> ### {#spec-exec.getcomplsigs}
+
+
+
+
+### `execution::default_domain` <b>[exec.domain.default]</b> ### {#spec-execution.default_domain}
+
+<pre highlight="c++">
+struct default_domain {
+  template &lt;sender Sender, class... Env>
+      requires (sizeof...(Env) &lt;= 1)
+    static constexpr sender decltype(auto) transform_sender(Sender&& sndr, const Env&... env) noexcept(<i>see below</i>);
+
+  template &lt;sender Sender, class Env>
+    static constexpr decltype(auto) transform_env(Sender&& sndr, Env&& env) noexcept;
+
+  template &lt;class Tag, sender Sender, class... Args>
+    static constexpr decltype(auto) apply_sender(Tag, Sender&& sndr, Args&&... args) noexcept(<i>see below</i>);
+};
+</pre>
+
+#### Static members <b>[exec.domain.default.statics]</b> #### {#spec-execution.default_domain.statics}
+
+<pre highlight="c++">
+template &lt;sender Sender, class... Env>
+    requires (sizeof...(Env) &lt;= 1)
+  constexpr sender decltype(auto) default_domain::transform_sender(Sender&& sndr, const Env&... env) noexcept(<i>see below</i>);
+</pre>
+
+1. <i>Returns:</i> `tag_of_t<Sender>().transform_sender(std::forward<Sender>(sndr), env...)`
+  if that expression is well-formed; otherwise, `std::forward<Sender>(sndr)`.
+
+2. <i>Remarks:</i> The exception specification is equivalent to:
+
+    <pre highlight="c++">
+    noexcept(tag_of_t&lt;Sender>().transform_sender(std::forward&lt;Sender>(sndr), env...))
+    </pre>
+
+    if that expression is well-formed; otherwise, `true`;
+
+<pre highlight="c++">
+template &lt;sender Sender, class Env>
+  constexpr decltype(auto) default_domain::transform_env(Sender&& sndr, Env&& env) noexcept;
+</pre>
+
+3. <i>Returns:</i> `tag_of_t<Sender>().transform_env(std::forward<Sender>(sndr), std::forward<Env>(env))`
+  if that expression is well-formed; otherwise, `static_cast<Env>(std::forward<Env>(env))`.
+
+4. <i>Mandates:</i> The selected expression in <i>Returns:</i> is not potentially throwing.
+
+<pre highlight="c++">
+template &lt;class Tag, sender Sender, class... Args>
+  static constexpr decltype(auto) default_domain::apply_sender(Tag, Sender&& sndr, Args&&... args) noexcept(<i>see below</i>);
+</pre>
+
+5. <i>Returns:</i> `Tag().apply_sender(std::forward<Sender>(sndr), std::forward<Args>(args)...)`
+  if that expression is well-formed; otherwise, this function shall not participate
+  in overload resolution.
+
+6. <i>Remarks:</i> The exception specification is equivalent to:
+
+    <pre highlight="c++">
+    noexcept(Tag().apply_sender(std::forward&lt;Sender>(sndr), std::forward&lt;Args>(args)...))
+    </pre>
+
+### `execution::transform_sender` <b>[exec.snd.transform]</b> ### {#spec-execution.sender_transform}
+
+<pre highlight="c++">
+template &lt;class Domain, sender Sender, class... Env>
+    requires (sizeof...(Env) &lt;= 1)
+  constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env&... env) noexcept(<i>see below</i>);
+</pre>
+
+1. <i>Returns:</i> `dom.transform_sender(std::forward<Sender>(sndr), env...)` if that
+      expression is well-formed; otherwise,
+      `default_domain().transform_sender(std::forward<Sender>(sndr), env...)`.
+
+
+2. <i>Remarks:</i> The exception specification is equivalent to:
+
+      <pre highlight="c++">
+      noexcept(dom.transform_sender(std::forward&lt;Sender>(sndr), env...))
+      </pre>
+
+      if that expression is well-formed; otherwise,
+
+      <pre highlight="c++">
+      noexcept(default_domain().transform_sender(std::forward&lt;Sender>(sndr), env...))
+      </pre>
+
+<pre highlight="c++">
+template &lt;class Domain, sender Sender, class Env>
+  constexpr decltype(auto) transform_env(Domain dom, Sender&& sndr, Env&& env) noexcept;
+</pre>
+
+3. <i>Returns:</i> `dom.transform_sender(std::forward<Sender>(sndr), std::forward<Env>(env))` if that
+      expression is well-formed; otherwise,
+      `default_domain().transform_sender(std::forward<Sender>(sndr), std::forward<Env>(env))`.
+
+### `execution::apply_sender` <b>[exec.snd.apply]</b> ### {#spec-execution.apply_sender}
+
+<pre highlight="c++">
+template &lt;class Domain, class Tag, sender Sender, class... Args>
+  constexpr decltype(auto) apply_sender(Domain dom, Tag, Sender&& sndr, Args&&... args) noexcept(<i>see below</i>);
+</pre>
+
+1. <i>Returns:</i> `dom.apply_sender(Tag(), std::forward<Sender>(sndr), std::forward<Args>(args)...)` if that
+      expression is well-formed; otherwise,
+      `default_domain().apply_sender(Tag(), std::forward<Sender>(sndr), std::forward<Args>(args)...)`
+      if that expression is well-formed; otherwise, this function shall not participate in
+      overload resolution.
+
+2. <i>Remarks:</i> The exception specification is equivalent to:
+
+      <pre highlight="c++">
+      noexcept(dom.apply_sender(Tag(), std::forward&lt;Sender>(sndr), std::forward&lt;Args>(args)...))
+      </pre>
+
+      if that expression is well-formed; otherwise,
+
+      <pre highlight="c++">
+      noexcept(default_domain().apply_sender(Tag(), std::forward&lt;Sender>(sndr), std::forward&lt;Args>(args)...))
+      </pre>
+
+
+
+
+
+### `execution::get_completion_signatures` <b>[exec.getcomplsigs]</b> ### {#spec-execution.getcomplsigs}
 
 1. `get_completion_signatures` is a customization point object. Let `s` be an
     expression such that `decltype((s))` is `S`, and let `e` be an expression
@@ -5247,6 +5543,10 @@ enum class forward_progress_guarantee {
 5. Then name `just_stopped` denotes a customization point object. `just_stopped()`
     is expression-equivalent to
     <code><i>just-sender</i>&lt;set_stopped_t>()</i></code>.
+
+6. When used as the initializer of a structured binding declaration,
+    expressions of type <code><i>just-sender</i>&lt;Tag, Ts...></code> behave as do
+    expressions of type <code><i>basic-sender</i>&lt;Tag, <i>tuple-like</i>&lt;Ts...>></code>.
 
 #### `execution::transfer_just` <b>[exec.transfer.just]</b> #### {#spec-execution.senders.transfer_just}
 
