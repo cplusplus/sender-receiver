@@ -5930,39 +5930,70 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 
 #### `execution::schedule_from` <b>[exec.schedule.from]</b> #### {#spec-execution.senders.adaptors.schedule_from}
 
-1. `schedule_from` schedules work dependent on the completion of a sender onto a scheduler's associated execution resource. [<i>Note</i>: `schedule_from` is not meant to be used in user code; it is used in the implementation of
-    `transfer`. -<i>end note</i>]
+1. `schedule_from` schedules work dependent on the completion of a sender onto a
+    scheduler's associated execution resource. <span
+    class="wg21note">`schedule_from` is not meant to be used in user code; it is
+    used in the implementation of `transfer`.</span>
 
-3. The name `schedule_from` denotes a customization point object. For some subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If `Sch` does not satisfy `scheduler`, or `S` does not satisfy
-    `sender`, `schedule_from` is ill-formed. Otherwise, the expression `schedule_from(sch, s)` is expression-equivalent to:
+3. The name `schedule_from` denotes a customization point object. For some
+    subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be
+    `decltype((s))`. If `Sch` does not satisfy `scheduler`, or `S` does not
+    satisfy `sender`, `schedule_from` is ill-formed. Otherwise, the expression
+    `schedule_from(sch, s)` is expression-equivalent to:
 
-    1. `tag_invoke(schedule_from, sch, s)`, if that expression is valid. If the
-        function selected by `tag_invoke` does not return a sender that
-        completes on an execution agent belonging to the associated execution
-        resource of `sch` and completing with the same async result
-        ([async.ops]) as `s`, the behavior of calling `schedule_from(sch, s)` is
-        undefined.
+        <pre highlight="c++">
+        transform_sender(
+          <i>query-or-default</i>(get_domain, sch, default_domain()),
+          <i>make-schedule-from-sender</i>(sch, s));
+        </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
+        where <code><i>make-schedule-from-sender</i>(sch, s)</code> is expression-equivalent to
+        <code><i>make-sender</i>(schedule_from, sch, s)</code> and returns a sender object
+        `s2` that behaves as follows:
 
-    2. Otherwise, constructs a sender `s2`. When `s2` is connected with some receiver `out_r`, it:
+    1. When `s2` is connected with some receiver `out_r`, it:
 
-        1. Constructs a receiver `r` such that when a receiver completion operation <code><i>Tag</i>(r, args...)</code> is called, it decay-copies `args...` into `op_state` (see below) as `args'...` and constructs a receiver `r2` such that:
+        1. Constructs a receiver `r` such that when a receiver completion
+           operation <code><i>Tag</i>(r, args...)</code> is called, it
+           decay-copies `args...` into `op_state` (see below) as `args'...` and
+           constructs a receiver `r2` such that:
 
-            1. When `set_value(r2)` is called, it calls <code><i>Tag</i>(out_r, std::move(args')...)</code>.
+            1. When `set_value(r2)` is called, it calls
+               <code><i>Tag</i>(out_r, std::move(args')...)</code>.
 
             2. `set_error(r2, e)` is expression-equivalent to `set_error(out_r, e)`.
 
             3. `set_stopped(r2)` is expression-equivalent to `set_stopped(out_r)`.
 
-            It then calls `schedule(sch)`, resulting in a sender `s3`. It then calls `connect(s3, r2)`, resulting in an operation state `op_state3`. It then calls `start(op_state3)`. If any of these throws an exception,
-            it catches it and calls `set_error(out_r, current_exception())`. If any of these expressions would be ill-formed, then <code><i>Tag</i>(r, args...)</code> is ill-formed.
+            4. `get_env(r2)` is equal to `get_env(r)`.
 
-        2. Calls `connect(s, r)` resulting in an operation state `op_state2`. If this expression would be ill-formed, `connect(s2, out_r)` is ill-formed.
+            It then calls `schedule(sch)`, resulting in a sender `s3`. It then
+            calls `connect(s3, r2)`, resulting in an operation state
+            `op_state3`. It then calls `start(op_state3)`. If any of these
+            throws an exception, it catches it and calls `set_error(out_r,
+            current_exception())`. If any of these expressions would be
+            ill-formed, then <code><i>Tag</i>(r, args...)</code> is ill-formed.
 
-        3. Returns an operation state `op_state` that contains `op_state2`. When `start(op_state)` is called, calls `start(op_state2)`. The lifetime of `op_state3` ends when `op_state` is destroyed.
+        2. Calls `connect(s, r)` resulting in an operation state `op_state2`. If
+           this expression would be ill-formed, `connect(s2, out_r)` is
+           ill-formed.
 
-    3. Given subexpressions `s2` and `e`, where `s2` is a sender returned from `schedule_from` or a copy of such, let `S2` be `decltype((s2))` and let `E` be `decltype((e))`. Then the type of `tag_invoke(get_completion_signatures, s2, e)` shall be:
+        3. Returns an operation state `op_state` that contains `op_state2`. When
+           `start(op_state)` is called, calls `start(op_state2)`. The lifetime
+           of `op_state3` ends when `op_state` is destroyed.
+
+    2. If a sender `S` returned from `schedule_from(sch, s)` is connected with a
+        receiver `R` with environmment `E` such that
+        <code>transform_sender(<i>get-env-domain</i>(E), S, E)</code> does not
+        return a sender that completes on an execution agent belonging to the
+        associated execution resource of `sch` and completing with the same
+        async result ([async.ops]) as `s`, the behavior of calling
+        `connect(S, R)` is undefined.
+
+    3. Given subexpressions `s2` and `e`, where `s2` is a sender returned from
+       `schedule_from` or a copy of such, let `S2` be `decltype((s2))` and let
+       `E` be `decltype((e))`. Then the type of
+       `tag_invoke(get_completion_signatures, s2, e)` shall be:
 
         <pre highlight="c++">
         make_completion_signatures&lt;
@@ -5984,15 +6015,12 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
         <pre highlight="c++">
         template &lt;class... Ts>
         using <i>all-nothrow-decay-copyable</i> =
-          boolean_constant&lt;(is_nothrow_constructible_v&lt;decay_t&lt;Ts>, Ts> && ...)>;
-
-        template &lt;class... Ts>
-        using <i>conjunction</i> = boolean_constant<(Ts::value &&...)>;
+          conjunction&lt;is_nothrow_constructible&lt;decay_t&lt;Ts>, Ts>...>;
 
         using <i>potentially-throwing-completions</i> =
           conditional_t&lt;
             error_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>all-nothrow-decay-copyable</i>>::value &&
-              value_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>all-nothrow-decay-copyable</i>, <i>conjunction</i>>::value,
+              value_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>all-nothrow-decay-copyable</i>, conjunction>::value,
             completion_signatures&lt;>,
             completion_signatures&lt;set_error_t(exception_ptr)>;
 
@@ -6008,13 +6036,16 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 
 
 3. For a sender `t` returned from `schedule_from(sch, s)`, `get_env(t)` shall
-    return a queryable object `q` such that `get_completion_scheduler<CPO>(q)` returns
-    a copy of `sch`, where `CPO` is either `set_value_t` or `set_stopped_t`. The
-    `get_completion_scheduler<set_error_t>` query is not implemented, as the scheduler
-    cannot be guaranteed in case an error is thrown while trying to schedule work on
-    the given scheduler object. For all other query objects <code><i>Q</i></code>
-    whose type satisfies `forwarding_query`, the expression <code><i>Q</i>(q, args...)</code>
-    shall be equivalent to <code><i>Q</i>(get_env(s), args...)</code>.
+    return a queryable object `q` such that `get_domain(q)` is
+    expression-equivalent to `get_domain(sch)` and
+    `get_completion_scheduler<CPO>(q)` returns a copy of `sch`, where `CPO` is
+    either `set_value_t` or `set_stopped_t`. The
+    `get_completion_scheduler<set_error_t>` query is not implemented, as the
+    scheduler cannot be guaranteed in case an error is thrown while trying to
+    schedule work on the given scheduler object. For all other query objects
+    <code><i>Q</i></code> whose type satisfies `forwarding_query`, the
+    expression <code><i>Q</i>(q, args...)</code> shall be equivalent to
+    <code><i>Q</i>(get_env(s), args...)</code>.
 
 #### `execution::then` <b>[exec.then]</b> #### {#spec-execution.senders.adaptor.then}
 
