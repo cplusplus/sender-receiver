@@ -6748,26 +6748,25 @@ enum class forward_progress_guarantee {
 4. The name `this_thread::sync_wait` denotes a customization point object. For
     some subexpression `s`, let `S` be `decltype((s))`. If
     <code>sender_in&lt;S, <i>sync-wait-env</i>></code> is `false`,
-    or the number of the arguments <code>completion_signatures_of_t&lt;S,
-    <i>sync-wait-env</i>>::value_types</code> passed into the `Variant` template
-    parameter is not 1, `this_thread::sync_wait(s)` is ill-formed. Otherwise,
-    `this_thread::sync_wait(s)` is expression-equivalent to:
+    or if the type `completion_signatures_of_t&lt;S, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t>` is ill-formed,
+    `this_thread::sync_wait(s)` is ill-formed.
+    Otherwise, `this_thread::sync_wait(s)` is expression-equivalent to:
 
-    1. `tag_invoke(this_thread::sync_wait, get_completion_scheduler<set_value_t>(get_env(s)), s)`, if this expression is valid.
+    <pre highlight="c++">
+    apply_sender(<i>get_sender-domain</i>(s), sync_wait, s)
+    </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>></code>.
+    * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>></code>.
 
-    2. Otherwise, `tag_invoke(this_thread::sync_wait, s)`, if this expression is valid and its type is.
+5. Let <code><i>sync-wait-receiver</i></code> be a class type that satisfies `receiver`, let `r` be an xvalue of that type,
+   and let `cr` be a const lvalue refering to `r` such that `get_env(cr)` has type <code><i>sync-wait-env</i></code>.
+   If <code>sender_in&lt;S, <i>sync-wait-env</i>></code> is `false`, or if the type
+   <code>completion_signatures_of_t&lt;S, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t></code> is ill-formed,
+   the expression `sync_wait_t().apply_sender(s)` is ill-formed; otherwise it has the following effects:
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>></code>.
+        1. Calls `connect(s, r)`, resulting in an operation state `op_state`, then calls `start(op_state)`.
 
-    3. Otherwise:
-
-        1. Constructs a receiver `r`.
-
-        2. Calls `connect(s, r)`, resulting in an operation state `op_state`, then calls `start(op_state)`.
-
-        3. Blocks the current thread until a completion operation of `r` is executed. When it is:
+        2. Blocks the current thread until a completion operation of `r` is executed. When it is:
 
             1. If `set_value(r, ts...)` has been called, returns <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>>{<i>decayed-tuple</i>&lt;decltype(ts)...>{ts...}}</code>. If that expression exits exceptionally, the exception is propagated to the caller of `sync_wait`.
 
@@ -6775,22 +6774,20 @@ enum class forward_progress_guarantee {
 
             3. If `set_stopped(r)` has been called, returns <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>>{}</code>.
 
-5. The name `this_thread::sync_wait_with_variant` denotes a customization point
+6. The name `this_thread::sync_wait_with_variant` denotes a customization point
     object. For some subexpression `s`, let `S` be the type of
     `into_variant(s)`. If <code>sender_in&lt;S,
     <i>sync-wait-env</i>></code> is `false`,
     `this_thread::sync_wait_with_variant(s)` is ill-formed. Otherwise,
     `this_thread::sync_wait_with_variant(s)` is expression-equivalent to:
 
-    1. `tag_invoke(this_thread::sync_wait_with_variant, get_completion_scheduler<set_value_t>(get_env(s)), s)`, if this expression is valid.
+    <pre highlight="c++">
+    apply_sender(<i>get-sender-domain</i>(s), sync_wait_with_variant, s)
+    </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is <code><i>sync-wait-with-variant-type</i>&lt;S, <i>sync-wait-env</i>></code>.
+    * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-with-variant-type</i>&lt;S, <i>sync-wait-env</i>></code>.
 
-    2. Otherwise, `tag_invoke(this_thread::sync_wait_with_variant, s)`, if this expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is <code><i>sync-wait-with-variant-type</i>&lt;S, <i>sync-wait-env</i>></code>.
-
-    3. Otherwise, `this_thread::sync_wait(into_variant(s))`.
+7. The expression `sync_wait_with_variant_t().apply_sender(s)` is expression-equivalent to `this_thread::sync_wait(into_variant(s))`.
 
 ## `execution::execute` <b>[exec.execute]</b> ## {#spec-execution.execute}
 
