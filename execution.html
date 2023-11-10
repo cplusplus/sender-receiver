@@ -2246,7 +2246,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-10-17">2023-10-17</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-11-10">2023-11-10</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -7004,7 +7004,7 @@ context.</p>
      <p>For a subexpression <code class="highlight"><c- n>c</c-></code>, let <code class="highlight"><i><c- n>GET</c-><c- o>-</c-><c- n>AWAITER</c-></i><c- p>(</c-><c- n>c</c-><c- p>,</c-> <c- n>p</c-><c- p>)</c-></code> be
 expression-equivalent to the series of transformations and conversions
 applied to <code class="highlight"><c- n>c</c-></code> as the operand of an <em>await-expression</em> in a coroutine,
-resulting in lvalue <i><code class="highlight"><c- n>e</c-></code></i> as described by [expr.await]/3.2-4, where <code class="highlight"><c- n>p</c-></code> is an lvalue refering to the coroutine’s promise type, <code class="highlight"><c- n>P</c-></code>. <span class="wg21note">This includes the invocation of the promise type’s <code class="highlight"><c- n>await_transform</c-></code> member if any, the invocation of the <code class="highlight"><c- k>operator</c-> <c- k>co_await</c-></code> picked by overload resolution if any, and any necessary implicit
+resulting in lvalue <i><code class="highlight"><c- n>e</c-></code></i> as described by [expr.await]/3.2-4, where <code class="highlight"><c- n>p</c-></code> is an lvalue referring to the coroutine’s promise type, <code class="highlight"><c- n>P</c-></code>. <span class="wg21note">This includes the invocation of the promise type’s <code class="highlight"><c- n>await_transform</c-></code> member if any, the invocation of the <code class="highlight"><c- k>operator</c-> <c- k>co_await</c-></code> picked by overload resolution if any, and any necessary implicit
 conversions and materializations.</span></p>
      <div class="ed-note">I have opened <a href="https://github.com/cplusplus/CWG/issues/250">cwg#250</a> to give these
 transformations a term-of-art so we can more easily refer to it here.</div>
@@ -7306,7 +7306,7 @@ subexpression <code class="highlight"><c- n>s</c-></code> and pack of subexpress
 expression-equivalent to:</p>
      <ol>
       <li data-md>
-       <p><code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>transfer_just</c-><c- p>,</c-> <c- n>s</c-><c- p>,</c-> <c- n>vs</c-><c- p>...)</c-></code>, if that expression is valid. Let <code class="highlight"><c- n>as</c-></code> be a pack of rvalue subexpressions of types <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Vs</c-><c- o>></c-><c- p>...</c-></code> refering to objects direct-initilized from <code class="highlight"><c- n>vs</c-></code>. If the function
+       <p><code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>transfer_just</c-><c- p>,</c-> <c- n>s</c-><c- p>,</c-> <c- n>vs</c-><c- p>...)</c-></code>, if that expression is valid. Let <code class="highlight"><c- n>as</c-></code> be a pack of rvalue subexpressions of types <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Vs</c-><c- o>></c-><c- p>...</c-></code> referring to objects direct-initilized from <code class="highlight"><c- n>vs</c-></code>. If the function
 selected by <code class="highlight"><c- n>tag_invoke</c-></code> does not return a sender whose asynchronous
 operations execute value completion operations on an execution agent
 belonging to the execution resource associated with <code class="highlight"><c- n>s</c-></code>, with value result
@@ -7492,7 +7492,7 @@ let <code class="highlight"><c- n>args</c-><c- p>...</c-></code> be arguments su
      <p><code class="highlight"><c- n>on</c-></code> adapts an input sender into a sender that will start on an execution
 agent belonging to a particular scheduler’s associated execution resource.</p>
     <li data-md>
-     <p>Let <code class="highlight"><i><c- n>replace</c-><c- o>-</c-><c- n>scheduler</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> be an expression denoting an object <code class="highlight"><c- n>e</c->'</code> such that <code class="highlight"><c- n>get_scheduler</c-><c- p>(</c-><c- n>e</c-><c- p>)</c-></code> returns a copy of <code class="highlight"><c- n>sch</c-></code>, and <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>tag</c-><c- p>,</c-> <c- n>e</c->'<c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is expression-equivalent to <code class="highlight"><c- n>tag</c-><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> for all arguments <code class="highlight"><c- n>args</c-><c- p>...</c-></code> and for all <code class="highlight"><c- n>tag</c-></code> whose type satisfies <code class="highlight"><i><c- n>forwarding</c-><c- o>-</c-><c- n>query</c-></i></code> and is not <code class="highlight"><c- n>get_scheduler_t</c-></code>.</p>
+     <p>Let <code class="highlight"><i><c- n>replace</c-><c- o>-</c-><c- n>scheduler</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> be an expression denoting an object <code class="highlight"><c- n>e2</c-></code> such that <code class="highlight"><c- n>get_scheduler</c-><c- p>(</c-><c- n>e2</c-><c- p>)</c-></code> returns a copy of <code class="highlight"><c- n>sch</c-></code>, and <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>tag</c-><c- p>,</c-> <c- n>e2</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is expression-equivalent to <code class="highlight"><c- n>tag</c-><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> for all arguments <code class="highlight"><c- n>args</c-><c- p>...</c-></code> and for all <code class="highlight"><c- n>tag</c-></code> whose type satisfies <code class="highlight"><i><c- n>forwarding</c-><c- o>-</c-><c- n>query</c-></i></code> and is not <code class="highlight"><c- n>get_scheduler_t</c-></code>.</p>
     <li data-md>
      <p>The name <code class="highlight"><c- n>on</c-></code> denotes a customization point object. For some subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>s</c-></code>, let <code class="highlight"><c- n>Sch</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> and <code class="highlight"><c- n>S</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>Sch</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or <code class="highlight"><c- n>S</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, <code class="highlight"><c- n>on</c-></code> is ill-formed. Otherwise, the expression <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>s</c-><c- p>)</c-></code> is expression-equivalent to:</p>
      <ol>
@@ -7532,11 +7532,11 @@ completion operations to it. In addition, <code class="highlight"><c- n>get_env<
        </ol>
       <li data-md>
        <p>Given subexpressions <code class="highlight"><c- n>s1</c-></code> and <code class="highlight"><c- n>e</c-></code>, where <code class="highlight"><c- n>s1</c-></code> is a sender returned from <code class="highlight"><c- n>on</c-></code> or a copy of such, let <code class="highlight"><c- n>S1</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s1</c-><c- p>))</c-></code>.
-Let <code class="highlight"><c- n>E</c->'</code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><i><c- n>replace</c-><c- o>-</c-><c- n>scheduler</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>sch</c-><c- p>)))</c-></code>.
+Let <code class="highlight"><c- n>E2</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><i><c- n>replace</c-><c- o>-</c-><c- n>scheduler</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>sch</c-><c- p>)))</c-></code>.
 Then the type of <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>get_completion_signatures</c-><c- p>,</c-> <c- n>s1</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> shall be:</p>
 <pre class="highlight"><c- n>make_completion_signatures</c-><c- o>&lt;</c->
   <c- n>copy_cvref_t</c-><c- o>&lt;</c-><c- n>S1</c-><c- p>,</c-> <c- n>S</c-><c- o>></c-><c- p>,</c->
-  <c- n>E</c->'<c- p>,</c->
+  <c- n>E2</c-><c- p>,</c->
   <c- n>make_completion_signatures</c-><c- o>&lt;</c->
     <c- n>schedule_result_t</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-><c- p>,</c->
     <c- n>E</c-><c- p>,</c->
@@ -7600,10 +7600,10 @@ undefined.</p>
        <p>Otherwise, constructs a sender <code class="highlight"><c- n>s2</c-></code>. When <code class="highlight"><c- n>s2</c-></code> is connected with some receiver <code class="highlight"><c- n>out_r</c-></code>, it:</p>
        <ol>
         <li data-md>
-         <p>Constructs a receiver <code class="highlight"><c- n>r</c-></code> such that when a receiver completion operation <code class="highlight"><i><c- n>Tag</c-></i><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is called, it decay-copies <code class="highlight"><c- n>args</c-><c- p>...</c-></code> into <code class="highlight"><c- n>op_state</c-></code> (see below) as <code class="highlight"><c- n>args</c->'<c- p>...</c-></code> and constructs a receiver <code class="highlight"><c- n>r2</c-></code> such that:</p>
+         <p>Constructs a receiver <code class="highlight"><c- n>r</c-></code> such that when a receiver completion operation <code class="highlight"><i><c- n>Tag</c-></i><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is called, it decay-copies <code class="highlight"><c- n>args</c-><c- p>...</c-></code> into <code class="highlight"><c- n>op_state</c-></code> (see below) as <code class="highlight"><c- n>args2</c-><c- p>...</c-></code> and constructs a receiver <code class="highlight"><c- n>r2</c-></code> such that:</p>
          <ol>
           <li data-md>
-           <p>When <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r2</c-><c- p>)</c-></code> is called, it calls <code class="highlight"><i><c- n>Tag</c-></i><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>args</c->'<c- p>)...)</c-></code>.</p>
+           <p>When <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r2</c-><c- p>)</c-></code> is called, it calls <code class="highlight"><i><c- n>Tag</c-></i><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>args2</c-><c- p>)...)</c-></code>.</p>
           <li data-md>
            <p><code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r2</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code>.</p>
           <li data-md>
@@ -7668,68 +7668,74 @@ the given scheduler object. For all other query objects <code class="highlight">
      <p><code class="highlight"><c- n>then</c-></code> attaches an invocable as a continuation for an input sender’s value
 completion operation.</p>
     <li data-md>
-     <p>The name <code class="highlight"><c- n>then</c-></code> denotes a customization point object. For some
-subexpressions <code class="highlight"><c- n>s</c-></code> and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>S</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s</c-><c- p>))</c-></code>, let <code class="highlight"><c- n>F</c-></code> be the
-decayed type of <code class="highlight"><c- n>f</c-></code>, and let <code class="highlight"><c- n>f</c->'</code> be an xvalue refering to an object
-decay-copied from <code class="highlight"><c- n>f</c-></code>. If <code class="highlight"><c- n>S</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, or <code class="highlight"><c- n>F</c-></code> does not model <code class="highlight"><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i></code>, <code class="highlight"><c- n>then</c-></code> is
-ill-formed. Otherwise, the expression <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is
-expression-equivalent to:</p>
+     <p>The name <code class="highlight"><c- n>then</c-></code> denotes a customization point object. For some subexpressions <code class="highlight"><c- n>s</c-></code> and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>S</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s</c-><c- p>))</c-></code> and let <code class="highlight"><c- n>F</c-></code> be the decayed type of <code class="highlight"><c- n>f</c-></code>. If <code class="highlight"><c- n>S</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, or <code class="highlight"><c- n>F</c-></code> does not model <code class="highlight"><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i></code>, <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is ill-formed. Otherwise,
+the expression <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is expression-equivalent to:</p>
      <ol>
       <li data-md>
-       <p><code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>then</c-><c- p>,</c-> <c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- o>></c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>s</c-><c- p>)),</c-> <c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code>, if that expression is valid.</p>
+       <p><code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>then</c-><c- p>,</c-> <c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- o>></c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>s</c-><c- p>)),</c-> <c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code>,
+if that expression is valid.</p>
        <ul>
         <li data-md>
-         <p><i>Mandates:</i> The type of the <code class="highlight"><c- n>tag_invoke</c-></code> expression above satisfies <code class="highlight"><c- n>sender</c-></code>.</p>
+         <p><i>Mandates:</i> The type of the <code class="highlight"><c- n>tag_invoke</c-></code> expression above
+  satisfies <code class="highlight"><c- n>sender</c-></code>.</p>
        </ul>
       <li data-md>
        <p>Otherwise, <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>then</c-><c- p>,</c-> <c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code>, if that expression is valid.</p>
        <ul>
         <li data-md>
-         <p><i>Mandates:</i> The type of the <code class="highlight"><c- n>tag_invoke</c-></code> expression above satisfies <code class="highlight"><c- n>sender</c-></code>.</p>
+         <p><i>Mandates:</i> The type of the <code class="highlight"><c- n>tag_invoke</c-></code> expression above
+  satisfies <code class="highlight"><c- n>sender</c-></code>.</p>
        </ul>
       <li data-md>
-       <p>Otherwise, constructs a sender <code class="highlight"><c- n>s2</c-></code>. When <code class="highlight"><c- n>s2</c-></code> is connected with some receiver <code class="highlight"><c- n>out_r</c-></code>, it:</p>
+       <p>Otherwise, a sender expression <code class="highlight"><c- n>out_s</c-></code> such that when <code class="highlight"><c- n>out_s</c-></code> is
+   connected with some receiver <code class="highlight"><c- n>out_r</c-></code>, it returns an operation state <code class="highlight"><c- n>o</c-></code> containing copies of <code class="highlight"><c- n>f</c-></code> and <code class="highlight"><c- n>out_r</c-></code> and the result of calling <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>s2</c-><c- p>,</c-> <c- n>r</c-><c- p>)</c-></code>, where <code class="highlight"><c- n>s2</c-></code> is a reference to an object decay-copied
+   from <code class="highlight"><c- n>s</c-></code> and that has the same _cv_ qualifiers and value category as <code class="highlight"><c- n>out_s</c-></code>; and where <code class="highlight"><c- n>r</c-></code> is a receiver as described below.</p>
        <ol>
         <li data-md>
-         <p>Constructs a receiver <code class="highlight"><c- n>r</c-></code> such that:</p>
+         <p>Let <code class="highlight"><c- n>f2</c-></code> and <code class="highlight"><c- n>out_r2</c-></code> be xvalues referring respectively to the copies
+  of <code class="highlight"><c- n>f</c-></code> and <code class="highlight"><c- n>out_r</c-></code> in <code class="highlight"><c- n>o</c-></code>. The receiver <code class="highlight"><c- n>r</c-></code> behaves as follows:</p>
          <ol>
           <li data-md>
-           <p>When <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is called, let <code class="highlight"><c- n>v</c-></code> be the
-expression <code class="highlight"><c- n>invoke</c-><c- p>(</c-><c- n>f</c->'<c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>. If <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>v</c-><c- p>)</c-></code> is <code class="highlight"><c- b>void</c-></code>,
-calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>)</c-></code>; otherwise, it calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code>. If any of these throw an
-exception, it catches it and calls <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>current_exception</c-><c- p>())</c-></code>. If any of these expressions would be
-ill-formed, the expression <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is
-ill-formed.</p>
+           <p>When <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is called, let <code class="highlight"><c- n>v</c-></code> be the expression <code class="highlight"><c- n>invoke</c-><c- p>(</c-><c- n>f2</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>. If <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>v</c-><c- p>)</c-></code> is <code class="highlight"><c- b>void</c-></code>, evaluates <code class="highlight"><c- n>v</c-></code> and calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>)</c-></code>; otherwise, it calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r2</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code>. If any of these throw an exception, the
+exception is caught and <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_r2</c-><c- p>,</c-> <c- n>current_exception</c-><c- p>())</c-></code> is called. If any of these expressions would be ill-formed, the
+expression <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is ill-formed.</p>
           <li data-md>
-           <p><code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code>.</p>
+           <p><code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_r2</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code>.</p>
           <li data-md>
-           <p><code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>out_r</c-><c- p>)</c-></code>.</p>
+           <p><code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>out_r2</c-><c- p>)</c-></code>.</p>
          </ol>
         <li data-md>
-         <p>Returns an expression-equivalent to <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>r</c-><c- p>)</c-></code>.</p>
-        <li data-md>
-         <p>Let <code class="highlight"><i><c- n>compl</c-><c- o>-</c-><c- n>sig</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-></code> name the type <code class="highlight"><c- n>Tag</c-><c- p>()</c-></code> if <code class="highlight"><c- n>Args</c-><c- p>...</c-></code> is a template paramter pack containing the
-single type <code class="highlight"><c- b>void</c-></code>; otherwise, <code class="highlight"><c- n>Tag</c-><c- p>(</c-><c- n>Args</c-><c- p>...)</c-></code>. Given
-subexpressions <code class="highlight"><c- n>s2</c-></code> and <code class="highlight"><c- n>e</c-></code> where <code class="highlight"><c- n>s2</c-></code> is a sender returned from <code class="highlight"><c- n>then</c-></code> or a copy of such, let <code class="highlight"><c- n>S2</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s2</c-><c- p>))</c-></code> and let <code class="highlight"><c- n>E</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>e</c-><c- p>))</c-></code>. The type of <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>get_completion_signatures</c-><c- p>,</c-> <c- n>s2</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> shall be equivalent
-to:</p>
-<pre class="highlight"><c- n>make_completion_signatures</c-><c- o>&lt;</c->
-  <c- n>copy_cvref_t</c-><c- o>&lt;</c-><c- n>S2</c-><c- p>,</c-> <c- n>S</c-><c- o>></c-><c- p>,</c-> <c- n>E</c-><c- p>,</c-> <i><c- n>set</c-><c- o>-</c-><c- n>error</c-><c- o>-</c-><c- n>signature</c-></i><c- p>,</c->
-    <i><c- n>set</c-><c- o>-</c-><c- n>value</c-><c- o>-</c-><c- n>completions</c-></i><c- o>></c-><c- p>;</c->
-</pre>
-         <p>where <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>value</c-><c- o>-</c-><c- n>completions</c-></i></code> is an alias for:</p>
-<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>As</c-><c- o>></c->
-  <i><c- n>set</c-><c- o>-</c-><c- n>value</c-><c- o>-</c-><c- n>completions</c-></i> <c- o>=</c->
-    <c- n>completion_signatures</c-><c- o>&lt;</c-><i><c- n>compl</c-><c- o>-</c-><c- n>sig</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>,</c-> <c- n>invoke_result_t</c-><c- o>&lt;</c-><c- n>F</c-><c- p>,</c-> <c- n>As</c-><c- p>...</c-><c- o>>>></c->
-</pre>
-         <p>and <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>error</c-><c- o>-</c-><c- n>signature</c-></i></code> is an alias for <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>set_error_t</c-><c- p>(</c-><c- n>exception_ptr</c-><c- p>)</c-><c- o>></c-></code> if any of the types
-in the <code class="highlight"><i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i></code> named by <code class="highlight"><c- n>value_types_of_t</c-><c- o>&lt;</c-><c- n>copy_cvref_t</c-><c- o>&lt;</c-><c- n>S2</c-><c- p>,</c-> <c- n>S</c-><c- o>></c-><c- p>,</c-> <c- n>E</c-><c- p>,</c-> <i><c- n>potentially</c-><c- o>-</c-><c- n>throwing</c-></i><c- p>,</c-> <i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- o>></c-></code> are <code class="highlight"><c- n>true_type</c-></code>; otherwise, <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;></c-></code>, where <code class="highlight"><i><c- n>potentially</c-><c- o>-</c-><c- n>throwing</c-></i></code> is the template alias:</p>
-<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>As</c-><c- o>></c->
-  <c- k>using</c-> <i><c- n>potentially</c-><c- o>-</c-><c- n>throwing</c-></i> <c- o>=</c->
-    <c- n>bool_constant</c-><c- o>&lt;!</c-><c- n>is_nothrow_invocable_v</c-><c- o>&lt;</c-><c- n>F</c-><c- p>,</c-> <c- n>As</c-><c- p>...</c-><c- o>>></c-><c- p>;</c->
-</pre>
+         <p>Let <code class="highlight"><c- n>inner_op</c-></code> be a non-<code class="highlight"><c- k>const</c-></code> lvalue referring to the operation
+  state in <code class="highlight"><c- n>o</c-></code>. <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>o</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>inner_op</c-><c- p>)</c-></code>.</p>
        </ol>
      </ol>
-     <p>If the function selected above does not return a sender that invokes <code class="highlight"><c- n>f</c-></code> with the value result datums of <code class="highlight"><c- n>s</c-></code> using <code class="highlight"><c- n>f</c-></code>’s return value as the sender’s value completion, and forwards the non-value completion operations unchanged, the behavior of calling <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is undefined.</p>
+    <li data-md>
+     <p>Given subexpressions <code class="highlight"><c- n>out_s</c-></code> and <code class="highlight"><c- n>e</c-></code> where <code class="highlight"><c- n>out_s</c-></code> is a sender
+returned from <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> or a copy of such, let <code class="highlight"><c- n>OutS</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>out_s</c-><c- p>))</c-></code> and let <code class="highlight"><c- n>E</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>e</c-><c- p>))</c-></code>. The type of <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>get_completion_signatures</c-><c- p>,</c-> <c- n>out_s</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> shall be:</p>
+<pre class="highlight"><c- n>make_completion_signatures</c-><c- o>&lt;</c->
+  <i><c- n>clone</c-><c- o>-</c-><c- n>cvref</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>OutS</c-><c- p>,</c-> <c- n>S</c-><c- o>></c-><c- p>,</c-> <c- n>E</c-><c- p>,</c-> <i><c- n>set</c-><c- o>-</c-><c- n>error</c-><c- o>-</c-><c- n>signature</c-></i><c- p>,</c->
+    <i><c- n>set</c-><c- o>-</c-><c- n>value</c-><c- o>-</c-><c- n>completions</c-></i><c- o>></c-><c- p>;</c->
+</pre>
+     <p>where <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>value</c-><c- o>-</c-><c- n>completions</c-></i></code> is the alias
+template:</p>
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>As</c-><c- o>></c->
+  <c- k>using</c-> <i><c- n>set</c-><c- o>-</c-><c- n>value</c-><c- o>-</c-><c- n>completions</c-></i> <c- o>=</c->
+    <c- n>completion_signatures</c-><c- o>&lt;</c-><i><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-><c- o>-</c-><c- n>SIG</c-></i><c- p>(</c-><c- n>invoke_result_t</c-><c- o>&lt;</c-><c- n>F</c-><c- p>,</c-> <c- n>As</c-><c- p>...</c-><c- o>></c-><c- p>)</c-><c- o>></c->
+</pre>
+     <p>and <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>error</c-><c- o>-</c-><c- n>signature</c-></i></code> is an alias for <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>set_error_t</c-><c- p>(</c-><c- n>exception_ptr</c-><c- p>)</c-><c- o>></c-></code> if any of the
+types in the <code class="highlight"><i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i></code> named by <code class="highlight"><c- n>value_types_of_t</c-><c- o>&lt;</c-><i><c- n>clone</c-><c- o>-</c-><c- n>cvref</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>OutS</c-><c- p>,</c-> <c- n>S</c-><c- o>></c-><c- p>,</c-> <c- n>E</c-><c- p>,</c-> <i><c- n>potentially</c-><c- o>-</c-><c- n>throwing</c-></i><c- p>,</c-> <i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- o>></c-></code> are <code class="highlight"><c- n>true_type</c-></code>; otherwise, <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;></c-></code>, where <code class="highlight"><i><c- n>potentially</c-><c- o>-</c-><c- n>throwing</c-></i></code> is the template alias:</p>
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>As</c-><c- o>></c->
+  <c- k>using</c-> <i><c- n>potentially</c-><c- o>-</c-><c- n>throwing</c-></i> <c- o>=</c->
+    <c- n>negation</c-><c- o>&lt;</c-><c- n>is_nothrow_invocable</c-><c- o>&lt;</c-><c- n>F</c-><c- p>,</c-> <c- n>As</c-><c- p>...</c-><c- o>>></c-><c- p>;</c->
+</pre>
+    <li data-md>
+     <p>The expression <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> has undefined behavior unless it returns a sender <code class="highlight"><c- n>out_s</c-></code> that:</p>
+     <ol>
+      <li data-md>
+       <p>Invokes <code class="highlight"><c- n>f</c-></code> or a copy of such with the value result datums of <code class="highlight"><c- n>s</c-></code> using the result value of <code class="highlight"><c- n>f</c-></code> as <code class="highlight"><c- n>out_s</c-></code>’s value completion, and</p>
+      <li data-md>
+       <p>Forwards the non-value completion operations unchanged.</p>
+     </ol>
    </ol>
    <h5 class="heading settled" data-level="11.9.6.7" id="spec-execution.senders.adaptor.upon_error"><span class="secno">11.9.6.7. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_error</c-></code> <b>[exec.upon.error]</b></span><a class="self-link" href="#spec-execution.senders.adaptor.upon_error"></a></h5>
    <ol>
@@ -7739,7 +7745,7 @@ completion operation using the provided invocable.</p>
     <li data-md>
      <p>The name <code class="highlight"><c- n>upon_error</c-></code> denotes a customization point object. For
 some subexpressions <code class="highlight"><c- n>s</c-></code> and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>S</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s</c-><c- p>))</c-></code>, let <code class="highlight"><c- n>F</c-></code> be the
-decayed type of <code class="highlight"><c- n>f</c-></code>, and let <code class="highlight"><c- n>f</c->'</code> be an xvalue refering to an object
+decayed type of <code class="highlight"><c- n>f</c-></code>, and let <code class="highlight"><c- n>f2</c-></code> be an xvalue referring to an object
 decay-copied from <code class="highlight"><c- n>f</c-></code>. If <code class="highlight"><c- n>S</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, or <code class="highlight"><c- n>F</c-></code> does not model <code class="highlight"><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i></code>, <code class="highlight"><c- n>upon_error</c-></code> is
 ill-formed. Otherwise, the expression <code class="highlight"><c- n>upon_error</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is
 expression-equivalent to:</p>
@@ -7766,7 +7772,7 @@ expression-equivalent to:</p>
            <p><code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is expression-equivalent to <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>.</p>
           <li data-md>
            <p>When <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is called, let <code class="highlight"><c- n>v</c-></code> be the
-expression <code class="highlight"><c- n>invoke</c-><c- p>(</c-><c- n>f</c->'<c- p>,</c-> <c- n>e</c-><c- p>)</c-></code>. If <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>v</c-><c- p>)</c-></code> is <code class="highlight"><c- b>void</c-></code>, calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>)</c-></code>; otherwise, it calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code>. If any of these throw an
+expression <code class="highlight"><c- n>invoke</c-><c- p>(</c-><c- n>f2</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code>. If <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>v</c-><c- p>)</c-></code> is <code class="highlight"><c- b>void</c-></code>, calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>)</c-></code>; otherwise, it calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code>. If any of these throw an
 exception, it catches it and calls <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>current_exception</c-><c- p>())</c-></code>. If any of these expressions would be
 ill-formed, the expression <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is
 ill-formed.</p>
@@ -7776,7 +7782,7 @@ ill-formed.</p>
         <li data-md>
          <p>Returns an expression-equivalent to <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>r</c-><c- p>)</c-></code>.</p>
         <li data-md>
-         <p>Let <code class="highlight"><i><c- n>compl</c-><c- o>-</c-><c- n>sig</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-></code> name the type <code class="highlight"><c- n>Tag</c-><c- p>()</c-></code> if <code class="highlight"><c- n>Args</c-><c- p>...</c-></code> is a template paramter pack containing the
+         <p>Let <code class="highlight"><i><c- n>compl</c-><c- o>-</c-><c- n>sig</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-></code> name the type <code class="highlight"><c- n>Tag</c-><c- p>()</c-></code> if <code class="highlight"><c- n>Args</c-><c- p>...</c-></code> is a template parameter pack containing the
 single type <code class="highlight"><c- b>void</c-></code>; otherwise, <code class="highlight"><c- n>Tag</c-><c- p>(</c-><c- n>Args</c-><c- p>...)</c-></code>. Given
 subexpressions <code class="highlight"><c- n>s2</c-></code> and <code class="highlight"><c- n>e</c-></code> where <code class="highlight"><c- n>s2</c-></code> is a sender returned from <code class="highlight"><c- n>upon_error</c-></code> or a copy of such, let <code class="highlight"><c- n>S2</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s2</c-><c- p>))</c-></code> and let <code class="highlight"><c- n>E</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>e</c-><c- p>))</c-></code>. The type of <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>get_completion_signatures</c-><c- p>,</c-> <c- n>s2</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> shall be equivalent
 to:</p>
@@ -7807,7 +7813,7 @@ value completion operation using the provided invocable.</p>
     <li data-md>
      <p>The name <code class="highlight"><c- n>upon_stopped</c-></code> denotes a customization point object. For
 some subexpressions <code class="highlight"><c- n>s</c-></code> and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>S</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s</c-><c- p>))</c-></code>, let <code class="highlight"><c- n>F</c-></code> be the
-decayed type of <code class="highlight"><c- n>f</c-></code>, and let <code class="highlight"><c- n>f</c->'</code> be an xvalue refering to an object
+decayed type of <code class="highlight"><c- n>f</c-></code>, and let <code class="highlight"><c- n>f2</c-></code> be an xvalue referring to an object
 decay-copied from <code class="highlight"><c- n>f</c-></code>. If <code class="highlight"><c- n>S</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, or <code class="highlight"><c- n>F</c-></code> does not model both <code class="highlight"><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i></code> and <code class="highlight"><c- n>invocable</c-></code>, <code class="highlight"><c- n>upon_stopped</c-></code> is ill-formed. Otherwise, the expression <code class="highlight"><c- n>upon_stopped</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is expression-equivalent to:</p>
      <ol>
       <li data-md>
@@ -7834,7 +7840,7 @@ decay-copied from <code class="highlight"><c- n>f</c-></code>. If <code class="h
            <p><code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code>.</p>
           <li data-md>
            <p>When <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> is called, let <code class="highlight"><c- n>v</c-></code> be the
-expression <code class="highlight"><c- n>invoke</c-><c- p>(</c-><c- n>f</c->'<c- p>)</c-></code>. If <code class="highlight"><c- n>v</c-></code> has type <code class="highlight"><c- b>void</c-></code>, calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>)</c-></code>; otherwise, calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code>. If any of these throw an
+expression <code class="highlight"><c- n>invoke</c-><c- p>(</c-><c- n>f2</c-><c- p>)</c-></code>. If <code class="highlight"><c- n>v</c-></code> has type <code class="highlight"><c- b>void</c-></code>, calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>)</c-></code>; otherwise, calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code>. If any of these throw an
 exception, it catches it and calls <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_r</c-><c- p>,</c-> <c- n>current_exception</c-><c- p>())</c-></code>. If any of these expressions would be
 ill-formed, the expression <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> is
 ill-formed.</p>
@@ -7842,7 +7848,7 @@ ill-formed.</p>
         <li data-md>
          <p>Returns an expression-equivalent to <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>r</c-><c- p>)</c-></code>.</p>
         <li data-md>
-         <p>Let <code class="highlight"><i><c- n>compl</c-><c- o>-</c-><c- n>sig</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-></code> name the type <code class="highlight"><c- n>Tag</c-><c- p>()</c-></code> if <code class="highlight"><c- n>Args</c-><c- p>...</c-></code> is a template paramter pack containing the
+         <p>Let <code class="highlight"><i><c- n>compl</c-><c- o>-</c-><c- n>sig</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-></code> name the type <code class="highlight"><c- n>Tag</c-><c- p>()</c-></code> if <code class="highlight"><c- n>Args</c-><c- p>...</c-></code> is a template parameter pack containing the
 single type <code class="highlight"><c- b>void</c-></code>; otherwise, <code class="highlight"><c- n>Tag</c-><c- p>(</c-><c- n>Args</c-><c- p>...)</c-></code>. Given
 subexpressions <code class="highlight"><c- n>s2</c-></code> and <code class="highlight"><c- n>e</c-></code> where <code class="highlight"><c- n>s2</c-></code> is a sender returned from <code class="highlight"><c- n>upon_stopped</c-></code> or a copy of such, let <code class="highlight"><c- n>S2</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s2</c-><c- p>))</c-></code> and let <code class="highlight"><c- n>E</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>e</c-><c- p>))</c-></code>. The type of <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>get_completion_signatures</c-><c- p>,</c-> <c- n>s2</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> shall be equivalent
 to:</p>
@@ -7868,7 +7874,7 @@ stopped completion into a new child asynchronous operation.</p>
     <li data-md>
      <p>The names <code class="highlight"><c- n>let_value</c-></code>, <code class="highlight"><c- n>let_error</c-></code>, and <code class="highlight"><c- n>let_stopped</c-></code> denote customization point objects.
 Let the expression <code class="highlight"><i><c- n>let</c-><c- o>-</c-><c- n>cpo</c-></i></code> be one of <code class="highlight"><c- n>let_value</c-></code>, <code class="highlight"><c- n>let_error</c-></code>, or <code class="highlight"><c- n>let_stopped</c-></code>.
-For subexpressions <code class="highlight"><c- n>s</c-></code> and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>S</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s</c-><c- p>))</c-></code>, let <code class="highlight"><c- n>F</c-></code> be the decayed type of <code class="highlight"><c- n>f</c-></code>, and let <code class="highlight"><c- n>f</c->'</code> be an xvalue that refers to an object decay-copied from <code class="highlight"><c- n>f</c-></code>.
+For subexpressions <code class="highlight"><c- n>s</c-></code> and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>S</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s</c-><c- p>))</c-></code>, let <code class="highlight"><c- n>F</c-></code> be the decayed type of <code class="highlight"><c- n>f</c-></code>, and let <code class="highlight"><c- n>f2</c-></code> be an xvalue that refers to an object decay-copied from <code class="highlight"><c- n>f</c-></code>.
 If <code class="highlight"><c- n>S</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, the expression <code class="highlight"><i><c- n>let</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is ill-formed.
 If <code class="highlight"><c- n>F</c-></code> does not satisfy <code class="highlight"><c- n>invocable</c-></code>, the expression <code class="highlight"><c- n>let_stopped</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is ill-formed.
 Otherwise, the expression <code class="highlight"><i><c- n>let</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is expression-equivalent to:</p>
@@ -7886,7 +7892,7 @@ Otherwise, the expression <code class="highlight"><i><c- n>let</c-><c- o>-</c-><
          <p><i>Mandates:</i> The type of the <code class="highlight"><c- n>tag_invoke</c-></code> expression above satisfies <code class="highlight"><c- n>sender</c-></code>.</p>
        </ul>
       <li data-md>
-       <p>Otherwise, given a receiver <code class="highlight"><c- n>out_r</c-></code> and an lvalue <code class="highlight"><c- n>out_r</c->'</code> refering to an object decay-copied from <code class="highlight"><c- n>out_r</c-></code>.</p>
+       <p>Otherwise, given a receiver <code class="highlight"><c- n>out_r</c-></code> and an lvalue <code class="highlight"><c- n>out_r</c->'</code> referring to an object decay-copied from <code class="highlight"><c- n>out_r</c-></code>.</p>
        <ol>
         <li data-md>
          <p>For <code class="highlight"><c- n>let_value</c-></code>, let <code class="highlight"><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></code> be <code class="highlight"><c- n>set_value</c-></code>.
@@ -7897,7 +7903,7 @@ Let <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>function</
          <p>Let <code class="highlight"><c- n>r</c-></code> be an rvalue of a receiver type <code class="highlight"><c- n>R</c-></code> such that:</p>
          <ol>
           <li data-md>
-           <p>When <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is called, the receiver <code class="highlight"><c- n>r</c-></code> decay-copies <code class="highlight"><c- n>args</c-><c- p>...</c-></code> into <code class="highlight"><c- n>op_state2</c-></code> as <code class="highlight"><c- n>args</c->'<c- p>...</c-></code>, then calls <code class="highlight"><c- n>invoke</c-><c- p>(</c-><c- n>f</c->'<c- p>,</c-> <c- n>args</c->'<c- p>...)</c-></code>, resulting in a sender <code class="highlight"><c- n>s3</c-></code>.
+           <p>When <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is called, the receiver <code class="highlight"><c- n>r</c-></code> decay-copies <code class="highlight"><c- n>args</c-><c- p>...</c-></code> into <code class="highlight"><c- n>op_state2</c-></code> as <code class="highlight"><c- n>args2</c-><c- p>...</c-></code>, then calls <code class="highlight"><c- n>invoke</c-><c- p>(</c-><c- n>f2</c-><c- p>,</c-> <c- n>args2</c-><c- p>...)</c-></code>, resulting in a sender <code class="highlight"><c- n>s3</c-></code>.
 It then calls <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>s3</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>out_r</c->'<c- p>))</c-></code>, resulting in an operation state <code class="highlight"><c- n>op_state3</c-></code>. <code class="highlight"><c- n>op_state3</c-></code> is saved as a part of <code class="highlight"><c- n>op_state2</c-></code>.
 It then calls <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>op_state3</c-><c- p>)</c-></code>.
 If any of these throws an exception, it catches it and calls <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>out_r</c->'<c- p>),</c-> <c- n>current_exception</c-><c- p>())</c-></code>.
@@ -7993,7 +7999,7 @@ equivalent to:</p>
          </ol>
        </ol>
       <li data-md>
-       <p>If the function selected above does not return a sender that invokes <code class="highlight"><c- n>f</c-><c- p>(</c-><c- n>i</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> for each <code class="highlight"><c- n>i</c-></code> of type <code class="highlight"><c- n>Shape</c-></code> from <code class="highlight"><c- mi>0</c-></code> to <code class="highlight"><c- n>shape</c-></code> where <code class="highlight"><c- n>args</c-></code> is a pack of subexpressions refering to the value completion
+       <p>If the function selected above does not return a sender that invokes <code class="highlight"><c- n>f</c-><c- p>(</c-><c- n>i</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> for each <code class="highlight"><c- n>i</c-></code> of type <code class="highlight"><c- n>Shape</c-></code> from <code class="highlight"><c- mi>0</c-></code> to <code class="highlight"><c- n>shape</c-></code> where <code class="highlight"><c- n>args</c-></code> is a pack of subexpressions referring to the value completion
 result datums of the input sender, or does not execute a value
 completion operation with said datums, the behavior of calling <code class="highlight"><c- n>bulk</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>shape</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is undefined.</p>
      </ol>
@@ -9027,8 +9033,8 @@ several other template arguments that apply modifications to the sender’s
 completion signatures to generate a new specialization of <code class="highlight"><c- n>completion_signatures</c-></code>.</p>
     <li data-md>
      <p>[<i>Example:</i></p>
-<pre class="highlight"><c- c1>// Given a sender S and an environment Env, adapt S’s completion</c->
-<c- c1>// signatures by lvalue-ref qualifying the values, adding an additional</c->
+<pre class="highlight"><c- c1>// Given a sender S and an environment Env, adapt the completion</c->
+<c- c1>// signatures of S by lvalue-ref qualifying the values, adding an additional</c->
 <c- c1>// exception_ptr error completion if its not already there, and leaving the</c->
 <c- c1>// other completion signatures alone.</c->
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
