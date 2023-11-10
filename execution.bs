@@ -4932,7 +4932,7 @@ enum class forward_progress_guarantee {
     expression-equivalent to the series of transformations and conversions
     applied to `c` as the operand of an *await-expression* in a coroutine,
     resulting in lvalue <i>`e`</i> as described by [expr.await]/3.2-4, where `p`
-    is an lvalue refering to the coroutine's promise type, `P`. <span
+    is an lvalue referring to the coroutine's promise type, `P`. <span
     class="wg21note">This includes the invocation of the promise type's
     `await_transform` member if any, the invocation of the `operator co_await`
     picked by overload resolution if any, and any necessary implicit
@@ -5264,7 +5264,7 @@ enum class forward_progress_guarantee {
 
     1. `tag_invoke(transfer_just, s, vs...)`, if that expression is valid. Let
         `as` be a pack of rvalue subexpressions of types `decay_t<Vs>...`
-        refering to objects direct-initilized from `vs`. If the function
+        referring to objects direct-initilized from `vs`. If the function
         selected by `tag_invoke` does not return a sender whose asynchronous
         operations execute value completion operations on an execution agent
         belonging to the execution resource associated with `s`, with value result
@@ -5466,7 +5466,7 @@ enum class forward_progress_guarantee {
 1. `on` adapts an input sender into a sender that will start on an execution
     agent belonging to a particular scheduler's associated execution resource.
 
-2. Let <code><i>replace-scheduler</i>(e, sch)</code> be an expression denoting an object `e'` such that `get_scheduler(e)` returns a copy of `sch`, and `tag_invoke(tag, e', args...)` is expression-equivalent to `tag(e, args...)`
+2. Let <code><i>replace-scheduler</i>(e, sch)</code> be an expression denoting an object `e2` such that `get_scheduler(e2)` returns a copy of `sch`, and `tag_invoke(tag, e2, args...)` is expression-equivalent to `tag(e, args...)`
     for all arguments `args...` and for all `tag` whose type satisfies <code><i>forwarding-query</i></code> and is not `get_scheduler_t`.
 
 3. The name `on` denotes a customization point object. For some subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If `Sch` does not satisfy `scheduler`, or `S` does not satisfy `sender`,
@@ -5502,13 +5502,13 @@ enum class forward_progress_guarantee {
         6. The lifetime of `op_state2`, once constructed, lasts until either `op_state3` is constructed or `op_state1` is destroyed, whichever comes first. The lifetime of `op_state3`, once constructed, lasts until `op_state1` is destroyed.
 
     3. Given subexpressions `s1` and `e`, where `s1` is a sender returned from `on` or a copy of such, let `S1` be `decltype((s1))`.
-        Let `E'` be <code>decltype((<i>replace-scheduler</i>(e, sch)))</code>.
+        Let `E2` be <code>decltype((<i>replace-scheduler</i>(e, sch)))</code>.
         Then the type of `tag_invoke(get_completion_signatures, s1, e)` shall be:
 
         <pre highlight="c++">
         make_completion_signatures&lt;
           copy_cvref_t&lt;S1, S>,
-          E',
+          E2,
           make_completion_signatures&lt;
             schedule_result_t&lt;Sch>,
             E,
@@ -5569,9 +5569,9 @@ enum class forward_progress_guarantee {
 
     2. Otherwise, constructs a sender `s2`. When `s2` is connected with some receiver `out_r`, it:
 
-        1. Constructs a receiver `r` such that when a receiver completion operation <code><i>Tag</i>(r, args...)</code> is called, it decay-copies `args...` into `op_state` (see below) as `args'...` and constructs a receiver `r2` such that:
+        1. Constructs a receiver `r` such that when a receiver completion operation <code><i>Tag</i>(r, args...)</code> is called, it decay-copies `args...` into `op_state` (see below) as `args2...` and constructs a receiver `r2` such that:
 
-            1. When `set_value(r2)` is called, it calls <code><i>Tag</i>(out_r, std::move(args')...)</code>.
+            1. When `set_value(r2)` is called, it calls <code><i>Tag</i>(out_r, std::move(args2)...)</code>.
 
             2. `set_error(r2, e)` is expression-equivalent to `set_error(out_r, e)`.
 
@@ -5643,78 +5643,89 @@ enum class forward_progress_guarantee {
 1. `then` attaches an invocable as a continuation for an input sender's value
     completion operation.
 
-2. The name `then` denotes a customization point object. For some
-    subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
-    decayed type of `f`, and let `f'` be an xvalue refering to an object
-    decay-copied from `f`. If `S` does not satisfy `sender`, or `F`
-    does not model <code><i>movable-value</i></code>, `then` is
-    ill-formed. Otherwise, the expression `then(s, f)` is
-    expression-equivalent to:
+2. The name `then` denotes a customization point object. For some subexpressions
+    `s` and `f`, let `S` be `decltype((s))` and let `F` be the decayed type of
+    `f`. If `S` does not satisfy `sender`, or `F` does not model
+    <code><i>movable-value</i></code>, `then(s, f)` is ill-formed. Otherwise,
+    the expression `then(s, f)` is expression-equivalent to:
 
-    1. `tag_invoke(then, get_completion_scheduler<set_value_t>(get_env(s)), s, f)`, if that expression is valid.
+    1. `tag_invoke(then, get_completion_scheduler<set_value_t>(get_env(s)), s, f)`,
+        if that expression is valid.
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
+        * <i>Mandates:</i> The type of the `tag_invoke` expression above
+          satisfies `sender`.
 
     2. Otherwise, `tag_invoke(then, s, f)`, if that expression is valid.
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
+        * <i>Mandates:</i> The type of the `tag_invoke` expression above
+          satisfies `sender`.
 
-    3. Otherwise, constructs a sender `s2`. When `s2` is connected with some receiver `out_r`, it:
+    3. Otherwise, a sender expression `out_s` such that when `out_s` is
+       connected with some receiver `out_r`, it returns an operation state `o`
+       containing copies of `f` and `out_r` and the result of calling
+       `connect(s2, r)`, where `s2` is a reference to an object decay-copied
+       from `s` and that has the same _cv_ qualifiers and value category as
+       `out_s`; and where `r` is a receiver as described below.
 
-        1. Constructs a receiver `r` such that:
+        1. Let `f2` and `out_r2` be xvalues referring respectively to the copies
+          of `f` and `out_r` in `o`. The receiver `r` behaves as follows:
 
-            1. When `set_value(r, args...)` is called, let `v` be the
-                expression `invoke(f', args...)`. If `decltype(v)` is `void`,
-                calls `set_value(out_r)`; otherwise, it calls
-                `set_value(out_r, v)`. If any of these throw an
-                exception, it catches it and calls `set_error(out_r,
-                current_exception())`. If any of these expressions would be
-                ill-formed, the expression `set_value(r, args...)` is
-                ill-formed.
+            1. When `set_value(r, args...)` is called, let `v` be the expression
+                `invoke(f2, args...)`. If `decltype(v)` is `void`, evaluates `v`
+                and calls `set_value(out_r)`; otherwise, it calls
+                `set_value(out_r2, v)`. If any of these throw an exception, the
+                exception is caught and `set_error(out_r2, current_exception())`
+                is called. If any of these expressions would be ill-formed, the
+                expression `set_value(r, args...)` is ill-formed.
 
-            2. `set_error(r, e)` is expression-equivalent to `set_error(out_r, e)`.
+            2. `set_error(r, e)` is expression-equivalent to `set_error(out_r2, e)`.
 
-            3. `set_stopped(r)` is expression-equivalent to `set_stopped(out_r)`.
+            3. `set_stopped(r)` is expression-equivalent to `set_stopped(out_r2)`.
 
-        2. Returns an expression-equivalent to `connect(s, r)`.
+        2. Let `inner_op` be a non-`const` lvalue referring to the operation
+          state in `o`. `start(o)` is expression-equivalent to `start(inner_op)`.
 
-        3. Let <code><i>compl-sig-t</i>&lt;Tag, Args...></code> name the type
-            `Tag()` if `Args...` is a template paramter pack containing the
-            single type `void`; otherwise, `Tag(Args...)`. Given
-            subexpressions `s2` and `e` where `s2` is a sender returned from
-            `then` or a copy of such, let `S2` be `decltype((s2))` and let
-            `E` be `decltype((e))`. The type of
-            `tag_invoke(get_completion_signatures, s2, e)` shall be equivalent
-            to:
+3. Given subexpressions `out_s` and `e` where `out_s` is a sender
+    returned from `then(s, f)` or a copy of such, let `OutS` be
+    `decltype((out_s))` and let `E` be `decltype((e))`. The type of
+    `tag_invoke(get_completion_signatures, out_s, e)` shall be:
 
-            <pre highlight="c++">
-            make_completion_signatures&lt;
-              copy_cvref_t&lt;S2, S>, E, <i>set-error-signature</i>,
-                <i>set-value-completions</i>>;
-            </pre>
+    <pre highlight="c++">
+    make_completion_signatures&lt;
+      <i>clone-cvref-t</i>&lt;OutS, S>, E, <i>set-error-signature</i>,
+        <i>set-value-completions</i>>;
+    </pre>
 
-            where <code><i>set-value-completions</i></code> is an alias for:
+    where <code><i>set-value-completions</i></code> is the alias
+    template:
 
-            <pre highlight="c++">
-            template&lt;class... As>
-              <i>set-value-completions</i> =
-                completion_signatures&lt;<i>compl-sig-t</i>&lt;set_value_t, invoke_result_t&lt;F, As...>>>
-            </pre>
+    <pre highlight="c++">
+    template&lt;class... As>
+      using <i>set-value-completions</i> =
+        completion_signatures&lt;<i>SET-VALUE-SIG</i>(invoke_result_t&lt;F, As...>)>
+    </pre>
 
-            and <code><i>set-error-signature</i></code> is an alias for
-            `completion_signatures<set_error_t(exception_ptr)>` if any of the types
-            in the <code><i>type-list</i></code> named by
-            <code>value_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>potentially-throwing</i>, <i>type-list</i>></code>
-            are `true_type`; otherwise, `completion_signatures<>`, where
-            <code><i>potentially-throwing</i></code> is the template alias:
+    and <code><i>set-error-signature</i></code> is an alias for
+    `completion_signatures<set_error_t(exception_ptr)>` if any of the
+    types in the <code><i>type-list</i></code> named by
+    <code>value_types_of_t&lt;<i>clone-cvref-t</i>&lt;OutS, S>, E,
+    <i>potentially-throwing</i>, <i>type-list</i>></code> are
+    `true_type`; otherwise, `completion_signatures<>`, where
+    <code><i>potentially-throwing</i></code> is the template alias:
 
-            <pre highlight="c++">
-            template&lt;class... As>
-              using <i>potentially-throwing</i> =
-                bool_constant&lt;!is_nothrow_invocable_v&lt;F, As...>>;
-            </pre>
+    <pre highlight="c++">
+    template&lt;class... As>
+      using <i>potentially-throwing</i> =
+        negation&lt;is_nothrow_invocable&lt;F, As...>>;
+    </pre>
 
-    If the function selected above does not return a sender that invokes `f` with the value result datums of `s` using `f`'s return value as the sender's value completion, and forwards the non-value completion operations unchanged, the behavior of calling `then(s, f)` is undefined.
+4. The expression `then(s, f)` has undefined behavior unless it returns a sender
+   `out_s` that:
+
+    1. Invokes `f` or a copy of such with the value result datums of `s`
+        using the result value of `f` as `out_s`'s value completion, and
+
+    2. Forwards the non-value completion operations unchanged.
 
 #### `execution::upon_error` <b>[exec.upon.error]</b> #### {#spec-execution.senders.adaptor.upon_error}
 
@@ -5723,7 +5734,7 @@ enum class forward_progress_guarantee {
 
 2. The name `upon_error` denotes a customization point object. For
     some subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
-    decayed type of `f`, and let `f'` be an xvalue refering to an object
+    decayed type of `f`, and let `f2` be an xvalue referring to an object
     decay-copied from `f`. If `S` does not satisfy `sender`, or `F`
     does not model <code><i>movable-value</i></code>, `upon_error` is
     ill-formed. Otherwise, the expression `upon_error(s, f)` is
@@ -5745,7 +5756,7 @@ enum class forward_progress_guarantee {
                 `set_value(out_r, args...)`.
 
             2. When `set_error(r, e)` is called, let `v` be the
-                expression `invoke(f', e)`. If `decltype(v)` is `void`, calls
+                expression `invoke(f2, e)`. If `decltype(v)` is `void`, calls
                 `set_value(out_r)`; otherwise, it calls
                 `set_value(out_r, v)`. If any of these throw an
                 exception, it catches it and calls `set_error(out_r,
@@ -5759,7 +5770,7 @@ enum class forward_progress_guarantee {
         2. Returns an expression-equivalent to `connect(s, r)`.
 
         3. Let <code><i>compl-sig-t</i>&lt;Tag, Args...></code> name the type
-            `Tag()` if `Args...` is a template paramter pack containing the
+            `Tag()` if `Args...` is a template parameter pack containing the
             single type `void`; otherwise, `Tag(Args...)`. Given
             subexpressions `s2` and `e` where `s2` is a sender returned from
             `upon_error` or a copy of such, let `S2` be `decltype((s2))` and let
@@ -5803,7 +5814,7 @@ enum class forward_progress_guarantee {
 
 2. The name `upon_stopped` denotes a customization point object. For
     some subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
-    decayed type of `f`, and let `f'` be an xvalue refering to an object
+    decayed type of `f`, and let `f2` be an xvalue referring to an object
     decay-copied from `f`. If `S` does not satisfy `sender`, or `F`
     does not model both <code><i>movable-value</i></code> and `invocable`,
     `upon_stopped` is ill-formed. Otherwise, the expression
@@ -5826,7 +5837,7 @@ enum class forward_progress_guarantee {
             2. `set_error(r, e)` is expression-equivalent to `set_error(out_r, e)`.
 
             1. When `set_stopped(r)` is called, let `v` be the
-                expression `invoke(f')`. If `v` has type `void`, calls
+                expression `invoke(f2)`. If `v` has type `void`, calls
                 `set_value(out_r)`; otherwise, calls
                 `set_value(out_r, v)`. If any of these throw an
                 exception, it catches it and calls `set_error(out_r,
@@ -5837,7 +5848,7 @@ enum class forward_progress_guarantee {
         2. Returns an expression-equivalent to `connect(s, r)`.
 
         3. Let <code><i>compl-sig-t</i>&lt;Tag, Args...></code> name the type
-            `Tag()` if `Args...` is a template paramter pack containing the
+            `Tag()` if `Args...` is a template parameter pack containing the
             single type `void`; otherwise, `Tag(Args...)`. Given
             subexpressions `s2` and `e` where `s2` is a sender returned from
             `upon_stopped` or a copy of such, let `S2` be `decltype((s2))` and let
@@ -5875,7 +5886,7 @@ enum class forward_progress_guarantee {
 
 2. The names `let_value`, `let_error`, and `let_stopped` denote customization point objects.
     Let the expression <code><i>let-cpo</i></code> be one of `let_value`, `let_error`, or `let_stopped`.
-    For subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the decayed type of `f`, and let `f'` be an xvalue that refers to an object decay-copied from `f`.
+    For subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the decayed type of `f`, and let `f2` be an xvalue that refers to an object decay-copied from `f`.
     If `S` does not satisfy `sender`, the expression <code><i>let-cpo</i>(s, f)</code> is ill-formed.
     If `F` does not satisfy `invocable`, the expression `let_stopped(s, f)` is ill-formed.
     Otherwise, the expression
@@ -5889,7 +5900,7 @@ enum class forward_progress_guarantee {
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
 
-    3. Otherwise, given a receiver `out_r` and an lvalue `out_r'` refering to an object decay-copied from `out_r`.
+    3. Otherwise, given a receiver `out_r` and an lvalue `out_r'` referring to an object decay-copied from `out_r`.
 
         1. For `let_value`, let `set-cpo` be `set_value`.
             For `let_error`, let `set-cpo` be `set_error`.
@@ -5898,7 +5909,7 @@ enum class forward_progress_guarantee {
 
         2. Let `r` be an rvalue of a receiver type `R` such that:
 
-            1. When <code><i>set-cpo</i>(r, args...)</code> is called, the receiver `r` decay-copies `args...` into `op_state2` as `args'...`, then calls `invoke(f', args'...)`, resulting in a sender `s3`.
+            1. When <code><i>set-cpo</i>(r, args...)</code> is called, the receiver `r` decay-copies `args...` into `op_state2` as `args2...`, then calls `invoke(f2, args2...)`, resulting in a sender `s3`.
                 It then calls `connect(s3, std::move(out_r'))`, resulting in an operation state `op_state3`.
                 `op_state3` is saved as a part of `op_state2`.
                 It then calls `start(op_state3)`.
@@ -6013,7 +6024,7 @@ enum class forward_progress_guarantee {
 
     4. If the function selected above does not return a sender that invokes
         `f(i, args...)` for each `i` of type `Shape` from `0` to `shape` where
-        `args` is a pack of subexpressions refering to the value completion
+        `args` is a pack of subexpressions referring to the value completion
         result datums of the input sender, or does not execute a value
         completion operation with said datums, the behavior of calling `bulk(s,
         shape, f)` is undefined.
@@ -7108,8 +7119,8 @@ enum class forward_progress_guarantee {
 
 2. [<i>Example:</i>
     <pre highlight="c++">
-    // Given a sender S and an environment Env, adapt S's completion
-    // signatures by lvalue-ref qualifying the values, adding an additional
+    // Given a sender S and an environment Env, adapt the completion
+    // signatures of S by lvalue-ref qualifying the values, adding an additional
     // exception_ptr error completion if its not already there, and leaving the
     // other completion signatures alone.
     template&lt;class... Args>
