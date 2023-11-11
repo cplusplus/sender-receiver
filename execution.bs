@@ -256,8 +256,8 @@ This example builds an asynchronous computation of an inclusive scan:
 ```c++
 using namespace std::execution;
 
-sender_of<set_value_t(std::size_t)> auto async_read(                          // 1
-    sender_of<set_value_t(std::span<std::byte>)> auto buffer,                 // 1
+sender_of<std::size_t> auto async_read(                                       // 1
+    sender_of<std::span<std::byte>> auto buffer,                              // 1
     auto handle);                                                             // 1
 
 struct dynamic_buffer {                                                       // 3
@@ -265,7 +265,7 @@ struct dynamic_buffer {                                                       //
   std::size_t size;                                                           // 3
 };                                                                            // 3
 
-sender_of<set_value_t(dynamic_buffer)> auto async_read_array(auto handle) {   // 2
+sender_of<dynamic_buffer> auto async_read_array(auto handle) {                // 2
   return just(dynamic_buffer{})                                               // 4
        | let_value([handle] (dynamic_buffer& buf) {                           // 5
            return just(std::as_writeable_bytes(std::span(&buf.size, 1))       // 6
@@ -4204,9 +4204,6 @@ namespace std::execution {
   template&lt;class S, class R>
     concept sender_to = <i>see-below</i>;
 
-  template &ltclass S, class Sig, class E = empty_env>
-    concept sender_of = <i>see below</i>;
-
   template&lt;class... Ts>
     struct <i>type-list</i>; // exposition only
 
@@ -4666,7 +4663,7 @@ enum class forward_progress_guarantee {
 
 2. Let `S` be the type of a scheduler and let `E` be the type of an execution
     environment for which `sender_in<schedule_result_t<S>, E>` is `true`. Then
-    `sender_of<schedule_result_t<S>, set_value_t(), E>` shall be `true`.
+    <code><i>sender-of-in</i>&lt;schedule_result_t&lt;S>, E></code> shall be `true`.
 
 3. None of a scheduler's copy constructor, destructor, equality comparison, or
     `swap` member functions shall exit via an exception.
@@ -4866,49 +4863,24 @@ enum class forward_progress_guarantee {
     for types that do not. Such specializations shall be usable in constant
     expressions ([expr.const]) and have type `const bool`.
 
-4. The `sender_of` concept defines the requirements for a sender type that
-    completes with the completion signature specified for the given completion
-    function.
+4. The exposition-only concepts <code><i>sender-of</i></code> and
+    <code><i>sender-of-in</i></code> define the requirements for a sender
+    type that completes with a given unique set of value result types.
 
     <pre highlight="c++">
-    template&lt;class> struct <i>sender-of-helper</i>; <i>// exposition only</i>
-    template&lt;class R, class... As>
-      struct <i>sender-of-helper</i>&lt;R(As...)> {
-        using <i>tag</i> = R;
+    template&lt;class... As>
+      using <i>value-signature</i> = set_value_t(As...); <i>// exposition only</i>
 
-        template&lt;class... Bs>
-          using <i>as-sig</i> = R(Bs...);
-      };
-
-    template&lt;class S, class Sig, class E = empty_env>
-      concept sender_of =
+    template&lt;class S, class E, class... Values>
+      concept <i>sender-of-in</i> =
         sender_in&lt;S, E> &&
         <i>MATCHING-SIG</i>( <i>// see [exec.general]</i>
-          Sig,
-          <i>gather-signatures</i>&lt;  <i>// see [exec.utils.cmplsigs]</i>
-            typename <i>sender-of-helper</i>&lt;Sig>::<i>tag</i>,
-            S, E,
-            <i>sender-of-helper</i>&lt;Sig>::template <i>as-sig</i>, type_identity_t>);
+          set_value_t(Values...),
+          value_types_of_t&lt;S, E, <i>value-signature</i>, type_identity_t>);
+
+    template&lt;class S, class... Values>
+      concept <i>sender-of</i> = <i>sender-of-in</i>&lt;S, empty_env, Values...>;
     </pre>
-
-    1. [*Example:*
-        <pre highlight="c++">
-        auto s1 = just() | then([]{});
-        using S1 = decltype(s1);
-
-        static_assert(sender_of&lt;S1, set_value_t()>);
-        static_assert(sender_of&lt;S1, set_error_t(exception_ptr)>);
-        static_assert(!sender_of&lt;S1, set_stopped_t()>);
-
-        auto s2 = s1 | let_error([](auto) { return just('a'); });
-        using S2 = decltype(s2);
-
-        static_assert(!sender_of&lt;S2, set_value_t()>);
-        static_assert(!sender_of&lt;S2, set_value_t(char)>);
-        static_assert(!sender_of&lt;S2, set_error_t(exception_ptr)>);
-        static_assert(!sender_of&lt;S2, set_stopped_t()>);
-        </pre>
-        -- *end example*]
 
 5. For a type `T`, <code><i>SET-VALUE-SIG</i>(T)</code> names the type
     `set_value_t()` if `T` is *cv* `void`; otherwise, it names the type
@@ -5271,7 +5243,7 @@ enum class forward_progress_guarantee {
         datums `as`, the behavior of calling `transfer_just(s, vs...)` is
         undefined.
 
-        * <i>Mandates:</i> `sender_of<R, set_value_t(decay_t<Vs>...), E>`,
+        * <i>Mandates:</i> <code><i>sender-of-in</i>&lt;R, E, decay_t&lt;Vs>...></code>,
             where `R` is the type of the `tag_invoke` expression above, and
             `E` is the type of an environment.
 
@@ -7258,11 +7230,19 @@ enum class forward_progress_guarantee {
   class <i>run-loop-sender</i>;
   </pre>
 
-  1. <code><i>run-loop-sender</i></code> is an unspecified type such that <code>sender_of&lt;<i>run-loop-sender</i>, set_value_t()></code> is `true`. Additionally, the types reported by its `error_types` associated type is `exception_ptr`, and the value of its `sends_stopped` trait is `true`.
+  1. <code><i>run-loop-sender</i></code> is an unspecified type such that
+     <code><i>sender-of</i>&lt;<i>run-loop-sender</i>></code> is `true`.
+     Additionally, the types reported by its `error_types` associated type is
+     `exception_ptr`, and the value of its `sends_stopped` trait is `true`.
 
-  2. An instance of <code><i>run-loop-sender</i></code> remains valid until the end of the lifetime of its associated `run_loop` instance.
+  2. An instance of <code><i>run-loop-sender</i></code> remains valid until the
+     end of the lifetime of its associated `run_loop` instance.
 
-  3. Let <code><i>s</i></code> be an expression of type <code><i>run-loop-sender</i></code>, let <code><i>r</i></code> be an expression such that <code>decltype(<i>r</i>)</code> models the `receiver_of` concept, and let `C` be either `set_value_t` or `set_stopped_t`. Then:
+  3. Let <code><i>s</i></code> be an expression of type
+     <code><i>run-loop-sender</i></code>, let <code><i>r</i></code> be an
+     expression such that <code>decltype(<i>r</i>)</code> models the
+     `receiver_of` concept, and let `C` be either `set_value_t` or
+     `set_stopped_t`. Then:
 
     * The expression <code>connect(<i>s</i>, <i>r</i>)</code> has type <code><i>run-loop-opstate</i>&lt;decay_t&lt;decltype(<i>r</i>)>></code> and is potentially-throwing if and only if the initialiation of <code>decay_t&lt;decltype(<i>r</i>)></code> from <code><i>r</i></code> is potentially-throwing.
 
