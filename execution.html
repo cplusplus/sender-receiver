@@ -2246,7 +2246,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-11-10">2023-11-10</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-11-20">2023-11-20</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -7638,35 +7638,38 @@ the given scheduler object. For all other query objects <code class="highlight">
      <p><code class="highlight"><c- n>then</c-></code> attaches an invocable as a continuation for an input sender’s value
 completion operation.</p>
     <li data-md>
-     <p>The name <code class="highlight"><c- n>then</c-></code> denotes a customization point object. For some subexpressions <code class="highlight"><c- n>s</c-></code> and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>S</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s</c-><c- p>))</c-></code> and let <code class="highlight"><c- n>F</c-></code> be the decayed type of <code class="highlight"><c- n>f</c-></code>. If <code class="highlight"><c- n>S</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, or <code class="highlight"><c- n>F</c-></code> does not model <code class="highlight"><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i></code>, <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is ill-formed. Otherwise,
-the expression <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is expression-equivalent to:</p>
+     <p>The name <code class="highlight"><c- n>then</c-></code> denotes a customization point object. For some subexpressions <code class="highlight"><c- n>s</c-></code> and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>S</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>s</c-><c- p>))</c-></code> and let <code class="highlight"><c- n>F</c-></code> be the decayed type of <code class="highlight"><c- n>f</c-></code>. If <code class="highlight"><c- n>S</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, or <code class="highlight"><c- n>F</c-></code> does not model <code class="highlight"><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i></code>, <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is ill-formed.</p>
+    <li data-md>
+     <p>Otherwise, the expression <code class="highlight"><c- n>then</c-><c- p>(</c-><c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is expression-equivalent to:</p>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>then</c-><c- p>,</c-> <c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- o>></c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>s</c-><c- p>)),</c-> <c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code>,
-if that expression is valid.</p>
+if that expression is valid, except that <code class="highlight"><c- n>s</c-></code> is evaluated only once.</p>
        <ul>
         <li data-md>
          <p><i>Mandates:</i> The type of the <code class="highlight"><c- n>tag_invoke</c-></code> expression above
-  satisfies <code class="highlight"><c- n>sender</c-></code>.</p>
+satisfies <code class="highlight"><c- n>sender</c-></code>.</p>
        </ul>
       <li data-md>
        <p>Otherwise, <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>then</c-><c- p>,</c-> <c- n>s</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code>, if that expression is valid.</p>
        <ul>
         <li data-md>
          <p><i>Mandates:</i> The type of the <code class="highlight"><c- n>tag_invoke</c-></code> expression above
-  satisfies <code class="highlight"><c- n>sender</c-></code>.</p>
+satisfies <code class="highlight"><c- n>sender</c-></code>.</p>
        </ul>
       <li data-md>
-       <p>Otherwise, a sender expression <code class="highlight"><c- n>out_s</c-></code> such that when <code class="highlight"><c- n>out_s</c-></code> is
-   connected with some receiver <code class="highlight"><c- n>out_r</c-></code>, it returns an operation state <code class="highlight"><c- n>o</c-></code> containing copies of <code class="highlight"><c- n>f</c-></code> and <code class="highlight"><c- n>out_r</c-></code> and the result of calling <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>s2</c-><c- p>,</c-> <c- n>r</c-><c- p>)</c-></code>, where <code class="highlight"><c- n>s2</c-></code> is a reference to an object decay-copied
-   from <code class="highlight"><c- n>s</c-></code> and that has the same _cv_ qualifiers and value category as <code class="highlight"><c- n>out_s</c-></code>; and where <code class="highlight"><c- n>r</c-></code> is a receiver as described below.</p>
+       <p>Otherwise, a non-<code class="highlight"><c- k>const</c-></code> prvalue <code class="highlight"><c- n>out_s</c-></code>. Let <code class="highlight"><c- n>out_s2</c-></code> be a reference to <code class="highlight"><c- n>out_s</c-></code> or an object copied from it. When <code class="highlight"><c- n>out_s2</c-></code> is connected with some
+receiver <code class="highlight"><c- n>out_r</c-></code>, <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>out_s2</c-><c- p>,</c-> <c- n>out_r</c-><c- p>)</c-></code> returns an operation state <code class="highlight"><c- n>o</c-></code> containing copies of <code class="highlight"><c- n>f</c-></code>, <code class="highlight"><c- n>out_r</c-></code>, and the result of <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>s2</c-><c- p>,</c-> <c- n>r</c-><c- p>)</c-></code>,
+where <code class="highlight"><c- n>s2</c-></code> is a reference to an object decay-copied from <code class="highlight"><c- n>s</c-></code> and that has
+the same <em>cv</em> qualifiers and value category as <code class="highlight"><c- n>out_s2</c-></code>; and where <code class="highlight"><c- n>r</c-></code> is
+a receiver as described below.</p>
        <ol>
         <li data-md>
-         <p>Let <code class="highlight"><c- n>f2</c-></code> and <code class="highlight"><c- n>out_r2</c-></code> be xvalues referring respectively to the copies
-  of <code class="highlight"><c- n>f</c-></code> and <code class="highlight"><c- n>out_r</c-></code> in <code class="highlight"><c- n>o</c-></code>. The receiver <code class="highlight"><c- n>r</c-></code> behaves as follows:</p>
+         <p>Let <code class="highlight"><c- n>f2</c-></code> and <code class="highlight"><c- n>out_r2</c-></code> be xvalues subexpressions designating
+respectively to the copies of <code class="highlight"><c- n>f</c-></code> and <code class="highlight"><c- n>out_r</c-></code> in <code class="highlight"><c- n>o</c-></code>. The receiver <code class="highlight"><c- n>r</c-></code> behaves as follows:</p>
          <ol>
           <li data-md>
-           <p>When <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is called, let <code class="highlight"><c- n>v</c-></code> be the expression <code class="highlight"><c- n>invoke</c-><c- p>(</c-><c- n>f2</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>. If <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>v</c-><c- p>)</c-></code> is <code class="highlight"><c- b>void</c-></code>, evaluates <code class="highlight"><c- n>v</c-></code> and calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>)</c-></code>; otherwise, it calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r2</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code>. If any of these throw an exception, the
+           <p>When <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is called, let <code class="highlight"><c- n>v</c-></code> be the expression <code class="highlight"><c- n>invoke</c-><c- p>(</c-><c- n>f2</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>. If <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>v</c-><c- p>)</c-></code> is <code class="highlight"><c- b>void</c-></code>, evaluates <code class="highlight"><c- n>v</c-></code> and calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r</c-><c- p>)</c-></code>; otherwise, calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_r2</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code>. If any of these throw an exception, the
 exception is caught and <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_r2</c-><c- p>,</c-> <c- n>current_exception</c-><c- p>())</c-></code> is called. If any of these expressions would be ill-formed, the
 expression <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is ill-formed.</p>
           <li data-md>
@@ -7676,7 +7679,7 @@ expression <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><
          </ol>
         <li data-md>
          <p>Let <code class="highlight"><c- n>inner_op</c-></code> be a non-<code class="highlight"><c- k>const</c-></code> lvalue referring to the operation
-  state in <code class="highlight"><c- n>o</c-></code>. <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>o</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>inner_op</c-><c- p>)</c-></code>.</p>
+state in <code class="highlight"><c- n>o</c-></code>. <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>o</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>inner_op</c-><c- p>)</c-></code>.</p>
        </ol>
      </ol>
     <li data-md>
