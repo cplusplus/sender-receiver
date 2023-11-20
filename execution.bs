@@ -5618,33 +5618,36 @@ enum class forward_progress_guarantee {
 2. The name `then` denotes a customization point object. For some subexpressions
     `s` and `f`, let `S` be `decltype((s))` and let `F` be the decayed type of
     `f`. If `S` does not satisfy `sender`, or `F` does not model
-    <code><i>movable-value</i></code>, `then(s, f)` is ill-formed. Otherwise,
-    the expression `then(s, f)` is expression-equivalent to:
+    <code><i>movable-value</i></code>, `then(s, f)` is ill-formed.
+
+3. Otherwise, the expression `then(s, f)` is expression-equivalent to:
 
     1. `tag_invoke(then, get_completion_scheduler<set_value_t>(get_env(s)), s, f)`,
-        if that expression is valid.
+        if that expression is valid, except that `s` is evaluated only once.
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above
-          satisfies `sender`.
+            satisfies `sender`.
 
     2. Otherwise, `tag_invoke(then, s, f)`, if that expression is valid.
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above
-          satisfies `sender`.
+            satisfies `sender`.
 
-    3. Otherwise, a sender expression `out_s` such that when `out_s` is
-       connected with some receiver `out_r`, it returns an operation state `o`
-       containing copies of `f` and `out_r` and the result of calling
-       `connect(s2, r)`, where `s2` is a reference to an object decay-copied
-       from `s` and that has the same _cv_ qualifiers and value category as
-       `out_s`; and where `r` is a receiver as described below.
+    3. Otherwise, a non-`const` prvalue `out_s`. Let `out_s2` be a reference to
+        `out_s` or an object copied from it. When `out_s2` is connected with some
+        receiver `out_r`, `connect(out_s2, out_r)` returns an operation state `o`
+        containing copies of `f`, `out_r`, and the result of `connect(s2, r)`,
+        where `s2` is a reference to an object decay-copied from `s` and that has
+        the same *cv* qualifiers and value category as `out_s2`; and where `r` is
+        a receiver as described below.
 
-        1. Let `f2` and `out_r2` be xvalues referring respectively to the copies
-          of `f` and `out_r` in `o`. The receiver `r` behaves as follows:
+        1. Let `f2` and `out_r2` be xvalues subexpressions designating
+            respectively to the copies of `f` and `out_r` in `o`. The receiver `r`
+            behaves as follows:
 
             1. When `set_value(r, args...)` is called, let `v` be the expression
                 `invoke(f2, args...)`. If `decltype(v)` is `void`, evaluates `v`
-                and calls `set_value(out_r)`; otherwise, it calls
+                and calls `set_value(out_r)`; otherwise, calls
                 `set_value(out_r2, v)`. If any of these throw an exception, the
                 exception is caught and `set_error(out_r2, current_exception())`
                 is called. If any of these expressions would be ill-formed, the
@@ -5655,9 +5658,9 @@ enum class forward_progress_guarantee {
             3. `set_stopped(r)` is expression-equivalent to `set_stopped(out_r2)`.
 
         2. Let `inner_op` be a non-`const` lvalue referring to the operation
-          state in `o`. `start(o)` is expression-equivalent to `start(inner_op)`.
+            state in `o`. `start(o)` is expression-equivalent to `start(inner_op)`.
 
-3. Given subexpressions `out_s` and `e` where `out_s` is a sender
+4. Given subexpressions `out_s` and `e` where `out_s` is a sender
     returned from `then(s, f)` or a copy of such, let `OutS` be
     `decltype((out_s))` and let `E` be `decltype((e))`. The type of
     `tag_invoke(get_completion_signatures, out_s, e)` shall be:
@@ -5691,8 +5694,8 @@ enum class forward_progress_guarantee {
         negation&lt;is_nothrow_invocable&lt;F, As...>>;
     </pre>
 
-4. The expression `then(s, f)` has undefined behavior unless it returns a sender
-   `out_s` that:
+5. The expression `then(s, f)` has undefined behavior unless it returns a sender
+    `out_s` that:
 
     1. Invokes `f` or a copy of such with the value result datums of `s`
         using the result value of `f` as `out_s`'s value completion, and
