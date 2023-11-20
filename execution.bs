@@ -256,8 +256,8 @@ This example builds an asynchronous computation of an inclusive scan:
 ```c++
 using namespace std::execution;
 
-sender_of<set_value_t(std::size_t)> auto async_read(                          // 1
-    sender_of<set_value_t(std::span<std::byte>)> auto buffer,                 // 1
+sender_of<std::size_t> auto async_read(                                       // 1
+    sender_of<std::span<std::byte>> auto buffer,                              // 1
     auto handle);                                                             // 1
 
 struct dynamic_buffer {                                                       // 3
@@ -265,7 +265,7 @@ struct dynamic_buffer {                                                       //
   std::size_t size;                                                           // 3
 };                                                                            // 3
 
-sender_of<set_value_t(dynamic_buffer)> auto async_read_array(auto handle) {   // 2
+sender_of<dynamic_buffer> auto async_read_array(auto handle) {                // 2
   return just(dynamic_buffer{})                                               // 4
        | let_value([handle] (dynamic_buffer& buf) {                           // 5
            return just(std::as_writeable_bytes(std::span(&buf.size, 1))       // 6
@@ -4210,9 +4210,6 @@ namespace std::execution {
   template&lt;class S, class R>
     concept sender_to = <i>see-below</i>;
 
-  template &ltclass S, class Sig, class E = empty_env>
-    concept sender_of = <i>see below</i>;
-
   template&lt;class... Ts>
     struct <i>type-list</i>; // exposition only
 
@@ -4577,9 +4574,9 @@ namespace std::execution {
 1. `get_domain` asks an object for an associated execution domain tag.
 
 2. The name `get_domain` denotes a query object. For some subexpression `r`,
-   `get_domain(r)` is expression-equivalent to
-   <code><i>mandate-nothrow-call</i>(tag_invoke, get_domain, as_const(r))</code>,
-   if this expression is well-formed.
+    `get_domain(r)` is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, get_domain, as_const(r))</code>,
+    if this expression is well-formed.
 
 3. `std::forwarding_query(execution::get_domain)` is `true`.
 
@@ -4704,7 +4701,7 @@ enum class forward_progress_guarantee {
 
 2. Let `S` be the type of a scheduler and let `E` be the type of an execution
     environment for which `sender_in<schedule_result_t<S>, E>` is `true`. Then
-    `sender_of<schedule_result_t<S>, set_value_t(), E>` shall be `true`.
+    <code><i>sender-of-in</i>&lt;schedule_result_t&lt;S>, E></code> shall be `true`.
 
 3. None of a scheduler's copy constructor, destructor, equality comparison, or
     `swap` member functions shall exit via an exception.
@@ -4883,7 +4880,7 @@ enum class forward_progress_guarantee {
             - `return get_domain(env);` if that expression is well-formed,
 
             - otherwise, `return get_domain(tag(env));` if that expression is
-              well-formed,
+                well-formed,
 
             - otherwise, `return default_domain();`.
 
@@ -5011,52 +5008,27 @@ enum class forward_progress_guarantee {
     for types that do not. Such specializations shall be usable in constant
     expressions ([expr.const]) and have type `const bool`.
 
-4. The `sender_of` concept defines the requirements for a sender type that
-    completes with the completion signature specified for the given completion
-    function.
+4. The exposition-only concepts <code><i>sender-of</i></code> and
+    <code><i>sender-of-in</i></code> define the requirements for a sender
+    type that completes with a given unique set of value result types.
 
     <pre highlight="c++">
-    template&lt;class> struct <i>sender-of-helper</i>; <i>// exposition only</i>
-    template&lt;class R, class... As>
-      struct <i>sender-of-helper</i>&lt;R(As...)> {
-        using <i>tag</i> = R;
+    template&lt;class... As>
+      using <i>value-signature</i> = set_value_t(As...); <i>// exposition only</i>
 
-        template&lt;class... Bs>
-          using <i>as-sig</i> = R(Bs...);
-      };
-
-    template&lt;class S, class Sig, class E = empty_env>
-      concept sender_of =
+    template&lt;class S, class E, class... Values>
+      concept <i>sender-of-in</i> =
         sender_in&lt;S, E> &&
         <i>MATCHING-SIG</i>( <i>// see [exec.general]</i>
-          Sig,
-          <i>gather-signatures</i>&lt;  <i>// see [exec.utils.cmplsigs]</i>
-            typename <i>sender-of-helper</i>&lt;Sig>::<i>tag</i>,
-            S, E,
-            <i>sender-of-helper</i>&lt;Sig>::template <i>as-sig</i>, type_identity_t>);
+          set_value_t(Values...),
+          value_types_of_t&lt;S, E, <i>value-signature</i>, type_identity_t>);
+
+    template&lt;class S, class... Values>
+      concept <i>sender-of</i> = <i>sender-of-in</i>&lt;S, empty_env, Values...>;
     </pre>
 
-    1. [*Example:*
-        <pre highlight="c++">
-        auto s1 = just() | then([]{});
-        using S1 = decltype(s1);
-
-        static_assert(sender_of&lt;S1, set_value_t()>);
-        static_assert(sender_of&lt;S1, set_error_t(exception_ptr)>);
-        static_assert(!sender_of&lt;S1, set_stopped_t()>);
-
-        auto s2 = s1 | let_error([](auto) { return just('a'); });
-        using S2 = decltype(s2);
-
-        static_assert(!sender_of&lt;S2, set_value_t()>);
-        static_assert(!sender_of&lt;S2, set_value_t(char)>);
-        static_assert(!sender_of&lt;S2, set_error_t(exception_ptr)>);
-        static_assert(!sender_of&lt;S2, set_stopped_t()>);
-        </pre>
-        -- *end example*]
-
 5. Let `s` be an expression such that `decltype((s))` is `S`. The type
-   `tag_of_t<S>` is as follows:
+    `tag_of_t<S>` is as follows:
 
       - If the declaration `auto&& [tag, data, ...children] = s;` would be
         well-formed, `tag_of_t<S>` is an alias for `decltype(auto(tag))`.
@@ -5101,7 +5073,7 @@ enum class forward_progress_guarantee {
     expression-equivalent to the series of transformations and conversions
     applied to `c` as the operand of an *await-expression* in a coroutine,
     resulting in lvalue <i>`e`</i> as described by [expr.await]/3.2-4, where `p`
-    is an lvalue refering to the coroutine's promise type, `P`. <span
+    is an lvalue referring to the coroutine's promise type, `P`. <span
     class="wg21note">This includes the invocation of the promise type's
     `await_transform` member if any, the invocation of the `operator co_await`
     picked by overload resolution if any, and any necessary implicit
@@ -5213,7 +5185,7 @@ template &lt;sender Sender, class... Env>
 </pre>
 
 1. <i>Returns:</i> `tag_of_t<Sender>().transform_sender(std::forward<Sender>(sndr), env...)`
-  if that expression is well-formed; otherwise, `std::forward<Sender>(sndr)`.
+    if that expression is well-formed; otherwise, `std::forward<Sender>(sndr)`.
 
 2. <i>Remarks:</i> The exception specification is equivalent to:
 
@@ -5229,7 +5201,7 @@ template &lt;sender Sender, class Env>
 </pre>
 
 3. <i>Returns:</i> `tag_of_t<Sender>().transform_env(std::forward<Sender>(sndr), std::forward<Env>(env))`
-  if that expression is well-formed; otherwise, `static_cast<Env>(std::forward<Env>(env))`.
+    if that expression is well-formed; otherwise, `static_cast<Env>(std::forward<Env>(env))`.
 
 4. <i>Mandates:</i> The selected expression in <i>Returns:</i> is not potentially throwing.
 
@@ -5239,8 +5211,8 @@ template &lt;class Tag, sender Sender, class... Args>
 </pre>
 
 5. <i>Returns:</i> `Tag().apply_sender(std::forward<Sender>(sndr), std::forward<Args>(args)...)`
-  if that expression is well-formed; otherwise, this function shall not participate
-  in overload resolution.
+    if that expression is well-formed; otherwise, this function shall not participate
+    in overload resolution.
 
 6. <i>Remarks:</i> The exception specification is equivalent to:
 
@@ -5580,7 +5552,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     datums `as`, the behavior of calling `connect(S, R)` is
     undefined.
 
-        * <i>Mandates:</i> `sender_of<S, set_value_t(decay_t<Vs>...), E>`,
+        * <i>Mandates:</i> <code><i>sender-of-in</i>&lt;R, E, decay_t&lt;Vs>...></code>,
             where `S` is the type of `transfer_just(sch, vs...)`, and
             `E` is the type of an environment.
 
@@ -5799,9 +5771,9 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     agent belonging to a particular scheduler's associated execution resource.
 
 2. Let <code><i>replace-scheduler</i>(e, sch)</code> be an expression denoting
-an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
-    `get_domain(e')` is expression-equivalent to `get_domain(sch)`, and
-    `tag_invoke(tag, e', args...)` is expression-equivalent to `tag(e, args...)`
+    an object `e2` such that `get_scheduler(e2)` returns a copy of `sch`,
+    `get_domain(e2)` is expression-equivalent to `get_domain(sch)`, and
+    `tag_invoke(tag, e2, args...)` is expression-equivalent to `tag(e, args...)`
     for all arguments `args...` and for all `tag` whose type satisfies
     <code><i>forwarding-query</i></code> and is not `get_scheduler_t` or
     `get_domain_t`.
@@ -5851,19 +5823,19 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
     6. The lifetime of `op_state2`, once constructed, lasts until either `op_state3` is constructed or `op_state1` is destroyed, whichever comes first. The lifetime of `op_state3`, once constructed, lasts until `op_state1` is destroyed.
 
 5. Let `s` and `e` be subexpressions such that `S` is `decltype((s))`. If 
-   <code><i>sender-for</i>&lt;S, on_t></code> is `false`, then the expression
-   `on_t().transform_env(s, e)` is ill-formed;
-   otherwise, let `sch` be the scheduler used to construct `s`.
-   `on_t().transform_env(s, e)` is equal to <code><i>replace-scheduler</i>(e, sch)</code>.
+    <code><i>sender-for</i>&lt;S, on_t></code> is `false`, then the expression
+    `on_t().transform_env(s, e)` is ill-formed;
+    otherwise, let `sch` be the scheduler used to construct `s`.
+    `on_t().transform_env(s, e)` is equal to <code><i>replace-scheduler</i>(e, sch)</code>.
 
 6. Given subexpressions `s1` and `e`, where `s1` is a sender returned from `on` or a copy of such, let `S1` be `decltype((s1))`.
-    Let `E'` be <code>decltype((<i>replace-scheduler</i>(e, sch)))</code>.
+    Let `E2` be <code>decltype((<i>replace-scheduler</i>(e, sch)))</code>.
     Then the type of `tag_invoke(get_completion_signatures, s1, e)` shall be:
 
     <pre highlight="c++">
     make_completion_signatures&lt;
       copy_cvref_t&lt;S1, S>,
-      E',
+      E2,
       make_completion_signatures&lt;
         schedule_result_t&lt;Sch>,
         E,
@@ -5877,8 +5849,8 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 #### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
 
 1. `transfer` adapts a sender into a sender with a different associated
-   `set_value` completion scheduler. <span class="wg21note">It results in a
-   transition between different execution resources when executed.</span>
+    `set_value` completion scheduler. <span class="wg21note">It results in a
+    transition between different execution resources when executed.</span>
 
 2. The name `transfer` denotes a customization point object. For some
     subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be
@@ -5954,12 +5926,12 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
     1. When `s2` is connected with some receiver `out_r`, it:
 
         1. Constructs a receiver `r` such that when a receiver completion
-           operation <code><i>Tag</i>(r, args...)</code> is called, it
-           decay-copies `args...` into `op_state` (see below) as `args'...` and
-           constructs a receiver `r2` such that:
+            operation <code><i>Tag</i>(r, args...)</code> is called, it
+            decay-copies `args...` into `op_state` (see below) as `args2...` and
+            constructs a receiver `r2` such that:
 
             1. When `set_value(r2)` is called, it calls
-               <code><i>Tag</i>(out_r, std::move(args')...)</code>.
+                <code><i>Tag</i>(out_r, std::move(args2)...)</code>.
 
             2. `set_error(r2, e)` is expression-equivalent to `set_error(out_r, e)`.
 
@@ -5975,12 +5947,12 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
             ill-formed, then <code><i>Tag</i>(r, args...)</code> is ill-formed.
 
         2. Calls `connect(s, r)` resulting in an operation state `op_state2`. If
-           this expression would be ill-formed, `connect(s2, out_r)` is
-           ill-formed.
+            this expression would be ill-formed, `connect(s2, out_r)` is
+            ill-formed.
 
         3. Returns an operation state `op_state` that contains `op_state2`. When
-           `start(op_state)` is called, calls `start(op_state2)`. The lifetime
-           of `op_state3` ends when `op_state` is destroyed.
+            `start(op_state)` is called, calls `start(op_state2)`. The lifetime
+            of `op_state3` ends when `op_state` is destroyed.
 
     2. If a sender `S` returned from `schedule_from(sch, s)` is connected with a
         receiver `R` with environmment `E` such that
@@ -5991,9 +5963,9 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
         `connect(S, R)` is undefined.
 
     3. Given subexpressions `s2` and `e`, where `s2` is a sender returned from
-       `schedule_from` or a copy of such, let `S2` be `decltype((s2))` and let
-       `E` be `decltype((e))`. Then the type of
-       `tag_invoke(get_completion_signatures, s2, e)` shall be:
+        `schedule_from` or a copy of such, let `S2` be `decltype((s2))` and let
+        `E` be `decltype((e))`. Then the type of
+        `tag_invoke(get_completion_signatures, s2, e)` shall be:
 
         <pre highlight="c++">
         make_completion_signatures&lt;
@@ -6052,12 +6024,12 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 1. `then` attaches an invocable as a continuation for an input sender's value
     completion operation.
 
-2. The name `then` denotes a customization point object. For some
-    subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
-    decayed type of `f`, and let `f'` be an xvalue refering to an object
-    decay-copied from `f`. If `S` does not satisfy `sender`, or `F`
-    does not model <code><i>movable-value</i></code>, `then(s, f)` is
-    ill-formed. Otherwise, the expression `then(s, f)` is
+2. The name `then` denotes a customization point object. For some subexpressions
+    `s` and `f`, let `S` be `decltype((s))` and let `F` be the decayed type of
+    `f`. If `S` does not satisfy `sender`, or `F` does not model
+    <code><i>movable-value</i></code>, `then(s, f)` is ill-formed.
+    
+3. Otherwise, the expression `then(s, f)` is
     expression-equivalent to:
 
         <pre highlight="c++">
@@ -6067,72 +6039,77 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
         </pre>
 
         where <code><i>make-then-sender</i>(f, s)</code> is expression-equivalent to
-        <code><i>make-sender</i>(then, f, s)</code> and returns a sender object
-        `s2` that behaves as follows:
+        <code><i>make-sender</i>(then, f, s)</code> and returns a non-`const` prvalue
+        `out_s` that behaves as follows:
 
-    1. When `s2` is connected with some receiver `out_r`, it:
+    1. Let `out_s2` be a reference to
+        `out_s` or an object copied from it. When `out_s2` is connected with some
+        receiver `out_r`, `connect(out_s2, out_r)` returns an operation state `o`
+        containing copies of `f`, `out_r`, and the result of `connect(s2, r)`,
+        where `s2` is a reference to an object decay-copied from `s` and that has
+        the same *cv* qualifiers and value category as `out_s2`; and where `r` is
+        a receiver as described below.
 
-        1. Constructs a receiver `r` such that:
+        1. Let `f2` and `out_r2` be xvalues subexpressions designating
+            respectively to the copies of `f` and `out_r` in `o`. The receiver `r`
+            behaves as follows:
 
-            1. When `set_value(r, args...)` is called, let `v` be the
-                expression `invoke(f', args...)`. If `decltype(v)` is `void`,
-                calls `set_value(out_r)`; otherwise, it calls
-                `set_value(out_r, v)`. If any of these throw an
-                exception, it catches it and calls `set_error(out_r,
-                current_exception())`. If any of these expressions would be
-                ill-formed, the expression `set_value(r, args...)` is
-                ill-formed.
+            1. When `set_value(r, args...)` is called, let `v` be the expression
+                `invoke(f2, args...)`. If `decltype(v)` is `void`, evaluates `v`
+                and calls `set_value(out_r)`; otherwise, calls
+                `set_value(out_r2, v)`. If any of these throw an exception, the
+                exception is caught and `set_error(out_r2, current_exception())`
+                is called. If any of these expressions would be ill-formed, the
+                expression `set_value(r, args...)` is ill-formed.
 
-            2. `set_error(r, e)` is expression-equivalent to `set_error(out_r, e)`.
+            2. `set_error(r, e)` is expression-equivalent to `set_error(out_r2, e)`.
 
-            3. `set_stopped(r)` is expression-equivalent to `set_stopped(out_r)`.
+            3. `set_stopped(r)` is expression-equivalent to `set_stopped(out_r2)`.
 
-        2. Returns the result of `connect(s, r)`.
+        2. Let `inner_op` be a non-`const` lvalue referring to the operation
+            state in `o`. `start(o)` is expression-equivalent to `start(inner_op)`.
 
-    2. Given subexpressions `s2` and `e` where `s2` is a sender returned
-        from `then` or a copy of such, let `S2` be `decltype((s2))` and let
-        `E` be `decltype((e))`. The type of
-        `tag_invoke(get_completion_signatures, s2, e)` shall be:
+4. Given subexpressions `out_s` and `e` where `out_s` is a sender
+    returned from `then(s, f)` or a copy of such, let `OutS` be
+    `decltype((out_s))` and let `E` be `decltype((e))`. The type of
+    `tag_invoke(get_completion_signatures, out_s, e)` shall be:
 
-        <pre highlight="c++">
-        make_completion_signatures&lt;
-          copy_cvref_t&lt;S2, S>, E, <i>set-error-signature</i>,
-            <i>set-value-completions</i>>
-        </pre>
+    <pre highlight="c++">
+    make_completion_signatures&lt;
+      <i>clone-cvref-t</i>&lt;OutS, S>, E, <i>set-error-signature</i>,
+        <i>set-value-completions</i>>;
+    </pre>
 
-        where <code><i>set-value-completions</i></code> is the alias template:
+    where <code><i>set-value-completions</i></code> is the alias
+    template:
 
-        <pre highlight="c++">
-        template&lt;class... As>
-          <i>set-value-completions</i> =
-            completion_signatures&lt;<i>SET-VALUE-SIG</i>(invoke_result_t&lt;F, As...>)>
-        </pre>
+    <pre highlight="c++">
+    template&lt;class... As>
+      using <i>set-value-completions</i> =
+        completion_signatures&lt;<i>SET-VALUE-SIG</i>(invoke_result_t&lt;F, As...>)>
+    </pre>
 
-        and <code><i>set-error-signature</i></code> is an alias for
-        `completion_signatures<set_error_t(exception_ptr)>` if any of the types
-        in the <code><i>type-list</i></code> named by
-        <code>value_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>potentially-throwing</i>, <i>type-list</i>></code>
-        are `true_type`; otherwise, `completion_signatures<>`, where
-        <code><i>potentially-throwing</i></code> is the alias template:
+    and <code><i>set-error-signature</i></code> is an alias for
+    `completion_signatures<set_error_t(exception_ptr)>` if any of the
+    types in the <code><i>type-list</i></code> named by
+    <code>value_types_of_t&lt;<i>clone-cvref-t</i>&lt;OutS, S>, E,
+    <i>potentially-throwing</i>, <i>type-list</i>></code> are
+    `true_type`; otherwise, `completion_signatures<>`, where
+    <code><i>potentially-throwing</i></code> is the template alias:
 
-        <pre highlight="c++">
-        template&lt;class... As>
-          using <i>potentially-throwing</i> =
-            negation&lt;is_nothrow_invocable&lt;F, As...>>;
-        </pre>
+    <pre highlight="c++">
+    template&lt;class... As>
+      using <i>potentially-throwing</i> =
+        negation&lt;is_nothrow_invocable&lt;F, As...>>;
+    </pre>
 
-    3. Let `S` be the result of calling `then(s, f)` or a copy of such. If `S`
-      is connected with a recevier `R` with environment `E` such that
-      <code>transform_sender(<i>get-env-domain</i>(E), S, E)</code> does not
-      return a sender that:
-      
-          - invokes `f` with the value result datums of `s`,
-          
-          -  uses `f`'s return value as `S`'s value completion, and
-          
-          - forwards the non-value completion operations to `R` unchanged,
-          
-          then the behavior of calling `connect(S, R)` is undefined.
+5. The expression `then(s, f)` has undefined behavior unless it returns a sender
+    `out_s` that:
+
+    1. Invokes `f` or a copy of such with the value result datums of `s`
+        using the result value of `f` as `out_s`'s value completion, and
+
+    2. Forwards the non-value completion operations unchanged.
 
 #### `execution::upon_error` <b>[exec.upon.error]</b> #### {#spec-execution.senders.adaptor.upon_error}
 
@@ -6141,7 +6118,7 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 
 2. The name `upon_error` denotes a customization point object. For
     some subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
-    decayed type of `f`, and let `f'` be an xvalue refering to an object
+    decayed type of `f`, and let `f2` be an xvalue referring to an object
     decay-copied from `f`. If `S` does not satisfy `sender`, or `F`
     does not model <code><i>movable-value</i></code>, `upon_error` is
     ill-formed. Otherwise, the expression `upon_error(s, f)` is
@@ -6163,7 +6140,7 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
                 `set_value(out_r, args...)`.
 
             2. When `set_error(r, e)` is called, let `v` be the
-                expression `invoke(f', e)`. If `decltype(v)` is `void`, calls
+                expression `invoke(f2, e)`. If `decltype(v)` is `void`, calls
                 `set_value(out_r)`; otherwise, it calls
                 `set_value(out_r, v)`. If any of these throw an
                 exception, it catches it and calls `set_error(out_r,
@@ -6177,7 +6154,7 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
         2. Returns an expression-equivalent to `connect(s, r)`.
 
         3. Let <code><i>compl-sig-t</i>&lt;Tag, Args...></code> name the type
-            `Tag()` if `Args...` is a template paramter pack containing the
+            `Tag()` if `Args...` is a template parameter pack containing the
             single type `void`; otherwise, `Tag(Args...)`. Given
             subexpressions `s2` and `e` where `s2` is a sender returned from
             `upon_error` or a copy of such, let `S2` be `decltype((s2))` and let
@@ -6221,7 +6198,7 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 
 2. The name `upon_stopped` denotes a customization point object. For
     some subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
-    decayed type of `f`, and let `f'` be an xvalue refering to an object
+    decayed type of `f`, and let `f2` be an xvalue referring to an object
     decay-copied from `f`. If `S` does not satisfy `sender`, or `F`
     does not model both <code><i>movable-value</i></code> and `invocable`,
     `upon_stopped` is ill-formed. Otherwise, the expression
@@ -6244,7 +6221,7 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
             2. `set_error(r, e)` is expression-equivalent to `set_error(out_r, e)`.
 
             1. When `set_stopped(r)` is called, let `v` be the
-                expression `invoke(f')`. If `v` has type `void`, calls
+                expression `invoke(f2)`. If `v` has type `void`, calls
                 `set_value(out_r)`; otherwise, calls
                 `set_value(out_r, v)`. If any of these throw an
                 exception, it catches it and calls `set_error(out_r,
@@ -6255,7 +6232,7 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
         2. Returns an expression-equivalent to `connect(s, r)`.
 
         3. Let <code><i>compl-sig-t</i>&lt;Tag, Args...></code> name the type
-            `Tag()` if `Args...` is a template paramter pack containing the
+            `Tag()` if `Args...` is a template parameter pack containing the
             single type `void`; otherwise, `Tag(Args...)`. Given
             subexpressions `s2` and `e` where `s2` is a sender returned from
             `upon_stopped` or a copy of such, let `S2` be `decltype((s2))` and let
@@ -6293,7 +6270,7 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 
 2. The names `let_value`, `let_error`, and `let_stopped` denote customization point objects.
     Let the expression <code><i>let-cpo</i></code> be one of `let_value`, `let_error`, or `let_stopped`.
-    For subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the decayed type of `f`, and let `f'` be an xvalue that refers to an object decay-copied from `f`.
+    For subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the decayed type of `f`, and let `f2` be an xvalue that refers to an object decay-copied from `f`.
     If `S` does not satisfy `sender`, the expression <code><i>let-cpo</i>(s, f)</code> is ill-formed.
     If `F` does not satisfy `invocable`, the expression `let_stopped(s, f)` is ill-formed.
     Otherwise, the expression
@@ -6307,7 +6284,7 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
 
-    3. Otherwise, given a receiver `out_r` and an lvalue `out_r'` refering to an object decay-copied from `out_r`.
+    3. Otherwise, given a receiver `out_r` and an lvalue `out_r'` referring to an object decay-copied from `out_r`.
 
         1. For `let_value`, let `set-cpo` be `set_value`.
             For `let_error`, let `set-cpo` be `set_error`.
@@ -6316,7 +6293,7 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 
         2. Let `r` be an rvalue of a receiver type `R` such that:
 
-            1. When <code><i>set-cpo</i>(r, args...)</code> is called, the receiver `r` decay-copies `args...` into `op_state2` as `args'...`, then calls `invoke(f', args'...)`, resulting in a sender `s3`.
+            1. When <code><i>set-cpo</i>(r, args...)</code> is called, the receiver `r` decay-copies `args...` into `op_state2` as `args2...`, then calls `invoke(f2, args2...)`, resulting in a sender `s3`.
                 It then calls `connect(s3, std::move(out_r'))`, resulting in an operation state `op_state3`.
                 `op_state3` is saved as a part of `op_state2`.
                 It then calls `start(op_state3)`.
@@ -6431,7 +6408,7 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 
     4. If the function selected above does not return a sender that invokes
         `f(i, args...)` for each `i` of type `Shape` from `0` to `shape` where
-        `args` is a pack of subexpressions refering to the value completion
+        `args` is a pack of subexpressions referring to the value completion
         result datums of the input sender, or does not execute a value
         completion operation with said datums, the behavior of calling `bulk(s,
         shape, f)` is undefined.
@@ -7526,8 +7503,8 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
 
 2. [<i>Example:</i>
     <pre highlight="c++">
-    // Given a sender S and an environment Env, adapt S's completion
-    // signatures by lvalue-ref qualifying the values, adding an additional
+    // Given a sender S and an environment Env, adapt the completion
+    // signatures of S by lvalue-ref qualifying the values, adding an additional
     // exception_ptr error completion if its not already there, and leaving the
     // other completion signatures alone.
     template&lt;class... Args>
@@ -7665,11 +7642,19 @@ an object `e'` such that `get_scheduler(e')` returns a copy of `sch`,
   class <i>run-loop-sender</i>;
   </pre>
 
-  1. <code><i>run-loop-sender</i></code> is an unspecified type such that <code>sender_of&lt;<i>run-loop-sender</i>, set_value_t()></code> is `true`. Additionally, the types reported by its `error_types` associated type is `exception_ptr`, and the value of its `sends_stopped` trait is `true`.
+  1. <code><i>run-loop-sender</i></code> is an unspecified type such that
+     <code><i>sender-of</i>&lt;<i>run-loop-sender</i>></code> is `true`.
+     Additionally, the types reported by its `error_types` associated type is
+     `exception_ptr`, and the value of its `sends_stopped` trait is `true`.
 
-  2. An instance of <code><i>run-loop-sender</i></code> remains valid until the end of the lifetime of its associated `run_loop` instance.
+  2. An instance of <code><i>run-loop-sender</i></code> remains valid until the
+     end of the lifetime of its associated `run_loop` instance.
 
-  3. Let <code><i>s</i></code> be an expression of type <code><i>run-loop-sender</i></code>, let <code><i>r</i></code> be an expression such that <code>decltype(<i>r</i>)</code> models the `receiver_of` concept, and let `C` be either `set_value_t` or `set_stopped_t`. Then:
+  3. Let <code><i>s</i></code> be an expression of type
+     <code><i>run-loop-sender</i></code>, let <code><i>r</i></code> be an
+     expression such that <code>decltype(<i>r</i>)</code> models the
+     `receiver_of` concept, and let `C` be either `set_value_t` or
+     `set_stopped_t`. Then:
 
     * The expression <code>connect(<i>s</i>, <i>r</i>)</code> has type <code><i>run-loop-opstate</i>&lt;decay_t&lt;decltype(<i>r</i>)>></code> and is potentially-throwing if and only if the initialiation of <code>decay_t&lt;decltype(<i>r</i>)></code> from <code><i>r</i></code> is potentially-throwing.
 
