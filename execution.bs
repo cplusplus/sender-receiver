@@ -203,7 +203,8 @@ sender auto async_inclusive_scan(scheduler auto sch,                          //
   std::vector<double> partials(tile_count + 1);                               // 4
   partials[0] = init;                                                         // 4
 
-  return transfer_just(sch, std::move(partials))                              // 5
+  return just(std::move(partials))                                            // 5
+       | transfer(sch)
        | bulk(tile_count,                                                     // 6
            [ = ](std::size_t i, std::vector<double>& partials) {              // 7
              auto start = i * tile_size;                                      // 8
@@ -239,7 +240,7 @@ This example builds an asynchronous computation of an inclusive scan:
 2. It takes a scheduler, which specifies what execution resource the scan should be launched on.
 3. It also takes a `tile_count` parameter that controls the number of execution agents that will be spawned.
 4. First we need to allocate temporary storage needed for the algorithm, which we'll do with a `std::vector`, `partials`. We need one `double` of temporary storage for each execution agent we create.
-5. Next we'll create our initial sender with [[#design-sender-factory-transfer_just]]. This sender will send the temporary storage, which we've moved into the sender. The sender has a completion scheduler of `sch`, which means the next item in the chain will use `sch`.
+5. Next we'll create our initial sender with [[#design-sender-factory-just]] and [[#design-sender-adaptor-transfer]]. These senders will send the temporary storage, which we've moved into the sender. The sender has a completion scheduler of `sch`, which means the next item in the chain will use `sch`.
 6. Senders and sender adaptors support composition via `operator|`, similar to C++ ranges. We'll use `operator|` to attach the next piece of work, which will spawn `tile_count` execution agents using [[#design-sender-adaptor-bulk]] (see [[#design-pipeable]] for details).
 7. Each agent will call a `std::invocable`, passing it two arguments. The first is the agent's index (`i`) in the [[#design-sender-adaptor-bulk]] operation, in this case a unique integer in `[0, tile_count)`. The second argument is what the input sender sent - the temporary storage.
 8. We start by computing the start and end of the range of input and output elements that this agent is responsible for, based on our agent index.
@@ -1816,16 +1817,6 @@ auto some_algorithm(execution::sender auto&& input) {
 }
 </pre>
 
-## Senders are joinable ## {#design-join}
-
-Similarly to how it's hard to write a complex program that will eventually want to fork sender chains into independent streams, it's also hard to write a program that does not want to eventually create join nodes, where multiple independent streams of execution are
-merged into a single one in an asynchronous fashion.
-
-`when_all` is a sender adaptor that returns a sender that completes when the last of the input senders completes. It [=send|sends=] a pack of values, where the elements of said pack are the values sent by the input senders, in order. `when_all` returns a sender that also does not have an associated scheduler.
-
-`transfer_when_all` accepts an additional scheduler argument. It returns a sender whose value [=completion scheduler=] is the scheduler provided as an argument, but otherwise behaves the same as `when_all`. You can think of it as a composition of
-`transfer(when_all(inputs...), scheduler)`, but one that allows for better efficiency through customization.
-
 ## Senders support cancellation ## {#design-cancellation}
 
 Senders are often used in scenarios where the application may be concurrently executing
@@ -2467,30 +2458,6 @@ auto&& [v4] = this_thread::sync_wait(std::move(then4)).value();
 // v4 contains {2, 4, 6, 8, 10}. No vectors were copied in this example.
 ```
 
-### `execution::transfer_just` ### {#design-sender-factory-transfer_just}
-
-<pre highlight="c++">
-execution::sender auto transfer_just(
-    execution::scheduler auto scheduler,
-    auto ...&& values
-);
-</pre>
-
-Returns a sender whose value [=completion scheduler=] is the provided scheduler, which [=send|sends=] the provided values in the same manner as `just`.
-
-<pre highlight="c++">
-execution::sender auto vals = execution::transfer_just(
-    get_system_thread_pool().scheduler(),
-    1, 2, 3
-);
-execution::sender auto snd = execution::then(vals, [](auto... args) {
-    std::print(args...);
-});
-// when snd is executed, it will print "123"
-</pre>
-
-This adaptor is included as it greatly simplifies lifting values into senders.
-
 ### `execution::just_error` ### {#design-sender-factory-just_error}
 
 <pre highlight="c++">
@@ -2729,8 +2696,6 @@ execution::sender auto when_all_with_variant(
 
 The returned sender has no [=completion scheduler|completion schedulers=].
 
-See [[#design-join]].
-
 <pre highlight="c++">
 execution::scheduler auto sched = thread_pool.scheduler();
 
@@ -2747,24 +2712,6 @@ execution::sender auto final = execution::then(both, [](auto... args){
 });
 // when final executes, it will print "the two args: 1, abc"
 </pre>
-
-### `execution::transfer_when_all` ### {#design-sender-adaptor-transfer_when_all}
-
-<pre highlight="c++">
-execution::sender auto transfer_when_all(
-    execution::scheduler auto sched,
-    execution::sender auto ...inputs
-);
-
-execution::sender auto transfer_when_all_with_variant(
-    execution::scheduler auto sched,
-    execution::sender auto ...inputs
-);
-</pre>
-
-Similar to [[#design-sender-adaptor-when_all]], but returns a sender whose value [=completion scheduler=] is the provided scheduler.
-
-See [[#design-join]].
 
 ### `execution::ensure_started` ### {#design-sender-adaptor-ensure_started}
 
@@ -2810,7 +2757,7 @@ auto sync_wait(
 </pre>
 
 `this_thread::sync_wait` is a sender consumer that submits the work described by the provided sender for execution, similarly to `ensure_started`, except that it blocks <b>the current `std::thread` or thread of `main`</b> until the work is completed, and returns
-an optional tuple of values that were sent by the provided sender on its completion of work. Where [[#design-sender-factory-schedule]] and [[#design-sender-factory-transfer_just]] are meant to <i>enter</i> the domain of senders, `sync_wait` is meant to <i>exit</i> the domain of
+an optional tuple of values that were sent by the provided sender on its completion of work. Where [[#design-sender-factory-schedule]] and [[#design-sender-factory-just]] are meant to <i>enter</i> the domain of senders, `sync_wait` is meant to <i>exit</i> the domain of
 senders, retrieving the result of the task graph.
 
 If the provided sender sends an error instead of values, `sync_wait` throws that error as an exception, or rethrows the original exception if the error is of type `std::exception_ptr`.
@@ -3034,12 +2981,13 @@ execution::sender auto sends_2 = ...;
 execution::sender auto sends_3 = ...;
 
 auto [a, b, c] = this_thread::sync_wait(
-    execution::transfer_when_all(
-        execution::get_completion_scheduler&lt;execution::set_value_t>(get_env(sends_1)),
+    execution::when_all(
         sends_1,
         sends_2,
-        sends_3
-    )).value();
+        sends_3)
+    | execution::transfer(
+        execution::get_completion_scheduler&lt;execution::set_value_t>(get_env(sends_1))),
+    ).value();
 // a == 1
 // b == 2
 // c == 3
@@ -3823,7 +3771,7 @@ template&lt;class C>
     <td>allow the specialization of the provided sender algorithms</td>
     <td>
         <ul>
-            <li>sender factories (`schedule`, `transfer_just`, `read`, ...)</li>
+            <li>sender factories (`schedule`, `just`, `read`, ...)</li>
             <li>sender adaptors (`transfer`, `then`, `let_value`, ...)</li>
             <li>sender consumers (`start_detached`, `sync_wait`)</li>
         </ul>
@@ -4288,15 +4236,12 @@ namespace std::execution {
     struct just_error_t;
     struct just_stopped_t;
     struct schedule_t;
-    struct transfer_just_t;
   }
   inline constexpr just just{};
   inline constexpr just_error_t just_error{};
   inline constexpr just_stopped_t just_stopped{};
   using <i>senders-factories</i>::schedule_t;
-  using <i>senders-factories</i>::transfer_just_t;
   inline constexpr schedule_t schedule{};
-  inline constexpr transfer_just_t transfer_just{};
   inline constexpr <i>unspecified</i> read{};
 
   template&lt;scheduler S>
@@ -4323,8 +4268,6 @@ namespace std::execution {
     struct split_t;
     struct when_all_t;
     struct when_all_with_variant_t;
-    struct transfer_when_all_t;
-    struct transfer_when_all_with_variant_t;
     struct into_variant_t;
     struct stopped_as_optional_t;
     struct stopped_as_error_t;
@@ -4343,8 +4286,6 @@ namespace std::execution {
   using <i>sender-adaptors</i>::split_t;
   using <i>sender-adaptors</i>::when_all_t;
   using <i>sender-adaptors</i>::when_all_with_variant_t;
-  using <i>sender-adaptors</i>::transfer_when_all_t;
-  using <i>sender-adaptors</i>::transfer_when_all_with_variant_t;
   using <i>sender-adaptors</i>::into_variant_t;
   using <i>sender-adaptors</i>::stopped_as_optional_t;
   using <i>sender-adaptors</i>::stopped_as_error_t;
@@ -4367,9 +4308,6 @@ namespace std::execution {
   inline constexpr split_t split{};
   inline constexpr when_all_t when_all{};
   inline constexpr when_all_with_variant_t when_all_with_variant{};
-  inline constexpr transfer_when_all_t transfer_when_all{};
-  inline constexpr transfer_when_all_with_variant_t
-    transfer_when_all_with_variant{};
 
   inline constexpr into_variant_t into_variant{};
 
@@ -5549,66 +5487,6 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     expressions of type <code><i>just-sender</i>&lt;Tag, Ts...></code> behave as do
     expressions of type <code><i>basic-sender</i>&lt;Tag, <i>tuple-like</i>&lt;Ts...>></code>.
 
-#### `execution::transfer_just` <b>[exec.transfer.just]</b> #### {#spec-execution.senders.transfer_just}
-
-1. `transfer_just` is a sender factory for senders whose asynchronous operations
-    execute value completion operations on an execution agent belonging to
-    the execution resource associated with a specified scheduler.
-
-2. The name `transfer_just` denotes a customization point object. For some
-    subexpression `s` and pack of subexpressions `vs`, let `S` be
-    `decltype((s))` and let `Vs` be the template parameter pack
-    `decltype((vs))...`. If `S` does not satisfy `scheduler`, or any type `V` in
-    `Vs` does not satisfy <code><i>movable-value</i></code>, `transfer_just(s,
-    vs...)` is ill-formed. Otherwise, `transfer_just(s, vs...)` is
-    expression-equivalent to:
-
-        <pre highlight="c++">
-        transform_sender(
-          <i>query-or-default</i>(get_domain, sch, default_domain()),
-          <i>make-sender</i>(transfer_just, <i>tuple-like</i>{sch, vs...}));
-        </pre>
-
-
-3. Let `as` be a pack of rvalue subexpressions of types `decay_t<Vs>...`
-    refering to objects direct-initilized from `vs`. If a sender `S` returned
-    from `transfer_just(sch, vs...)`
-    is connected with a receiver `R` with environment `E` such that
-    <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does not
-    return a sender whose asynchronous
-    operations execute value completion operations on an execution agent
-    belonging to the execution resource associated with `s`, with value result
-    datums `as`, the behavior of calling `connect(S, R)` is
-    undefined.
-
-        * <i>Mandates:</i> <code><i>sender-of-in</i>&lt;R, E, decay_t&lt;Vs>...></code>,
-            where `S` is the type of `transfer_just(sch, vs...)`, and
-            `E` is the type of an environment.
-
-4. For some subexpression `sch` and pack of subexpressions `vs`, let `s` be a
-    subexpression refering to an object returned from `transform_just(sch, vs...)`
-    or a copy of such. Then
-    `get_completion_scheduler<set_value_t>(get_env(s)) == sch` is `true`,
-    `get_completion_scheduler<set_stopped_t>(get_env(s)) == sch` is `true`, and
-    `get_domain(get_env(s))` is expression-equivalent to `get_domain(sch)`.
-
-5. Let `s` and `e` be subexpressions such that `S` is `decltype((s))`. If
-    <code><i>sender-for</i>&lt;S, transfer_just_t></code> is `false`, then the expression
-    `transfer_just_t().transform_sender(s, e)` is ill-formed; otherwise, it
-    is equal to:
-
-        <pre highlight="c++">
-        const auto& env = e;
-        auto domain = <i>get-domain-late</i>(s, env);
-        auto [tag, data] = s;
-        auto& [sched, ...vs] = data;
-        return transfer(just(std::move(vs)...), std::move(sched));
-        </pre>
-
-    <span class="wg21note">This causes the `transform_just(sch, vs...)` sender to become
-    `transform(just(vs...), sch)` when it is connected with a receiver whose
-    execution domain does not customize `transform_just`.</span>
-
 #### `execution::read` <b>[exec.read]</b> #### {#spec-execution.senders.read}
 
 1. `read` is a sender factory for a sender whose asynchronous operation
@@ -5838,7 +5716,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
         4. `get_env(r)` is expression-equivalent to `get_env(out_r)`.
 
-    2. Calls `transfer_just(sch)`, which results in `s2`. It then calls `connect(s2, r)`, resulting in `op_state2`.
+    2. Calls `schedule(sch)`, which results in `s2`. It then calls `connect(s2, r)`, resulting in `op_state2`.
 
     3. `op_state2` is wrapped by a new operation state, `op_state1`, that is returned to the caller.
 
@@ -6739,68 +6617,6 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     object `Q`, `tag_invoke(Q, E)` is expression-equivalent to
     <code><i>get-domain-early</i>(s<sub><i>0</i></sub>)</code> when `Q` is
     `get_domain`; otherwise, it is ill-formed.
-
-#### `execution::transfer_when_all` <b>[exec.transfer.when.all]</b> #### {#spec-execution.senders.adaptor.transfer_when_all}
-
-1. `transfer_when_all` and `transfer_when_all_with_variant` both adapt multiple
-    input senders into a sender that completes when all input senders have
-    completed, ensuring the input senders complete on the specified scheduler.
-    `transfer_when_all` only accepts senders with a single value completion
-    signature and on success concatenates all the input senders' value result
-    datums into its own value completion operation;
-    <code>transfer_when_all(<i>scheduler</i>, <i>input-senders</i>...)</code> is
-    semantically equivalent to <code>transfer(when_all(<i>input-senders</i>...),
-    <i>scheduler</i>)</code>.
-    <code>transfer_when_all_with_variant(<i>scheduler</i>,
-    <i>input-senders</i>...)</code> is semantically equivilant to
-    <code>transfer_when_all(<i>scheduler</i>,
-    into_variant(<i>intput-senders</i>)...)</code>. <span class="wg21note">These
-    customizable composite algorithms can allow for more efficient
-    customizations in some cases.</span>
-
-2. The name `transfer_when_all` denotes a customization point object. For some subexpressions `sch` and `s...`, let `Sch` be `decltype(sch)` and `S` be `decltype((s))`. If `Sch` does not satisfy `scheduler`, or any type
-    <code>S<i><sub>i</sub></i></code> in `S...` does not satisfy `sender`,
-    `transfer_when_all` is ill-formed. Otherwise, the expression `transfer_when_all(sch, s...)` is expression-equivalent to:
-
-    1. `tag_invoke(transfer_when_all, sch, s...)`, if that expression
-        is valid. If the function selected by `tag_invoke` does not return a
-        sender that sends a concatenation of values sent by `s...` when they all
-        complete with `set_value`, or does not send its completion operation,
-        other than ones resulting from a scheduling error, on an execution agent
-        belonging to the associated execution resource of `sch`, the behavior of
-        calling `transfer_when_all(sch, s...)` is undefined.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    2. Otherwise, `transfer(when_all(s...), sch)`.
-
-3. The name `transfer_when_all_with_variant` denotes a customization
-    point object. For some subexpressions `sch` and `s...`, let `Sch` be
-    `decltype((sch))` and let `S` be `decltype((s))`. If any type
-    <code>S<i><sub>i</sub></i></code> in `S...` does not satisfy
-    `sender`, `transfer_when_all_with_variant` is
-    ill-formed. Otherwise, the expression
-    `transfer_when_all_with_variant(sch, s...)` is expression-equivalent
-    to:
-
-    1. `tag_invoke(transfer_when_all_with_variant, s...)`, if that
-        expression is valid. If the function selected by `tag_invoke` does not
-        return a sender that, when connected with a receiver of type `R`, sends
-        the types <code><i>into-variant-type</i>&lt;S, env_of_t&lt;R>>...</code>
-        when they all complete with `set_value`, the behavior
-        of calling `transfer_when_all_with_variant(sch, s...)`
-        is undefined.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    2. Otherwise, `transfer_when_all(sch, into_variant(s)...)`.
-
-4. For a sender `t` returned from `transfer_when_all(sch, s...)`, `get_env(t)` shall
-    return a queryable object `q` such that `get_completion_scheduler<CPO>(q)` returns
-    a copy of `sch`, where `CPO` is either `set_value_t` or `set_stopped_t`. The
-    `get_completion_scheduler<set_error_t>` query is not implemented, as the scheduler
-    cannot be guaranteed in case an error is thrown while trying to schedule work on
-    the given scheduler object.
 
 #### `execution::into_variant` <b>[exec.into.variant]</b> #### {#spec-execution.senders.adapt.into_variant}
 
