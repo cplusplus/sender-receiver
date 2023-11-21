@@ -6144,84 +6144,148 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     into a new child asynchronous operation. `let_stopped` transforms a sender's
     stopped completion into a new child asynchronous operation.
 
-2. The names `let_value`, `let_error`, and `let_stopped` denote customization point objects.
-    Let the expression <code><i>let-cpo</i></code> be one of `let_value`, `let_error`, or `let_stopped`.
-    For subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the decayed type of `f`, and let `f2` be an xvalue that refers to an object decay-copied from `f`.
-    If `S` does not satisfy `sender`, the expression <code><i>let-cpo</i>(s, f)</code> is ill-formed.
-    If `F` does not satisfy `invocable`, the expression `let_stopped(s, f)` is ill-formed.
-    Otherwise, the expression
-    <code><i>let-cpo</i>(s, f)</code> is expression-equivalent to:
+2. Let the expression <code><i>let-cpo</i></code> be one of `let_value`,
+    `let_error`, or `let_stopped` and let <code><i>set-cpo</i></code> be the
+    completion function that corresponds to <code><i>let-cpo</i></code>
+    (`set_value` for `let_value`, etc.). For subexpressions `s` and `re`, let
+    <code><i>inner-env</i>(s, re)</code> be an environment `e` such that:
 
-    1. <code>tag_invoke(<i>let-cpo</i>, get_completion_scheduler&lt;set_value_t>(get_env(s)), s, f)</code>, if that expression is valid.
+        1. `get_domain(e)` is expression-equivalent
+            <code><i>get-domain-late</i>(s, re)</code>,
+        
+        2. `get_scheduler(e)` is expression-equivalent to the first
+            well-formed expression below:
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
+            - <code>get_completion_scheduler&lt;<i>set-cpo-t</i>>(get_env(s))</code>,
+                where <code><i>set-cpo-t</i></code> is the type of
+                <code><i>set-cpo</i></code>.
+            
+            - `get_scheduler(re)`
+            
+            or if neither of them are, `get_scheduler(e)` is ill-formed.
 
-    2. Otherwise, <code>tag_invoke(<i>let-cpo</i>, s, f)</code>, if that expression is valid.
+        3. For all other query objects <code><i>Q</i></code> and arguments `args...`,
+            <code><i>Q</i>(e, args...)</code> is expression-equivalent to
+            <code><i>Q</i>(re, args...)</code>.
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
+3. The names `let_value`, `let_error`, and `let_stopped` denote customization
+    point objects. For subexpressions `s` and `f`, let `S` be `decltype((s))`,
+    let `F` be the decayed type of `f`, and let `f2` be an xvalue that refers to
+    an object decay-copied from `f`. If `S` does not satisfy `sender` or if `F`
+    does not satisfy <code><i>movable-value</i></code>, the expression
+    <code><i>let-cpo</i>(s, f)</code> is ill-formed. If `F` does not satisfy
+    `invocable`, the expression `let_stopped(s, f)` is ill-formed. Otherwise,
+    the expression <code><i>let-cpo</i>(s, f)</code> is expression-equivalent
+    to:
 
-    3. Otherwise, given a receiver `out_r` and an lvalue `out_r2` referring to an object decay-copied from `out_r`.
+      <pre highlight="c++">
+      transform_sender(
+        <i>get-domain-early</i>(s),
+        <i>make-let-sender</i>(f, s));
+      </pre>
 
-        1. For `let_value`, let `set-cpo` be `set_value`.
-            For `let_error`, let `set-cpo` be `set_error`.
-            For `let_stopped`, let `set-cpo` be `set_stopped`.
-            Let <code><i>completion-function</i></code> be one of `set_value`, `set_error`, or `set_stopped`.
+    where <code><i>make-let-sender</i>(f, s)</code> is expression-equivalent to
+    <code><i>make-sender</i>(<i>let-cpo</i>, f, s)</code> and returns a sender
+    object `s2` that behaves as follows:
 
-        2. Let `r` be an rvalue of a receiver type `R` such that:
+    1. When `s2` is connected to some receiver `out_r`, it:
 
-            1. When <code><i>set-cpo</i>(r, args...)</code> is called, the receiver `r` decay-copies `args...` into `op_state2` as `args2...`, then calls `invoke(f2, args2...)`, resulting in a sender `s3`.
-                It then calls `connect(s3, std::move(out_r2))`, resulting in an operation state `op_state3`.
-                `op_state3` is saved as a part of `op_state2`.
-                It then calls `start(op_state3)`.
-                If any of these throws an exception, it catches it and calls `set_error(std::move(out_r2), current_exception())`.
-                If any of these expressions would be ill-formed, <code><i>set-cpo</i>(r, args...)</code> is ill-formed.
+        1. Decay-copies `out_r` into `op_state2` (see below). `out_r2` is an
+            xvalue referring to the copy of `out_r`. 
 
-            2. <code><i>completion-function</i>(r, args...)</code> is expression-equivalent to <code><i>completion-function</i>(std::move(out_r2), args...)</code>, when <code><i>completion-function</i></code> is different from <code><i>set-cpo</i></code>.
+        2. Constructs a receiver `r` such that:
 
-        3. <code><i>let-cpo</i>(s, f)</code> returns a sender `s2` such that:
+            1. When <code><i>set-cpo</i>(r, args...)</code> is called, the
+                receiver `r` decay-copies `args...` into `op_state2` as
+                `args2...`, then calls `invoke(f2, args2...)`, resulting in a
+                sender `s3`. It then calls `connect(s3, out_r3)`, resulting in
+                an operation state `op_state3`, where `out_r3` is a receiver
+                described below. `op_state3` is saved as a part of `op_state2`.
+                It then calls `start(op_state3)`. If any of these throws an
+                exception, it catches it and calls `set_error(out_r2,
+                current_exception())`. If any of these expressions would be
+                ill-formed, <code><i>set-cpo</i>(r, args...)</code> is
+                ill-formed.
 
-            1. If the expression `connect(s, r)` is ill-formed, `connect(s2, out_r)` is ill-formed.
+            2. <code><i>CF</i>(r, args...)</code> is expression-equivalent to
+                <code><i>CF</i>(out_r2, args...)</code>, where
+                <code><i>CF</i></code> is a completion function other than
+                <code><i>set-cpo</i></code>.
+            
+            3. `get_env(r)` is expression-equivalent to `get_env(out_r)`.
 
-            2. Otherwise, let `op_state2` be the result of `connect(s, r)`. `connect(s2, out_r)` returns an operation state `op_state` that stores `op_state2`. `start(op_state)` is expression-equivalent to `start(op_state2)`.
+            4. `out_r3` is a receiver that forwards its completion operations
+                to `out_r2` and for which `get_env(out_r3)` returns
+                <code><i>inner-env</i>(get_env(s), get_env(out_r2))</code>.
 
-        4. Given subexpressions `s2` and `e`, where `s2` is a sender returned
-            from <code><i>let-cpo</i>(s, f)</code> or a copy of such, let `S2` be
-            `decltype((s2))`, let `E` be `decltype((e))`, and let `DS` be
-            `copy_cvref_t<S2, S>`. Then the type of
-            `tag_invoke(get_completion_signatures, s2, e)` is specified as
-            follows:
+         2. Calls `connect(s, r)` resulting in an operation state `op_state2`.
+             If the expression `connect(s, r)` is ill-formed, `connect(s2,
+             out_r)` is ill-formed.
+        
+        3. Returns an operation state `op_state` that stores `op_state2`.
+            `start(op_state)` is expression-equivalent to `start(op_state2)`.
 
-            1. If `sender_in<DS, E>` is `false`, the expression
-                `tag_invoke(get_completion_signatures, s2, e)` is ill-formed.
+4. Given subexpressions `s2` and `e`, where `s2` is a sender returned
+    from <code><i>let-cpo</i>(s, f)</code> or a copy of such, let `S2` be
+    `decltype((s2))`, let `E` be `decltype((e))`, and let `DS` be
+    `copy_cvref_t<S2, S>`. Then the type of
+    `tag_invoke(get_completion_signatures, s2, e)` is specified as
+    follows:
 
-            2. Otherwise, let `Sigs...` be the set of template arguments of the
-                `completion_signatures` specialization named by `completion_signatures_of_t<DS, E>`,
-                let `Sigs2...` be the set of function types in `Sigs...` whose return type
-                is <code><i>set-cpo</i></code>, and let `Rest...` be the set of function types
-                in `Sigs...` but not `Sigs2...`.
+    1. If `sender_in<DS, E>` is `false`, the expression
+        `tag_invoke(get_completion_signatures, s2, e)` is ill-formed.
 
-            3. For each <code>Sig2<i><sub>i</sub></i></code> in `Sigs2...`, let
-                <code>Vs<i><sub>i</sub></i>...</code> be the set of function
-                arguments in <code>Sig2<i><sub>i</sub></i></code> and let
-                <code>S3<i><sub>i</sub></i></code> be <code>invoke_result_t&lt;F,
-                decay_t&lt;Vs<i><sub>i</sub></i>>&amp;...></code>. If
-                <code>S3<i><sub>i</sub></i></code> is ill-formed, or if
-                <code>sender_in&lt;S3<i><sub>i</sub></i>, E></code> is not satisfied,
-                then the expression `tag_invoke(get_completion_signatures, s2, e)`
-                is ill-formed.
+    2. Otherwise, let `Sigs...` be the set of template arguments of the
+        `completion_signatures` specialization named by `completion_signatures_of_t<DS, E>`,
+        let `Sigs2...` be the set of function types in `Sigs...` whose return type
+        is <code><i>set-cpo</i></code>, and let `Rest...` be the set of function types
+        in `Sigs...` but not `Sigs2...`.
 
-            4. Otherwise, let <code>Sigs3<i><sub>i</sub></i>...</code> be the
-                set of template arguments of the `completion_signatures`
-                specialization named by
-                <code>completion_signatures_of_t&lt;S3<i><sub>i</sub></i>,
-                E></code>. Then the type of `tag_invoke(get_completion_signatures,
-                s2, e)` shall be equivalent to
-                <code>completion_signatures&lt;Sigs3<i><sub>0</sub></i>...,
-                Sigs3<i><sub>1</sub></i>..., ... Sigs3<i><sub>n-1</sub></i>...,
-                Rest..., set_error_t(exception_ptr)></code>, where
-                <code><i>n</i></code> is `sizeof...(Sigs2)`.
+    3. For each <code>Sig2<i><sub>i</sub></i></code> in `Sigs2...`, let
+        <code>Vs<i><sub>i</sub></i>...</code> be the set of function
+        arguments in <code>Sig2<i><sub>i</sub></i></code> and let
+        <code>S3<i><sub>i</sub></i></code> be <code>invoke_result_t&lt;F,
+        decay_t&lt;Vs<i><sub>i</sub></i>>&amp;...></code>. If
+        <code>S3<i><sub>i</sub></i></code> is ill-formed,
+        or if
+        <code><i>get-domain-early</i>(declval&lt;S3<sub><i>i</i></sub>>())</code> has a different
+        type than <code><i>get-domain-early</i>(s)</code>,
+        or if
+        <code>sender_in&lt;S3<i><sub>i</sub></i>, E2></code> is not satisfied,
+        where `E2` is the type of
+        <code><i>inner-env</i>(get_env(s), e)</code>, then the expression `tag_invoke(get_completion_signatures, s2, e)`
+        is ill-formed.
 
-    If <code><i>let-cpo</i>(s, f)</code> does not return a sender that invokes `f` when <code><i>set-cpo</i></code> is called, and makes its completion dependent on the completion of a sender returned by `f`, and propagates the other completion operations sent by `s`, the behavior of calling <code><i>let-cpo</i>(s, f)</code> is undefined.
+    4. Otherwise, let <code>Sigs3<i><sub>i</sub></i>...</code> be the
+        set of template arguments of the `completion_signatures`
+        specialization named by
+        <code>completion_signatures_of_t&lt;S3<i><sub>i</sub></i>,
+        E2></code>. Then the type of `tag_invoke(get_completion_signatures,
+        s2, e)` shall be equivalent to
+        <code>completion_signatures&lt;Sigs3<i><sub>0</sub></i>...,
+        Sigs3<i><sub>1</sub></i>..., ... Sigs3<i><sub>n-1</sub></i>...,
+        Rest..., set_error_t(exception_ptr)></code>, where
+        <code><i>n</i></code> is `sizeof...(Sigs2)`.
+
+5. Let `s` and `e` be subexpressions such that `S` is `decltype((s))` and `E` is
+    `decltype((e))`. If <code><i>sender-for</i>&lt;S, <i>let-cpo-t</i>></code> is `false` where
+    <code><i>let-cpo-t</i></code> is the type of <code><i>let-cpo</i></code>, then the expression
+    <code><i>let-cpo-t</i>().transform_env(s, e)</code> is ill-formed. Otherwise, it is equal
+    to <code><i>inner-env</i>(get_env(s), e)</code>.
+
+6. If a sender `S` returned from <code><i>let-cpo</i>(s, f)</code> is connected to a
+    receiver `R` with environment `E` such that
+    <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does not return a
+    sender that:
+  
+        - invokes `f` when <code><i>set-cpo</i></code> is called with `s`'s result datums,
+        
+        - makes its completion dependent on the completion of a sender returned by
+            `f`, and
+
+        - propagates the other completion operations sent by `s`,
+    
+    the behavior of calling `connect(S, R)` is undefined.
 
 #### `execution::bulk` <b>[exec.bulk]</b> #### {#spec-execution.senders.adapt.bulk}
 
