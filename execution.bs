@@ -6880,27 +6880,30 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
 1. `stopped_as_optional` maps an input sender's stopped completion operation into the value completion operation as an empty optional. The input sender's value completion operation is also converted into an optional. The result is a sender that never completes with stopped, reporting cancellation by completing with an empty optional.
 
-2. The name `stopped_as_optional` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`. Let <code><i>get-env-sender</i></code> be an expression such that, when it is `connect`ed with a receiver `r`, `start` on the resulting operation state completes immediately by calling `set_value(r, get_env(r))`. The expression `stopped_as_optional(s)` is expression-equivalent to:
+2. The name `stopped_as_optional` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`.
+   The expression `stopped_as_optional(s)` is expression-equivalent to:
 
     <pre highlight="c++">
-    let_value(
-      <i>get-env-sender</i>,
-      []&lt;class E>(const E&) requires <i>single-sender</i>&lt;S, E> {
-        return let_stopped(
-          then(s,
-            []&lt;class T>(T&& t) {
-              return optional&lt;decay_t&lt;<i>single-sender-value-type</i>&lt;S, E>>>{
-                std::forward&lt;T>(t)
-              };
-            }
-          ),
-          [] () noexcept {
-            return just(optional&lt;decay_t&lt;<i>single-sender-value-type</i>&lt;S, E>>>{});
-          }
-        );
-      }
-    )
+    transform_sender(
+      <i>get-sender-domain</i>(s),
+      <i>make-sender</i>(stopped_as_optional, <i>unspecified</i>, s))
     </pre>
+
+3. Let `s` and `e` be subexpressions such that `S` is `decltype((s))` and `E` is `decltype((e))`.
+   If either <code><i>sender-for</i>&lt;S, stopped_as_optional_t></code> or <code><i>single-sender</i>&lt;S, E></code> is `false`
+   then the expression `stopped_as_optional_t().transform_sender(s, e)` is ill-formed; otherwise, it is equal to:
+
+   <pre highlight="c++">
+   const auto& env = e;
+   auto domain = <i>get-env-domain</i>(env);
+   auto [tag, data, child] = s;
+   using V = <i>single-sender-value-type&lt;S, E>;
+   auto tfx = <i>make-transformer-fn</i>(domain, env);
+   return tfx(let_stopped)(
+      tfx(then)(std::move(child),
+                []&lt;class T>(T&& t) { return optional<V>(std::forward<T>(t)); }),
+      []() noexcept { return just(optional<V>()); });
+   </pre>
 
 #### `execution::stopped_as_error` <b>[exec.stopped.as.error]</b> #### {#spec-execution.senders.adapt.stopped_as_error}
 
@@ -6912,8 +6915,24 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 2. The name `stopped_as_error` denotes a customization point object. For some subexpressions `s` and `e`, let `S` be `decltype((s))` and let `E` be `decltype((e))`. If the type `S` does not satisfy `sender` or if the type `E` doesn't satisfy <code><i>movable-value</i></code>, `stopped_as_error(s, e)` is ill-formed. Otherwise, the expression `stopped_as_error(s, e)` is expression-equivalent to:
 
     <pre highlight="c++">
-    let_stopped(s, [] { return just_error(e); })
+    transform_sender(
+      <i>get-sender-domain</i>(s),
+      <i>make-sender</i>(stopped_as_error, e, s))
     </pre>
+
+3. Let `s` and `e` be subexpressions such that `S` is `decltype((s))` and `E` is `decltype((e))`.
+   If <code><i>sender_for</i>&lt;S, stopped_as_error_t></code> is `false`, then the expression
+   `stopped_as_error_t().transform_sender(s, e)` is ill-formed; otherwise, it is equal to:
+
+   <pre highlight="c++">
+   const auto& env = e;
+   auto domain = <i>get-env-domain</i>(env);
+   auto [tag, data, child] = s;
+   auto tfx = <i>make-transformer-fn</i>(domain, env);
+   return tfx(let_stopped)(
+       std::move(child),
+       [err = std::move(data)]() mutable { return just_error(std::move(err)); });
+   </pre>
 
 #### `execution::ensure_started` <b>[exec.ensure.started]</b> #### {#spec-execution.senders.adapt.ensure_started}
 
@@ -6924,22 +6943,24 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     environment such that, given an instance `e`, the expression
     `get_stop_token(e)` is well-formed and has type `stop_token`.
 
-2. The name `ensure_started` denotes a customization point object.
+3. The name `ensure_started` denotes a customization point object.
     For some subexpression `s`, let `S` be `decltype((s))`. If
     <code>sender_in&lt;S, <i>ensure-started-env</i>></code> or
     `constructible_from<decay_t<env_of_t<S>>, env_of_t<S>>` is
     `false`, `ensure_started(s)` is ill-formed. Otherwise, the
     expression `ensure_started(s)` is expression-equivalent to:
 
-    1. `tag_invoke(ensure_started, get_completion_scheduler<set_value_t>(get_env(s)), s)`, if that expression is valid.
+    <pre highlight="c++">
+    transform_sender(
+      <i>get-sender-domain</i>(s),
+      <i>make-sender</i>(ensure_started, s))
+    </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    2. Otherwise, `tag_invoke(ensure_started, s)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    3. Otherwise, constructs a sender `s2`, which:
+    1. Let `s` be a subexpression such that `S` is `decltype((s))`, and let `e...` be a pack of
+       subexpressions such that <code>sizeof...(e) &lt;= 1</code> is `true`.
+       If <code><i>sender-for</i>&lt;S, ensure_started_t></code> is `false`, then the expression
+       `ensure_started_t().transform_sender(s, e...)` is ill-formed; otherwise, it returns
+       a sender `s2`, that:
 
         1. Creates an object `sh_state` that contains a `stop_source`, an
             initially null pointer to an operation state awaitaing completion,
@@ -7101,38 +7122,43 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
 1. `start_detached` eagerly starts a sender without the caller needing to manage the lifetimes of any objects.
 
-2. The name `start_detached` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`. If `S` does not satisfy `sender`, `start_detached` is ill-formed. Otherwise, the expression
+2. The name `start_detached` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`.
+   If `S` does not satisfy <code>sender_in&lt;empty_env></code>, `start_detached` is ill-formed. Otherwise, the expression
     `start_detached(s)` is expression-equivalent to:
 
-    1. `tag_invoke(start_detached, get_completion_scheduler<set_value_t>(get_env(s)), s)`, if that expression is valid.
+    <pre highlight="c++">
+    apply_sender(<i>get-sender-domain</i>(s), start_detached, s)
+    </pre>
+    
+    * <i>Mandates:</i> The type of the expression above is `void`.
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is `void`.
-
-    2. Otherwise, `tag_invoke(start_detached, s)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is `void`.
-
-    3. Otherwise:
-
-        1. Let `R` be the type of a receiver, let `r` be an rvalue of type `R`, and let `cr` be a
-            lvalue reference to `const R` such that:
-
-            1. The expression `set_value(r)` is not potentially-throwing and has no effect,
-
-            2. For any subexpression `e`, the expression `set_error(r, e)` is expression-equivalent
-                to `terminate()`,
-
-            3. The expression `set_stopped(r)` is not potentially-throwing and has no effect, and
-
-            4. The expression `get_env(cr)` is expression-equivalent to <code>empty_env{}</code>.
-
-        2. Calls `connect(s, r)`, resulting in an operation state
-            `op_state`, then calls `start(op_state)`.
-
-    If the function selected above does not eagerly start the sender `s` after
+    If the expression above does not eagerly start the sender `s` after
     connecting it with a receiver that ignores value and stopped completion
     operations and calls `terminate()` on error completions, the behavior of
     calling `start_detached(s)` is undefined.
+
+3. Let `s` be a subexpression such that `S` is `decltype((s))`, and let <code><i>detached-receiver</i></code>
+   and <code><i>detached-operation</i></code> be the following exposition-only class types:
+
+   <pre highlight="c++">
+   struct <i>detached-receiver</i> {
+     using is_receiver = <i>unspecified</i>;
+     <i>detached-operation</i>* <i>op</i>; // <i>exposition only</i>
+
+     friend void tag_invoke(set_value_t, <i>detached-receiver</i>&& self) noexcept { delete self.op; }
+     friend void tag_invoke(set_error_t, <i>detached-receiver</i>&&, auto&&) noexcept { terminate(); }
+     friend void tag_invoek(set_stopped_t, <i>detached-receiver</i>&& self) noexcept { delete self.op; }
+     friend empty_env tag_invoke(get_env_t, const <i>detached-receiver</i>&) { return {}; }
+   };
+
+   struct <i>detached-operation</i> {
+     connect_result_t&lt;S, <i>detached-receiver</i>> op; // <i>exposition only</i>
+
+     explicit <i>detached-operation</i>(S&& s)
+       : op(connect(std::forward<S>(s), <i>detached-receiver</i>{this}))
+     {}
+   };
+   </pre>
 
 #### `this_thread::sync_wait` <b>[exec.sync.wait]</b> #### {#spec-execution.senders.consumers.sync_wait}
 
@@ -7170,26 +7196,25 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 4. The name `this_thread::sync_wait` denotes a customization point object. For
     some subexpression `s`, let `S` be `decltype((s))`. If
     <code>sender_in&lt;S, <i>sync-wait-env</i>></code> is `false`,
-    or the number of the arguments <code>completion_signatures_of_t&lt;S,
-    <i>sync-wait-env</i>>::value_types</code> passed into the `Variant` template
-    parameter is not 1, `this_thread::sync_wait(s)` is ill-formed. Otherwise,
-    `this_thread::sync_wait(s)` is expression-equivalent to:
+    or if the type `completion_signatures_of_t&lt;S, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t>` is ill-formed,
+    `this_thread::sync_wait(s)` is ill-formed.
+    Otherwise, `this_thread::sync_wait(s)` is expression-equivalent to:
 
-    1. `tag_invoke(this_thread::sync_wait, get_completion_scheduler<set_value_t>(get_env(s)), s)`, if this expression is valid.
+    <pre highlight="c++">
+    apply_sender(<i>get_sender-domain</i>(s), sync_wait, s)
+    </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>></code>.
+    * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>></code>.
 
-    2. Otherwise, `tag_invoke(this_thread::sync_wait, s)`, if this expression is valid and its type is.
+5. Let <code><i>sync-wait-receiver</i></code> be a class type that satisfies `receiver`, let `r` be an xvalue of that type,
+   and let `cr` be a const lvalue refering to `r` such that `get_env(cr)` has type <code><i>sync-wait-env</i></code>.
+   If <code>sender_in&lt;S, <i>sync-wait-env</i>></code> is `false`, or if the type
+   <code>completion_signatures_of_t&lt;S, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t></code> is ill-formed,
+   the expression `sync_wait_t().apply_sender(s)` is ill-formed; otherwise it has the following effects:
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>></code>.
+        1. Calls `connect(s, r)`, resulting in an operation state `op_state`, then calls `start(op_state)`.
 
-    3. Otherwise:
-
-        1. Constructs a receiver `r`.
-
-        2. Calls `connect(s, r)`, resulting in an operation state `op_state`, then calls `start(op_state)`.
-
-        3. Blocks the current thread until a completion operation of `r` is executed. When it is:
+        2. Blocks the current thread until a completion operation of `r` is executed. When it is:
 
             1. If `set_value(r, ts...)` has been called, returns <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>>{<i>decayed-tuple</i>&lt;decltype(ts)...>{ts...}}</code>. If that expression exits exceptionally, the exception is propagated to the caller of `sync_wait`.
 
@@ -7197,41 +7222,39 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
             3. If `set_stopped(r)` has been called, returns <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>>{}</code>.
 
-5. The name `this_thread::sync_wait_with_variant` denotes a customization point
+6. The name `this_thread::sync_wait_with_variant` denotes a customization point
     object. For some subexpression `s`, let `S` be the type of
     `into_variant(s)`. If <code>sender_in&lt;S,
     <i>sync-wait-env</i>></code> is `false`,
     `this_thread::sync_wait_with_variant(s)` is ill-formed. Otherwise,
     `this_thread::sync_wait_with_variant(s)` is expression-equivalent to:
 
-    1. `tag_invoke(this_thread::sync_wait_with_variant, get_completion_scheduler<set_value_t>(get_env(s)), s)`, if this expression is valid.
+    <pre highlight="c++">
+    apply_sender(<i>get-sender-domain</i>(s), sync_wait_with_variant, s)
+    </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is <code><i>sync-wait-with-variant-type</i>&lt;S, <i>sync-wait-env</i>></code>.
+    * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-with-variant-type</i>&lt;S, <i>sync-wait-env</i>></code>.
 
-    2. Otherwise, `tag_invoke(this_thread::sync_wait_with_variant, s)`, if this expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is <code><i>sync-wait-with-variant-type</i>&lt;S, <i>sync-wait-env</i>></code>.
-
-    3. Otherwise, `this_thread::sync_wait(into_variant(s))`.
+7. The expression `sync_wait_with_variant_t().apply_sender(s)` is expression-equivalent to `this_thread::sync_wait(into_variant(s))`.
 
 ## `execution::execute` <b>[exec.execute]</b> ## {#spec-execution.execute}
 
 1. `execute` creates fire-and-forget tasks on a specified scheduler.
 
 2. The name `execute` denotes a customization point object. For some subexpressions `sch` and `f`, let `Sch` be `decltype((sch))` and `F` be `decltype((f))`. If `Sch` does not satisfy `scheduler` or `F` does not satisfy `invocable`,
-    `execute` is ill-formed. Otherwise, `execute` is expression-equivalent to:
+    `execute(sch, f)` is ill-formed. Otherwise, `execute(sch, f)` is expression-equivalent to:
 
-    1. `tag_invoke(execute, sch, f)`, if that expression is valid. If
-        the function selected by `tag_invoke` does not invoke the function `f`
-        (or an object decay-copied from `f`) on an execution agent belonging to
-        the associated execution resource of `sch`, or if it does not call
-        `std::terminate` if an error occurs after control is returned to the
-        caller, the behavior of calling `execute`
-        is undefined.
+    <pre highlight="c++">
+    apply_sender(
+      <i>query-or-default</i>(get_domain, sch, default_domain()),
+      execute, schedule(sch), f)
+    </pre>
+    * <i>Mandates:</i> The type of the expression above is `void`.
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above is `void`.
-
-    2. Otherwise, `start_detached(then(schedule(sch), f))`.
+3. For some subexpressions `s` and `f` where `F` is `decltype((f))`,
+   if `F` does not satisfy `invocable`, the expression
+   `execute_t().apply_sender(s, f)` is ill-formed; otherwise it is
+   expression-equivalent to `start_detached(then(s, f))`.
 
 ## Sender/receiver utilities <b>[exec.utils]</b> ## {#spec-execution.snd_rec_utils}
 
