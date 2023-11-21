@@ -543,7 +543,7 @@ struct _then_sender {
   // Compute the completion signatures
   template<class Env>
   friend auto tag_invoke(exec::get_completion_signatures_t, _then_sender&&, Env)
-    -> exec::make_completion_signatures<S, Env,
+    -> exec::transform_completion_signatures_of<S, Env,
         exec::completion_signatures<exec::set_error_t(std::exception_ptr)>,
         _set_value_t>;
 
@@ -668,7 +668,7 @@ struct _retry_sender {
   // Declare the signatures with which this sender can complete
   template <class Env>
   friend auto tag_invoke(exec::get_completion_signatures_t, const _retry_sender&, Env)
-    -> exec::make_completion_signatures<S&, Env,
+    -> exec::transform_completion_signatures_of<S&, Env,
         exec::completion_signatures<exec::set_error_t(std::exception_ptr)>,
         _value_t, _error_t>;
 
@@ -1015,7 +1015,7 @@ essential when writing user code using standard execution concepts; we have also
         single-consumer, first-in-first-out work queue.
     * <b>`receiver_adaptor`</b>: A utility for algorithm authors for defining one
         receiver type in terms of another.
-    * <b>`completion_signatures`</b> and <b>`make_completion_signatures`</b>:
+    * <b>`completion_signatures`</b> and <b>`transform_completion_signatures`</b>:
         Utilities for describing the ways in which a sender can complete in a
         declarative syntax.
 
@@ -1134,6 +1134,11 @@ The changes since R7 are as follows:
 <b>Fixes:</b>
 
   * `get_env(obj)` is required to be nothrow.
+
+  * `make_completion_signatures` is renamed `transform_completion_signatures_of`
+      and is expressed in terms of the new `transform_completion_signatures`,
+      which takes an input set of completion signatures instead of a sender and an
+      environment.
 
 ## R7 ## {#r7}
 
@@ -1285,8 +1290,7 @@ The changes since R3 are as follows:
     against a receiver and sending the result through the value channel. (This is
     a useful instance of a dependently-typed sender.)
   * Add `completion_signatures` utility for declaratively defining a typed
-    sender's metadata and a `make_completion_signatures` utility for adapting
-    another sender's completions in helpful ways.
+    sender's metadata.
   * Add `make_completion_signatures` utility for specifying a sender's completion
     signatures by adapting those of another sender.
   * Drop support for untyped senders and rename `typed_sender` to `sender`.
@@ -1390,7 +1394,7 @@ environment entirely, passing then as separate arguments along with the sender t
 This change, apart from increasing the expressive power of the sender/receiver abstraction, has the following impact:
 
   * Typed senders become moderately more challenging to write. (The new
-    `completion_signatures` and `make_completion_signatures` utilities are added
+    `completion_signatures` and `transform_completion_signatures` utilities are added
     to ease this extra burden.)
 
   * Sender adaptor algorithms that previously constrained their sender arguments
@@ -4259,7 +4263,7 @@ namespace std::execution {
   // [exec.snd.transform], sender transformations
   template &lt;class Domain, sender Sender, class... Env>
       requires (sizeof...(Env) &lt;= 1)
-    constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env&... env) noexcept(<i>see below</i>);
+    constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env&... env);
 
   template &lt;class Domain, sender Sender, class Env>
     constexpr decltype(auto) transform_env(Domain dom, Sender&& sndr, Env&& env) noexcept;
@@ -4410,14 +4414,24 @@ namespace std::execution {
 
   // [exec.utils.mkcmplsigs]
   template&lt;
+    <i>valid-completion-signatures</i> InputSignatures,
+    <i>valid-completion-signatures</i> AdditionalSignatures = completion_signatures<>,
+    template&lt;class...> class SetValue = <i>see below</i>,
+    template&lt;class> class SetError = <i>see below</i>,
+    <i>valid-completion-signatures</i> SetStopped = completion_signatures&lt;set_stopped_t()>>
+  using transform_completion_signatures = completion_signatures&lt;<i>see below</i>>;
+
+  template&lt;
     sender Sndr,
     class Env = empty_env,
-    <i>valid-completion-signatures</i> AddlSigs = completion_signatures<>,
+    <i>valid-completion-signatures</i> AdditionalSignatures = completion_signatures<>,
     template&lt;class...> class SetValue = <i>see below</i>,
     template&lt;class> class SetError = <i>see below</i>,
     <i>valid-completion-signatures</i> SetStopped = completion_signatures&lt;set_stopped_t()>>
       requires sender_in&lt;Sndr, Env>
-  using make_completion_signatures = completion_signatures&lt;<i>see below</i>>;
+  using transform_completion_signatures_of =
+    transform_completion_signatures&lt;
+      completion_signatures_of_t&lt;Sndr, Env>, AdditionalSignatures, SetValue, SetError, SetStopped>;
 
   // [exec.ctx], execution resources
   class run_loop;
@@ -4848,11 +4862,27 @@ enum class forward_progress_guarantee {
 
 ## Senders <b>[exec.snd]</b> ## {#spec-execution.senders}
 
-
-
 1. This section makes use of the following exposition-only entities.
 
     1.  <pre highlight="c++">
+        template &lt;class Default = default_domain, class Sender>
+        constexpr auto <i>completion-domain</i>(const Sender& sndr) noexcept;
+        </pre>
+
+        1. *Effects:* Let <code><i>COMPL-DOMAIN</i>(T)</code> be the type of the expression
+            `get_domain(get_completion_scheduler<T>(get_env(sndr)))`. If
+            <code><i>COMPL-DOMAIN</i>(set_value_t)</code>,
+            <code><i>COMPL-DOMAIN</i>(set_error_t)</code>, and
+            <code><i>COMPL-DOMAIN</i>(set_stopped_t)</code> all share a common type
+            [meta.trans.other] (ignoring those types that are ill-formed), then
+            <code><i>completion-domain</i>&lt;Default>(sndr)</code> is a default-constructed
+            prvalue of that type.
+            Otherwise, if all of those types are ill-formed,
+            <code><i>completion-domain</i>&lt;Default>(sndr)</code> is a default-constructed
+            prvalue of type `Default`.
+            Otherwise, <code><i>completion-domain</i>&lt;Default>(sndr)</code> is ill-formed.
+
+    2.  <pre highlight="c++">
         template &lt;class Tag, class Env, class Default>
         constexpr decltype(auto) <i>query-with-default</i>(Tag, const Env& env, Default&& value) noexcept(<i>see below</i>);
         </pre>
@@ -4870,28 +4900,47 @@ enum class forward_progress_guarantee {
                                                 : is_nothrow_constructible_v&lt;Default, Default>
                 </pre>
 
-    2.  <pre highlight="c++">
-        template &lt;class Env, class Tag = get_scheduler_t>
-        constexpr auto <i>get-env-domain</i>(const Env& env, Tag tag = {}) noexcept;
+    3.  <pre highlight="c++">
+        template &lt;class Sender>
+        constexpr auto <i>get-domain-early</i>(const Sender& sndr) noexcept;
+        </pre>
+
+        1. <i>Effects:</i> Equivalent to the first of the following that is well-formed:
+
+            - `return get_domain(get_env(sndr));`
+
+            - <code>return <i>completion-domain</i>(sndr);</code>
+
+            - `return default_domain();`
+
+    4.  <pre highlight="c++">
+        template &lt;class Sender, class Env>
+        constexpr auto <i>get-domain-late</i>(const Sender& sndr, const Env& env) noexcept;
         </pre>
 
         1. <i>Effects:</i> Equivalent to:
 
-            - `return get_domain(env);` if that expression is well-formed,
+            - If <code><i>sender-for</i>&lt;Sender, transfer_t></code> is `true`, then
+                <code>return <i>query-or-default</i>(get_domain, sch, default_domain())</code> where `sch`
+                is the scheduler that was used to construct `sndr`,
 
-            - otherwise, `return get_domain(tag(env));` if that expression is
-                well-formed,
+            - Otherwise, `return get_domain(get_env(sndr));` if that expression is well-formed,
 
-            - otherwise, `return default_domain();`.
+            - Otherwise, <code>return <i>completion-domain</i>&lt;<i>X</i>>(sndr);</code>
+                if that expression is well-formed and its type is not <code>*X*</code> where
+                <code>*X*</code> is an unspecified type,
 
-    3.  <pre highlight="c++">
-        template &lt;class Sender, class Tag = set_value_t>
-        constexpr auto <i>get-sender-domain</i>(const Sender& sndr, Tag = {}) noexcept;
-        </pre>
+            - Otherwise, `return get_domain(env);` if that expression is well-formed,
 
-        1. <i>Effects:</i> Equivalent to: <code>return <i>get-env-domain</i>(get_env(sndr), get_completion_scheduler<Tag>);</code>.
+            - Otherwise, `return get_domain(get_scheduler(env));` if that expression is well-formed,
 
-    4.  <pre highlight="c++">
+            - Otherwise, `return default_domain();`.
+
+            [*Note:* The `transfer` algorithm is unique in that it ignores the execution domain of
+            its predecessor, using only its destination scheduler to select a customization. *--end note*]
+
+
+    5.  <pre highlight="c++">
         template &lt;class... T>
         struct <i>tuple-like</i> {
           T<sub><i>0</i></sub> <i>t<sub>0</sub></i>;      // exposition only
@@ -4904,7 +4953,7 @@ enum class forward_progress_guarantee {
         - <span class="wg21note">An expression of type <code><i>tuple-like</i></code> is usable as the initializer
             of a structured binding declaration [dcl.struct.bind].</span>
 
-    5.  <pre highlight="c++">
+    6.  <pre highlight="c++">
         template &lt;semiregular Tag, <i>movable-value</i> Data, sender... Child>
         constexpr auto <i>make-sender</i>(Tag, Data&& data, Child&&... child);
         </pre>
@@ -4940,17 +4989,6 @@ enum class forward_progress_guarantee {
             initializer of a structured binding declaration
             [dcl.struct.bind].</span>
 
-    6.  <pre highlight="c++">
-        template &lt;class Domain, class... Env>
-        auto <i>make-transformer-fn</i>(Domain, const Env&... env) {
-          return [&]&lt;class Tag>(Tag) {
-            return [&]&lt;class... Args>(Args&&... args) -> decltype(auto) {
-              return transform_sender(Domain(), Tag()(std::forward&lt;Args>(args)...), env...);
-            };
-          };
-        }
-        </pre>
-
 ### Sender concepts <b>[exec.snd.concepts]</b> ### {#spec-execution.snd.concepts}
 
 1. The `sender` concept defines the requirements for a sender type
@@ -4978,6 +5016,7 @@ enum class forward_progress_guarantee {
         enable_sender&lt;remove_cvref_t&lt;S>> &&
         requires (const remove_cvref_t&lt;S>& s) {
           { get_env(s) } -> queryable;
+          <i>completion-domain</i>(s);
         } &&
         move_constructible&lt;remove_cvref_t&lt;S>> &&  <i>// rvalues are movable, and</i>
         constructible_from&lt;remove_cvref_t&lt;S>, S>; <i>// lvalues are copyable</i>
@@ -5225,25 +5264,15 @@ template &lt;class Tag, sender Sender, class... Args>
 <pre highlight="c++">
 template &lt;class Domain, sender Sender, class... Env>
     requires (sizeof...(Env) &lt;= 1)
-  constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env&... env) noexcept(<i>see below</i>);
+  constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env&... env);
 </pre>
 
-1. <i>Returns:</i> `dom.transform_sender(std::forward<Sender>(sndr), env...)` if that
+1. <i>Returns:</i> Let `s2` be the expression
+      `dom.transform_sender(std::forward<Sender>(sndr), env...)` if that
       expression is well-formed; otherwise,
       `default_domain().transform_sender(std::forward<Sender>(sndr), env...)`.
-
-
-2. <i>Remarks:</i> The exception specification is equivalent to:
-
-      <pre highlight="c++">
-      noexcept(dom.transform_sender(std::forward&lt;Sender>(sndr), env...))
-      </pre>
-
-      if that expression is well-formed; otherwise,
-
-      <pre highlight="c++">
-      noexcept(default_domain().transform_sender(std::forward&lt;Sender>(sndr), env...))
-      </pre>
+      If `s2` and `sndr` have the same type ignoring _cv_ qualifiers,
+      returns `s2`; otherwise, `transform_sender(dom, s2, env...)`.
 
 <pre highlight="c++">
 template &lt;class Domain, sender Sender, class Env>
@@ -5545,7 +5574,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     refering to objects direct-initilized from `vs`. If a sender `S` returned
     from `transfer_just(sch, vs...)`
     is connected with a receiver `R` with environment `E` such that
-    <code>transform_sender(<i>get-env-domain</i>(E), S, E)</code> does not
+    <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does not
     return a sender whose asynchronous
     operations execute value completion operations on an execution agent
     belonging to the execution resource associated with `s`, with value result
@@ -5570,11 +5599,10 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
         <pre highlight="c++">
         const auto& env = e;
-        auto domain = <i>get-env-domain</i>(env);
+        auto domain = <i>get-domain-late</i>(s, env);
         auto [tag, data] = s;
         auto& [sched, ...vs] = data;
-        auto tfx = <i>make-transformer-fn</i>(domain, env);
-        return tfx(transfer)(tfx(just)(std::move(vs)...), std::move(sched));
+        return transfer(just(std::move(vs)...), std::move(sched));
         </pre>
 
     <span class="wg21note">This causes the `transform_just(sch, vs...)` sender to become
@@ -5792,7 +5820,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
     1. If a sender `S` returned from `on(sch, s)` is
         connected with a receiver `R` with environment `E` such that
-        <code>transform_sender(<i>get-env-domain</i>(E), S, E)</code> does not return a sender that starts `s` on an execution agent of the associated execution resource of `sch` when
+        <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does not return a sender that starts `s` on an execution agent of the associated execution resource of `sch` when
         started, the behavior of calling `connect(S, R)` is undefined.
 
 4. Let `s` and `e` be subexpressions such that `S` is `decltype((s))`. If
@@ -5833,10 +5861,10 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     Then the type of `tag_invoke(get_completion_signatures, s1, e)` shall be:
 
     <pre highlight="c++">
-    make_completion_signatures&lt;
+    transform_completion_signatures_of&lt;
       copy_cvref_t&lt;S1, S>,
       E2,
-      make_completion_signatures&lt;
+      transform_completion_signatures_of&lt;
         schedule_result_t&lt;Sch>,
         E,
         completion_signatures&lt;set_error_t(exception_ptr)>,
@@ -5860,15 +5888,15 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
         <pre highlight="c++">
         transform_sender(
-          <i>get-sender-domain</i>(s),
+          <i>get-domain-early</i>(s),
           <i>make-sender</i>(transfer, sch, s));
         </pre>
 
     If a sender `S` returned from `transfer(s, sch)` is connected with a
     receiver `R` with environment `E` such that
-    <code>transform_sender(<i>get-env-domain</i>(E), S, E)</code> does not
+    <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does not
     return a sender that is a result of a call to
-    <code>transform_sender(<i>get-env-domain</i>(E), schedule_from(sch, s2), E)</code>,
+    <code>transform_sender(<i>get-domain-late</i>(S, E), schedule_from(sch, s2), E)</code>,
     where `s2` is a sender that sends values equal to those sent by `s`,
     the behavior of calling `connect(S, R)` is undefined.
 
@@ -5890,10 +5918,9 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
         <pre highlight="c++">
         const auto& env = e;
-        auto domain = <i>get-env-domain</i>(env);
+        auto domain = <i>get-domain-late</i>(s, env);
         auto [tag, data, child] = s;
-        auto tfx = <i>make-transformer-fn</i>(domain, env);
-        return tfx(schedule_from)(std::move(data), std::move(child));
+        return schedule_from(std::move(data), std::move(child));
         </pre>
 
     <span class="wg21note">This causes the `transfer(s, sch)` sender to become
@@ -5956,7 +5983,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
     2. If a sender `S` returned from `schedule_from(sch, s)` is connected with a
         receiver `R` with environmment `E` such that
-        <code>transform_sender(<i>get-env-domain</i>(E), S, E)</code> does not
+        <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does not
         return a sender that completes on an execution agent belonging to the
         associated execution resource of `sch` and completing with the same
         async result ([async.ops]) as `s`, the behavior of calling
@@ -5968,10 +5995,10 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
         `tag_invoke(get_completion_signatures, s2, e)` shall be:
 
         <pre highlight="c++">
-        make_completion_signatures&lt;
+        transform_completion_signatures_of&lt;
           copy_cvref_t&lt;S2, S>,
           E,
-          make_completion_signatures&lt;
+          transform_completion_signatures_of&lt;
             schedule_result_t&lt;Sch>,
             E,
             <i>potentially-throwing-completions</i>,
@@ -6034,7 +6061,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
         <pre highlight="c++">
         transform_sender(
-          <i>get-sender-domain</i>(s),
+          <i>get-domain-early</i>(s),
           <i>make-then-sender</i>(f, s));
         </pre>
 
@@ -6075,7 +6102,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     `tag_invoke(get_completion_signatures, out_s, e)` shall be:
 
     <pre highlight="c++">
-    make_completion_signatures&lt;
+    transform_completion_signatures_of&lt;
       <i>clone-cvref-t</i>&lt;OutS, S>, E, <i>set-error-signature</i>,
         <i>set-value-completions</i>>;
     </pre>
@@ -6163,7 +6190,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
             to:
 
             <pre highlight="c++">
-            make_completion_signatures&lt;
+            transform_completion_signatures_of&lt;
               copy_cvref_t&lt;S2, S>, E, <i>set-error-signature</i>,
                 <i>default-set-value</i>, <i>set-error-completion</i>>;
             </pre>
@@ -6241,7 +6268,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
             to:
 
             <pre highlight="c++">
-            make_completion_signatures&lt;
+            transform_completion_signatures_of&lt;
               copy_cvref_t&lt;S2, S>, E, <i>set-error-signature</i>,
                 <i>default-set-value</i>, <i>default-set-error</i>, <i>set-stopped-completions</i>>;
             </pre>
@@ -6284,7 +6311,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
 
-    3. Otherwise, given a receiver `out_r` and an lvalue `out_r'` referring to an object decay-copied from `out_r`.
+    3. Otherwise, given a receiver `out_r` and an lvalue `out_r2` referring to an object decay-copied from `out_r`.
 
         1. For `let_value`, let `set-cpo` be `set_value`.
             For `let_error`, let `set-cpo` be `set_error`.
@@ -6294,13 +6321,13 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
         2. Let `r` be an rvalue of a receiver type `R` such that:
 
             1. When <code><i>set-cpo</i>(r, args...)</code> is called, the receiver `r` decay-copies `args...` into `op_state2` as `args2...`, then calls `invoke(f2, args2...)`, resulting in a sender `s3`.
-                It then calls `connect(s3, std::move(out_r'))`, resulting in an operation state `op_state3`.
+                It then calls `connect(s3, std::move(out_r2))`, resulting in an operation state `op_state3`.
                 `op_state3` is saved as a part of `op_state2`.
                 It then calls `start(op_state3)`.
-                If any of these throws an exception, it catches it and calls `set_error(std::move(out_r'), current_exception())`.
+                If any of these throws an exception, it catches it and calls `set_error(std::move(out_r2), current_exception())`.
                 If any of these expressions would be ill-formed, <code><i>set-cpo</i>(r, args...)</code> is ill-formed.
 
-            2. <code><i>completion-function</i>(r, args...)</code> is expression-equivalent to <code><i>completion-function</i>(std::move(out_r'), args...)</code>, when <code><i>completion-function</i></code> is different from <code><i>set-cpo</i></code>.
+            2. <code><i>completion-function</i>(r, args...)</code> is expression-equivalent to <code><i>completion-function</i>(std::move(out_r2), args...)</code>, when <code><i>completion-function</i></code> is different from <code><i>set-cpo</i></code>.
 
         3. <code><i>let-cpo</i>(s, f)</code> returns a sender `s2` such that:
 
@@ -6399,7 +6426,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
                 equivalent to:
 
                 <pre highlight="c++">
-                make_completion_signatures&lt;
+                transform_completion_signatures_of&lt;
                   DS, E, completion_signatures&lt;set_error_t(exception_ptr)>>
                 </pre>
 
@@ -6480,7 +6507,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
         5. When `s2` is connected with a receiver `out_r` of type `OutR`, it
             returns an operation state object `op_state` that contains:
 
-              * An object `out_r'` of type `OutR` decay-copied from `out_r`,
+              * An object `out_r2` of type `OutR` decay-copied from `out_r`,
               * A reference to `sh_state`,
               * A stop callback of type
                 <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
@@ -6500,13 +6527,13 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
             * If one of `r`'s completion functions has executed, then let
                 <code><i>Tag</i></code> be the completion function that was
-                called. Calls <code><i>Tag</i>(out_r', args2...)</code>,
+                called. Calls <code><i>Tag</i>(out_r2, args2...)</code>,
                 where `args2...` is a pack of const lvalues referencing the
                 subobjects of `sh_state` that have been saved by the original
                 call to <code><i>Tag</i>(r, args...)</code> and returns.
 
             * Otherwise, it emplace constructs the stop callback optional with
-                the arguments `get_stop_token(get_env(out_r'))` and
+                the arguments `get_stop_token(get_env(out_r2))` and
                 <code><i>stop-callback-fn</i>{<i>stop-src</i>}</code>, where
                 <code><i>stop-src</i></code> refers to the stop source of
                 `sh_state`.
@@ -6526,7 +6553,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
             ready. Let <code><i>Tag</i></code> be whichever
             completion function was called on receiver `r`. `op_state`'s
             stop callback optional is reset. Then
-            <code><i>Tag</i>(std::move(out_r'), args2...)</code> is called,
+            <code><i>Tag</i>(std::move(out_r2), args2...)</code> is called,
             where `args2...` is a pack of const lvalues referencing the subobjects of
             `sh_state` that have been saved by the original call to
             <code><i>Tag</i>(r, args...)</code>.
@@ -6545,7 +6572,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
         to:
 
         <pre highlight="c++">
-        make_completion_signatures&lt;
+        transform_completion_signatures_of&lt;
           copy_cvref_t&lt;S2, S>,
           E,
           completion_signatures&lt;set_error_t(exception_ptr),
@@ -6841,7 +6868,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
         The type of `tag_invoke(get_completion_signatures_t{}, s2, e)` shall be equivalent to:
 
         <pre highlight="c++">
-            make_completion_signatures<
+            transform_completion_signatures_of<
                 S2,
                 E,
                 <i>INTO-VARIANT-ERROR-SIGNATURES</i>(S, E),
@@ -6961,7 +6988,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
         5. When `s2` is connected with a receiver `out_r` of type `OutR`, it
             returns an operation state object `op_state` that contains:
 
-              * An object `out_r'` of type `OutR` decay-copied from `out_r`,
+              * An object `out_r2` of type `OutR` decay-copied from `out_r`,
               * A reference to `sh_state`,
               * A stop callback of type
                 <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
@@ -6984,20 +7011,20 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
             * If `r` has already been completed, then let
                 <code><i>CF</i></code> be whichever completion function
                 was used to complete `r`. Calls
-                <code><i>CF</i>(out_r', args2...)</code>, where `args2...` is a
+                <code><i>CF</i>(out_r2, args2...)</code>, where `args2...` is a
                 pack of xvalues referencing the subobjects of `sh_state` that have
                 been saved by the original call to <code><i>CF</i>(r,
                 args...)</code> and returns.
 
             * Otherwise, it emplace constructs the stop callback optional with
-                the arguments `get_stop_token(get_env(out_r'))` and
+                the arguments `get_stop_token(get_env(out_r2))` and
                 <code><i>stop-callback-fn</i>{<i>stop-src</i>}</code>, where
                 <code><i>stop-src</i></code> refers to the stop source of
                 `sh_state`.
 
             * Then, it checks to see if
                 <code><i>stop-src</i>.stop_requested()</code> is `true`. If so, it
-                calls `set_stopped(out_r')`.
+                calls `set_stopped(out_r2)`.
 
             * Otherwise, it sets `sh_state` operation state pointer to the
                 address of `op_state`, registering itself as awaiting the result
@@ -7007,7 +7034,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
             ready. Let <code><i>CF</i></code> be whichever
             completion function was used to complete `r`. `op_state`'s stop
             callback optional is reset. Then
-            <code><i>CF</i>(std::move(out_r'), args2...)</code> is called,
+            <code><i>CF</i>(std::move(out_r2), args2...)</code> is called,
             where `args2...` is a pack of xvalues referencing the subobjects of
             `sh_state` that have been saved by the original call to
             <code><i>CF</i>(r, args...)</code>.
@@ -7030,7 +7057,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
         to:
 
             <pre highlight="c++">
-            make_completion_signatures&lt;
+            transform_completion_signatures_of&lt;
               copy_cvref_t&lt;S2, S>,
               <i>ensure-started-env</i>,
               completion_signatures&lt;set_error_t(exception_ptr&amp;&amp;),
@@ -7433,24 +7460,22 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
     <pre highlight="c++">
     template&lt;class Tag,
-              class S,
-              class E,
+              <i>valid-completion-signatures</i> Completions,
               template&lt;class...> class Tuple,
               template&lt;class...> class Variant>
-        requires sender_in&lt;S, E>
       using <i>gather-signatures</i> = <i>see below</i>;
     </pre>
 
     2. Let `Fns...` be a template parameter pack of the arguments of the
         `completion_signatures` specialization named by
-        `completion_signatures_of_t<S, E>`, let <code><i>TagFns</i></code> be a
+        `Completions`, let <code><i>TagFns</i></code> be a
         template parameter pack of the function types in `Fns` whose return types
         are `Tag`, and let
         <code><i>Ts<i><sub>n</sub></i></i></code> be a template parameter
         pack of the function argument types in the <code><i>n</i></code>-th type
         in <code><i>TagFns</i></code>. Then, given two variadic templates
         <code><i>Tuple</i></code> and <code><i>Variant</i></code>, the type
-        <code><i>gather-signatures</i>&lt;Tag, S, E, <i>Tuple</i>, <i>Variant</i>></code>
+        <code><i>gather-signatures</i>&lt;Tag, Completions, <i>Tuple</i>, <i>Variant</i>></code>
         names the type
         <code><i>META-APPLY</i>(<i>Variant</i>, <i>META-APPLY</i>(<i>Tuple</i>, <i>Ts<i><sub>0</sub></i></i>...),
         <i>META-APPLY</i>(<i>Tuple</i>, <i>Ts<i><sub>1</sub></i></i>...), ...
@@ -7476,29 +7501,29 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
               template&lt;class...> class Variant = <i>variant-or-empty</i>>
         requires sender_in&lt;S, E>
       using value_types_of_t =
-          <i>gather-signatures</i>&lt;set_value_t, S, E, Tuple, Variant>;
+          <i>gather-signatures</i>&lt;set_value_t, completion_signatures_of_t&lt;S, E>, Tuple, Variant>;
 
     template&lt;class S,
               class E = empty_env,
               template&lt;class...> class Variant = <i>variant-or-empty</i>>
         requires sender_in&lt;S, E>
       using error_types_of_t =
-          <i>gather-signatures</i>&lt;set_error_t, S, E, type_identity_t, Variant>;
+          <i>gather-signatures</i>&lt;set_error_t, completion_signatures_of_t&lt;S, E>, type_identity_t, Variant>;
 
     template&lt;class S, class E = empty_env>
         requires sender_in&lt;S, E>
       inline constexpr bool sends_stopped =
           !same_as&lt;
             <i>type-list</i>&lt;>,
-            <i>gather-signatures</i>&lt;set_stopped_t, S, E, <i>type-list</i>, <i>type-list</i>>>;
+            <i>gather-signatures</i>&lt;set_stopped_t, completion_signatures_of_t&lt;S, E>, <i>type-list</i>, <i>type-list</i>>>;
     </pre>
 
-### `execution::make_completion_signatures` <b>[exec.utils.mkcmplsigs]</b> ### {#spec-execution.snd_rec_utils.make_completion_sigs}
+### `execution::transform_completion_signatures` <b>[exec.utils.tfxcmplsigs]</b> ### {#spec-execution.snd_rec_utils.transform_completion_sigs}
 
-1. `make_completion_signatures` is an alias template used to adapt the
-    completion signatures of a sender. It takes a sender, and environment, and
-    several other template arguments that apply modifications to the sender's
-    completion signatures to generate a new specialization of
+1. `transform_completion_signatures` is an alias template used to transform one
+    set of completion signatures into another. It takes a set of completion
+    signatures and several other template arguments that apply modifications to
+    each completion signature in the set to generate a new specialization of
     `completion_signatures`.
 
 2. [<i>Example:</i>
@@ -7513,8 +7538,8 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
           set_value_t(add_lvalue_reference_t&lt;Args>...)>;
 
     using my_completion_signatures =
-      make_completion_signatures&lt;
-        S, Env,
+      transform_completion_signatures&lt;
+        completion_signatures_of_t<S, Env>,
         completion_signatures&lt;set_error_t(exception_ptr)>,
         my_set_value_t>;
     </pre>
@@ -7533,16 +7558,14 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     </pre>
 
 4.  <pre highlight="c++">
-    template&lt;sender Sndr,
-              class Env = empty_env,
-              <i>valid-completion-signatures</i> AddlSigs =
-                  completion_signatures&lt;>,
-              template&lt;class...> class SetValue = <i>default-set-value</i>,
-              template&lt;class> class SetError = <i>default-set-error</i>,
-              <i>valid-completion-signatures</i> SetStopped =
-                  completion_signatures&lt;set_stopped_t()>>
-        requires sender_in&lt;Sndr, Env>
-    using make_completion_signatures =
+    template&lt;<i>valid-completion-signatures</i> InputSignatures,
+             <i>valid-completion-signatures</i> AdditionalSignatures =
+                 completion_signatures&lt;>,
+             template&lt;class...> class SetValue = <i>default-set-value</i>,
+             template&lt;class> class SetError = <i>default-set-error</i>,
+             <i>valid-completion-signatures</i> SetStopped =
+                 completion_signatures&lt;set_stopped_t()>>
+    using transform_completion_signatures =
       completion_signatures&lt;<i>see below</i>>;
     </pre>
 
@@ -7558,27 +7581,27 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     Then:
 
         * Let `Vs...` be a pack of the types in the <code><i>type-list</i></code> named
-            by <code>value_types_of_t&lt;Sndr, Env, SetValue, <i>type-list</i>></code>.
+            by <code><i>gether-signatures</i>&lt;set_value_t, InputSignatures, SetValue, <i>type-list</i>></code>.
 
         *  Let `Es...` be a pack of the types in the
-            <code><i>type-list</i></code> named by <code>error_types_of_t&lt;Sndr, Env,
-            <i>error-list</i>></code>, where <code><i>error-list</i></code> is an
+            <code><i>type-list</i></code> named by <code><i>gather-signatures</i>&lt;set_error_t, InputSignatures,
+            type_identity_t, <i>error-list</i>></code>, where <code><i>error-list</i></code> is an
             alias template such that <code><i>error-list</i>&lt;Ts...></code> names
             <code><i>type-list</i>&lt;SetError&lt;Ts>...></code>.
 
-        * Let `Ss` name the type `completion_signatures<>` if `sends_stopped<Sndr,
-            Env>` is `false`; otherwise, `SetStopped`.
+        * Let `Ss` name the type `completion_signatures<>` if <code><i>gather-signatures</i>&lt;set_stopped_t, InputSignatures,
+            <i>type-list</i>, <i>type-list</i>></code> is an alias for the type <code><i>type-list</i>&lt;></code>; otherwise, `SetStopped`.
 
         Then:
 
         1. If any of the above types are ill-formed, then
-            `make_completion_signatures<Sndr, Env, AddlSigs, SetValue, SetError,
+            `transform_completion_signatures<InputSignatures, AdditionalSignatures, SetValue, SetError,
             SetStopped>` is ill-formed,
 
-        2. Otherwise, `make_completion_signatures<Sndr, Env, AddlSigs, SetValue,
+        2. Otherwise, `transform_completion_signatures<InputSignatures, AdditionalSignatures, SetValue,
             SetError, SetStopped>` names the type `completion_signatures<Sigs...>`
             where `Sigs...` is the unique set of types in all the template arguments
-            of all the `completion_signatures` specializations in `[AddlSigs, Vs..., Es..., Ss]`.
+            of all the `completion_signatures` specializations in `[AdditionalSignatures, Vs..., Es..., Ss]`.
 
 ## Execution contexts <b>[exec.ctx]</b> ## {#spec-execution.contexts}
 
