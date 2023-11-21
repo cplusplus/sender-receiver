@@ -6298,20 +6298,26 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     `bulk` is ill-formed. Otherwise, the expression
     `bulk(s, shape, f)` is expression-equivalent to:
 
-    1. `tag_invoke(bulk, get_completion_scheduler<set_value_t>(get_env(s)), s, shape, f)`, if that expression is valid.
+      <pre highlight="c++">
+      transform_sender(
+        <i>get-domain-early</i>(s),
+        <i>make-bulk-sender</i>(<i>tuple-like</i>{shape, f}, s));
+      </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
+    where <code><i>make-bulk-sender</i>(t, s)</code> is expression-equivalent to
+    <code><i>make-sender</i>(bulk, t, s)</code> for a subexpression `t` and
+    returns a sender object `s2` that behaves as follows:
 
-    2. Otherwise, `tag_invoke(bulk, s, shape, f)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    3. Otherwise, constructs a sender `s2`. When `s2` is connected with some receiver `out_r`, it:
+    3. When `s2` is connected with a receiver `out_r`, it:
 
         1. Constructs a receiver `r`:
 
-            1. When `set_value(r, args...)` is called, calls `f(i, args...)` for each `i` of type `Shape` from `0` to `shape`, then calls `set_value(out_r, args...)`. If any of these throws an exception, it catches it and calls
-                `set_error(out_r, current_exception())`.
+            1. When `set_value(r, args...)` is called, calls `f(i, args...)` for
+                each `i` of type `Shape` from `0` to `shape`, then calls
+                `set_value(out_r, args...)`. If any of these throws an
+                exception, it catches it and calls `set_error(out_r,
+                current_exception())`. If any of these expressions are
+                ill-formed, `set_value(r, args...)` is ill-formed.
 
             2. When `set_error(r, e)` is called, calls `set_error(out_r, e)`.
 
@@ -6319,12 +6325,14 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
         2. Calls `connect(s, r)`, which results in an operation state `op_state2`.
 
-        3. Returns an operation state `op_state` that contains `op_state2`. When `start(op_state)` is called, calls `start(op_state2)`.
+        3. Returns an operation state `op_state` that contains `op_state2`. When
+            `start(op_state)` is called, calls `start(op_state2)`.
 
         4. Given subexpressions `s2` and `e` where `s2` is a sender returned
-            from `bulk` or a copy of such, let `S2` be `decltype((s2))`, let
-            `E` be `decltype((e))`, let `DS` be `copy_cvref_t<S2, S>`, let `Shape` be
-            `decltype((shape))` and let <code><i>nothrow-callable</i></code> be the alias template:
+            from `bulk` or a copy of such, let `S2` be `decltype((s2))`, let `E`
+            be `decltype((e))`, let `DS` be `copy_cvref_t<S2, S>`, let `Shape`
+            be `decltype((shape))` and let <code><i>nothrow-callable</i></code>
+            be the alias template:
 
               <pre highlight="c++">
               template&lt;class... As>
@@ -6335,8 +6343,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
             1. If any of the types in the <code><i>type-list</i></code> named by
                 <code>value_types_of_t&lt;DS, E, <i>nothrow-callable</i>,
                 <i>type-list</i>></code> are `false_type`, then the type of
-                `tag_invoke(get_completion_signatures, s2, e)` shall be
-                equivalent to:
+                `tag_invoke(get_completion_signatures, s2, e)` shall be:
 
                 <pre highlight="c++">
                 transform_completion_signatures_of&lt;
@@ -6344,14 +6351,16 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
                 </pre>
 
             2. Otherwise, the type of `tag_invoke(get_completion_signatures, s2,
-                e)` shall be equivalent to `completion_signatures_of_t<DS, E>`.
+                e)` shall be `completion_signatures_of_t<DS, E>`.
 
-    4. If the function selected above does not return a sender that invokes
-        `f(i, args...)` for each `i` of type `Shape` from `0` to `shape` where
-        `args` is a pack of subexpressions referring to the value completion
-        result datums of the input sender, or does not execute a value
-        completion operation with said datums, the behavior of calling `bulk(s,
-        shape, f)` is undefined.
+    4. Let `S` be the result of calling `bulk(s, shape, f)` or a copy of such.
+        If `S` is connected to a receiver `R` with environment `E` such that
+        <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does
+        not return a sender that invokes `f(i, args...)` for each `i` of type
+        `Shape` from `0` to `shape` where `args` is a pack of subexpressions
+        referring to the value completion result datums of the input sender, or
+        does not execute a value completion operation with said datums, the
+        behavior of calling `connect(S, R)` is undefined.
 
 #### `execution::split` <b>[exec.split]</b> #### {#spec-execution.senders.adapt.split}
 
@@ -6368,16 +6377,17 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     `split` is ill-formed. Otherwise, the expression
     `split(s)` is expression-equivalent to:
 
-    1. `tag_invoke(split, get_completion_scheduler<set_value_t>(get_env(s)), s)`,
-        if that expression is valid.
+      <pre highlight="c++">
+      transform_sender(
+        <i>get-domain-early</i>(s),
+        <i>make-sender</i>(split, s));
+      </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    2. Otherwise, `tag_invoke(split, s)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    3. Otherwise, constructs a sender `s2`, which:
+    1. Let `s` be a subexpression such that `S` is `decltype((s))`, and let
+        `e...` be a pack of subexpressions such that `sizeof...(e) <= 1` is
+        `true`. If <code><i>sender-for</i>&lt;S, split_t></code> is `false`,
+        then the expression `split_t().transform_sender(s, e...)` is ill-formed;
+        otherwise, it returns a sender `s2` that:
 
         1. Creates an object `sh_state` that contains a `stop_source`, a list of
             pointers to operation states awaiting the completion of `s`, and that
@@ -6474,54 +6484,52 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
         8. Ownership of `sh_state` is shared by `s2` and by every `op_state`
             that results from connecting `s2` to a receiver.
 
-    4. Given subexpressions `s2` where `s2` is a sender returned from `split`
+    2. Given subexpressions `s2` where `s2` is a sender returned from `split`
         or a copy of such, `get_env(s2)` shall return an lvalue reference to the
         object in `sh_state` that was initialized with the result of `get_env(s)`.
 
-    5. Given subexpressions `s2` and `e` where `s2` is a sender returned
-        from `split` or a copy of such, let `S2` be `decltype((s2))`
-        and let `E` be `decltype((e))`. The type of
-        `tag_invoke(get_completion_signatures, s2, e)` shall be equivalent
-        to:
+4. Given subexpressions `s2` and `e` where `s2` is a sender returned from
+    `split` or a copy of such, let `S2` be `decltype((s2))` and let `E` be
+    `decltype((e))`. The type of `tag_invoke(get_completion_signatures, s2, e)`
+    shall be equivalent to:
 
-        <pre highlight="c++">
-        transform_completion_signatures_of&lt;
-          copy_cvref_t&lt;S2, S>,
-          E,
-          completion_signatures&lt;set_error_t(exception_ptr),
-                                set_error_t(<i>Es</i>)...>,
-          <i>value-signatures</i>,
-          <i>error-signatures</i>>;
-        </pre>
+    <pre highlight="c++">
+    transform_completion_signatures_of&lt;
+      copy_cvref_t&lt;S2, S>,
+      E,
+      completion_signatures&lt;set_error_t(exception_ptr),
+                            set_error_t(<i>Es</i>)...>,
+      <i>value-signatures</i>,
+      <i>error-signatures</i>>;
+    </pre>
 
-        where <code><i>Es</i></code> is a (possibly empty) template parameter pack,
-        <code><i>value-signatures</i></code> is the alias template:
+    where <code><i>Es</i></code> is a (possibly empty) template parameter pack,
+    <code><i>value-signatures</i></code> is the alias template:
 
-        <pre highlight="c++">
-        template&lt;class... Ts>
-          using <i>value-signatures</i> =
-            completion_signatures&lt;set_value_t(const decay_t&lt;Ts>&amp;...)>;
-        </pre>
+    <pre highlight="c++">
+    template&lt;class... Ts>
+      using <i>value-signatures</i> =
+        completion_signatures&lt;set_value_t(const decay_t&lt;Ts>&amp;...)>;
+    </pre>
 
-        and <code><i>error-signatures</i></code> is the alias template:
+    and <code><i>error-signatures</i></code> is the alias template:
 
-        <pre highlight="c++">
-        template&lt;class E>
-          using <i>error-signatures</i> =
-            completion_signatures&lt;set_error_t(const decay_t&lt;E>&amp;)>;
-        </pre>
+    <pre highlight="c++">
+    template&lt;class E>
+      using <i>error-signatures</i> =
+        completion_signatures&lt;set_error_t(const decay_t&lt;E>&amp;)>;
+    </pre>
 
-    6. Let `s` be a sender expression, `r` be an instance of the receiver type
-        described above, `s2` be a sender returned
-        from `split(s)` or a copy of such, `r2` is the receiver
-        to which `s2` is connected, and `args` is the pack of subexpressions
-        passed to `r`'s completion function <code><i>CSO</i></code>
-        when `s` completes. `s2` shall invoke <code><i>CSO</i>(r2, args2...)</code>
-        where `args2` is a pack of const lvalue references to objects decay-copied from
-        `args`, or by calling <code>set_error(r2, e2)</code> for some subexpression
-        `e2`. The objects passed to `r2`'s completion operation shall
-        be valid until after the completion of the invocation of `r2`'s completion
-        operation.
+5. Let `s` be a sender expression, `r` be an instance of the receiver type
+    described above, `s2` be a sender returned from `split(s)` or a copy of
+    such, `r2` is the receiver to which `s2` is connected, and `args` is the
+    pack of subexpressions passed to `r`'s completion function
+    <code><i>CSO</i></code> when `s` completes. `s2` shall invoke
+    <code><i>CSO</i>(r2, args2...)</code> where `args2` is a pack of const
+    lvalue references to objects decay-copied from `args`, or by calling
+    <code>set_error(r2, e2)</code> for some subexpression `e2`. The objects
+    passed to `r2`'s completion operation shall be valid until after the
+    completion of the invocation of `r2`'s completion operation.
 
 #### `execution::when_all` <b>[exec.when.all]</b> #### {#spec-execution.senders.adaptor.when_all}
 
@@ -6533,43 +6541,90 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     equivilant to `when_all(into_variant(s)...)`, where `s` is a pack of
     subexpressions of sender types.
 
-2. The name `when_all` denotes a customization point object. For some subexpressions <code>s<i><sub>i</sub></i>...</code>, let <code>S<i><sub>i</sub></i>...</code> be <code>decltype((s<i><sub>i</sub></i>))...</code>. The expression <code>when_all(s<i><sub>i</sub></i>...)</code> is ill-formed if any of the following is true:
+2. The names `when_all` and `when_all_with_variant` denote customization point
+    objects. For some subexpressions <code>s<i><sub>i</sub></i>...</code>, let
+    <code>S<i><sub>i</sub></i>...</code> be
+    <code>decltype((s<i><sub>i</sub></i>))...</code>. The expressions
+    <code>when_all(s<i><sub>i</sub></i>...)</code> and
+    <code>when_all_with_variant(s<i><sub>i</sub></i>...)</code> are ill-formed if
+    any of the following is true:
 
-    * If the number of subexpressions <code>s<i><sub>i</sub></i>...</code> is 0, or
-    * If any type <code>S<i><sub>i</sub></i></code> does not satisfy `sender`.
+      * If the number of subexpressions <code>s<i><sub>i</sub></i>...</code> is 0, or
 
-    Otherwise, the expression <code>when_all(s<i><sub>i</sub></i>...)</code> is expression-equivalent to:
+      * If any type <code>S<i><sub>i</sub></i></code> does not satisfy `sender`.
 
-    1. <code>tag_invoke(when_all, s<i><sub>i</sub></i>...)</code>, if
-        that expression is valid. If the function selected by `tag_invoke` does
-        not return a sender that sends a concatenation of values sent by
-        <code>s<i><sub>i</sub></i>...</code> when they all complete with
-        `set_value`, the behavior of calling
-        <code>when_all(s<i><sub>i</sub></i>...)</code> is undefined.
+      * If the expression <code><i>get-domain-early</i>(s<sub><i>i</i></sub>)</code> has a
+        different type for any other value of <code><i>i</i></code>.
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
+    Otherwise, those expressions have the semantics specified below.
 
-    2. Otherwise, constructs a sender `w` of type `W`. When `w` is connected
-        with some receiver `out_r` of type `OutR`, it returns an operation state
-        `op_state` specified as below:
+3. The expression <code>when_all(s<i><sub>i</sub></i>...)</code> is
+    expression-equivalent to:
 
-        1. For each sender <code>s<i><sub>i</sub></i></code>, constructs a receiver <code>r<i><sub>i</sub></i></code> such that:
+      <pre highlight="c++">
+      transform_sender(
+        <i>get-domain-early</i>(s<sub><i>0</i></sub>),
+        <i>make-when-all-sender</i>(s<sub><i>0</i></sub>, ... s<sub><i>n-1</i></sub>));
+      </pre>
 
-            1. If <code>set_value(r<i><sub>i</sub></i>, t<i><sub>i</sub></i>...)</code> is called for every <code>r<i><sub>i</sub></i></code>, `op_state`'s associated stop callback optional is reset and <code>set_value(out_r, t<i><sub>0</sub></i>..., t<i><sub>1</sub></i>..., ..., t<i><sub>n-1</sub></i>...)</code> is called, where `n` the number of subexpressions in <code>s<i><sub>i</sub></i>...</code>.
+    where <code><i>make-when-all-sender</i>(s<sub><i>i</i></sub>...)</code> is
+    expression-equivalent to <code><i>make-sender</i>(when_all,
+    <i>unspecified</i>, s<sub><i>i</i></sub>...)</code> and returns a sender
+    object `w` of type `W` that behaves as follows:
 
-            2. Otherwise, `set_error` or `set_stopped` was called for at least one receiver <code>r<i><sub>i</sub></i></code>. If the first such to complete did so with the call <code>set_error(r<i><sub>i</sub></i>, e)</code>, `request_stop` is called on `op_state`'s associated stop source. When all child operations have completed, `op_state`'s associated stop callback optional is reset and `set_error(out_r, e)` is called.
+    1. When `w` is connected with some receiver `out_r` of type `OutR`, it
+        returns an operation state `op_state` specified as below:
 
-            3. Otherwise, `request_stop` is called on `op_state`'s associated stop source. When all child operations have completed, `op_state`'s associated stop callback optional is reset and `set_stopped(out_r)` is called.
+        1. For each sender <code>s<i><sub>i</sub></i></code>, constructs a
+            receiver <code>r<i><sub>i</sub></i></code> such that:
 
-            4. For each receiver <code>r<i><sub>i</sub></i></code>, <code>get_env(r<i><sub>i</sub></i>)</code> is an expression <code><i>e</i></code> such that <code>get_stop_token(<i>e</i>)</code> is well-formed and returns the results of calling `get_token()` on `op_state`'s associated stop source, and for which <code>tag_invoke(tag, <i>e</i>, args...)</code> is expression-equivalent to `tag(get_env(out_r), args...)` for all arguments `args...` and all `tag` whose type satisfies <code><i>forwarding-query</i></code> and is not `get_stop_token_t`.
+            1. If <code>set_value(r<i><sub>i</sub></i>,
+                t<i><sub>i</sub></i>...)</code> is called for every
+                <code>r<i><sub>i</sub></i></code>, `op_state`'s associated stop
+                callback optional is reset and <code>set_value(out_r,
+                t<i><sub>0</sub></i>..., t<i><sub>1</sub></i>..., ...,
+                t<i><sub>n-1</sub></i>...)</code> is called, where `n` the number
+                of subexpressions in <code>s<i><sub>i</sub></i>...</code>.
 
-        2. For each sender <code>s<i><sub>i</sub></i></code>, calls <code>connect(s<i><sub>i</sub></i>, r<i><sub>i</sub></i>)</code>, resulting in operation states <code>child_op<i><sub>i</sub></i></code>.
+            2. Otherwise, `set_error` or `set_stopped` was called for at least
+                one receiver <code>r<i><sub>i</sub></i></code>. If the first such
+                to complete did so with the call
+                <code>set_error(r<i><sub>i</sub></i>, e)</code>, `request_stop`
+                is called on `op_state`'s associated stop source. When all child
+                operations have completed, `op_state`'s associated stop callback
+                optional is reset and `set_error(out_r, e)` is called.
+
+            3. Otherwise, `request_stop` is called on `op_state`'s associated
+                stop source. When all child operations have completed,
+                `op_state`'s associated stop callback optional is reset and
+                `set_stopped(out_r)` is called.
+
+            4. For each receiver <code>r<i><sub>i</sub></i></code>,
+                <code>get_env(r<i><sub>i</sub></i>)</code> is an expression
+                <code><i>e</i></code> such that
+                <code>get_stop_token(<i>e</i>)</code> is well-formed and returns
+                the results of calling `get_token()` on `op_state`'s associated
+                stop source, and for which <code>tag_invoke(tag, <i>e</i>,
+                args...)</code> is expression-equivalent to `tag(get_env(out_r),
+                args...)` for all arguments `args...` and all `tag` whose type
+                satisfies <code><i>forwarding-query</i></code> and is not
+                `get_stop_token_t`.
+
+        2. For each sender <code>s<i><sub>i</sub></i></code>, calls
+            <code>connect(s<i><sub>i</sub></i>, r<i><sub>i</sub></i>)</code>,
+            resulting in operation states
+            <code>child_op<i><sub>i</sub></i></code>.
 
         3. Returns an operation state `op_state` that contains:
 
             * Each operation state <code>child_op<i><sub>i</sub></i></code>,
+
             * A stop source of type `in_place_stop_source`,
-            * A stop callback of type <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>, where <code><i>stop-callback-fn</i></code> is the unspecified class type:
+
+            * A stop callback of type
+                <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
+                where <code><i>stop-callback-fn</i></code> is the unspecified
+                class type:
 
                 <pre highlight="c++">
                 struct <i>stop-callback-fn</i> {
@@ -6582,11 +6637,18 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 
         4. When `start(op_state)` is called it:
 
-            * Emplace constructs the stop callback optional with the arguments `get_stop_token(get_env(out_r))` and <code><i>stop-callback-fn</i>{<i>stop-src</i>}</code>, where <code><i>stop-src</i></code> refers to the stop source of `op_state`.
+            * Emplace constructs the stop callback optional with the arguments
+                `get_stop_token(get_env(out_r))` and
+                <code><i>stop-callback-fn</i>{<i>stop-src</i>}</code>, where
+                <code><i>stop-src</i></code> refers to the stop source of
+                `op_state`.
 
-            * Then, it checks to see if <code><i>stop-src</i>.stop_requested()</code> is true. If so, it calls `set_stopped(out_r)`.
+            * Then, it checks to see if
+                <code><i>stop-src</i>.stop_requested()</code> is true. If so, it
+                calls `set_stopped(out_r)`.
 
-            * Otherwise, calls <code>start(child_op<i><sub>i</sub></i>)</code> for each <code>child_op<i><sub>i</sub></i></code>.
+            * Otherwise, calls <code>start(child_op<i><sub>i</sub></i>)</code>
+                for each <code>child_op<i><sub>i</sub></i></code>.
 
         5. Given subexpressions `s2` and `e` where `s2` is a sender returned
             from `when_all` or a copy of such, let `S2` be `decltype((s2))`, let
@@ -6641,25 +6703,42 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
                 decay_t&lt;V<i><sub>1</sub></i>>&amp;&amp;..., ...
                 decay_t&lt;V<i><sub>n-1</sub></i>>&amp;&amp;...)></code>.
 
-3. The name `when_all_with_variant` denotes a customization point object. For
-    some subexpressions `s...`, let `S` be `decltype((s))`. If any type
-    <code>S<i><sub>i</sub></i></code> in `S...` does not satisfy `sender`,
-    `when_all_with_variant` is ill-formed. Otherwise, the expression
-    `when_all_with_variant(s...)` is expression-equivalent to:
+4. The expression <code>when_all_with_variant(s<sub><i>i</i></sub>...)</code> is
+    expression-equivalent to:
 
-    1. `tag_invoke(when_all_with_variant, s...)`, if that expression
-        is valid. If the function selected by `tag_invoke` does not return a
-        sender that, when connected with a receiver of type `R`, sends the types
-        <code><i>into-variant-type</i>&lt;S, env_of_t&lt;R>>...</code> when they
-        all complete with `set_value`, the behavior of calling
-        <code>when_all(s<i><sub>i</sub></i>...)</code> is undefined.
+      <pre highlight="c++">
+      transform_sender(
+        <i>get-domain-early</i>(s<sub><i>0</i></sub>),
+        <i>make-sender</i>(when_all_with_variant, <i>unspecified</i>, s<sub><i>0</i></sub>, ... s<sub><i>n-1</i></sub>));
+      </pre>
 
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
+    where <code><i>make-when-all-sender</i>(s<sub><i>i</i></sub>...)</code> is
+    expression-equivalent to <code><i>make-sender</i>(when_all,
+    <i>unspecified</i>, s<sub><i>i</i></sub>...)</code> and returns a sender
+    object `w` of type `W` that behaves as follows:
 
-    2. Otherwise, `when_all(into_variant(s)...)`.
+5. Let `s` and `e` be subexpressions such that `S` is `decltype((s))`. If
+    <code><i>sender-for</i>&lt;S, when_all_with_variant_t></code> is `false`,
+    then the expression `when_all_with_variant_t().transform_sender(s, e)` is
+    ill-formed; otherwise, it is equal to:
 
-4. For a sender `s2` returned from `when_all` or `when_all_with_variant`, `get_env(s2)`
-    shall return an instance of a class equivalent to <code>empty_env</code>.
+      <pre highlight="c++">
+      const auto& env = e;
+      auto domain = <i>get-domain-late</i>(s, env);
+      auto [tag, data, ...child] = s;
+      return when_all(into_variant(std::move(child))...);
+      </pre>
+
+    [*Note:* This causes the `when_all_with_variant(s...)` sender to become
+    `when_all(into_variant(s)...)` when it is connected with a receiver whose
+    execution domain does not customize `when_all_with_variant`. -- *end note*]
+
+4. Given a pack of subexpressions `s...`, let `S` be an object returned from
+    `when_all(s...)` or `when_all_with_variant(s...)` or a copy of such, and let
+    `E` be the environment object returned from `get_env(S)`. Given a query
+    object `Q`, `tag_invoke(Q, E)` is expression-equivalent to
+    <code><i>get-domain-early</i>(s<sub><i>0</i></sub>)</code> when `Q` is
+    `get_domain`; otherwise, it is ill-formed.
 
 #### `execution::transfer_when_all` <b>[exec.transfer.when.all]</b> #### {#spec-execution.senders.adaptor.transfer_when_all}
 
