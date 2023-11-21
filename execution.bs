@@ -6046,17 +6046,22 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     expression <code><i>Q</i>(q, args...)</code> shall be equivalent to
     <code><i>Q</i>(get_env(s), args...)</code>.
 
-#### `execution::then` <b>[exec.then]</b> #### {#spec-execution.senders.adaptor.then}
+#### `execution::then`, `execution::upon_error`, `execution::upon_stopped` <b>[exec.then]</b> #### {#spec-execution.senders.adaptor.then}
 
 1. `then` attaches an invocable as a continuation for an input sender's value
-    completion operation.
+    completion operation. `upon_error` and `upon_stopped` do the same for the
+    error and stopped completion operations respectively, sending the result
+    of the invocable as a value completion.
 
-2. The name `then` denotes a customization point object. For some subexpressions
-    `s` and `f`, let `S` be `decltype((s))` and let `F` be the decayed type of
-    `f`. If `S` does not satisfy `sender`, or `F` does not model
-    <code><i>movable-value</i></code>, `then(s, f)` is ill-formed.
+2. The names `then`, `upon_error`, and `upon_stopped` denote customization point
+    objects. Let the expression <code><i>then-cpo</i></code> be one of `then`,
+    `upon_error`, or `upon_stopped`. For subexpressions `s` and `f`, let `S` be
+    `decltype((s))` and let `F` be the decayed type of `f`, and let `f2` be an
+    xvalue that refers to an object decay-copied from `f`. If `S` does not
+    satisfy `sender`, or `F` does not model <code><i>movable-value</i></code>,
+    <code><i>then-cpo</i>(s, f)</code> is ill-formed.
     
-3. Otherwise, the expression `then(s, f)` is
+3. Otherwise, the expression <code><i>then-cpo</i>(s, f)</code> is
     expression-equivalent to:
 
         <pre highlight="c++">
@@ -6065,228 +6070,72 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
           <i>make-then-sender</i>(f, s));
         </pre>
 
-        where <code><i>make-then-sender</i>(f, s)</code> is expression-equivalent to
-        <code><i>make-sender</i>(then, f, s)</code> and returns a non-`const` prvalue
-        `out_s` that behaves as follows:
+        where <code><i>make-then-sender</i>(f, s)</code> is expression-equivalent
+        to <code><i>make-sender</i>(<i>then-cpo</i>, f, s)</code> and returns a
+        non-`const` prvalue `out_s` that behaves as follows:
 
-    1. Let `out_s2` be a reference to
-        `out_s` or an object copied from it. When `out_s2` is connected with some
-        receiver `out_r`, `connect(out_s2, out_r)` returns an operation state `o`
-        containing copies of `f`, `out_r`, and the result of `connect(s2, r)`,
-        where `s2` is a reference to an object decay-copied from `s` and that has
-        the same *cv* qualifiers and value category as `out_s2`; and where `r` is
-        a receiver as described below.
+    1. Let `out_s2` be a reference to `out_s` or an object copied from it. When
+        `out_s2` is connected with some receiver `out_r`, `connect(out_s2,
+        out_r)` returns an operation state `o` containing copies of `f`,
+        `out_r`, and the result of `connect(s2, r)`, where `s2` is a reference
+        to an object decay-copied from `s` and that has the same *cv* qualifiers
+        and value category as `out_s2`; and where `r` is a receiver as described
+        below.
 
-        1. Let `f2` and `out_r2` be xvalues subexpressions designating
-            respectively to the copies of `f` and `out_r` in `o`. The receiver `r`
-            behaves as follows:
+        1. For `then`, let <code><i>set-cpo</i></code> be `set_value`. For
+            `upon_error`, let <code><i>set-cpo</i></code> be `set_error`. For
+            `upon_stopped`, let <code><i>set-cpo</i></code> be `set_stopped`.
+            Let <code><i>completion-function</i></code> be one of `set_value`,
+            `set_error`, or `set_stopped`.
 
-            1. When `set_value(r, args...)` is called, let `v` be the expression
-                `invoke(f2, args...)`. If `decltype(v)` is `void`, evaluates `v`
-                and calls `set_value(out_r)`; otherwise, calls
-                `set_value(out_r2, v)`. If any of these throw an exception, the
-                exception is caught and `set_error(out_r2, current_exception())`
-                is called. If any of these expressions would be ill-formed, the
-                expression `set_value(r, args...)` is ill-formed.
+        2. Let `f2` and `out_r2` be xvalues subexpressions designating
+            respectively the copies of `f` and `out_r` in `o`. The receiver
+            `r` behaves as follows:
 
-            2. `set_error(r, e)` is expression-equivalent to `set_error(out_r2, e)`.
+            1. When <code><i>set-cpo</i>(r, args...)</code> is called, let `v`
+                be the expression `invoke(f2, args...)`. If `decltype(v)` is
+                `void`, evaluates `v` and calls `set_value(out_r2)`; otherwise,
+                calls `set_value(out_r2, v)`. If any of these throw an
+                exception, the exception is caught and `set_error(out_r2,
+                current_exception())` is called. If any of these expressions
+                would be ill-formed, the expression <code><i>set-cpo</i>(r,
+                args...)</code> is ill-formed.
 
-            3. `set_stopped(r)` is expression-equivalent to `set_stopped(out_r2)`.
+            2. <code><i>completion-function</i>(r, args...)</code> is
+                expression-equivalent to <code><i>completion-function</i>(
+                out_r2, args...)</code> when <code><i>completion-function</i></code>
+                is different from <code><i>set-cpo</i></code>.
 
         2. Let `inner_op` be a non-`const` lvalue referring to the operation
             state in `o`. `start(o)` is expression-equivalent to `start(inner_op)`.
 
-4. Given subexpressions `out_s` and `e` where `out_s` is a sender
-    returned from `then(s, f)` or a copy of such, let `OutS` be
-    `decltype((out_s))` and let `E` be `decltype((e))`. The type of
-    `tag_invoke(get_completion_signatures, out_s, e)` shall be:
+4. Given subexpressions `out_s` and `e` where `out_s` is a sender returned from
+    <code><i>then-cpo</i>(s, f)</code> or a copy of such, let `OutS` be
+    `decltype((out_s))` and let `E` be `decltype((e))`. Let `Fns` be a template
+    parameter pack of the arguments of the `completion_signatures`
+    specialization named by `completion_signatures_of_t<S, E>`, where `S` is
+    `decltype((s))`. The type of `tag_invoke(get_completion_signatures, out_s,
+    e)` shall be a specialiation of `completion_signatures` whose arguments are
+    a transformation of `Fns` as follows:
 
-    <pre highlight="c++">
-    transform_completion_signatures_of&lt;
-      <i>clone-cvref-t</i>&lt;OutS, S>, E, <i>set-error-signature</i>,
-        <i>set-value-completions</i>>;
-    </pre>
+        1. Replace signatures of the form <code><i>set-cpo</i>(Ts...)</code>
+            <code><i>SET-VALUE-SIG</i>(invoke_result_t&lt;F, Ts...>)></code>,
 
-    where <code><i>set-value-completions</i></code> is the alias
-    template:
+        2. Leave other signatures unchanged, and
 
-    <pre highlight="c++">
-    template&lt;class... As>
-      using <i>set-value-completions</i> =
-        completion_signatures&lt;<i>SET-VALUE-SIG</i>(invoke_result_t&lt;F, As...>)>
-    </pre>
+        3. Add `set_error_t(exception_ptr)` if, for any of the signatures
+            of the form <code><i>set-cpo</i>(Ts...)</code> in `Fns...`, the
+            expression `is_nothrow_invocable_v<F, Ts...>` is `false`.
 
-    and <code><i>set-error-signature</i></code> is an alias for
-    `completion_signatures<set_error_t(exception_ptr)>` if any of the
-    types in the <code><i>type-list</i></code> named by
-    <code>value_types_of_t&lt;<i>clone-cvref-t</i>&lt;OutS, S>, E,
-    <i>potentially-throwing</i>, <i>type-list</i>></code> are
-    `true_type`; otherwise, `completion_signatures<>`, where
-    <code><i>potentially-throwing</i></code> is the template alias:
+5. The expression <code><i>then-cpo</i>(s, f)</code> has undefined behavior
+    unless it returns a sender `out_s` that:
 
-    <pre highlight="c++">
-    template&lt;class... As>
-      using <i>potentially-throwing</i> =
-        negation&lt;is_nothrow_invocable&lt;F, As...>>;
-    </pre>
+    1. Invokes `f` or a copy of such with the value, error, or stopped result
+        datums of `s` (for `then`, `upon_error`, and `upon_stopped`
+        respectively), using the result value of `f` as `out_s`'s value
+        completion, and
 
-5. The expression `then(s, f)` has undefined behavior unless it returns a sender
-    `out_s` that:
-
-    1. Invokes `f` or a copy of such with the value result datums of `s`
-        using the result value of `f` as `out_s`'s value completion, and
-
-    2. Forwards the non-value completion operations unchanged.
-
-#### `execution::upon_error` <b>[exec.upon.error]</b> #### {#spec-execution.senders.adaptor.upon_error}
-
-1. `upon_error` maps an input sender's error completion operation into a value
-    completion operation using the provided invocable.
-
-2. The name `upon_error` denotes a customization point object. For
-    some subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
-    decayed type of `f`, and let `f2` be an xvalue referring to an object
-    decay-copied from `f`. If `S` does not satisfy `sender`, or `F`
-    does not model <code><i>movable-value</i></code>, `upon_error` is
-    ill-formed. Otherwise, the expression `upon_error(s, f)` is
-    expression-equivalent to:
-
-    1. `tag_invoke(upon_error, get_completion_scheduler<set_error_t>(get_env(s)), s, f)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    2. Otherwise, `tag_invoke(upon_error, s, f)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    3. Otherwise, constructs a sender `s2`. When `s2` is connected with some receiver `out_r`, it:
-
-        1. Constructs a receiver `r` such that:
-
-            1. `set_value(r, args...)` is expression-equivalent to
-                `set_value(out_r, args...)`.
-
-            2. When `set_error(r, e)` is called, let `v` be the
-                expression `invoke(f2, e)`. If `decltype(v)` is `void`, calls
-                `set_value(out_r)`; otherwise, it calls
-                `set_value(out_r, v)`. If any of these throw an
-                exception, it catches it and calls `set_error(out_r,
-                current_exception())`. If any of these expressions would be
-                ill-formed, the expression `set_error(r, e)` is
-                ill-formed.
-
-            3. `set_stopped(r)` is expression-equivalent to
-                `set_stopped(out_r)`.
-
-        2. Returns an expression-equivalent to `connect(s, r)`.
-
-        3. Let <code><i>compl-sig-t</i>&lt;Tag, Args...></code> name the type
-            `Tag()` if `Args...` is a template parameter pack containing the
-            single type `void`; otherwise, `Tag(Args...)`. Given
-            subexpressions `s2` and `e` where `s2` is a sender returned from
-            `upon_error` or a copy of such, let `S2` be `decltype((s2))` and let
-            `E` be `decltype((e))`. The type of
-            `tag_invoke(get_completion_signatures, s2, e)` shall be equivalent
-            to:
-
-            <pre highlight="c++">
-            transform_completion_signatures_of&lt;
-              copy_cvref_t&lt;S2, S>, E, <i>set-error-signature</i>,
-                <i>default-set-value</i>, <i>set-error-completion</i>>;
-            </pre>
-
-            where <code><i>set-error-completion</i></code> is the template alias:
-
-            <pre highlight="c++">
-            template&lt;class E>
-              <i>set-error-completion</i> =
-                completion_signatures&lt;<i>compl-sig-t</i>&lt;set_value_t, invoke_result_t&lt;F, E>>>
-            </pre>
-
-            and <code><i>set-error-signature</i></code> is an alias for
-            `completion_signatures<set_error_t(exception_ptr)>` if any of the types
-            in the <code><i>type-list</i></code> named by
-            <code>error_types_of_t&lt;copy_cvref_t&lt;S2, S>, E, <i>potentially-throwing</i>></code>
-            are `true_type`; otherwise, `completion_signatures<>`, where
-            <code><i>potentially-throwing</i></code> is the template alias:
-
-            <pre highlight="c++">
-            template&lt;class... Es>
-              using <i>potentially-throwing</i> =
-                <i>type-list</i>&lt;!bool_constant&lt;is_nothrow_invocable_v&lt;F, Es>>...>;
-            </pre>
-
-    If the function selected above does not return a sender which invokes `f` with the error result datum of `s` using `f`'s return value as the sender's value completion, and forwards the non-error completion operations unchanged, the behavior of calling `upon_error(s, f)` is undefined.
-
-#### `execution::upon_stopped` <b>[exec.upon.stopped]</b> #### {#spec-execution.senders.adaptor.upon_stopped}
-
-1. `upon_stopped` maps an input sender's stopped completion operation into a
-    value completion operation using the provided invocable.
-
-2. The name `upon_stopped` denotes a customization point object. For
-    some subexpressions `s` and `f`, let `S` be `decltype((s))`, let `F` be the
-    decayed type of `f`, and let `f2` be an xvalue referring to an object
-    decay-copied from `f`. If `S` does not satisfy `sender`, or `F`
-    does not model both <code><i>movable-value</i></code> and `invocable`,
-    `upon_stopped` is ill-formed. Otherwise, the expression
-    `upon_stopped(s, f)` is expression-equivalent to:
-
-    1. `tag_invoke(upon_stopped, get_completion_scheduler<set_stopped_t>(get_env(s)), s, f)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    2. Otherwise, `tag_invoke(upon_stopped, s, f)`, if that expression is valid.
-
-        * <i>Mandates:</i> The type of the `tag_invoke` expression above satisfies `sender`.
-
-    3. Otherwise, constructs a sender `s2`. When `s2` is connected with some receiver `out_r`, it:
-
-        1. Constructs a receiver `r` such that:
-
-            2. `set_value(r, args...)` is expression-equivalent to `set_value(out_r, args...)`.
-
-            2. `set_error(r, e)` is expression-equivalent to `set_error(out_r, e)`.
-
-            1. When `set_stopped(r)` is called, let `v` be the
-                expression `invoke(f2)`. If `v` has type `void`, calls
-                `set_value(out_r)`; otherwise, calls
-                `set_value(out_r, v)`. If any of these throw an
-                exception, it catches it and calls `set_error(out_r,
-                current_exception())`. If any of these expressions would be
-                ill-formed, the expression `set_stopped(r)` is
-                ill-formed.
-
-        2. Returns an expression-equivalent to `connect(s, r)`.
-
-        3. Let <code><i>compl-sig-t</i>&lt;Tag, Args...></code> name the type
-            `Tag()` if `Args...` is a template parameter pack containing the
-            single type `void`; otherwise, `Tag(Args...)`. Given
-            subexpressions `s2` and `e` where `s2` is a sender returned from
-            `upon_stopped` or a copy of such, let `S2` be `decltype((s2))` and let
-            `E` be `decltype((e))`. The type of
-            `tag_invoke(get_completion_signatures, s2, e)` shall be equivalent
-            to:
-
-            <pre highlight="c++">
-            transform_completion_signatures_of&lt;
-              copy_cvref_t&lt;S2, S>, E, <i>set-error-signature</i>,
-                <i>default-set-value</i>, <i>default-set-error</i>, <i>set-stopped-completions</i>>;
-            </pre>
-
-            where <code><i>set-stopped-completions</i></code> names the type
-            <code>completion_signatures&lt;<i>compl-sig-t</i>&lt;set_value_t,
-            invoke_result_t&lt;F>></code>, and
-            <code><i>set-error-signature</i></code> names the type
-            `completion_signatures<set_error_t(exception_ptr)>` if
-            `is_nothrow_invocable_v<F>` is `true`, or `completion_signatures<>`
-            otherwise.
-            </pre>
-
-    If the function selected above does not return a sender that invokes `f`
-    when `s` executes a stopped completion, using `f`'s return value as the
-    sender's the value completion, and propagates `s`'s other completion
-    operations unchanged, the behavior of calling `upon_stopped(s, f)` is
-    undefined.
+    2. Forwards all other completion operations unchanged.
 
 #### `execution::let_value`, `execution::let_error`, `execution::let_stopped`,  <b>[exec.let]</b> #### {#spec-execution.senders.adapt.let}
 
@@ -6881,7 +6730,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 1. `stopped_as_optional` maps an input sender's stopped completion operation into the value completion operation as an empty optional. The input sender's value completion operation is also converted into an optional. The result is a sender that never completes with stopped, reporting cancellation by completing with an empty optional.
 
 2. The name `stopped_as_optional` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`.
-   The expression `stopped_as_optional(s)` is expression-equivalent to:
+    The expression `stopped_as_optional(s)` is expression-equivalent to:
 
     <pre highlight="c++">
     transform_sender(
@@ -6890,20 +6739,19 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     </pre>
 
 3. Let `s` and `e` be subexpressions such that `S` is `decltype((s))` and `E` is `decltype((e))`.
-   If either <code><i>sender-for</i>&lt;S, stopped_as_optional_t></code> or <code><i>single-sender</i>&lt;S, E></code> is `false`
-   then the expression `stopped_as_optional_t().transform_sender(s, e)` is ill-formed; otherwise, it is equal to:
+    If either <code><i>sender-for</i>&lt;S, stopped_as_optional_t></code> or <code><i>single-sender</i>&lt;S, E></code> is `false`
+    then the expression `stopped_as_optional_t().transform_sender(s, e)` is ill-formed; otherwise, it is equal to:
 
-   <pre highlight="c++">
-   const auto& env = e;
-   auto domain = <i>get-env-domain</i>(env);
-   auto [tag, data, child] = s;
-   using V = <i>single-sender-value-type&lt;S, E>;
-   auto tfx = <i>make-transformer-fn</i>(domain, env);
-   return tfx(let_stopped)(
-      tfx(then)(std::move(child),
-                []&lt;class T>(T&& t) { return optional<V>(std::forward<T>(t)); }),
-      []() noexcept { return just(optional<V>()); });
-   </pre>
+    <pre highlight="c++">
+    const auto& env = e;
+    auto domain = <i>get-env-domain</i>(env);
+    auto [tag, data, child] = s;
+    using V = <i>single-sender-value-type&lt;S, E>;
+    return let_stopped(
+        then(std::move(child),
+                  []&lt;class T>(T&& t) { return optional<V>(std::forward<T>(t)); }),
+        []() noexcept { return just(optional<V>()); });
+    </pre>
 
 #### `execution::stopped_as_error` <b>[exec.stopped.as.error]</b> #### {#spec-execution.senders.adapt.stopped_as_error}
 
@@ -6921,18 +6769,17 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     </pre>
 
 3. Let `s` and `e` be subexpressions such that `S` is `decltype((s))` and `E` is `decltype((e))`.
-   If <code><i>sender_for</i>&lt;S, stopped_as_error_t></code> is `false`, then the expression
-   `stopped_as_error_t().transform_sender(s, e)` is ill-formed; otherwise, it is equal to:
+    If <code><i>sender_for</i>&lt;S, stopped_as_error_t></code> is `false`, then the expression
+    `stopped_as_error_t().transform_sender(s, e)` is ill-formed; otherwise, it is equal to:
 
-   <pre highlight="c++">
-   const auto& env = e;
-   auto domain = <i>get-env-domain</i>(env);
-   auto [tag, data, child] = s;
-   auto tfx = <i>make-transformer-fn</i>(domain, env);
-   return tfx(let_stopped)(
-       std::move(child),
-       [err = std::move(data)]() mutable { return just_error(std::move(err)); });
-   </pre>
+    <pre highlight="c++">
+    const auto& env = e;
+    auto domain = <i>get-env-domain</i>(env);
+    auto [tag, data, child] = s;
+    return let_stopped(
+        std::move(child),
+        [err = std::move(data)]() mutable { return just_error(std::move(err)); });
+    </pre>
 
 #### `execution::ensure_started` <b>[exec.ensure.started]</b> #### {#spec-execution.senders.adapt.ensure_started}
 
@@ -6957,10 +6804,10 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     </pre>
 
     1. Let `s` be a subexpression such that `S` is `decltype((s))`, and let `e...` be a pack of
-       subexpressions such that <code>sizeof...(e) &lt;= 1</code> is `true`.
-       If <code><i>sender-for</i>&lt;S, ensure_started_t></code> is `false`, then the expression
-       `ensure_started_t().transform_sender(s, e...)` is ill-formed; otherwise, it returns
-       a sender `s2`, that:
+        subexpressions such that <code>sizeof...(e) &lt;= 1</code> is `true`.
+        If <code><i>sender-for</i>&lt;S, ensure_started_t></code> is `false`, then the expression
+        `ensure_started_t().transform_sender(s, e...)` is ill-formed; otherwise, it returns
+        a sender `s2`, that:
 
         1. Creates an object `sh_state` that contains a `stop_source`, an
             initially null pointer to an operation state awaitaing completion,
@@ -7123,7 +6970,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 1. `start_detached` eagerly starts a sender without the caller needing to manage the lifetimes of any objects.
 
 2. The name `start_detached` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`.
-   If `S` does not satisfy <code>sender_in&lt;empty_env></code>, `start_detached` is ill-formed. Otherwise, the expression
+    If `S` does not satisfy <code>sender_in&lt;empty_env></code>, `start_detached` is ill-formed. Otherwise, the expression
     `start_detached(s)` is expression-equivalent to:
 
     <pre highlight="c++">
@@ -7138,27 +6985,27 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     calling `start_detached(s)` is undefined.
 
 3. Let `s` be a subexpression such that `S` is `decltype((s))`, and let <code><i>detached-receiver</i></code>
-   and <code><i>detached-operation</i></code> be the following exposition-only class types:
+    and <code><i>detached-operation</i></code> be the following exposition-only class types:
 
-   <pre highlight="c++">
-   struct <i>detached-receiver</i> {
-     using is_receiver = <i>unspecified</i>;
-     <i>detached-operation</i>* <i>op</i>; // <i>exposition only</i>
+    <pre highlight="c++">
+    struct <i>detached-receiver</i> {
+      using is_receiver = <i>unspecified</i>;
+      <i>detached-operation</i>* <i>op</i>; // <i>exposition only</i>
 
-     friend void tag_invoke(set_value_t, <i>detached-receiver</i>&& self) noexcept { delete self.op; }
-     friend void tag_invoke(set_error_t, <i>detached-receiver</i>&&, auto&&) noexcept { terminate(); }
-     friend void tag_invoek(set_stopped_t, <i>detached-receiver</i>&& self) noexcept { delete self.op; }
-     friend empty_env tag_invoke(get_env_t, const <i>detached-receiver</i>&) { return {}; }
-   };
+      friend void tag_invoke(set_value_t, <i>detached-receiver</i>&& self) noexcept { delete self.op; }
+      friend void tag_invoke(set_error_t, <i>detached-receiver</i>&&, auto&&) noexcept { terminate(); }
+      friend void tag_invoek(set_stopped_t, <i>detached-receiver</i>&& self) noexcept { delete self.op; }
+      friend empty_env tag_invoke(get_env_t, const <i>detached-receiver</i>&) { return {}; }
+    };
 
-   struct <i>detached-operation</i> {
-     connect_result_t&lt;S, <i>detached-receiver</i>> op; // <i>exposition only</i>
+    struct <i>detached-operation</i> {
+      connect_result_t&lt;S, <i>detached-receiver</i>> op; // <i>exposition only</i>
 
-     explicit <i>detached-operation</i>(S&& s)
-       : op(connect(std::forward<S>(s), <i>detached-receiver</i>{this}))
-     {}
-   };
-   </pre>
+      explicit <i>detached-operation</i>(S&& s)
+        : op(connect(std::forward<S>(s), <i>detached-receiver</i>{this}))
+      {}
+    };
+    </pre>
 
 #### `this_thread::sync_wait` <b>[exec.sync.wait]</b> #### {#spec-execution.senders.consumers.sync_wait}
 
@@ -7207,10 +7054,10 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>></code>.
 
 5. Let <code><i>sync-wait-receiver</i></code> be a class type that satisfies `receiver`, let `r` be an xvalue of that type,
-   and let `cr` be a const lvalue refering to `r` such that `get_env(cr)` has type <code><i>sync-wait-env</i></code>.
-   If <code>sender_in&lt;S, <i>sync-wait-env</i>></code> is `false`, or if the type
-   <code>completion_signatures_of_t&lt;S, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t></code> is ill-formed,
-   the expression `sync_wait_t().apply_sender(s)` is ill-formed; otherwise it has the following effects:
+    and let `cr` be a const lvalue refering to `r` such that `get_env(cr)` has type <code><i>sync-wait-env</i></code>.
+    If <code>sender_in&lt;S, <i>sync-wait-env</i>></code> is `false`, or if the type
+    <code>completion_signatures_of_t&lt;S, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t></code> is ill-formed,
+    the expression `sync_wait_t().apply_sender(s)` is ill-formed; otherwise it has the following effects:
 
         1. Calls `connect(s, r)`, resulting in an operation state `op_state`, then calls `start(op_state)`.
 
@@ -7252,9 +7099,9 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     * <i>Mandates:</i> The type of the expression above is `void`.
 
 3. For some subexpressions `s` and `f` where `F` is `decltype((f))`,
-   if `F` does not satisfy `invocable`, the expression
-   `execute_t().apply_sender(s, f)` is ill-formed; otherwise it is
-   expression-equivalent to `start_detached(then(s, f))`.
+    if `F` does not satisfy `invocable`, the expression
+    `execute_t().apply_sender(s, f)` is ill-formed; otherwise it is
+    expression-equivalent to `start_detached(then(s, f))`.
 
 ## Sender/receiver utilities <b>[exec.utils]</b> ## {#spec-execution.snd_rec_utils}
 
