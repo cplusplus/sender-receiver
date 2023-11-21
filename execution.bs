@@ -6623,7 +6623,8 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
 1. `into_variant` adapts a sender with multiple value completion signatures into
     a sender with just one consisting of a `variant` of `tuple`s.
 
-2. The template <code><i>into-variant-type</i></code> computes the type sent by a sender returned from `into_variant`.
+2. The template <code><i>into-variant-type</i></code> computes the type sent by
+    a sender returned from `into_variant`.
 
     <pre highlight="c++">
         template&lt;class S, class E>
@@ -6632,23 +6633,47 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
             value_types_of_t&lt;S, E>;
     </pre>
 
-3. `into_variant` is a customization point object. For some subexpression `s`, let `S` be `decltype((s))`. If `S` does not satisfy `sender`, `into_variant(s)` is ill-formed. Otherwise, `into_variant(s)` returns
-    a sender `s2`. When `s2` is connected with some receiver `out_r`, it:
+3. `into_variant` is a customization point object. For some subexpression `s`,
+    let `S` be `decltype((s))`. If `S` does not satisfy `sender`,
+    `into_variant(s)` is ill-formed. Otherwise, `into_variant(s)` is
+    expression-equivalent to:
 
-    1. Constructs a receiver `r`:
+      <pre highlight="c++">
+      transform_sender(
+        <i>get-domain-early</i>(s),
+        <i>make-into-variant-sender</i>(s))
+      </pre>
 
-        1. If `set_value(r, ts...)` is called, calls <code>set_value(out_r, <i>into-variant-type</i>&lt;S, env_of_t&lt;decltype((r))>>(<i>decayed-tuple</i>&lt;decltype(ts)...>(ts...)))</code>. If this expression throws an exception, calls `set_error(out_r, current_exception())`.
+    where <code><i>make-into-variant-sender</i>(s)</code> is
+    expression-equivalent to <code><i>make-sender</i>(into_variant,
+    <i>unspecified</i>, s)</code> and returns a sender object `s2` that behaves
+    as follows:
 
-        2. `set_error(r, e)` is expression-equivalent to `set_error(out_r, e)`.
+    1. When `s2` is connected with some receiver `out_r`, it:
 
-        3. `set_stopped(r)` is expression-equivalent to `set_stopped(out_r)`.
+        1. Constructs a receiver `r` such that:
 
-    2. Calls `connect(s, r)`, resulting in an operation state `op_state2`.
+            1. If `set_value(r, ts...)` is called, calls <code>set_value(out_r,
+                <i>into-variant-type</i>&lt;S,
+                env_of_t&lt;decltype((r))>>(<i>decayed-tuple</i>&lt;decltype(ts)...>(ts...)))</code>.
+                If this expression throws an exception, calls `set_error(out_r,
+                current_exception())`.
 
-    3. Returns an operation state `op_state` that contains `op_state2`. When `start(op_state)` is called, calls `start(op_state2)`.
+            2. `set_error(r, e)` is expression-equivalent to `set_error(out_r,
+                e)`.
 
-    4. Given subexpressions `s2` and `e`, where `s2` is a sender returned from `into_variant` or a copy of such, let `S2` be `decltype((s2))` and `E` be `decltype((e))`.
-        Let <code><i>into-variant-set-value</i></code> be the class template:
+            3. `set_stopped(r)` is expression-equivalent to
+                `set_stopped(out_r)`.
+
+        2. Calls `connect(s, r)`, resulting in an operation state `op_state2`.
+
+        3. Returns an operation state `op_state` that contains `op_state2`. When
+            `start(op_state)` is called, calls `start(op_state2)`.
+
+    2. Given subexpressions `s2` and `e`, where `s2` is a sender returned from
+        `into_variant` or a copy of such, let `S2` be `decltype((s2))` and `E`
+        be `decltype((e))`. Let <code><i>into-variant-set-value</i></code> be
+        the class template:
 
         <pre highlight="c++">
             template&lt;class S, class E>
@@ -6705,7 +6730,7 @@ template &lt;class Domain, class Tag, sender Sender, class... Args>
     const auto& env = e;
     auto domain = <i>get-env-domain</i>(env);
     auto [tag, data, child] = s;
-    using V = <i>single-sender-value-type&lt;S, E>;
+    using V = <i>single-sender-value-type</i>&lt;S, E>;
     return let_stopped(
         then(std::move(child),
                   []&lt;class T>(T&& t) { return optional<V>(std::forward<T>(t)); }),
