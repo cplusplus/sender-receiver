@@ -3649,8 +3649,12 @@ fit for broad use and for contribution to libc++.</p>
      <p><code class="highlight"><c- n>get_env</c-><c- p>(</c-><c- n>obj</c-><c- p>)</c-></code> is required to be nothrow.</p>
     <li data-md>
      <p><code class="highlight"><c- n>make_completion_signatures</c-></code> is renamed <code class="highlight"><c- n>transform_completion_signatures_of</c-></code> and is expressed in terms of the new <code class="highlight"><c- n>transform_completion_signatures</c-></code>,
-  which takes an input set of completion signatures instead of a sender and an
-  environment.</p>
+which takes an input set of completion signatures instead of a sender and an
+environment.</p>
+    <li data-md>
+     <p>Add a requirement on queryable objects that if <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>query</c-><c- p>,</c-> <c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is well-formed, then <code class="highlight"><c- n>query</c-><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is
+expression-equivalent to it. This is necessary to properly specify how to
+join two environments in the presence of queries that have defaults.</p>
    </ul>
    <h3 class="heading settled" data-level="2.2" id="r7"><span class="secno">2.2. </span><span class="content">R7</span><a class="self-link" href="#r7"></a></h3>
    <p>The changes since R6 are as follows:</p>
@@ -5961,17 +5965,19 @@ arguments. The result of a query expression is valid as long as the
 queryable object is valid. <span class="wg21note">A query imposes syntactic
 and semantic requirements on its invocations.</span></p>
     <li data-md>
-     <p>Given a subexpression <code class="highlight"><c- n>e</c-></code> that refers to a queryable object <code class="highlight"><c- n>q</c-></code>, a query
-object <code class="highlight"><i><c- n>F</c-></i></code>, and a (possibly empty) pack of subexpressions <code class="highlight"><c- n>args</c-></code>, the expression <code class="highlight"><i><c- n>F</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is equal to
-([concepts.equality]) the expression <code class="highlight"><i><c- n>F</c-></i><c- p>(</c-><c- n>c</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> where <code class="highlight"><c- n>c</c-></code> is a <code class="highlight"><c- k>const</c-></code> lvalue reference to <code class="highlight"><c- n>q</c-></code>.</p>
+     <p>Given a subexpression <code class="highlight"><c- n>e</c-></code> that refers to a queryable object <code class="highlight"><c- n>o</c-></code>, a query
+object <code class="highlight"><i><c- n>q</c-></i></code>, and a (possibly empty) pack of subexpressions <code class="highlight"><c- n>args</c-></code>, the expression <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is equal to
+([concepts.equality]) the expression <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>c</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> where <code class="highlight"><c- n>c</c-></code> is a <code class="highlight"><c- k>const</c-></code> lvalue reference to <code class="highlight"><c- n>o</c-></code>.</p>
     <li data-md>
      <p>The type of a query expression can not be <code class="highlight"><c- b>void</c-></code>.</p>
     <li data-md>
-     <p>The expression <code class="highlight"><i><c- n>F</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is equality-preserving
+     <p>The expression <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is equality-preserving
 ([concepts.equality]) and does not modify the function object or the
 arguments.</p>
     <li data-md>
-     <p>Unless otherwise specified, the value returned by the expression <code class="highlight"><i><c- n>F</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is valid as long as <code class="highlight"><c- n>e</c-></code> is valid.</p>
+     <p>If <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><i><c- n>q</c-></i><c- p>,</c-> <c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is well-formed, then <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is expression-equivalent to <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><i><c- n>q</c-></i><c- p>,</c-> <c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>.</p>
+    <li data-md>
+     <p>Unless otherwise specified, the value returned by the expression <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is valid as long as <code class="highlight"><c- n>e</c-></code> is valid.</p>
    </ol>
    <h4 class="heading settled" data-level="11.2.2" id="spec-execution.queryable.concept"><span class="secno">11.2.2. </span><span class="content"><code class="highlight"><c- n>queryable</c-></code> concept <b>[exec.queryable.concept]</b></span><a class="self-link" href="#spec-execution.queryable.concept"></a></h4>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
@@ -5983,8 +5989,8 @@ arguments.</p>
 objects.</p>
     <li data-md>
      <p>Let <code class="highlight"><c- n>e</c-></code> be an object of type <code class="highlight"><c- n>E</c-></code>. The type <code class="highlight"><c- n>E</c-></code> models <code class="highlight"><c- n>queryable</c-></code> if for each
-callable object <code class="highlight"><i><c- n>F</c-></i></code> and a pack of subexpressions <code class="highlight"><c- n>args</c-></code>,
-if <code class="highlight"><c- k>requires</c-> <c- p>{</c-> <i><c- n>F</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-> <c- p>}</c-></code> is <code class="highlight">true</code> then <code class="highlight"><i><c- n>F</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> meets any semantic requirements imposed by <code class="highlight"><c- n>F</c-></code>.</p>
+callable object <code class="highlight"><i><c- n>q</c-></i></code> and a pack of subexpressions <code class="highlight"><c- n>args</c-></code>,
+if <code class="highlight"><c- k>requires</c-> <c- p>{</c-> <i><c- n>q</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-> <c- p>}</c-></code> is <code class="highlight">true</code> then <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> meets any semantic requirements imposed by <code class="highlight"><i><c- n>q</c-></i></code>.</p>
    </ol>
    <h3 class="heading settled" data-level="11.3" id="spec-execution-async.ops"><span class="secno">11.3. </span><span class="content">Asynchronous operations <b>[async.ops]</b></span><a class="self-link" href="#spec-execution-async.ops"></a></h3>
    <ol>
@@ -6569,30 +6575,25 @@ passed a receiver, <code class="highlight"><c- n>get_env</c-></code> returns the
    <h4 class="heading settled" data-level="11.5.2" id="spec-execution.forwarding_query"><span class="secno">11.5.2. </span><span class="content"><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-></code> <b>[exec.fwd.env]</b></span><a class="self-link" href="#spec-execution.forwarding_query"></a></h4>
    <ol>
     <li data-md>
-     <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-></code> asks a query object whether it should be forwarded
+     <p><code class="highlight"><c- n>forwarding_query</c-></code> asks a query object whether it should be forwarded
 through queryable adaptors.</p>
     <li data-md>
-     <p>The name <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-></code> denotes a query object. For some query
-object <code class="highlight"><c- n>q</c-></code> of type <code class="highlight"><c- n>Q</c-></code>, <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is expression-equivalent
+     <p>The name <code class="highlight"><c- n>forwarding_query</c-></code> denotes a query object. For some query
+object <code class="highlight"><c- n>q</c-></code> of type <code class="highlight"><c- n>Q</c-></code>, <code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is expression-equivalent
 to:</p>
      <ol>
       <li data-md>
-       <p><code class="highlight"><i><c- n>mandate</c-><c- o>-</c-><c- n>nothrow</c-><c- o>-</c-><c- n>call</c-></i><c- p>(</c-><c- n>tag_invoke</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-><c- p>,</c-> <c- n>q</c-><c- p>)</c-></code> if that expression is well-formed.</p>
+       <p><code class="highlight"><i><c- n>mandate</c-><c- o>-</c-><c- n>nothrow</c-><c- o>-</c-><c- n>call</c-></i><c- p>(</c-><c- n>tag_invoke</c-><c- p>,</c-> <c- n>forwarding_query</c-><c- p>,</c-> <c- n>q</c-><c- p>)</c-></code> if that expression is well-formed.</p>
        <ul>
         <li data-md>
          <p><i>Mandates:</i> The expression above has type <code class="highlight"><c- b>bool</c-></code> and is a core
 constant expressions if <code class="highlight"><c- n>q</c-></code> is a core constant expression.</p>
        </ul>
       <li data-md>
-       <p>Otherwise, <code class="highlight">true</code> if <code class="highlight"><c- n>derived_from</c-><c- o>&lt;</c-><c- n>Q</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>forwarding_query_t</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
+       <p>Otherwise, <code class="highlight">true</code> if <code class="highlight"><c- n>derived_from</c-><c- o>&lt;</c-><c- n>Q</c-><c- p>,</c-> <c- n>forwarding_query_t</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
       <li data-md>
        <p>Otherwise, <code class="highlight">false</code>.</p>
      </ol>
-    <li data-md>
-     <p>For a queryable object <code class="highlight"><c- n>o</c-></code>, let <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>QUERIES</c-></i><c- p>(</c-><c- n>o</c-><c- p>)</c-></code> be a
-queryable object such that for a query object <code class="highlight"><c- n>q</c-></code> and a pack of
-subexpressions <code class="highlight"><c- n>as</c-></code>, the expression <code class="highlight"><c- n>q</c-><c- p>(</c-><i><c- n>FWD</c-><c- o>-</c-><c- n>QUERIES</c-></i><c- p>(</c-><c- n>o</c-><c- p>),</c-> <c- n>as</c-><c- p>...)</c-></code> is ill-formed if <code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is <code class="highlight">false</code>; otherwise,
-it is expression-equivalent to <code class="highlight"><c- n>q</c-><c- p>(</c-><c- n>o</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code>.</p>
    </ol>
    <h4 class="heading settled" data-level="11.5.3" id="spec-execution.get_allocator"><span class="secno">11.5.3. </span><span class="content"><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>get_allocator</c-></code> <b>[exec.get.allocator]</b></span><a class="self-link" href="#spec-execution.get_allocator"></a></h4>
    <ol>
@@ -6606,7 +6607,7 @@ it is expression-equivalent to <code class="highlight"><c- n>q</c-><c- p>(</c-><
 satisfies <i>Allocator</i>.</p>
      </ul>
     <li data-md>
-     <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>get_allocator</c-><c- p>)</c-></code> is <code class="highlight">true</code>.</p>
+     <p><code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>get_allocator</c-><c- p>)</c-></code> is <code class="highlight">true</code>.</p>
     <li data-md>
      <p><code class="highlight"><c- n>get_allocator</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>get_allocator</c-><c- p>)</c-></code> ([exec.read]).</p>
    </ol>
@@ -6627,7 +6628,8 @@ satisfies <i>Allocator</i>.</p>
        <p>Otherwise, <code class="highlight"><c- n>never_stop_token</c-><c- p>{}</c-></code>.</p>
      </ol>
     <li data-md>
-     <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>get_stop_token</c-><c- p>)</c-></code> is <code class="highlight">true</code>.</p>
+     <p><code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>get_stop_token</c-><c- p>)</c-></code> is a core constant
+expression and has value <code class="highlight">true</code>.</p>
     <li data-md>
      <p><code class="highlight"><c- n>get_stop_token</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>get_stop_token</c-><c- p>)</c-></code> ([exec.read]).</p>
    </ol>
@@ -6639,7 +6641,8 @@ satisfies <i>Allocator</i>.</p>
      <p>The name <code class="highlight"><c- n>get_domain</c-></code> denotes a query object. For some subexpression <code class="highlight"><c- n>r</c-></code>, <code class="highlight"><c- n>get_domain</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>mandate</c-><c- o>-</c-><c- n>nothrow</c-><c- o>-</c-><c- n>call</c-></i><c- p>(</c-><c- n>tag_invoke</c-><c- p>,</c-> <c- n>get_domain</c-><c- p>,</c-> <c- n>as_const</c-><c- p>(</c-><c- n>r</c-><c- p>))</c-></code>,
 if this expression is well-formed.</p>
     <li data-md>
-     <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_domain</c-><c- p>)</c-></code> is <code class="highlight">true</code>.</p>
+     <p><code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_domain</c-><c- p>)</c-></code> is a core constant
+expression and has value <code class="highlight">true</code>.</p>
     <li data-md>
      <p><code class="highlight"><c- n>get_domain</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>get_domain</c-><c- p>)</c-></code> ([exec.read]).</p>
    </ol>
@@ -6655,7 +6658,8 @@ subexpression <code class="highlight"><c- n>r</c-></code>, <code class="highligh
        <p><i>Mandates:</i> The type of the expression above satisfies <code class="highlight"><c- n>scheduler</c-></code>.</p>
      </ul>
     <li data-md>
-     <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_scheduler</c-><c- p>)</c-></code> is <code class="highlight">true</code>.</p>
+     <p><code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_scheduler</c-><c- p>)</c-></code> is a core constant
+expression and has value <code class="highlight">true</code>.</p>
     <li data-md>
      <p><code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>get_scheduler</c-><c- p>)</c-></code> ([exec.read]).</p>
    </ol>
@@ -6671,7 +6675,8 @@ subexpression <code class="highlight"><c- n>r</c-></code>, <code class="highligh
        <p><i>Mandates:</i> The type of the expression above is satisfies <code class="highlight"><c- n>scheduler</c-></code>.</p>
      </ul>
     <li data-md>
-     <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forwarding_query</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_delegatee_scheduler</c-><c- p>)</c-></code> is <code class="highlight">true</code>.</p>
+     <p><code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_delegatee_scheduler</c-><c- p>)</c-></code> is a core
+constant expression and has value <code class="highlight">true</code>.</p>
     <li data-md>
      <p><code class="highlight"><c- n>get_delegatee_scheduler</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>get_delegatee_scheduler</c-><c- p>)</c-></code> ([exec.read]).</p>
    </ol>
@@ -6744,7 +6749,7 @@ additional arguments <code class="highlight"><c- n>args</c-><c- p>...</c-></code
 belong to the associated execution resource of <code class="highlight"><c- n>sch</c-></code>, the behavior is
 undefined.</p>
     <li data-md>
-     <p>The expression <code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>CPO</c-><c- o>></c-><c- p>)</c-></code> has value <code class="highlight">true</code>.</p>
+     <p>The expression <code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>CPO</c-><c- o>></c-><c- p>)</c-></code> is a core constant expression and has value <code class="highlight">true</code>.</p>
    </ol>
    <h3 class="heading settled" data-level="11.6" id="spec-execution.schedulers"><span class="secno">11.6. </span><span class="content">Schedulers <b>[exec.sched] </b></span><a class="self-link" href="#spec-execution.schedulers"></a></h3>
    <ol>
@@ -6917,7 +6922,29 @@ superset of <code class="highlight"><c- n>Sigs</c-></code>, any additional compl
 error or stopped completion operations.</p>
     <li data-md>
      <p>This section makes use of the following exposition-only entities.</p>
-     <ol start="4">
+     <ol>
+      <li data-md>
+       <p>For a queryable object <code class="highlight"><c- n>e</c-></code>, let <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>e</c-><c- p>)</c-></code> be a
+queryable object such that for a query object <code class="highlight"><c- n>q</c-></code> and a pack of
+subexpressions <code class="highlight"><c- n>as</c-></code>, the expression <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>e</c-><c- p>),</c-> <c- n>as</c-><c- p>...)</c-></code> is ill-formed if <code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is <code class="highlight">false</code>;
+otherwise, it is expression-equivalent to <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>e</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code>.</p>
+      <li data-md>
+       <p>For a query object <code class="highlight"><c- n>q</c-></code> and a subexpression <code class="highlight"><c- n>v</c-></code>, let <code class="highlight"><i><c- n>MAKE</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code> be a queryable object <code class="highlight"><c- n>e</c-></code> such that <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is a <code class="highlight"><c- k>const</c-></code> lvalue reference to an object
+decay-copied from <code class="highlight"><c- n>v</c-></code>. Unless otherwise stated, the object to which <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> refers remains valid while <code class="highlight"><c- n>e</c-></code> remains valid.</p>
+      <li data-md>
+       <p>For two queryable objects <code class="highlight"><c- n>e1</c-></code> and <code class="highlight"><c- n>e2</c-></code>, a query object <code class="highlight"><c- n>q</c-></code> and a pack of
+subexpressions <code class="highlight"><c- n>as</c-></code>, let <code class="highlight"><i><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>e1</c-><c- p>,</c-> <c- n>e2</c-><c- p>)</c-></code> be an
+environment <code class="highlight"><c- n>e3</c-></code> such that <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>e3</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> is
+expression-equivalent to:</p>
+       <ul>
+        <li data-md>
+         <p><code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>e1</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> if that expression is well-formed,</p>
+        <li data-md>
+         <p>otherwise, <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>e2</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> if that expression is
+  well-formed,</p>
+        <li data-md>
+         <p>otherwise, <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>e3</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> is ill-formed.</p>
+       </ul>
       <li data-md>
        <p>For two subexpressions <code class="highlight"><c- n>r</c-></code> and <code class="highlight"><c- n>e</c-></code>, let <code class="highlight"><i><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> be <code class="highlight"><c- p>(</c-><c- n>e</c-><c- p>,</c-> <c- n>set_value</c-><c- p>(</c-><c- n>r</c-><c- p>))</c-></code> if the type of <code class="highlight"><c- n>e</c-></code> is <code class="highlight"><c- b>void</c-></code>;
 otherwise, it is <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code>. Let <code class="highlight"><i><c- n>TRY</c-><c- o>-</c-><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>r</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> be:</p>
@@ -7163,7 +7190,7 @@ initializer of a structured binding declaration
 with a callable object equal to the following lambda:</p>
 <pre class="highlight"><c- p>[](</c-><c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>data</c-><c- p>,</c-> <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>child</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- p>{</c->
   <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- k>sizeof</c-><c- p>...(</c-><c- n>child</c-><c- p>)</c-> <c- o>==</c-> <c- mi>1</c-><c- p>)</c->
-    <c- k>return</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>QUERIES</c-></i><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_env</c-><c- p>(</c-><c- n>child</c-><c- p>...));</c-> <c- c1>//</c->
+    <c- k>return</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_env</c-><c- p>(</c-><c- n>child</c-><c- p>...));</c-> <c- c1>//</c->
   <c- k>else</c->
     <c- k>return</c-> <c- n>empty_env</c-><c- p>();</c->
 <c- p>}</c->
@@ -7172,8 +7199,8 @@ with a callable object equal to the following lambda:</p>
          <p>The member <code class="highlight"><i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i><c- o>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>env</c-></i></code> is initialized
 with a callable object equal to the following lambda:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-><c- p>(</c-><c- k>auto</c-> <c- n>index</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- k>const</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c->
-  <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><i><c- n>FWD</c-><c- o>-</c-><c- n>QUERIES</c-></i><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)))</c-> <c- p>{</c->
-  <c- k>return</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>QUERIES</c-></i><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>));</c->
+  <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)))</c-> <c- p>{</c->
+  <c- k>return</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>));</c->
 <c- p>}</c->
 </pre>
         <li data-md>
@@ -7787,14 +7814,14 @@ requirement applies to any function that is selected by the implementation
 of the sender adaptor.</p>
     <li data-md>
      <p>Unless otherwise specified, a parent sender ([async.ops]) with a single child
-sender <code class="highlight"><c- n>s</c-></code> has an associated attribute object equal to <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>QUERIES</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>s</c-><c- p>))</c-></code> ([exec.fwd.env]). Unless
+sender <code class="highlight"><c- n>s</c-></code> has an associated attribute object equal to <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>s</c-><c- p>))</c-></code> ([exec.fwd.env]). Unless
 otherwise specified, a parent sender with more than one child senders has an
 associated attributes object equal to <code class="highlight"><c- n>empty_env</c-><c- p>{}</c-></code>. These
 requirements apply to any function that is selected by the implementation of
 the sender adaptor.</p>
     <li data-md>
      <p>Unless otherwise specified, when a parent sender is connected to a receiver <code class="highlight"><c- n>r</c-></code>, any receiver used to connect a child sender has an associated
-environment equal to <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>QUERIES</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>r</c-><c- p>))</c-></code>. This
+environment equal to <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>r</c-><c- p>))</c-></code>. This
 requirements applies to any sender returned from a function that is selected
 by the implementation of such sender adaptor.</p>
     <li data-md>
@@ -8018,8 +8045,7 @@ return a queryable object <code class="highlight"><c- n>q</c-></code> such that 
 expression-equivalent to <code class="highlight"><c- n>get_domain</c-><c- p>(</c-><c- n>sch</c-><c- p>)</c-></code> and <code class="highlight"><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>CPO</c-><c- o>></c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> returns a copy of <code class="highlight"><c- n>sch</c-></code>, where <code class="highlight"><c- n>CPO</c-></code> is
 either <code class="highlight"><c- n>set_value_t</c-></code> or <code class="highlight"><c- n>set_stopped_t</c-></code>. The <code class="highlight"><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>set_error_t</c-><c- o>></c-></code> query is not implemented, as the
 scheduler cannot be guaranteed in case an error is thrown while trying to
-schedule work on the given scheduler object. For all other query objects <code class="highlight"><i><c- n>Q</c-></i></code> whose type satisfies <code class="highlight"><c- n>forwarding_query</c-></code>, the
-expression <code class="highlight"><i><c- n>Q</c-></i><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> shall be equivalent to <code class="highlight"><i><c- n>Q</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>s</c-><c- p>),</c-> <c- n>args</c-><c- p>...)</c-></code>.</p>
+schedule work on the given scheduler object. For all other query objects <code class="highlight"><i><c- n>Q</c-></i></code> whose type satisfies <code class="highlight"><i><c- n>forwarding</c-><c- o>-</c-><c- n>query</c-></i></code>, the expression <code class="highlight"><i><c- n>Q</c-></i><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> shall be equivalent to <code class="highlight"><i><c- n>Q</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>s</c-><c- p>),</c-> <c- n>args</c-><c- p>...)</c-></code>.</p>
    </ol>
    <h5 class="heading settled" data-level="11.9.10.6" id="spec-execution.senders.adaptor.then"><span class="secno">11.9.10.6. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>then</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_stopped</c-></code> <b>[exec.then]</b></span><a class="self-link" href="#spec-execution.senders.adaptor.then"></a></h5>
    <ol>
@@ -8337,7 +8363,7 @@ completion of the invocation of <code class="highlight"><c- n>r2</c-></code>’s
 a sender that completes when all input senders have completed. <code class="highlight"><c- n>when_all</c-></code> only accepts senders with a single value completion signature and on success
 concatenates all the input senders' value result datums into its own value
 completion operation. <code class="highlight"><c- n>when_all_with_variant</c-><c- p>(</c-><c- n>s</c-><c- p>...)</c-></code> is semantically
-equivilant to <code class="highlight"><c- n>when_all</c-><c- p>(</c-><c- n>into_variant</c-><c- p>(</c-><c- n>s</c-><c- p>)...)</c-></code>, where <code class="highlight"><c- n>s</c-></code> is a pack of
+equivalent to <code class="highlight"><c- n>when_all</c-><c- p>(</c-><c- n>into_variant</c-><c- p>(</c-><c- n>s</c-><c- p>)...)</c-></code>, where <code class="highlight"><c- n>s</c-></code> is a pack of
 subexpressions of sender types.</p>
     <li data-md>
      <p>The names <code class="highlight"><c- n>when_all</c-></code> and <code class="highlight"><c- n>when_all_with_variant</c-></code> denote customization point
