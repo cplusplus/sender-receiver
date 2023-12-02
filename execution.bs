@@ -1137,9 +1137,14 @@ The changes since R7 are as follows:
   * `get_env(obj)` is required to be nothrow.
 
   * `make_completion_signatures` is renamed `transform_completion_signatures_of`
-      and is expressed in terms of the new `transform_completion_signatures`,
-      which takes an input set of completion signatures instead of a sender and an
-      environment.
+    and is expressed in terms of the new `transform_completion_signatures`,
+    which takes an input set of completion signatures instead of a sender and an
+    environment.
+
+  * Add a requirement on queryable objects that if `tag_invoke(query, env,
+    args...)` is well-formed, then `query(env, args...)` is
+    expression-equivalent to it. This is necessary to properly specify how to
+    join two environments in the presence of queries that have defaults.
 
 ## R7 ## {#r7}
 
@@ -3830,20 +3835,24 @@ template&lt;class C>
     queryable object is valid. <span class="wg21note">A query imposes syntactic
     and semantic requirements on its invocations.</span>
 
-2. Given a subexpression `e` that refers to a queryable object `q`, a query
-    object <code><i>F</i></code>, and a (possibly empty) pack of subexpressions
-    `args`, the expression <code><i>F</i>(e, args...)</code> is equal to
-    ([concepts.equality]) the expression <code><i>F</i>(c, args...)</code> where
-    `c` is a `const` lvalue reference to `q`.
+2. Given a subexpression `e` that refers to a queryable object `o`, a query
+    object <code><i>q</i></code>, and a (possibly empty) pack of subexpressions
+    `args`, the expression <code><i>q</i>(e, args...)</code> is equal to
+    ([concepts.equality]) the expression <code><i>q</i>(c, args...)</code> where
+    `c` is a `const` lvalue reference to `o`.
 
 3. The type of a query expression can not be `void`.
 
-4. The expression <code><i>F</i>(e, args...)</code> is equality-preserving
+4. The expression <code><i>q</i>(e, args...)</code> is equality-preserving
     ([concepts.equality]) and does not modify the function object or the
     arguments.
 
-5. Unless otherwise specified, the value returned by the expression
-    <code><i>F</i>(e, args...)</code> is valid as long as `e` is valid.
+5. If <code>tag_invoke(<i>q</i>, e, args...)</code> is well-formed, then
+    <code><i>q</i>(e, args...)</code> is expression-equivalent to
+    <code>tag_invoke(<i>q</i>, e, args...)</code>.
+
+6. Unless otherwise specified, the value returned by the expression
+    <code><i>q</i>(e, args...)</code> is valid as long as `e` is valid.
 
 ### `queryable` concept <b>[exec.queryable.concept]</b> ### {#spec-execution.queryable.concept}
 
@@ -3856,10 +3865,10 @@ template&lt;class C>
     objects.
 
 2. Let `e` be an object of type `E`. The type `E` models `queryable` if for each
-    callable object <code><i>F</i></code> and a pack of subexpressions `args`,
-    if <code>requires { <i>F</i>(e, args...) }</code> is `true` then
-    <code><i>F</i>(e, args...)</code> meets any semantic requirements imposed by
-    `F`.
+    callable object <code><i>q</i></code> and a pack of subexpressions `args`,
+    if <code>requires { <i>q</i>(e, args...) }</code> is `true` then
+    <code><i>q</i>(e, args...)</code> meets any semantic requirements imposed by
+    <code><i>q</i></code>.
 
 ## Asynchronous operations <b>[async.ops]</b> ## {#spec-execution-async.ops}
 
@@ -4460,29 +4469,23 @@ namespace std::execution {
 
 ### `std::forwarding_query` <b>[exec.fwd.env]</b> ### {#spec-execution.forwarding_query}
 
-1. `std::forwarding_query` asks a query object whether it should be forwarded
+1. `forwarding_query` asks a query object whether it should be forwarded
     through queryable adaptors.
 
-2. The name `std::forwarding_query` denotes a query object. For some query
-    object `q` of type `Q`, `std::forwarding_query(q)` is expression-equivalent
+2. The name `forwarding_query` denotes a query object. For some query
+    object `q` of type `Q`, `forwarding_query(q)` is expression-equivalent
     to:
 
-    1. <code><i>mandate-nothrow-call</i>(tag_invoke, std::forwarding_query,
+    1. <code><i>mandate-nothrow-call</i>(tag_invoke, forwarding_query,
         q)</code> if that expression is well-formed.
 
         * <i>Mandates:</i> The expression above has type `bool` and is a core
             constant expressions if `q` is a core constant expression.
 
-    2. Otherwise, `true` if `derived_from<Q, std::forwarding_query_t>` is
+    2. Otherwise, `true` if `derived_from<Q, forwarding_query_t>` is
         `true`.
 
     3. Otherwise, `false`.
-
-3. For a queryable object `o`, let <code><i>FWD-QUERIES</i>(o)</code> be a
-    queryable object such that for a query object `q` and a pack of
-    subexpressions `as`, the expression <code>q(<i>FWD-QUERIES</i>(o),
-    as...)</code> is ill-formed if `forwarding_query(q)` is `false`; otherwise,
-    it is expression-equivalent to `q(o, as...)`.
 
 ### `std::get_allocator` <b>[exec.get.allocator]</b> ### {#spec-execution.get_allocator}
 
@@ -4496,7 +4499,7 @@ namespace std::execution {
         * <i>Mandates:</i> The type of the expression above
             satisfies <i>Allocator</i>.
 
-3. `std::forwarding_query(std::get_allocator)` is `true`.
+3. `forwarding_query(std::get_allocator)` is `true`.
 
 4. `get_allocator()` (with no arguments) is expression-equivalent to
     `execution::read(std::get_allocator)` ([exec.read]).
@@ -4516,7 +4519,8 @@ namespace std::execution {
 
     2. Otherwise, `never_stop_token{}`.
 
-3. `std::forwarding_query(std::get_stop_token)` is `true`.
+3. `forwarding_query(std::get_stop_token)` is a core constant
+    expression and has value `true`.
 
 4. `get_stop_token()` (with no arguments) is expression-equivalent to
     `execution::read(std::get_stop_token)` ([exec.read]).
@@ -4530,7 +4534,8 @@ namespace std::execution {
     <code><i>mandate-nothrow-call</i>(tag_invoke, get_domain, as_const(r))</code>,
     if this expression is well-formed.
 
-3. `std::forwarding_query(execution::get_domain)` is `true`.
+3. `forwarding_query(execution::get_domain)` is a core constant
+    expression and has value `true`.
 
 4. `get_domain()` (with no arguments) is expression-equivalent to
     `execution::read(get_domain)` ([exec.read]).
@@ -4545,7 +4550,8 @@ namespace std::execution {
 
         * <i>Mandates:</i> The type of the expression above satisfies `scheduler`.
 
-3. `std::forwarding_query(execution::get_scheduler)` is `true`.
+3. `forwarding_query(execution::get_scheduler)` is a core constant
+    expression and has value `true`.
 
 4. `get_scheduler()` (with no arguments) is expression-equivalent to `execution::read(get_scheduler)` ([exec.read]).
 
@@ -4559,7 +4565,8 @@ namespace std::execution {
 
         * <i>Mandates:</i> The type of the expression above is satisfies `scheduler`.
 
-3. `std::forwarding_query(execution::get_delegatee_scheduler)` is `true`.
+3. `forwarding_query(execution::get_delegatee_scheduler)` is a core
+    constant expression and has value `true`.
 
 4. `get_delegatee_scheduler()` (with no arguments) is expression-equivalent to `execution::read(get_delegatee_scheduler)`  ([exec.read]).
 
@@ -4629,8 +4636,8 @@ enum class forward_progress_guarantee {
     belong to the associated execution resource of `sch`, the behavior is
     undefined.
 
-4. The expression `forwarding_query(get_completion_scheduler<CPO>)` has value
-    `true`.
+4. The expression `forwarding_query(get_completion_scheduler<CPO>)`
+    is a core constant expression and has value `true`.
 
 ## Schedulers <b>[exec.sched] </b> ## {#spec-execution.schedulers}
 
@@ -4827,6 +4834,31 @@ enum class forward_progress_guarantee {
     error or stopped completion operations.
 
 3. This section makes use of the following exposition-only entities.
+
+    1. For a queryable object `e`, let <code><i>FWD-ENV</i>(e)</code> be a
+        queryable object such that for a query object `q` and a pack of
+        subexpressions `as`, the expression <code>tag_invoke(q,
+        <i>FWD-ENV</i>(e), as...)</code> is ill-formed if
+        `forwarding_query(q)` is `false`;
+        otherwise, it is expression-equivalent to `tag_invoke(q, e, as...)`.
+
+    2. For a query object `q` and a subexpression `v`, let
+        <code><i>MAKE-ENV</i>(q, v)</code> be a queryable object `e` such that
+        `tag_invoke(q, e)` is a `const` lvalue reference to an object
+        decay-copied from `v`. Unless otherwise stated, the object to which
+        `tag_invoke(q, e)` refers remains valid while `e` remains valid.
+
+    3. For two queryable objects `e1` and `e2`, a query object `q` and a pack of
+        subexpressions `as`, let <code><i>JOIN-ENV</i>(e1, e2)</code> be an
+        environment `e3` such that `tag_invoke(q, e3, as...)` is
+        expression-equivalent to:
+
+          - `tag_invoke(q, e1, as...)` if that expression is well-formed,
+
+          - otherwise, `tag_invoke(q, e2, as...)` if that expression is
+              well-formed,
+
+          - otherwise, `tag_invoke(q, e3, as...)` is ill-formed.
 
     4. For two subexpressions `r` and `e`, let <code><i>SET-VALUE</i>(r,
         e)</code> be `(e, set_value(r))` if the type of `e` is `void`;
@@ -5087,7 +5119,7 @@ enum class forward_progress_guarantee {
               <pre highlight="c++">
               [](const auto& data, const auto&... child) noexcept -> decltype(auto) {
                 if constexpr (sizeof...(child) == 1)
-                  return <i>FWD-QUERIES</i>(execution::get_env(child...)); //
+                  return <i>FWD-ENV</i>(execution::get_env(child...)); //
                 else
                   return empty_env();
               }
@@ -5098,8 +5130,8 @@ enum class forward_progress_guarantee {
 
               <pre highlight="c++">
               []&lt;class Rcvr>(auto index, auto& state, const Rcvr& rcvr) noexcept
-                -> decltype(<i>FWD-QUERIES</i>(execution::get_env(rcvr))) {
-                return <i>FWD-QUERIES</i>(execution::get_env(rcvr));
+                -> decltype(<i>FWD-ENV</i>(execution::get_env(rcvr))) {
+                return <i>FWD-ENV</i>(execution::get_env(rcvr));
               }
               </pre>
 
@@ -5785,7 +5817,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
 4. Unless otherwise specified, a parent sender ([async.ops]) with a single child
     sender `s` has an associated attribute object equal to
-    <code><i>FWD-QUERIES</i>(get_env(s))</code> ([exec.fwd.env]). Unless
+    <code><i>FWD-ENV</i>(get_env(s))</code> ([exec.fwd.env]). Unless
     otherwise specified, a parent sender with more than one child senders has an
     associated attributes object equal to <code>empty_env{}</code>. These
     requirements apply to any function that is selected by the implementation of
@@ -5793,7 +5825,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
 5. Unless otherwise specified, when a parent sender is connected to a receiver
     `r`, any receiver used to connect a child sender has an associated
-    environment equal to <code><i>FWD-QUERIES</i>(get_env(r))</code>. This
+    environment equal to <code><i>FWD-ENV</i>(get_env(r))</code>. This
     requirements applies to any sender returned from a function that is selected
     by the implementation of such sender adaptor.
 
@@ -6068,9 +6100,10 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     `get_completion_scheduler<set_error_t>` query is not implemented, as the
     scheduler cannot be guaranteed in case an error is thrown while trying to
     schedule work on the given scheduler object. For all other query objects
-    <code><i>Q</i></code> whose type satisfies `forwarding_query`, the
-    expression <code><i>Q</i>(q, args...)</code> shall be equivalent to
-    <code><i>Q</i>(get_env(s), args...)</code>.
+    <code><i>Q</i></code> whose type satisfies
+    <code><i>forwarding-query</i></code>, the expression <code><i>Q</i>(q,
+    args...)</code> shall be equivalent to <code><i>Q</i>(get_env(s),
+    args...)</code>.
 
 #### `execution::then`, `execution::upon_error`, `execution::upon_stopped` <b>[exec.then]</b> #### {#spec-execution.senders.adaptor.then}
 
@@ -6428,7 +6461,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     only accepts senders with a single value completion signature and on success
     concatenates all the input senders' value result datums into its own value
     completion operation. `when_all_with_variant(s...)` is semantically
-    equivilant to `when_all(into_variant(s)...)`, where `s` is a pack of
+    equivalent to `when_all(into_variant(s)...)`, where `s` is a pack of
     subexpressions of sender types.
 
 2. The names `when_all` and `when_all_with_variant` denote customization point
