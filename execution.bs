@@ -1182,7 +1182,7 @@ The changes since R6 are as follows:
   * `get_env` is required to be insensitive to the cvref-qualification of its
     argument.
   * `get_env`, `empty_env`, and `env_of_t` are moved into the `std::` namespace.
-  * Add a new subsection describing the async programming model of senders in
+  * Add a new subclause describing the async programming model of senders in
     abstract terms. See [[#spec-execution-async.ops]].
 
 ## R6 ## {#r6}
@@ -3265,7 +3265,7 @@ template&lt;auto& Tag>
 
 ### `tag_invoke` <b>[func.tag_invoke]</b> ### {#spec-func.tag_invoke}
 
-Insert this section as a new subclause, between Searchers <b>[func.search]</b> and Class template `hash` <b>[unord.hash]</b>.
+Insert this subclause as a new subclause, between Searchers <b>[func.search]</b> and Class template `hash` <b>[unord.hash]</b>.
 
 <ins>
 <blockquote>
@@ -3341,7 +3341,7 @@ template&lt;class T, class CB>
 
 ### Stop token concepts <b>[thread.stoptoken.concepts]</b> ### {#spec-thread.stoptoken.concepts}
 
-Insert this section as a new subclause between Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class `stop_token` <b>[stoptoken]</b>.
+Insert this subclause as a new subclause between Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class `stop_token` <b>[stoptoken]</b>.
 
 <ins>
 <blockquote>
@@ -3445,7 +3445,7 @@ This is the subject of core issue [[cwg2517|2517]].
 
 #### General <b>[stoptoken.general]</b> #### {#spec-stoptoken.general}
 
-Modify the synopsis of class `stop_token` in section General <b>[stoptoken.general]</b> as follows:
+Modify the synopsis of class `stop_token` in subclause General <b>[stoptoken.general]</b> as follows:
 
 <pre highlight="c++">
 namespace std {
@@ -3462,7 +3462,7 @@ namespace std {
 
 ### Class `never_stop_token` <b>[stoptoken.never]</b> ### {#spec-stoptoken.never}
 
-Insert a new subclause, Class `never_stop_token` <b>[stoptoken.never]</b>, after section Class template `stop_callback` <b>[stopcallback]</b>, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.
+Insert a new subclause, Class `never_stop_token` <b>[stoptoken.never]</b>, after subclause Class template `stop_callback` <b>[stopcallback]</b>, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.
 
 #### General <b>[stoptoken.never.general]</b> #### {#spec-stoptoken.never.general}
 
@@ -3490,7 +3490,7 @@ namespace std
 
 ### Class `in_place_stop_token` <b>[stoptoken.inplace]</b> ### {#spec-stoptoken.inplace}
 
-Insert a new subclause, Class `in_place_stop_token` <b>[stoptoken.inplace]</b>, after the section added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.
+Insert a new subclause, Class `in_place_stop_token` <b>[stoptoken.inplace]</b>, after the subclause added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.
 
 #### General <b>[stoptoken.inplace.general]</b> #### {#spec-stoptoken.inplace.general}
 
@@ -3568,7 +3568,7 @@ friend void swap(in_place_stop_token& x, in_place_stop_token& y) noexcept;
 
 ### Class `in_place_stop_source` <b>[stopsource.inplace]</b> ### {#spec-stopsource.inplace}
 
-Insert a new subclause, Class `in_place_stop_source` <b>[stopsource.inplace]</b>, after the section added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.
+Insert a new subclause, Class `in_place_stop_source` <b>[stopsource.inplace]</b>, after the subclause added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.
 
 #### General <b>[stopsource.inplace.general]</b> #### {#spec-stopsource.inplace.general}
 
@@ -3656,7 +3656,7 @@ bool request_stop() noexcept;
 
 ### Class template `in_place_stop_callback` <b>[stopcallback.inplace]</b> ### {#spec-stopcallback.inplace}
 
-Insert a new subclause, Class template `in_place_stop_callback` <b>[stopcallback.inplace]</b>, after the section added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.
+Insert a new subclause, Class template `in_place_stop_callback` <b>[stopcallback.inplace]</b>, after the subclause added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.
 
 #### General <b>[stopcallback.inplace.general]</b> #### {#spec-stopcallback.inplace.general}
 
@@ -4833,7 +4833,7 @@ enum class forward_progress_guarantee {
     superset of `Sigs`, any additional completion signatures corresponding to
     error or stopped completion operations.
 
-3. This section makes use of the following exposition-only entities.
+3. This subclause makes use of the following exposition-only entities.
 
     1. For a queryable object `e`, let <code><i>FWD-ENV</i>(e)</code> be a
         queryable object such that for a query object `q` and a pack of
@@ -5857,7 +5857,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
     -- <i>end example</i>]
 
-7. If a sender returned from a sender adaptor specified in this subsection is
+7. If a sender returned from a sender adaptor specified in this subclause is
     specified to include `set_error_t(E)` among its set of completion signatures
     where `decay_t<E>` names the type `exception_ptr`, but the implementation
     does not potentially evaluate an error completion operation with an
@@ -7019,7 +7019,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
 ## Sender/receiver utilities <b>[exec.utils]</b> ## {#spec-execution.snd_rec_utils}
 
-1. This section makes use of the following exposition-only entities:
+1. This subclause makes use of the following exposition-only entities:
 
     <pre highlight="c++">
     // [<i>Editorial note:</i> copy_cvref_t as in [[P1450R3]] -- <i>end note</i>]
@@ -7220,7 +7220,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
      </pre>
      -- <i>end example</i>]
 
-3. This section makes use of the following exposition-only entities:
+3. This subclause makes use of the following exposition-only entities:
 
     <pre highlight="c++">
     template&lt;class Fn>
@@ -7329,7 +7329,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     </pre>
     -- <i>end example</i>]
 
-3. This section makes use of the following exposition-only entities:
+3. This subclause makes use of the following exposition-only entities:
 
     <pre highlight="c++">
     template&lt;class... As>
@@ -7389,7 +7389,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
 ## Execution contexts <b>[exec.ctx]</b> ## {#spec-execution.contexts}
 
-1. This section specifies some execution resources on which work can be scheduled.
+1. This subclause specifies some execution resources on which work can be scheduled.
 
 ### `run_loop` <b>[exec.run.loop]</b> ### {#spec-execution.contexts.run_loop}
 
@@ -7568,7 +7568,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
 ### `execution::as_awaitable` <b>[exec.as.awaitable]</b> ### {#spec-execution.coro_utils.as_awaitable}
 
-1. `as_awaitable` transforms an object into one that is awaitable within a particular coroutine. This section makes use of the following exposition-only entities:
+1. `as_awaitable` transforms an object into one that is awaitable within a particular coroutine. This subclause makes use of the following exposition-only entities:
 
     <pre highlight="c++">
     template&lt;class S, class E>
