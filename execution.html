@@ -6119,14 +6119,19 @@ creates. A schedule sender is required to have a value completion scheduler
 attribute whose value is equal to the scheduler that produced the schedule
 sender.</p>
     <li data-md>
-     <p>A <dfn data-dfn-type="dfn" data-export id="completion-signature">completion signature<a class="self-link" href="#completion-signature"></a></dfn> is a function type that
-describes a completion operation. An asychronous operation has a finite set
-of possible completion signatures. The completion signature’s return type is
-the completion tag associated with the completion function that executes the
-completion operation. The completion signature’s parameter types are the
-types and value categories of the asynchronous operation’s result datums.
-Together, a sender type and an environment type <code class="highlight"><c- n>E</c-></code> determine the set of
-completion signatures of an operation state that results from connecting the
+     <p>A completion operation has an associated completion signature. A <dfn data-dfn-type="dfn" data-export id="completion-signature">completion signature<a class="self-link" href="#completion-signature"></a></dfn> is a function type that describes a
+completion operation. An asychronous operation has a finite set of possible
+completion signatures corresponding to the completion operations that the
+asynchronous operation potentially evaluates ([basic.def.odr]). The
+completion signature’s return type is the completion tag associated with the
+completion function that executes the completion operation. The completion
+signature’s parameter types are the (possibly <code class="highlight"><c- n>cv</c-></code>- and reference-qualified)
+types of the asynchronous operation’s result datums, modulo rvalue reference
+qualification (see <code class="highlight"><i><c- n>MATCHING</c-><c- o>-</c-><c- n>SIG</c-></i></code> in [exec.general]).
+[<em>Example:</em> For subexpressions <code class="highlight"><c- n>x</c-></code> and <code class="highlight"><c- n>y</c-></code>, the completion signature
+corresponding to the completion operation <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>x</c-><c- p>,</c-> <c- n>y</c-><c- p>)</c-></code> is <code class="highlight"><c- n>set_value_t</c-><c- p>(</c-><c- k>decltype</c-><c- p>((</c-><c- n>x</c-><c- p>)),</c-> <c- k>decltype</c-><c- p>((</c-><c- n>y</c-><c- p>)))</c-></code>. -- <em>end example</em>] Together,
+a sender type and an environment type <code class="highlight"><c- n>E</c-></code> determine the set of completion
+signatures of an asynchronous operation that results from connecting the
 sender with a receiver whose environment has type <code class="highlight"><c- n>E</c-></code>. <span class="wg21note">The type of the receiver does not affect an asychronous
 operation’s completion signatures, only the type of the receiver’s
 environment.</span></p>
@@ -6901,16 +6906,15 @@ operation associated with the operation state <code class="highlight"><c- n>O</c
     <li data-md>
      <p>For the purposes of this subclause, a sender is an object that satisfies the <code class="highlight"><c- n>sender</c-></code> concept ([async.ops]).</p>
     <li data-md>
-     <p>Subsections [exec.factories] and [exec.adapt] define customizable algorithms
-that return senders, each algorithm having a default implementation
-specified herein. Let <code class="highlight"><c- n>sndr</c-></code> be a subexpression referring to the result of
-such an algorithm or an object equal to such, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>, and let <code class="highlight"><c- n>Env</c-></code> be the type of an environment <code class="highlight"><c- n>env</c-></code> such
-that <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">true</code>. For the default implementation of the
-algorithm that produced <code class="highlight"><c- n>sndr</c-></code>, connecting <code class="highlight"><c- n>sndr</c-></code> to a receiver <code class="highlight"><c- n>rcvr</c-></code> with
-environment <code class="highlight"><c- n>Env</c-></code> and starting the resulting operation state ([async.ops])
-necessarily results in the potential evaluation ([intro.execution]) of a set
-of completion operations whose first argument is a subexpression referring
-to <code class="highlight"><c- n>rcvr</c-></code> or an object copied or moved from it. Let <code class="highlight"><c- n>Sigs</c-></code> be a pack of
+     <p>Subclauses [exec.factories] and [exec.adapt] define customizable algorithms
+that return senders. Each algorithm has a default implementation specified
+herein. Let <code class="highlight"><c- n>sndr</c-></code> be the result of an invocation of such an algorithm or an
+object equal to such ([concepts.equality]), and let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. Let <code class="highlight"><c- n>Env</c-></code> be the type of an environment <code class="highlight"><c- n>env</c-></code> such that <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">true</code>, and let <code class="highlight"><c- n>rcvr</c-></code> be a receiver whose
+associated environment is <code class="highlight"><c- n>Env</c-></code>. For the default implementation of the
+algorithm that produced <code class="highlight"><c- n>sndr</c-></code>, connecting <code class="highlight"><c- n>sndr</c-></code> to <code class="highlight"><c- n>rcvr</c-></code> and starting the
+resulting operation state ([async.ops]) necessarily results in the potential
+evaluation ([intro.execution]) of a set of completion operations whose first
+argument is a subexpression equal to <code class="highlight"><c- n>rcvr</c-></code>. Let <code class="highlight"><c- n>Sigs</c-></code> be a pack of
 completion signatures corresponding to this set of completion operations.
 Then the type of the expression <code class="highlight"><c- n>get_completion_signatures</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is a
 specialization of the class template <code class="highlight"><c- n>completion_signatures</c-></code>,
@@ -6918,8 +6922,8 @@ specialization of the class template <code class="highlight"><c- n>completion_si
 user-provided implementation of the algorithm that produced <code class="highlight"><c- n>sndr</c-></code> is
 selected instead of the default, the set of completion signatures denoted by
 the return type of <code class="highlight"><c- n>get_completion_signatures</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> shall be a
-superset of <code class="highlight"><c- n>Sigs</c-></code>, any additional completion signatures corresponding to
-error or stopped completion operations.</p>
+superset of <code class="highlight"><c- n>Sigs</c-></code>, with any additional completion signatures corresponding
+to error or stopped completion operations.</p>
     <li data-md>
      <p>This subclause makes use of the following exposition-only entities.</p>
      <ol>
@@ -7291,11 +7295,12 @@ sender and a receiver to produce an operation state.</p>
     <c- p>};</c->
 </pre>
     <li data-md>
-     <p>Let <code class="highlight"><c- n>sndr</c-></code> be a subexpression such that <code class="highlight"><c- n>Sndr</c-></code> is <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>, and let <code class="highlight"><c- n>Env</c-></code> be the type of an environment. <code class="highlight"><c- n>Sndr</c-></code> and <code class="highlight"><c- n>Env</c-></code> model <code class="highlight"><c- n>sender_to</c-></code> if
-connecting <code class="highlight"><c- n>sndr</c-></code> to a receiver <code class="highlight"><c- n>rcvr</c-></code> whose associated environment is <code class="highlight"><c- n>Env</c-></code> and starting the resulting operation state does not cause the potential
-evaluation of any completion operation on <code class="highlight"><c- n>rcvr</c-></code> unless the completion
-signature corresponding to that completion operation appears in the argument
-list of the specialization of <code class="highlight"><c- n>completion_signatures</c-></code> named by <code class="highlight"><c- n>completion_signatures_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code>.</p>
+     <p>Given a subexpression <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>, let <code class="highlight"><c- n>Env</c-></code> be
+the type of an environment, and let <code class="highlight"><c- n>rcvr</c-></code> be a receiver whose associated
+environment is <code class="highlight"><c- n>Env</c-></code>. A completion operation is a <dfn data-dfn-type="dfn" data-export id="permissible-completion">permissible completion<a class="self-link" href="#permissible-completion"></a></dfn> for <code class="highlight"><c- n>Sndr</c-></code> and <code class="highlight"><c- n>Env</c-></code> if its
+completion signature appears in the argument list of the specialization of <code class="highlight"><c- n>completion_signatures</c-></code> denoted by <code class="highlight"><c- n>completion_signatures_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code>. <code class="highlight"><c- n>Sndr</c-></code> and <code class="highlight"><c- n>Env</c-></code> model <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> if connecting <code class="highlight"><c- n>sndr</c-></code> to <code class="highlight"><c- n>rcvr</c-></code> and starting the resulting operation state does not cause the potential
+evaluation of any completion operation on <code class="highlight"><c- n>rcvr</c-></code> that is not a permissible
+completion for <code class="highlight"><c- n>Sndr</c-></code> and <code class="highlight"><c- n>Env</c-></code>.</p>
     <li data-md>
      <p>A type <code class="highlight"><c- n>Sigs</c-></code> satisfies and models the exposition-only concept <code class="highlight"><i><c- n>valid</c-><c- o>-</c-><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-></i></code> if it names a specialization
 of the <code class="highlight"><c- n>completion_signatures</c-></code> class template.</p>
@@ -9718,6 +9723,7 @@ expression in a coroutine with promise type <code class="highlight"><c- n>P</c->
    <li><a href="#operation-state">operation state</a><span>, in § 11.3</span>
    <li><a href="#parent-operation">parent operation</a><span>, in § 11.3</span>
    <li><a href="#parent-sender">parent sender</a><span>, in § 11.3</span>
+   <li><a href="#permissible-completion">permissible completion</a><span>, in § 11.9.2</span>
    <li><a href="#pipeable">pipeable</a><span>, in § 4.12</span>
    <li><a href="#piped">piped</a><span>, in § 4.12</span>
    <li><a href="#query">query</a><span>, in § 11.2.1</span>
