@@ -2246,7 +2246,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-01">2023-12-01</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-04">2023-12-04</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -3697,7 +3697,7 @@ argument.</p>
     <li data-md>
      <p><code class="highlight"><c- n>get_env</c-></code>, <code class="highlight"><c- n>empty_env</c-></code>, and <code class="highlight"><c- n>env_of_t</c-></code> are moved into the <code class="highlight"><c- n>std</c-><c- o>::</c-></code> namespace.</p>
     <li data-md>
-     <p>Add a new subsection describing the async programming model of senders in
+     <p>Add a new subclause describing the async programming model of senders in
 abstract terms. See <a href="#spec-execution-async.ops">§ 11.3 Asynchronous operations [async.ops]</a>.</p>
    </ul>
    <h3 class="heading settled" data-level="2.3" id="r6"><span class="secno">2.3. </span><span class="content">R6</span><a class="self-link" href="#r6"></a></h3>
@@ -5427,7 +5427,7 @@ themselves are templated classes.</p>
     </blockquote>
    </ins>
    <h4 class="heading settled" data-level="9.1.2" id="spec-func.tag_invoke"><span class="secno">9.1.2. </span><span class="content"><code class="highlight"><c- n>tag_invoke</c-></code> <b>[func.tag_invoke]</b></span><a class="self-link" href="#spec-func.tag_invoke"></a></h4>
-   <p>Insert this section as a new subclause, between Searchers <b>[func.search]</b> and Class template <code class="highlight"><c- n>hash</c-></code> <b>[unord.hash]</b>.</p>
+   <p>Insert this subclause as a new subclause, between Searchers <b>[func.search]</b> and Class template <code class="highlight"><c- n>hash</c-></code> <b>[unord.hash]</b>.</p>
    <ins>
     <blockquote>
      <ol>
@@ -5487,7 +5487,7 @@ expression-equivalent [defns.expression-equivalent] to <code class="highlight"><
     </blockquote>
    </ins>
    <h4 class="heading settled" data-level="10.1.2" id="spec-thread.stoptoken.concepts"><span class="secno">10.1.2. </span><span class="content">Stop token concepts <b>[thread.stoptoken.concepts]</b></span><a class="self-link" href="#spec-thread.stoptoken.concepts"></a></h4>
-   <p>Insert this section as a new subclause between Header <code class="highlight"><c- o>&lt;</c-><c- n>stop_token</c-><c- o>></c-></code> synopsis <b>[thread.stoptoken.syn]</b> and Class <code class="highlight"><c- n>stop_token</c-></code> <b>[stoptoken]</b>.</p>
+   <p>Insert this subclause as a new subclause between Header <code class="highlight"><c- o>&lt;</c-><c- n>stop_token</c-><c- o>></c-></code> synopsis <b>[thread.stoptoken.syn]</b> and Class <code class="highlight"><c- n>stop_token</c-></code> <b>[stoptoken]</b>.</p>
    <ins>
     <blockquote>
      <ol>
@@ -5585,7 +5585,7 @@ state, an evaluation of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>st
    </ins>
    <h4 class="heading settled" data-level="10.1.3" id="spec-stoptoken"><span class="secno">10.1.3. </span><span class="content">Class <code class="highlight"><c- n>stop_token</c-></code> <b>[stoptoken]</b></span><a class="self-link" href="#spec-stoptoken"></a></h4>
    <h5 class="heading settled" data-level="10.1.3.1" id="spec-stoptoken.general"><span class="secno">10.1.3.1. </span><span class="content">General <b>[stoptoken.general]</b></span><a class="self-link" href="#spec-stoptoken.general"></a></h5>
-   <p>Modify the synopsis of class <code class="highlight"><c- n>stop_token</c-></code> in section General <b>[stoptoken.general]</b> as follows:</p>
+   <p>Modify the synopsis of class <code class="highlight"><c- n>stop_token</c-></code> in subclause General <b>[stoptoken.general]</b> as follows:</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-> <c- p>{</c->
   <c- k>class</c-> <c- nc>stop_token</c-> <c- p>{</c->
   <c- k>public</c-><c- o>:</c->
@@ -5598,7 +5598,7 @@ state, an evaluation of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>st
     <c- c1>// ...</c->
 </pre>
    <h4 class="heading settled" data-level="10.1.4" id="spec-stoptoken.never"><span class="secno">10.1.4. </span><span class="content">Class <code class="highlight"><c- n>never_stop_token</c-></code> <b>[stoptoken.never]</b></span><a class="self-link" href="#spec-stoptoken.never"></a></h4>
-   <p>Insert a new subclause, Class <code class="highlight"><c- n>never_stop_token</c-></code> <b>[stoptoken.never]</b>, after section Class template <code class="highlight"><c- n>stop_callback</c-></code> <b>[stopcallback]</b>, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</p>
+   <p>Insert a new subclause, Class <code class="highlight"><c- n>never_stop_token</c-></code> <b>[stoptoken.never]</b>, after subclause Class template <code class="highlight"><c- n>stop_callback</c-></code> <b>[stopcallback]</b>, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</p>
    <h5 class="heading settled" data-level="10.1.4.1" id="spec-stoptoken.never.general"><span class="secno">10.1.4.1. </span><span class="content">General <b>[stoptoken.never.general]</b></span><a class="self-link" href="#spec-stoptoken.never.general"></a></h5>
    <ol>
     <li data-md>
@@ -5623,7 +5623,7 @@ state, an evaluation of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>st
 <c- p>}</c->
 </pre>
    <h4 class="heading settled" data-level="10.1.5" id="spec-stoptoken.inplace"><span class="secno">10.1.5. </span><span class="content">Class <code class="highlight"><c- n>in_place_stop_token</c-></code> <b>[stoptoken.inplace]</b></span><a class="self-link" href="#spec-stoptoken.inplace"></a></h4>
-   <p>Insert a new subclause, Class <code class="highlight"><c- n>in_place_stop_token</c-></code> <b>[stoptoken.inplace]</b>, after the section added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</p>
+   <p>Insert a new subclause, Class <code class="highlight"><c- n>in_place_stop_token</c-></code> <b>[stoptoken.inplace]</b>, after the subclause added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</p>
    <h5 class="heading settled" data-level="10.1.5.1" id="spec-stoptoken.inplace.general"><span class="secno">10.1.5.1. </span><span class="content">General <b>[stoptoken.inplace.general]</b></span><a class="self-link" href="#spec-stoptoken.inplace.general"></a></h5>
    <ol>
     <li data-md>
@@ -5694,7 +5694,7 @@ associated <code class="highlight"><c- n>in_place_stop_source</c-></code> object
      <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>swap</c-><c- p>(</c-><c- n>y</c-><c- p>)</c-></code>.</p>
    </ol>
    <h4 class="heading settled" data-level="10.1.6" id="spec-stopsource.inplace"><span class="secno">10.1.6. </span><span class="content">Class <code class="highlight"><c- n>in_place_stop_source</c-></code> <b>[stopsource.inplace]</b></span><a class="self-link" href="#spec-stopsource.inplace"></a></h4>
-   <p>Insert a new subclause, Class <code class="highlight"><c- n>in_place_stop_source</c-></code> <b>[stopsource.inplace]</b>, after the section added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</p>
+   <p>Insert a new subclause, Class <code class="highlight"><c- n>in_place_stop_source</c-></code> <b>[stopsource.inplace]</b>, after the subclause added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</p>
    <h5 class="heading settled" data-level="10.1.6.1" id="spec-stopsource.inplace.general"><span class="secno">10.1.6.1. </span><span class="content">General <b>[stopsource.inplace.general]</b></span><a class="self-link" href="#spec-stopsource.inplace.general"></a></h5>
    <ol>
     <li data-md>
@@ -5782,7 +5782,7 @@ If an invocation of a callback exits via an exception then <code class="highligh
      <p><em>Returns</em>: <code class="highlight">true</code> if this call made a stop request; otherwise <code class="highlight">false</code>.</p>
    </ol>
    <h4 class="heading settled" data-level="10.1.7" id="spec-stopcallback.inplace"><span class="secno">10.1.7. </span><span class="content">Class template <code class="highlight"><c- n>in_place_stop_callback</c-></code> <b>[stopcallback.inplace]</b></span><a class="self-link" href="#spec-stopcallback.inplace"></a></h4>
-   <p>Insert a new subclause, Class template <code class="highlight"><c- n>in_place_stop_callback</c-></code> <b>[stopcallback.inplace]</b>, after the section added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</p>
+   <p>Insert a new subclause, Class template <code class="highlight"><c- n>in_place_stop_callback</c-></code> <b>[stopcallback.inplace]</b>, after the subclause added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</p>
    <h5 class="heading settled" data-level="10.1.7.1" id="spec-stopcallback.inplace.general"><span class="secno">10.1.7.1. </span><span class="content">General <b>[stopcallback.inplace.general]</b></span><a class="self-link" href="#spec-stopcallback.inplace.general"></a></h5>
    <ol>
     <li data-md>
@@ -6921,7 +6921,7 @@ the return type of <code class="highlight"><c- n>get_completion_signatures</c-><
 superset of <code class="highlight"><c- n>Sigs</c-></code>, any additional completion signatures corresponding to
 error or stopped completion operations.</p>
     <li data-md>
-     <p>This section makes use of the following exposition-only entities.</p>
+     <p>This subclause makes use of the following exposition-only entities.</p>
      <ol>
       <li data-md>
        <p>For a queryable object <code class="highlight"><c- n>e</c-></code>, let <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>e</c-><c- p>)</c-></code> be a
@@ -7849,7 +7849,7 @@ class template is an associated entity.</p>
 </pre>
      <p>-- <i>end example</i>]</p>
     <li data-md>
-     <p>If a sender returned from a sender adaptor specified in this subsection is
+     <p>If a sender returned from a sender adaptor specified in this subclause is
 specified to include <code class="highlight"><c- n>set_error_t</c-><c- p>(</c-><c- n>E</c-><c- p>)</c-></code> among its set of completion signatures
 where <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>E</c-><c- o>></c-></code> names the type <code class="highlight"><c- n>exception_ptr</c-></code>, but the implementation
 does not potentially evaluate an error completion operation with an <code class="highlight"><c- n>exception_ptr</c-></code> argument, the implementation is allowed to omit the <code class="highlight"><c- n>exception_ptr</c-></code> error completion signature from the set.</p>
@@ -8837,7 +8837,7 @@ expression-equivalent to <code class="highlight"><c- n>start_detached</c-><c- p>
    <h3 class="heading settled" data-level="11.11" id="spec-execution.snd_rec_utils"><span class="secno">11.11. </span><span class="content">Sender/receiver utilities <b>[exec.utils]</b></span><a class="self-link" href="#spec-execution.snd_rec_utils"></a></h3>
    <ol>
     <li data-md>
-     <p>This section makes use of the following exposition-only entities:</p>
+     <p>This subclause makes use of the following exposition-only entities:</p>
 <pre class="highlight"><c- c1>// [</c-><i><c- c1>Editorial note:</c-></i><c- c1> copy_cvref_t as in [[P1450R3]] -- </c-><i><c- c1>end note</c-></i><c- c1>]</c->
 <c- c1>// Mandates: is_base_of_v&lt;T, remove_reference_t&lt;U>> is true</c->
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- p>,</c-> <c- k>class</c-> <c- nc>U</c-><c- o>></c->
@@ -9049,7 +9049,7 @@ instantiated.]</p>
 </pre>
      <p>-- <i>end example</i>]</p>
     <li data-md>
-     <p>This section makes use of the following exposition-only entities:</p>
+     <p>This subclause makes use of the following exposition-only entities:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Fn</c-><c- o>></c->
   <c- k>concept</c-> <i><c- nc>completion</c-><c- o>-</c-><c- n>signature</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
@@ -9147,7 +9147,7 @@ each completion signature in the set to generate a new specialization of <code c
 </pre>
      <p>-- <i>end example</i>]</p>
     <li data-md>
-     <p>This section makes use of the following exposition-only entities:</p>
+     <p>This subclause makes use of the following exposition-only entities:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>As</c-><c- o>></c->
   <c- k>using</c-> <i><c- k>default</c-><c- o>-</c-><c- n>set</c-><c- o>-</c-><c- n>value</c-></i> <c- o>=</c->
     <c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>(</c-><c- n>As</c-><c- p>...)</c-><c- o>></c-><c- p>;</c->
@@ -9198,7 +9198,7 @@ of all the <code class="highlight"><c- n>completion_signatures</c-></code> speci
    <h3 class="heading settled" data-level="11.12" id="spec-execution.contexts"><span class="secno">11.12. </span><span class="content">Execution contexts <b>[exec.ctx]</b></span><a class="self-link" href="#spec-execution.contexts"></a></h3>
    <ol>
     <li data-md>
-     <p>This section specifies some execution resources on which work can be scheduled.</p>
+     <p>This subclause specifies some execution resources on which work can be scheduled.</p>
    </ol>
    <h4 class="heading settled" data-level="11.12.1" id="spec-execution.contexts.run_loop"><span class="secno">11.12.1. </span><span class="content"><code class="highlight"><c- n>run_loop</c-></code> <b>[exec.run.loop]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop"></a></h4>
    <ol>
@@ -9368,7 +9368,7 @@ of all the <code class="highlight"><c- n>completion_signatures</c-></code> speci
    <h4 class="heading settled" data-level="11.13.1" id="spec-execution.coro_utils.as_awaitable"><span class="secno">11.13.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>as_awaitable</c-></code> <b>[exec.as.awaitable]</b></span><a class="self-link" href="#spec-execution.coro_utils.as_awaitable"></a></h4>
    <ol>
     <li data-md>
-     <p><code class="highlight"><c- n>as_awaitable</c-></code> transforms an object into one that is awaitable within a particular coroutine. This section makes use of the following exposition-only entities:</p>
+     <p><code class="highlight"><c- n>as_awaitable</c-></code> transforms an object into one that is awaitable within a particular coroutine. This subclause makes use of the following exposition-only entities:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>S</c-><c- p>,</c-> <c- k>class</c-> <c- nc>E</c-><c- o>></c->
   <c- k>using</c-> <i><c- n>single</c-><c- o>-</c-><c- n>sender</c-><c- o>-</c-><c- n>value</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
