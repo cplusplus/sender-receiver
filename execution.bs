@@ -4015,14 +4015,21 @@ template&lt;class C>
     attribute whose value is equal to the scheduler that produced the schedule
     sender.
 
-13. A <dfn export=true>completion signature</dfn> is a function type that
-    describes a completion operation. An asychronous operation has a finite set
-    of possible completion signatures. The completion signature's return type is
-    the completion tag associated with the completion function that executes the
-    completion operation. The completion signature's parameter types are the
-    types and value categories of the asynchronous operation's result datums.
-    Together, a sender type and an environment type `E` determine the set of
-    completion signatures of an operation state that results from connecting the
+13. A completion operation has an associated completion signature. A <dfn
+    export=true>completion signature</dfn> is a function type that describes a
+    completion operation. An asychronous operation has a finite set of possible
+    completion signatures corresponding to the completion operations that the
+    asynchronous operation potentially evaluates ([basic.def.odr]). The
+    completion signature's return type is the completion tag associated with the
+    completion function that executes the completion operation. The completion
+    signature's parameter types are the (possibly `cv`- and reference-qualified)
+    types of the asynchronous operation's result datums, modulo rvalue reference
+    qualification (see <code><i>MATCHING-SIG</i></code> in [exec.general]).
+    [*Example:* For subexpressions `x` and `y`, the completion signature
+    corresponding to the completion operation `set_value(std::move(rcvr), x, y)`
+    is `set_value_t(decltype((x)), decltype((y)))`. -- *end example*] Together,
+    a sender type and an environment type `E` determine the set of completion
+    signatures of an asynchronous operation that results from connecting the
     sender with a receiver whose environment has type `E`. <span
     class="wg21note">The type of the receiver does not affect an asychronous
     operation's completion signatures, only the type of the receiver's
@@ -4812,17 +4819,17 @@ enum class forward_progress_guarantee {
 1. For the purposes of this subclause, a sender is an object that satisfies the
     `sender` concept ([async.ops]).
 
-2. Subsections [exec.factories] and [exec.adapt] define customizable algorithms
-    that return senders, each algorithm having a default implementation
-    specified herein. Let `sndr` be a subexpression referring to the result of
-    such an algorithm or an object equal to such, let `Sndr` be
-    `decltype((sndr))`, and let `Env` be the type of an environment `env` such
-    that `sender_in<Sndr, Env>` is `true`. For the default implementation of the
-    algorithm that produced `sndr`, connecting `sndr` to a receiver `rcvr` with
-    environment `Env` and starting the resulting operation state ([async.ops])
-    necessarily results in the potential evaluation ([intro.execution]) of a set
-    of completion operations whose first argument is a subexpression referring
-    to `rcvr` or an object copied or moved from it. Let `Sigs` be a pack of
+2. Subclauses [exec.factories] and [exec.adapt] define customizable algorithms
+    that return senders. Each algorithm has a default implementation specified
+    herein. Let `sndr` be the result of an invocation of such an algorithm or an
+    object equal to such ([concepts.equality]), and let `Sndr` be
+    `decltype((sndr))`. Let `Env` be the type of an environment `env` such that
+    `sender_in<Sndr, Env>` is `true`, and let `rcvr` be a receiver whose
+    associated environment is `Env`. For the default implementation of the
+    algorithm that produced `sndr`, connecting `sndr` to `rcvr` and starting the
+    resulting operation state ([async.ops]) necessarily results in the potential
+    evaluation ([intro.execution]) of a set of completion operations whose first
+    argument is a subexpression equal to `rcvr`. Let `Sigs` be a pack of
     completion signatures corresponding to this set of completion operations.
     Then the type of the expression `get_completion_signatures(sndr, env)` is a
     specialization of the class template `completion_signatures`,
@@ -4830,8 +4837,8 @@ enum class forward_progress_guarantee {
     user-provided implementation of the algorithm that produced `sndr` is
     selected instead of the default, the set of completion signatures denoted by
     the return type of `get_completion_signatures(sndr, env)` shall be a
-    superset of `Sigs`, any additional completion signatures corresponding to
-    error or stopped completion operations.
+    superset of `Sigs`, with any additional completion signatures corresponding
+    to error or stopped completion operations.
 
 3. This subclause makes use of the following exposition-only entities.
 
@@ -5229,14 +5236,16 @@ enum class forward_progress_guarantee {
         };
     </pre>
 
-3. Let `sndr` be a subexpression such that `Sndr` is `decltype((sndr))`, and let
-    `Env` be the type of an environment. `Sndr` and `Env` model `sender_to` if
-    connecting `sndr` to a receiver `rcvr` whose associated environment is `Env`
+2. Given a subexpression `sndr`, let `Sndr` be `decltype((sndr))`, let `Env` be
+    the type of an environment, and let `rcvr` be a receiver whose associated
+    environment is `Env`. A completion operation is a <dfn
+    export=true>permissible completion</dfn> for `Sndr` and `Env` if its
+    completion signature appears in the argument list of the specialization of
+    `completion_signatures` denoted by `completion_signatures_of_t<Sndr, Env>`.
+    `Sndr` and `Env` model `sender_to<Sndr, Env>` if connecting `sndr` to `rcvr`
     and starting the resulting operation state does not cause the potential
-    evaluation of any completion operation on `rcvr` unless the completion
-    signature corresponding to that completion operation appears in the argument
-    list of the specialization of `completion_signatures` named by
-    `completion_signatures_of_t<Sndr, Env>`.
+    evaluation of any completion operation on `rcvr` that is not a permissible
+    completion for `Sndr` and `Env`.
 
 3. A type `Sigs` satisfies and models the exposition-only concept
     <code><i>valid-completion-signatures</i></code> if it names a specialization
