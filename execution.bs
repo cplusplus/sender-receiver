@@ -5243,7 +5243,7 @@ enum class forward_progress_guarantee {
     export=true>permissible completion</dfn> for `Sndr` and `Env` if its
     completion signature appears in the argument list of the specialization of
     `completion_signatures` denoted by `completion_signatures_of_t<Sndr, Env>`.
-    `Sndr` and `Env` model `sender_to<Sndr, Env>` if connecting `sndr` to `rcvr`
+    `Sndr` and `Env` model `sender_in<Sndr, Env>` if connecting `sndr` to `rcvr`
     and starting the resulting operation state does not cause the potential
     evaluation of any completion operation on `rcvr` that is not a permissible
     completion for `Sndr` and `Env`.
