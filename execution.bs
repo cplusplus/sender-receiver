@@ -5036,7 +5036,7 @@ enum class forward_progress_guarantee {
 
               template&lt;class Sndr, class Rcvr> // arguments are not associated entities ([lib.tmpl-heads])
                 requires <i>well-formed</i>&lt;<i>state-type</i>, Sndr, Rcvr> &&
-                  <i>well-formed</i>&lt;<i>inner-ops-tuple</i>, Sndr, Rcvr>;
+                  <i>well-formed</i>&lt;<i>inner-ops-tuple</i>, Sndr, Rcvr>
               struct <i>basic-operation</i> {  // exposition only
                 using tag_t = tag_of_t&lt;Sndr>; // exposition only
 
@@ -5051,7 +5051,7 @@ enum class forward_progress_guarantee {
                 {}
 
                 friend void tag_invoke(start_t, <i>basic-operation</i>& self) noexcept {
-                  auto& [ops...] = self.inner_ops_;
+                  auto& [...ops] = self.inner_ops_;
                   <i>impls-for</i>&lt;tag_t>::<i>start</i>(self.state_, self.rcvr_, ops...);
                 }
               };
@@ -5079,7 +5079,7 @@ enum class forward_progress_guarantee {
                   return {};
                 }
 
-                [[no_unique_address]] Tag <i>tag</i>;  // exposition only
+                Tag <i>tag</i>;  // exposition only
                 Data <i>data</i>;          // exposition only
                 Child<sub><i>0</i></sub> <i>child<sub>0</sub></i>;      // exposition only
                 Child<sub><i>1</i></sub> <i>child<sub>1</sub></i>;      // exposition only
