@@ -5079,7 +5079,7 @@ enum class forward_progress_guarantee {
                   return {};
                 }
 
-                [[no_unique_address]] Tag <i>tag</i>;  // exposition only
+                Tag <i>tag</i>;  // exposition only
                 Data <i>data</i>;          // exposition only
                 Child<sub><i>0</i></sub> <i>child<sub>0</sub></i>;      // exposition only
                 Child<sub><i>1</i></sub> <i>child<sub>1</sub></i>;      // exposition only
