@@ -4819,53 +4819,7 @@ enum class forward_progress_guarantee {
 1. For the purposes of this subclause, a sender is an object that satisfies the
     `sender` concept ([async.ops]).
 
-2. Subclauses [exec.factories] and [exec.adapt] define customizable algorithms
-    that return senders. Each algorithm has a default implementation specified
-    herein. Let `sndr` be the result of an invocation of such an algorithm or an
-    object equal to such ([concepts.equality]), and let `Sndr` be
-    `decltype((sndr))`. Let `Env` be the type of an environment `env` such that
-    `sender_in<Sndr, Env>` is `true`, and let `rcvr` be a receiver whose
-    associated environment is `Env`. For the default implementation of the
-    algorithm that produced `sndr`, connecting `sndr` to `rcvr` and starting the
-    resulting operation state ([async.ops]) necessarily results in the potential
-    evaluation ([intro.execution]) of a set of completion operations whose first
-    argument is a subexpression equal to `rcvr`. Let `Sigs` be a pack of
-    completion signatures corresponding to this set of completion operations.
-    Then the type of the expression `get_completion_signatures(sndr, env)` is a
-    specialization of the class template `completion_signatures`,
-    ([exec.utils.cmplsigs]) the set of whose template arguments is `Sigs`. If a
-    user-provided implementation of the algorithm that produced `sndr` is
-    selected instead of the default, the set of completion signatures denoted by
-    the return type of `get_completion_signatures(sndr, env)` shall be a
-    superset of `Sigs`, with any additional completion signatures corresponding
-    to error or stopped completion operations.
-
 3. This subclause makes use of the following exposition-only entities.
-
-    1. For a queryable object `e`, let <code><i>FWD-ENV</i>(e)</code> be a
-        queryable object such that for a query object `q` and a pack of
-        subexpressions `as`, the expression <code>tag_invoke(q,
-        <i>FWD-ENV</i>(e), as...)</code> is ill-formed if
-        `forwarding_query(q)` is `false`;
-        otherwise, it is expression-equivalent to `tag_invoke(q, e, as...)`.
-
-    2. For a query object `q` and a subexpression `v`, let
-        <code><i>MAKE-ENV</i>(q, v)</code> be a queryable object `e` such that
-        `tag_invoke(q, e)` is a `const` lvalue reference to an object
-        decay-copied from `v`. Unless otherwise stated, the object to which
-        `tag_invoke(q, e)` refers remains valid while `e` remains valid.
-
-    3. For two queryable objects `e1` and `e2`, a query object `q` and a pack of
-        subexpressions `as`, let <code><i>JOIN-ENV</i>(e1, e2)</code> be an
-        environment `e3` such that `tag_invoke(q, e3, as...)` is
-        expression-equivalent to:
-
-          - `tag_invoke(q, e1, as...)` if that expression is well-formed,
-
-          - otherwise, `tag_invoke(q, e2, as...)` if that expression is
-              well-formed,
-
-          - otherwise, `tag_invoke(q, e3, as...)` is ill-formed.
 
     4. For two subexpressions `r` and `e`, let <code><i>SET-VALUE</i>(r,
         e)</code> be `(e, set_value(r))` if the type of `e` is `void`;
@@ -4985,124 +4939,9 @@ enum class forward_progress_guarantee {
             except as noted below:
 
               <pre highlight="c++">
-              template&lt;class T, class... Us>
-              concept <i>one-of</i> = (same_as&lt;T, Us> ||...); // exposition only
-
-              template&lt;template&lt;class...> class T, class... Args>
-              concept <i>well-formed</i> = requires { typename T&lt;Args...>; }; // exposition only
-
-              template&lt;const auto& Fun, class... Args>
-              concept <i>cpo-callable</i> = <i>callable</i>&lt;decltype(Fun), Args...>; // exposition only
-
-              template&lt;const auto& Fun, class... Args>
-              using <i>cpo-result-t</i> = <i>call-result-t</i>&lt;decltype(Fun), Args...>; // exposition only
-
-              struct <i>default-impls</i> {  // exposition only
-                static constexpr auto <i>get-attrs</i> = <i>see below</i>;
-                static constexpr auto <i>get-env</i> = <i>see below</i>;
-                static constexpr auto <i>get-state</i> = <i>see below</i>;
-                static constexpr auto <i>start</i> = <i>see below</i>;
-                static constexpr auto <i>complete</i> = <i>see below</i>;
-              };
-
-              template&lt;class Tag>
-              struct <i>impls-for</i> : <i>default-impls</i> {}; // exposition only
-
-              template&lt;class Sndr, class Rcvr> // exposition only
-              using <i>state-type</i> = decay_t&lt;<i>cpo-result-t</i>&lt;
-                <i>impls-for</i>&lt;tag_of_t&lt;Sndr>>::<i>get-state</i>, Sndr, Rcvr&>>;
-
-              template&lt;class Index, class Sndr, class Rcvr> // exposition only
-              using <i>env-type</i> = <i>cpo-result-t</i>&lt;
-                <i>impls-for</i>&lt;tag_of_t&lt;Sndr>>::<i>get-env</i>, Index,
-                <i>state-type</i>&lt;Sndr, Rcvr>&, const Rcvr&>>;
-
-              template&lt;class Sndr, class Rcvr, class Index>  // arguments are not associated entities ([lib.tmpl-heads])
-                requires <i>well-formed</i>&lt;<i>env-type</i>, Index, Sndr, Rcvr>
-              struct <i>basic-receiver</i> {  // exposition only
-                using tag_t = tag_of_t&lt;Sndr>; // exposition only
-                using receiver_concept = receiver_t;
-
-                template&lt;<i>one-of</i>&lt;set_value_t, set_error_t, set_stopped_t> Tag, class... Args>
-                  requires <i>cpo-callable</i>&lt;<i>impls-for</i>&lt;tag_t>::<i>complete</i>,
-                    Index, <i>state-type</i>&lt;Sndr, Rcvr>&, Rcvr&, Tag, Args...>
-                friend void tag_invoke(Tag, <i>basic-receiver</i>&& self, Args&&... args) noexcept {
-                  (void) <i>impls-for</i>&lt;tag_t>::<i>complete</i>(
-                    Index(), self.op_->state_, self.op_->rcvr_, Tag(), std::forward&lt;Args>(args)...);
-                }
-
-                template&lt;same_as&lt;get_env_t> Tag>
-                friend auto tag_invoke(Tag, const <i>basic-receiver</i>& self) noexcept
-                  -> <i>env-type</i>&lt;Index, Sndr, Rcvr> {
-                  const auto& rcvr = self.op_->rcvr_;
-                  return <i>impls-for</i>&lt;tag_t>::<i>get-env</i>(Index(), self.op_->state_, rcvr);
-                }
-
-                <i>basic-operation</i>&lt;Sndr, Rcvr>* op_; // exposition only
-              };
-
-              constexpr auto <i>connect-all</i> =   // exposition only
-                []&lt;class Sndr, class Rcvr, size_t... Is>(
-                  <i>basic-operation</i>&lt;Sndr, Rcvr>* op, Sndr&& sndr, index_sequence&lt;Is...>)
-                    noexcept( <i><b>TODO</b></i> ) requires ( <i><b>TODO</b></i> ) {
-                    auto&& [ign1, ign2, child...] = std::forward&lt;Sndr>(sndr);
-                    return <i>tuple-like</i>{connect(
-                      std::forward_like&lt;Sndr>(child),
-                      <i>basic-receiver</i>&lt;Sndr, Rcvr, integral_constant&lt;size_t, Is>>{op})...};
-                  };
-
-              template&lt;class Sndr>
-              using <i>indices-for</i> = make_index_sequence&lt;tuple_size_v&lt;Sndr>-2>; // exposition only
-
-              template&lt;class Sndr, class Rcvr>
-              using <i>inner-ops-tuple</i> =   // exposition only
-                <i>cpo-result-t</i>&lt;<i>connect-all</i>, <i>basic-operation</i>&lt;Sndr, Rcvr>*, Sndr,
-                  <i>indices-for</i>&lt;Sndr>>;
-
-              template&lt;class Sndr, class Rcvr> // arguments are not associated entities ([lib.tmpl-heads])
-                requires <i>well-formed</i>&lt;<i>state-type</i>, Sndr, Rcvr> &&
-                  <i>well-formed</i>&lt;<i>inner-ops-tuple</i>, Sndr, Rcvr>;
-              struct <i>basic-operation</i> {  // exposition only
-                using tag_t = tag_of_t&lt;Sndr>; // exposition only
-
-                Rcvr rcvr_; // exposition only
-                <i>state-type</i>&lt;Sndr, Rcvr> state_; // exposition only
-                <i>inner-ops-tuple</i>&lt;Sndr, Rcvr> inner_ops_; // exposition only
-
-                <i>basic-operation</i>(Sndr&& sndr, Rcvr rcvr)  // exposition only
-                  : rcvr_(std::move(rcvr))
-                  , state_(<i>impls-for</i>&lt;tag_t>::<i>get-state</i>(std::forward&lt;Sndr>(sndr), rcvr_))
-                  , inner_ops_(<i>connect-all</i>(this, std::forward&lt;Sndr>(sndr), <i>indices-for</i>&lt;Sndr>()))
-                {}
-
-                friend void tag_invoke(start_t, <i>basic-operation</i>& self) noexcept {
-                  auto& [ops...] = self.inner_ops_;
-                  <i>impls-for</i>&lt;tag_t>::<i>start</i>(self.state_, self.rcvr_, ops...);
-                }
-              };
-
-              template&lt;class Tag, class Data, class... Child> // arguments are not associated entities ([lib.tmpl-heads])
-              struct <i>basic-sender</i> {  // exposition only
-                using sender_concept = sender_t;
-
-                template&lt;same_as&lt;get_env_t> GetEnvTag>
-                friend decltype(auto) tag_invoke(GetEnvTag, const <i>basic-sender</i>& self) noexcept {
-                  return <i>impls-for</i>&lt;Tag>::<i>get-attrs</i>(<i>data</i>, <i>child<sub>0</sub></i>, ... <i>child<sub>n-1</sub></i>);
-                }
-
-                template&lt;same_as&lt;connect_t> ConnectTag,
-                         <i>decays-to</i>&lt;<i>basic-sender</i>> Self, receiver Rcvr>
-                friend auto tag_invoke(ConnectTag, Self&& self, Rcvr rcvr)
-                  -> <i>basic-operation</i>&lt;Self, Rcvr> {
-                  return {std::forward&lt;Self>(self), std::move(rcvr)};
-                }
-
-                template&lt;same_as&lt;get_completion_signatures_t> GetComplSigsTag,
-                         <i>decays-to</i>&lt;<i>basic-sender</i>> Self, class Env>
-                friend auto tag_invoke(GetComplSigsTag, Self&& self, Env&& env) noexcept
-                  -> <i>see below</i> {
-                  return {};
-                }
+              template &lt;class Tag, class Data, class... Child> // arguments are not associated entities ([lib.tmpl-heads])
+              struct <i>basic-sender</i> : <i>unspecified</i> {
+                using is_sender = <i>unspecified</i>;
 
                 [[no_unique_address]] Tag <i>tag</i>;  // exposition only
                 Data <i>data</i>;          // exposition only
@@ -5113,79 +4952,15 @@ enum class forward_progress_guarantee {
               };
               </pre>
 
-        2. It is unspecified whether instances of <code><i>basic-sender</i></code> can be
-            aggregate initialized.
+            - It is unspecified whether instances of <code><i>basic-sender</i></code> can be
+                aggregate initialized.
 
-        3. <span class="wg21note">An expression of type <code><i>basic-sender</i></code> is usable as the
-            initializer of a structured binding declaration
-            [dcl.struct.bind].</span>
+            - The unspecified base type has no non-static data members. It may
+                define member functions or hidden friend functions ([hidden.friends]).
 
-        4. The member <code><i>default-impls</i>::<i>get-attrs</i></code> is initialized
-            with a callable object equal to the following lambda:
-
-              <pre highlight="c++">
-              [](const auto& data, const auto&... child) noexcept -> decltype(auto) {
-                if constexpr (sizeof...(child) == 1)
-                  return <i>FWD-ENV</i>(execution::get_env(child...)); //
-                else
-                  return empty_env();
-              }
-              </pre>
-
-        5. The member <code><i>default-impls</i>::<i>get-env</i></code> is initialized
-            with a callable object equal to the following lambda:
-
-              <pre highlight="c++">
-              []&lt;class Rcvr>(auto index, auto& state, const Rcvr& rcvr) noexcept
-                -> decltype(<i>FWD-ENV</i>(execution::get_env(rcvr))) {
-                return <i>FWD-ENV</i>(execution::get_env(rcvr));
-              }
-              </pre>
-
-        6. The member <code><i>default-impls</i>::<i>get-state</i></code> is initialized
-            with a callable object equal to the following lambda:
-
-              <pre highlight="c++">
-              []&lt;class Sndr>(Sndr&& sndr, auto& rcvr) noexcept -> decltype(auto) {
-                return get&lt;1>(std::forward&lt;Sndr>(sndr));
-              }
-              </pre>
-
-        7. The member <code><i>default-impls</i>::<i>start</i></code> is initialized
-            with a callable object equal to the following lambda:
-
-              <pre highlight="c++">
-              [](auto& state, auto& rcvr, auto&... ops) noexcept -> completion_signatures<> {
-                (execution::start(ops), ...);
-                return {};
-              }
-              </pre>
-
-        8. The member <code><i>default-impls</i>::<i>complete</i></code> is initialized
-            with a callable object equal to the following lambda:
-
-              <pre highlight="c++">
-              []&lt;class Index, class Rcvr, class Tag, class... Args>(
-                Index, auto& state, Rcvr& rcvr, Tag, Args&&... args) noexcept
-                  -> completion_signatures&lt;Tag(Args...)>
-                    requires <i>callable</i>&lt;Tag, Rcvr, Args...> {
-                <i>// Mandates: Index::value == 0</i>
-                tag(std::move(rcvr), std::forward&lt;Args>(args)...); 
-                return {};
-              }
-              </pre>
-
-        9. The return type of <code><i>basic-sender</i></code>'s customization of
-            `get_completion_signatures` is computed as follows.
-
-              1. Let `Env` be the type of an environment, let the type `Sndr` be
-                  the (possibly cv- and ref-qualified) type of a specialization
-                  of <code><i>basic-sender</i></code>, and let
-                  <code>Child<sub><i>i</i></sub></code> be the type of the
-                  <code><i>i</i></code>-th child sender of `Sndr`, with the same
-                  cv- and ref-qualifications as `Sndr`.
-
-              2. Let <code>ChildEnv<sub><i>i</i></sub></code> be the type 
+            - <span class="wg21note">An expression of type <code><i>basic-sender</i></code> is usable as the
+                initializer of a structured binding declaration
+                [dcl.struct.bind].</span>
 
 ### Sender concepts <b>[exec.snd.concepts]</b> ### {#spec-execution.snd.concepts}
 
@@ -5235,17 +5010,6 @@ enum class forward_progress_guarantee {
           connect(std::forward&lt;S>(s), std::forward&lt;R>(r));
         };
     </pre>
-
-2. Given a subexpression `sndr`, let `Sndr` be `decltype((sndr))`, let `Env` be
-    the type of an environment, and let `rcvr` be a receiver whose associated
-    environment is `Env`. A completion operation is a <dfn
-    export=true>permissible completion</dfn> for `Sndr` and `Env` if its
-    completion signature appears in the argument list of the specialization of
-    `completion_signatures` denoted by `completion_signatures_of_t<Sndr, Env>`.
-    `Sndr` and `Env` model `sender_to<Sndr, Env>` if connecting `sndr` to `rcvr`
-    and starting the resulting operation state does not cause the potential
-    evaluation of any completion operation on `rcvr` that is not a permissible
-    completion for `Sndr` and `Env`.
 
 3. A type `Sigs` satisfies and models the exposition-only concept
     <code><i>valid-completion-signatures</i></code> if it names a specialization
@@ -6124,48 +5888,82 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 2. The names `then`, `upon_error`, and `upon_stopped` denote customization point
     objects. Let the expression <code><i>then-cpo</i></code> be one of `then`,
     `upon_error`, or `upon_stopped`. For subexpressions `s` and `f`, let `S` be
-    `decltype((s))` and let `F` be the decayed type of `f`. If `S` does not
-    satisfy `sender`, or `F` does not satisfy <code><i>movable-value</i></code>,
+    `decltype((s))` and let `F` be the decayed type of `f`, and let `f2` be an
+    xvalue that refers to an object decay-copied from `f`. If `S` does not
+    satisfy `sender`, or `F` does not model <code><i>movable-value</i></code>,
     <code><i>then-cpo</i>(s, f)</code> is ill-formed.
-    
+
 3. Otherwise, the expression <code><i>then-cpo</i>(s, f)</code> is
     expression-equivalent to:
-
         <pre highlight="c++">
         transform_sender(
           <i>get-domain-early</i>(s),
-          <i>make-sender</i>(<i>then-cpo</i>, f, s));
+          <i>make-then-sender</i>(f, s));
         </pre>
 
-4. For `then`, `upon_error`, and `upon_stopped`, let <code><i>set-cpo</i></code>
-    be `set_value_t`, `set_error_t`, and `set_stopped_t` respectively. The
-    exposition-only class template <code><i>impls-for</i></code>
-    ([exec.snd.general]) is specialized for each of `then_t`, `upon_error_t`,
-    and `upon_stopped_t` as follows:
+        where <code><i>make-then-sender</i>(f, s)</code> is expression-equivalent
+        to <code><i>make-sender</i>(<i>then-cpo</i>, f, s)</code> and returns a
+        non-`const` prvalue `out_s` that behaves as follows:
 
-        <pre highlight="c++">
-        template&lt;>
-        struct <i>impls-for</i>&lt;<i>then-cpo</i>> : <i>default-impls</i> {
-          static constexpr auto complete =
-            []&lt;class Tag, class... Args>(auto, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
-              if constexpr (same_as&lt;Tag, <i>set-cpo</i>>) {
-                <i>TRY-SET-VALUE</i>(std::move(rcvr),
-                              invoke(std::move(fn), std::forward&lt;Args>(args)...));
-              } else {
-                Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
-              }
-            }
-        };
-        </pre>
+    1. Let `out_s2` be a reference to `out_s` or an object copied from it. When
+        `out_s2` is connected with some receiver `out_r`, `connect(out_s2,
+        out_r)` returns an operation state `o` containing copies of `f`,
+        `out_r`, and the result of `connect(s2, r)`, where `s2` is a reference
+        to an object decay-copied from `s` and that has the same *cv* qualifiers
+        and value category as `out_s2`; and where `r` is a receiver as described
+        below.
+
+        1. For `then`, let <code><i>set-cpo</i></code> be `set_value`. For
+            `upon_error`, let <code><i>set-cpo</i></code> be `set_error`. For
+            `upon_stopped`, let <code><i>set-cpo</i></code> be `set_stopped`.
+            Let <code><i>completion-function</i></code> be one of `set_value`,
+            `set_error`, or `set_stopped`.
+
+        2. Let `f2` and `out_r2` be xvalues subexpressions designating
+            respectively the copies of `f` and `out_r` in `o`. The receiver
+            `r` behaves as follows:
+
+            1. When <code><i>set-cpo</i>(r, args...)</code> is called, let `v`
+                be the expression `invoke(f2, args...)`. If `decltype(v)` is
+                `void`, evaluates `v` and calls `set_value(out_r2)`; otherwise,
+                calls `set_value(out_r2, v)`. If any of these throw an
+                exception, the exception is caught and `set_error(out_r2,
+                current_exception())` is called. If any of these expressions
+                would be ill-formed, the expression <code><i>set-cpo</i>(r,
+                args...)</code> is ill-formed.
+
+            2. <code><i>completion-function</i>(r, args...)</code> is
+                expression-equivalent to <code><i>completion-function</i>(
+                out_r2, args...)</code> when <code><i>completion-function</i></code>
+                is different from <code><i>set-cpo</i></code>.
+
+        2. Let `inner_op` be a non-`const` lvalue referring to the operation
+            state in `o`. `start(o)` is expression-equivalent to `start(inner_op)`.
+
+4. Given subexpressions `out_s` and `e` where `out_s` is a sender returned from
+    <code><i>then-cpo</i>(s, f)</code> or a copy of such, let `OutS` be
+    `decltype((out_s))` and let `E` be `decltype((e))`. Let `Fns` be a template
+    parameter pack of the arguments of the `completion_signatures`
+    specialization named by `completion_signatures_of_t<S, E>`, where `S` is
+    `decltype((s))`. The type of `tag_invoke(get_completion_signatures, out_s,
+    e)` shall be a specialiation of `completion_signatures` whose arguments are
+    a transformation of `Fns` as follows:
+
+        1. Replace signatures of the form <code><i>set-cpo</i>(Ts...)</code>
+            <code><i>SET-VALUE-SIG</i>(invoke_result_t&lt;F, Ts...>)></code>,
+
+        2. Leave other signatures unchanged, and
+
+        3. Add `set_error_t(exception_ptr)` if, for any of the signatures
+            of the form <code><i>set-cpo</i>(Ts...)</code> in `Fns...`, the
+            expression `is_nothrow_invocable_v<F, Ts...>` is `false`.
 
 5. The expression <code><i>then-cpo</i>(s, f)</code> has undefined behavior
     unless it returns a sender `out_s` that:
-
     1. Invokes `f` or a copy of such with the value, error, or stopped result
         datums of `s` (for `then`, `upon_error`, and `upon_stopped`
         respectively), using the result value of `f` as `out_s`'s value
         completion, and
-
     2. Forwards all other completion operations unchanged.
 
 #### `execution::let_value`, `execution::let_error`, `execution::let_stopped`,  <b>[exec.let]</b> #### {#spec-execution.senders.adapt.let}
