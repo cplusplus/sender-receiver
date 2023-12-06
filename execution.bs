@@ -4842,6 +4842,31 @@ enum class forward_progress_guarantee {
 
 3. This subclause makes use of the following exposition-only entities.
 
+    1. For a queryable object `e`, let <code><i>FWD-ENV</i>(e)</code> be a
+        queryable object such that for a query object `q` and a pack of
+        subexpressions `as`, the expression <code>tag_invoke(q,
+        <i>FWD-ENV</i>(e), as...)</code> is ill-formed if
+        `forwarding_query(q)` is `false`;
+        otherwise, it is expression-equivalent to `tag_invoke(q, e, as...)`.
+
+    2. For a query object `q` and a subexpression `v`, let
+        <code><i>MAKE-ENV</i>(q, v)</code> be a queryable object `e` such that
+        `tag_invoke(q, e)` is a `const` lvalue reference to an object
+        decay-copied from `v`. Unless otherwise stated, the object to which
+        `tag_invoke(q, e)` refers remains valid while `e` remains valid.
+
+    3. For two queryable objects `e1` and `e2`, a query object `q` and a pack of
+        subexpressions `as`, let <code><i>JOIN-ENV</i>(e1, e2)</code> be an
+        environment `e3` such that `tag_invoke(q, e3, as...)` is
+        expression-equivalent to:
+
+          - `tag_invoke(q, e1, as...)` if that expression is well-formed,
+
+          - otherwise, `tag_invoke(q, e2, as...)` if that expression is
+              well-formed,
+
+          - otherwise, `tag_invoke(q, e3, as...)` is ill-formed.
+
     4. For two subexpressions `r` and `e`, let <code><i>SET-VALUE</i>(r,
         e)</code> be `(e, set_value(r))` if the type of `e` is `void`;
         otherwise, it is `set_value(r, e)`. Let <code><i>TRY-SET-VALUE</i>(r,
