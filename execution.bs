@@ -4960,9 +4960,124 @@ enum class forward_progress_guarantee {
             except as noted below:
 
               <pre highlight="c++">
-              template &lt;class Tag, class Data, class... Child> // arguments are not associated entities ([lib.tmpl-heads])
-              struct <i>basic-sender</i> : <i>unspecified</i> {
-                using is_sender = <i>unspecified</i>;
+              template&lt;class T, class... Us>
+              concept <i>one-of</i> = (same_as&lt;T, Us> ||...); // exposition only
+
+              template&lt;template&lt;class...> class T, class... Args>
+              concept <i>well-formed</i> = requires { typename T&lt;Args...>; }; // exposition only
+
+              template&lt;const auto& Fun, class... Args>
+              concept <i>cpo-callable</i> = <i>callable</i>&lt;decltype(Fun), Args...>; // exposition only
+
+              template&lt;const auto& Fun, class... Args>
+              using <i>cpo-result-t</i> = <i>call-result-t</i>&lt;decltype(Fun), Args...>; // exposition only
+
+              struct <i>default-impls</i> {  // exposition only
+                static constexpr auto <i>get-attrs</i> = <i>see below</i>;
+                static constexpr auto <i>get-env</i> = <i>see below</i>;
+                static constexpr auto <i>get-state</i> = <i>see below</i>;
+                static constexpr auto <i>start</i> = <i>see below</i>;
+                static constexpr auto <i>complete</i> = <i>see below</i>;
+              };
+
+              template&lt;class Tag>
+              struct <i>impls-for</i> : <i>default-impls</i> {}; // exposition only
+
+              template&lt;class Sndr, class Rcvr> // exposition only
+              using <i>state-type</i> = decay_t&lt;<i>cpo-result-t</i>&lt;
+                <i>impls-for</i>&lt;tag_of_t&lt;Sndr>>::<i>get-state</i>, Sndr, Rcvr&>>;
+
+              template&lt;class Index, class Sndr, class Rcvr> // exposition only
+              using <i>env-type</i> = <i>cpo-result-t</i>&lt;
+                <i>impls-for</i>&lt;tag_of_t&lt;Sndr>>::<i>get-env</i>, Index,
+                <i>state-type</i>&lt;Sndr, Rcvr>&, const Rcvr&>>;
+
+              template&lt;class Sndr, class Rcvr, class Index>  // arguments are not associated entities ([lib.tmpl-heads])
+                requires <i>well-formed</i>&lt;<i>env-type</i>, Index, Sndr, Rcvr>
+              struct <i>basic-receiver</i> {  // exposition only
+                using tag_t = tag_of_t&lt;Sndr>; // exposition only
+                using receiver_concept = receiver_t;
+
+                template&lt;<i>one-of</i>&lt;set_value_t, set_error_t, set_stopped_t> Tag, class... Args>
+                  requires <i>cpo-callable</i>&lt;<i>impls-for</i>&lt;tag_t>::<i>complete</i>,
+                    Index, <i>state-type</i>&lt;Sndr, Rcvr>&, Rcvr&, Tag, Args...>
+                friend void tag_invoke(Tag, <i>basic-receiver</i>&& self, Args&&... args) noexcept {
+                  (void) <i>impls-for</i>&lt;tag_t>::<i>complete</i>(
+                    Index(), self.op_->state_, self.op_->rcvr_, Tag(), std::forward&lt;Args>(args)...);
+                }
+
+                template&lt;same_as&lt;get_env_t> Tag>
+                friend auto tag_invoke(Tag, const <i>basic-receiver</i>& self) noexcept
+                  -> <i>env-type</i>&lt;Index, Sndr, Rcvr> {
+                  const auto& rcvr = self.op_->rcvr_;
+                  return <i>impls-for</i>&lt;tag_t>::<i>get-env</i>(Index(), self.op_->state_, rcvr);
+                }
+
+                <i>basic-operation</i>&lt;Sndr, Rcvr>* op_; // exposition only
+              };
+
+              constexpr auto <i>connect-all</i> =   // exposition only
+                []&lt;class Sndr, class Rcvr, size_t... Is>(
+                  <i>basic-operation</i>&lt;Sndr, Rcvr>* op, Sndr&& sndr, index_sequence&lt;Is...>)
+                    noexcept( <i><b>TODO</b></i> ) requires ( <i><b>TODO</b></i> ) {
+                    auto&& [ign1, ign2, child...] = std::forward&lt;Sndr>(sndr);
+                    return <i>tuple-like</i>{connect(
+                      std::forward_like&lt;Sndr>(child),
+                      <i>basic-receiver</i>&lt;Sndr, Rcvr, integral_constant&lt;size_t, Is>>{op})...};
+                  };
+
+              template&lt;class Sndr>
+              using <i>indices-for</i> = make_index_sequence&lt;tuple_size_v&lt;Sndr>-2>; // exposition only
+
+              template&lt;class Sndr, class Rcvr>
+              using <i>inner-ops-tuple</i> =   // exposition only
+                <i>cpo-result-t</i>&lt;<i>connect-all</i>, <i>basic-operation</i>&lt;Sndr, Rcvr>*, Sndr,
+                  <i>indices-for</i>&lt;Sndr>>;
+
+              template&lt;class Sndr, class Rcvr> // arguments are not associated entities ([lib.tmpl-heads])
+                requires <i>well-formed</i>&lt;<i>state-type</i>, Sndr, Rcvr> &&
+                  <i>well-formed</i>&lt;<i>inner-ops-tuple</i>, Sndr, Rcvr>;
+              struct <i>basic-operation</i> {  // exposition only
+                using tag_t = tag_of_t&lt;Sndr>; // exposition only
+
+                Rcvr rcvr_; // exposition only
+                <i>state-type</i>&lt;Sndr, Rcvr> state_; // exposition only
+                <i>inner-ops-tuple</i>&lt;Sndr, Rcvr> inner_ops_; // exposition only
+
+                <i>basic-operation</i>(Sndr&& sndr, Rcvr rcvr)  // exposition only
+                  : rcvr_(std::move(rcvr))
+                  , state_(<i>impls-for</i>&lt;tag_t>::<i>get-state</i>(std::forward&lt;Sndr>(sndr), rcvr_))
+                  , inner_ops_(<i>connect-all</i>(this, std::forward&lt;Sndr>(sndr), <i>indices-for</i>&lt;Sndr>()))
+                {}
+
+                friend void tag_invoke(start_t, <i>basic-operation</i>& self) noexcept {
+                  auto& [ops...] = self.inner_ops_;
+                  <i>impls-for</i>&lt;tag_t>::<i>start</i>(self.state_, self.rcvr_, ops...);
+                }
+              };
+
+              template&lt;class Tag, class Data, class... Child> // arguments are not associated entities ([lib.tmpl-heads])
+              struct <i>basic-sender</i> {  // exposition only
+                using sender_concept = sender_t;
+
+                template&lt;same_as&lt;get_env_t> GetEnvTag>
+                friend decltype(auto) tag_invoke(GetEnvTag, const <i>basic-sender</i>& self) noexcept {
+                  return <i>impls-for</i>&lt;Tag>::<i>get-attrs</i>(<i>data</i>, <i>child<sub>0</sub></i>, ... <i>child<sub>n-1</sub></i>);
+                }
+
+                template&lt;same_as&lt;connect_t> ConnectTag,
+                         <i>decays-to</i>&lt;<i>basic-sender</i>> Self, receiver Rcvr>
+                friend auto tag_invoke(ConnectTag, Self&& self, Rcvr rcvr)
+                  -> <i>basic-operation</i>&lt;Self, Rcvr> {
+                  return {std::forward&lt;Self>(self), std::move(rcvr)};
+                }
+
+                template&lt;same_as&lt;get_completion_signatures_t> GetComplSigsTag,
+                         <i>decays-to</i>&lt;<i>basic-sender</i>> Self, class Env>
+                friend auto tag_invoke(GetComplSigsTag, Self&& self, Env&& env) noexcept
+                  -> <i>see below</i> {
+                  return {};
+                }
 
                 [[no_unique_address]] Tag <i>tag</i>;  // exposition only
                 Data <i>data</i>;          // exposition only
@@ -4973,15 +5088,79 @@ enum class forward_progress_guarantee {
               };
               </pre>
 
-            - It is unspecified whether instances of <code><i>basic-sender</i></code> can be
-                aggregate initialized.
+        2. It is unspecified whether instances of <code><i>basic-sender</i></code> can be
+            aggregate initialized.
 
-            - The unspecified base type has no non-static data members. It may
-                define member functions or hidden friend functions ([hidden.friends]).
+        3. <span class="wg21note">An expression of type <code><i>basic-sender</i></code> is usable as the
+            initializer of a structured binding declaration
+            [dcl.struct.bind].</span>
 
-            - <span class="wg21note">An expression of type <code><i>basic-sender</i></code> is usable as the
-                initializer of a structured binding declaration
-                [dcl.struct.bind].</span>
+        4. The member <code><i>default-impls</i>::<i>get-attrs</i></code> is initialized
+            with a callable object equal to the following lambda:
+
+              <pre highlight="c++">
+              [](const auto& data, const auto&... child) noexcept -> decltype(auto) {
+                if constexpr (sizeof...(child) == 1)
+                  return <i>FWD-ENV</i>(execution::get_env(child...)); //
+                else
+                  return empty_env();
+              }
+              </pre>
+
+        5. The member <code><i>default-impls</i>::<i>get-env</i></code> is initialized
+            with a callable object equal to the following lambda:
+
+              <pre highlight="c++">
+              []&lt;class Rcvr>(auto index, auto& state, const Rcvr& rcvr) noexcept
+                -> decltype(<i>FWD-ENV</i>(execution::get_env(rcvr))) {
+                return <i>FWD-ENV</i>(execution::get_env(rcvr));
+              }
+              </pre>
+
+        6. The member <code><i>default-impls</i>::<i>get-state</i></code> is initialized
+            with a callable object equal to the following lambda:
+
+              <pre highlight="c++">
+              []&lt;class Sndr>(Sndr&& sndr, auto& rcvr) noexcept -> decltype(auto) {
+                return get&lt;1>(std::forward&lt;Sndr>(sndr));
+              }
+              </pre>
+
+        7. The member <code><i>default-impls</i>::<i>start</i></code> is initialized
+            with a callable object equal to the following lambda:
+
+              <pre highlight="c++">
+              [](auto& state, auto& rcvr, auto&... ops) noexcept -> completion_signatures<> {
+                (execution::start(ops), ...);
+                return {};
+              }
+              </pre>
+
+        8. The member <code><i>default-impls</i>::<i>complete</i></code> is initialized
+            with a callable object equal to the following lambda:
+
+              <pre highlight="c++">
+              []&lt;class Index, class Rcvr, class Tag, class... Args>(
+                Index, auto& state, Rcvr& rcvr, Tag, Args&&... args) noexcept
+                  -> completion_signatures&lt;Tag(Args...)>
+                    requires <i>callable</i>&lt;Tag, Rcvr, Args...> {
+                <i>// Mandates: Index::value == 0</i>
+                tag(std::move(rcvr), std::forward&lt;Args>(args)...); 
+                return {};
+              }
+              </pre>
+
+        9. The return type of <code><i>basic-sender</i></code>'s customization of
+            `get_completion_signatures` is computed as follows.
+
+              1. Let `Env` be the type of an environment, let the type `Sndr` be
+                  the (possibly cv- and ref-qualified) type of a specialization
+                  of <code><i>basic-sender</i></code>, and let
+                  <code>Child<sub><i>i</i></sub></code> be the type of the
+                  <code><i>i</i></code>-th child sender of `Sndr`, with the same
+                  cv- and ref-qualifications as `Sndr`.
+
+              2. Let <code>ChildEnv<sub><i>i</i></sub></code> be the type 
 
 ### Sender concepts <b>[exec.snd.concepts]</b> ### {#spec-execution.snd.concepts}
 
