@@ -6099,64 +6099,48 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 2. The names `then`, `upon_error`, and `upon_stopped` denote customization point
     objects. Let the expression <code><i>then-cpo</i></code> be one of `then`,
     `upon_error`, or `upon_stopped`. For subexpressions `s` and `f`, let `S` be
-    `decltype((s))` and let `F` be the decayed type of `f`, and let `f2` be an
-    xvalue that refers to an object decay-copied from `f`. If `S` does not
-    satisfy `sender`, or `F` does not model <code><i>movable-value</i></code>,
+    `decltype((s))` and let `F` be the decayed type of `f`. If `S` does not
+    satisfy `sender`, or `F` does not satisfy <code><i>movable-value</i></code>,
     <code><i>then-cpo</i>(s, f)</code> is ill-formed.
-
+    
 3. Otherwise, the expression <code><i>then-cpo</i>(s, f)</code> is
     expression-equivalent to:
+
         <pre highlight="c++">
         transform_sender(
           <i>get-domain-early</i>(s),
-          <i>make-then-sender</i>(f, s));
+          <i>make-sender</i>(<i>then-cpo</i>, f, s));
         </pre>
 
-        where <code><i>make-then-sender</i>(f, s)</code> is expression-equivalent
-        to <code><i>make-sender</i>(<i>then-cpo</i>, f, s)</code> and returns a
-        non-`const` prvalue `out_s` that behaves as follows:
+4. For `then`, `upon_error`, and `upon_stopped`, let <code><i>set-cpo</i></code>
+    be `set_value_t`, `set_error_t`, and `set_stopped_t` respectively. The
+    exposition-only class template <code><i>impls-for</i></code>
+    ([exec.snd.general]) is specialized for each of `then_t`, `upon_error_t`,
+    and `upon_stopped_t` as follows:
 
-    1. Let `out_s2` be a reference to `out_s` or an object copied from it. When
-        `out_s2` is connected with some receiver `out_r`, `connect(out_s2,
-        out_r)` returns an operation state `o` containing copies of `f`,
-        `out_r`, and the result of `connect(s2, r)`, where `s2` is a reference
-        to an object decay-copied from `s` and that has the same *cv* qualifiers
-        and value category as `out_s2`; and where `r` is a receiver as described
-        below.
-
-        1. For `then`, let <code><i>set-cpo</i></code> be `set_value`. For
-            `upon_error`, let <code><i>set-cpo</i></code> be `set_error`. For
-            `upon_stopped`, let <code><i>set-cpo</i></code> be `set_stopped`.
-            Let <code><i>completion-function</i></code> be one of `set_value`,
-            `set_error`, or `set_stopped`.
-
-        2. Let `f2` and `out_r2` be xvalues subexpressions designating
-            respectively the copies of `f` and `out_r` in `o`. The receiver
-            `r` behaves as follows:
-
-            1. When <code><i>set-cpo</i>(r, args...)</code> is called, let `v`
-                be the expression `invoke(f2, args...)`. If `decltype(v)` is
-                `void`, evaluates `v` and calls `set_value(out_r2)`; otherwise,
-                calls `set_value(out_r2, v)`. If any of these throw an
-                exception, the exception is caught and `set_error(out_r2,
-                current_exception())` is called. If any of these expressions
-                would be ill-formed, the expression <code><i>set-cpo</i>(r,
-                args...)</code> is ill-formed.
-
-            2. <code><i>completion-function</i>(r, args...)</code> is
-                expression-equivalent to <code><i>completion-function</i>(
-                out_r2, args...)</code> when <code><i>completion-function</i></code>
-                is different from <code><i>set-cpo</i></code>.
-
-        2. Let `inner_op` be a non-`const` lvalue referring to the operation
-            state in `o`. `start(o)` is expression-equivalent to `start(inner_op)`.
+        <pre highlight="c++">
+        template&lt;>
+        struct <i>impls-for</i>&lt;<i>then-cpo</i>> : <i>default-impls</i> {
+          static constexpr auto complete =
+            []&lt;class Tag, class... Args>(auto, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
+              if constexpr (same_as&lt;Tag, <i>set-cpo</i>>) {
+                <i>TRY-SET-VALUE</i>(std::move(rcvr),
+                              invoke(std::move(fn), std::forward&lt;Args>(args)...));
+              } else {
+                Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
+              }
+            }
+        };
+        </pre>
 
 5. The expression <code><i>then-cpo</i>(s, f)</code> has undefined behavior
     unless it returns a sender `out_s` that:
+
     1. Invokes `f` or a copy of such with the value, error, or stopped result
         datums of `s` (for `then`, `upon_error`, and `upon_stopped`
         respectively), using the result value of `f` as `out_s`'s value
         completion, and
+
     2. Forwards all other completion operations unchanged.
 
 #### `execution::let_value`, `execution::let_error`, `execution::let_stopped`,  <b>[exec.let]</b> #### {#spec-execution.senders.adapt.let}
