@@ -4835,9 +4835,9 @@ enum class forward_progress_guarantee {
     specialization of the class template `completion_signatures`,
     ([exec.utils.cmplsigs]) the set of whose template arguments is `Sigs`. If a
     user-provided implementation of the algorithm that produced `sndr` is
-    selected instead of the default, the set of completion signatures denoted by
-    the return type of `get_completion_signatures(sndr, env)` shall be a
-    superset of `Sigs`, with any additional completion signatures corresponding
+    selected instead of the default, any completion signature that is in the set of types
+    denoted by `completion_signatures_of_t<Sndr, Env>` and that is not part of
+    `Sigs` shall correspond
     to error or stopped completion operations, unless otherwise specified.
 
 3. This subclause makes use of the following exposition-only entities.
@@ -5041,7 +5041,7 @@ enum class forward_progress_guarantee {
     `Sndr` and `Env` model `sender_to<Sndr, Env>` if all the completion
     operations that are potentially evaluated by connecting `sndr` to `rcvr`
     and starting the resulting operation state are permissible
-    completion for `Sndr` and `Env`.
+    completions for `Sndr` and `Env`.
 
 3. A type `Sigs` satisfies and models the exposition-only concept
     <code><i>valid-completion-signatures</i></code> if it names a specialization
