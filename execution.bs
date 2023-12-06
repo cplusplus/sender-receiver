@@ -4819,6 +4819,27 @@ enum class forward_progress_guarantee {
 1. For the purposes of this subclause, a sender is an object that satisfies the
     `sender` concept ([async.ops]).
 
+2. Subclauses [exec.factories] and [exec.adapt] define customizable algorithms
+    that return senders. Each algorithm has a default implementation specified
+    herein. Let `sndr` be the result of an invocation of such an algorithm or an
+    object equal to such ([concepts.equality]), and let `Sndr` be
+    `decltype((sndr))`. Let `Env` be the type of an environment `env` such that
+    `sender_in<Sndr, Env>` is `true`, and let `rcvr` be a receiver whose
+    associated environment is `Env`. For the default implementation of the
+    algorithm that produced `sndr`, connecting `sndr` to `rcvr` and starting the
+    resulting operation state ([async.ops]) necessarily results in the potential
+    evaluation ([intro.execution]) of a set of completion operations whose first
+    argument is a subexpression equal to `rcvr`. Let `Sigs` be a pack of
+    completion signatures corresponding to this set of completion operations.
+    Then the type of the expression `get_completion_signatures(sndr, env)` is a
+    specialization of the class template `completion_signatures`,
+    ([exec.utils.cmplsigs]) the set of whose template arguments is `Sigs`. If a
+    user-provided implementation of the algorithm that produced `sndr` is
+    selected instead of the default, the set of completion signatures denoted by
+    the return type of `get_completion_signatures(sndr, env)` shall be a
+    superset of `Sigs`, with any additional completion signatures corresponding
+    to error or stopped completion operations.
+
 3. This subclause makes use of the following exposition-only entities.
 
     4. For two subexpressions `r` and `e`, let <code><i>SET-VALUE</i>(r,
@@ -5010,6 +5031,17 @@ enum class forward_progress_guarantee {
           connect(std::forward&lt;S>(s), std::forward&lt;R>(r));
         };
     </pre>
+
+2. Given a subexpression `sndr`, let `Sndr` be `decltype((sndr))`, let `Env` be
+    the type of an environment, and let `rcvr` be a receiver whose associated
+    environment is `Env`. A completion operation is a <dfn
+    export=true>permissible completion</dfn> for `Sndr` and `Env` if its
+    completion signature appears in the argument list of the specialization of
+    `completion_signatures` denoted by `completion_signatures_of_t<Sndr, Env>`.
+    `Sndr` and `Env` model `sender_to<Sndr, Env>` if connecting `sndr` to `rcvr`
+    and starting the resulting operation state does not cause the potential
+    evaluation of any completion operation on `rcvr` that is not a permissible
+    completion for `Sndr` and `Env`.
 
 3. A type `Sigs` satisfies and models the exposition-only concept
     <code><i>valid-completion-signatures</i></code> if it names a specialization
@@ -5939,24 +5971,6 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
         2. Let `inner_op` be a non-`const` lvalue referring to the operation
             state in `o`. `start(o)` is expression-equivalent to `start(inner_op)`.
-
-4. Given subexpressions `out_s` and `e` where `out_s` is a sender returned from
-    <code><i>then-cpo</i>(s, f)</code> or a copy of such, let `OutS` be
-    `decltype((out_s))` and let `E` be `decltype((e))`. Let `Fns` be a template
-    parameter pack of the arguments of the `completion_signatures`
-    specialization named by `completion_signatures_of_t<S, E>`, where `S` is
-    `decltype((s))`. The type of `tag_invoke(get_completion_signatures, out_s,
-    e)` shall be a specialiation of `completion_signatures` whose arguments are
-    a transformation of `Fns` as follows:
-
-        1. Replace signatures of the form <code><i>set-cpo</i>(Ts...)</code>
-            <code><i>SET-VALUE-SIG</i>(invoke_result_t&lt;F, Ts...>)></code>,
-
-        2. Leave other signatures unchanged, and
-
-        3. Add `set_error_t(exception_ptr)` if, for any of the signatures
-            of the form <code><i>set-cpo</i>(Ts...)</code> in `Fns...`, the
-            expression `is_nothrow_invocable_v<F, Ts...>` is `false`.
 
 5. The expression <code><i>then-cpo</i>(s, f)</code> has undefined behavior
     unless it returns a sender `out_s` that:
