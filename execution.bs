@@ -1146,6 +1146,8 @@ The changes since R7 are as follows:
     expression-equivalent to it. This is necessary to properly specify how to
     join two environments in the presence of queries that have defaults.
 
+  * The `sender_in<Sndr, Env>` concept requires that `E` satisfies `queryable`.
+
 ## R7 ## {#r7}
 
 The changes since R6 are as follows:
@@ -5223,6 +5225,7 @@ enum class forward_progress_guarantee {
     template&lt;class S, class E = empty_env>
       concept sender_in =
         sender&lt;S> &&
+        queryable&lt;E> &&
         requires (S&& s, E&& e) {
           { get_completion_signatures(std::forward&lt;S>(s), std::forward&lt;E>(e)) } ->
             <i>valid-completion-signatures</i>;
@@ -5412,10 +5415,10 @@ struct default_domain {
   template &lt;sender Sender>
     static constexpr sender decltype(auto) transform_sender(Sender&& sndr) noexcept(<i>see below</i>);
 
-  template &lt;sender Sender, class Env>
+  template &lt;sender Sender, queryable Env>
     static constexpr sender decltype(auto) transform_sender(Sender&& sndr, const Env& env) noexcept(<i>see below</i>);
 
-  template &lt;sender Sender, class Env>
+  template &lt;sender Sender, queryable Env>
     static constexpr decltype(auto) transform_env(Sender&& sndr, Env&& env) noexcept;
 
   template&lt;class Tag, sender Sender, class... Args>
@@ -5442,7 +5445,7 @@ template &lt;sender Sender>
     if that expression is well-formed; otherwise, `true`;
 
 <pre highlight="c++">
-template &lt;sender Sender, class Env>
+template &lt;sender Sender, queryable Env>
   constexpr sender decltype(auto) default_domain::transform_sender(Sender&& sndr, const Env& env) noexcept(<i>see below</i>);
 </pre>
 
@@ -5458,7 +5461,7 @@ template &lt;sender Sender, class Env>
     if that expression is well-formed; otherwise, `true`;
 
 <pre highlight="c++">
-template &lt;sender Sender, class Env>
+template &lt;sender Sender, queryable Env>
   constexpr decltype(auto) default_domain::transform_env(Sender&& sndr, Env&& env) noexcept;
 </pre>
 
@@ -5485,17 +5488,22 @@ template&lt;class Tag, sender Sender, class... Args>
 ### `execution::transform_sender` <b>[exec.snd.transform]</b> ### {#spec-execution.sender_transform}
 
 <pre highlight="c++">
-template&lt;class Domain, sender Sender, class... Env>
-    requires (sizeof...(Env) &lt;= 1)
-  constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env&... env);
+template&lt;class Domain, sender Sender>
+  constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr);
+
+template&lt;class Domain, sender Sender, queryable Env>
+  constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env& env);
 </pre>
 
-1. <i>Returns:</i> Let `s2` be the expression
-      `dom.transform_sender(std::forward<Sender>(sndr), env...)` if that
-      expression is well-formed; otherwise,
-      `default_domain().transform_sender(std::forward<Sender>(sndr), env...)`.
-      If `s2` and `sndr` have the same type ignoring _cv_ qualifiers,
-      returns `s2`; otherwise, `transform_sender(dom, s2, env...)`.
+1. <i>Returns:</i> Let <code><i>ENV</i></code> be a parameter pack consisting of
+      the single expression `env` for the second overload and an empty pack for
+      the first. Let `s2` be the expression
+      <code>dom.transform_sender(std::forward&lt;Sender>(sndr),
+      <i>ENV</i>...)</code> if that expression is well-formed; otherwise,
+      <code>default_domain().transform_sender(std::forward&lt;Sender>(sndr),
+      <i>ENV</i>...)</code>. If `s2` and `sndr` have the same type ignoring *cv*
+      qualifiers, returns `s2`; otherwise, <code>transform_sender(dom, s2,
+      <i>ENV</i>...)</code>.
 
 <pre highlight="c++">
 template&lt;class Domain, sender Sender, class Env>
