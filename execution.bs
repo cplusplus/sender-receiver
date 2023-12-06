@@ -4225,9 +4225,11 @@ namespace std::execution {
     using tag_of_t = see below;
 
   // [exec.snd.transform], sender transformations
-  template&lt;class Domain, sender Sender, class... Env>
-      requires (sizeof...(Env) &lt;= 1)
-    constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env&... env);
+  template&lt;class Domain, sender Sender>
+    constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndrv);
+
+  template&lt;class Domain, sender Sender, class Env>
+    constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env& env);
 
   template&lt;class Domain, sender Sender, class Env>
     constexpr decltype(auto) transform_env(Domain dom, Sender&& sndr, Env&& env) noexcept;
@@ -4247,7 +4249,7 @@ namespace std::execution {
     using connect_result_t = decltype(connect(declval&lt;S>(), declval&lt;R>()));
 
   // [exec.factories], sender factories
-  namespace <i>senders-factories</i> { // exposition only
+  namespace <i>sender-factories</i> { // exposition only
     struct just_t;
     struct just_error_t;
     struct just_stopped_t;
@@ -4256,7 +4258,7 @@ namespace std::execution {
   inline constexpr just just{};
   inline constexpr just_error_t just_error{};
   inline constexpr just_stopped_t just_stopped{};
-  using <i>senders-factories</i>::schedule_t;
+  using <i>sender-factories</i>::schedule_t;
   inline constexpr schedule_t schedule{};
   inline constexpr <i>unspecified</i> read{};
 
@@ -4961,7 +4963,7 @@ enum class forward_progress_guarantee {
 
     9.  <pre highlight="c++">
         template&lt;class... T>
-        struct <i>tuple-like</i> {
+        struct <i>product-type</i> {
           T<sub><i>0</i></sub> <i>t<sub>0</sub></i>;      // exposition only
           T<sub><i>1</i></sub> <i>t<sub>1</sub></i>;      // exposition only
             ...
@@ -4969,7 +4971,7 @@ enum class forward_progress_guarantee {
         };
         </pre>
 
-        - <span class="wg21note">An expression of type <code><i>tuple-like</i></code> is usable as the initializer
+        - <span class="wg21note">An expression of type <code><i>product-type</i></code> is usable as the initializer
             of a structured binding declaration [dcl.struct.bind].</span>
 
     10. <pre highlight="c++">
@@ -5046,7 +5048,7 @@ enum class forward_progress_guarantee {
                   <i>basic-operation</i>&lt;Sndr, Rcvr>* op, Sndr&& sndr, index_sequence&lt;Is...>)
                     noexcept( <i><b>TODO</b></i> ) requires ( <i><b>TODO</b></i> ) {
                     auto&& [ign1, ign2, child...] = std::forward&lt;Sndr>(sndr);
-                    return <i>tuple-like</i>{connect(
+                    return <i>product-type</i>{connect(
                       std::forward_like&lt;Sndr>(child),
                       <i>basic-receiver</i>&lt;Sndr, Rcvr, integral_constant&lt;size_t, Is>>{op})...};
                   };
@@ -5214,7 +5216,6 @@ enum class forward_progress_guarantee {
         enable_sender&lt;remove_cvref_t&lt;S>> &&
         requires (const remove_cvref_t&lt;S>& s) {
           { get_env(s) } -> queryable;
-          <i>completion-domain</i>(s);
         } &&
         move_constructible&lt;remove_cvref_t&lt;S>> &&  <i>// rvalues are movable, and</i>
         constructible_from&lt;remove_cvref_t&lt;S>, S>; <i>// lvalues are copyable</i>
@@ -5408,9 +5409,11 @@ enum class forward_progress_guarantee {
 
 <pre highlight="c++">
 struct default_domain {
-  template &lt;sender Sender, class... Env>
-      requires (sizeof...(Env) &lt;= 1)
-    static constexpr sender decltype(auto) transform_sender(Sender&& sndr, const Env&... env) noexcept(<i>see below</i>);
+  template &lt;sender Sender>
+    static constexpr sender decltype(auto) transform_sender(Sender&& sndr) noexcept(<i>see below</i>);
+
+  template &lt;sender Sender, class Env>
+    static constexpr sender decltype(auto) transform_sender(Sender&& sndr, const Env& env) noexcept(<i>see below</i>);
 
   template &lt;sender Sender, class Env>
     static constexpr decltype(auto) transform_env(Sender&& sndr, Env&& env) noexcept;
@@ -5423,18 +5426,33 @@ struct default_domain {
 #### Static members <b>[exec.domain.default.statics]</b> #### {#spec-execution.default_domain.statics}
 
 <pre highlight="c++">
-template &lt;sender Sender, class... Env>
-    requires (sizeof...(Env) &lt;= 1)
-  constexpr sender decltype(auto) default_domain::transform_sender(Sender&& sndr, const Env&... env) noexcept(<i>see below</i>);
+template &lt;sender Sender>
+  constexpr sender decltype(auto) default_domain::transform_sender(Sender&& sndr) noexcept(<i>see below</i>);
 </pre>
 
-1. <i>Returns:</i> `tag_of_t<Sender>().transform_sender(std::forward<Sender>(sndr), env...)`
+1. <i>Returns:</i> `tag_of_t<Sender>().transform_sender(std::forward<Sender>(sndr))`
     if that expression is well-formed; otherwise, `std::forward<Sender>(sndr)`.
 
 2. <i>Remarks:</i> The exception specification is equivalent to:
 
     <pre highlight="c++">
-    noexcept(tag_of_t&lt;Sender>().transform_sender(std::forward&lt;Sender>(sndr), env...))
+    noexcept(tag_of_t&lt;Sender>().transform_sender(std::forward&lt;Sender>(sndr)))
+    </pre>
+
+    if that expression is well-formed; otherwise, `true`;
+
+<pre highlight="c++">
+template &lt;sender Sender, class Env>
+  constexpr sender decltype(auto) default_domain::transform_sender(Sender&& sndr, const Env& env) noexcept(<i>see below</i>);
+</pre>
+
+1. <i>Returns:</i> `tag_of_t<Sender>().transform_sender(std::forward<Sender>(sndr), env)`
+    if that expression is well-formed; otherwise, `std::forward<Sender>(sndr)`.
+
+2. <i>Remarks:</i> The exception specification is equivalent to:
+
+    <pre highlight="c++">
+    noexcept(tag_of_t&lt;Sender>().transform_sender(std::forward&lt;Sender>(sndr), env))
     </pre>
 
     if that expression is well-formed; otherwise, `true`;
@@ -5748,7 +5766,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
 6. When used as the initializer of a structured binding declaration,
     expressions of type <code><i>just-sender</i>&lt;Tag, Ts...></code> behave as do
-    expressions of type <code><i>basic-sender</i>&lt;Tag, <i>tuple-like</i>&lt;Ts...>></code>.
+    expressions of type <code><i>basic-sender</i>&lt;Tag, <i>product-type</i>&lt;Ts...>></code>.
 
 #### `execution::read` <b>[exec.read]</b> #### {#spec-execution.senders.read}
 
@@ -6290,7 +6308,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
       <pre highlight="c++">
       transform_sender(
         <i>get-domain-early</i>(s),
-        <i>make-bulk-sender</i>(<i>tuple-like</i>{shape, f}, s));
+        <i>make-bulk-sender</i>(<i>product-type</i>{shape, f}, s));
       </pre>
 
     where <code><i>make-bulk-sender</i>(t, s)</code> is expression-equivalent to
