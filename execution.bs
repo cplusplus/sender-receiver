@@ -4017,22 +4017,20 @@ template&lt;class C>
     attribute whose value is equal to the scheduler that produced the schedule
     sender.
 
-13. A completion operation has an associated completion signature. A <dfn
-    export=true>completion signature</dfn> is a function type that describes a
-    completion operation. An asychronous operation has a finite set of possible
-    completion signatures corresponding to the completion operations that the
-    asynchronous operation potentially evaluates ([basic.def.odr]). The
-    completion signature's return type is the completion tag associated with the
-    completion function that executes the completion operation. The completion
-    signature's parameter types are the (possibly `cv`- and reference-qualified)
-    types of the asynchronous operation's result datums, modulo rvalue reference
-    qualification (see <code><i>MATCHING-SIG</i></code> in [exec.general]).
-    [*Example:* For subexpressions `x` and `y`, the completion signature
-    corresponding to the completion operation `set_value(std::move(rcvr), x, y)`
-    is `set_value_t(decltype((x)), decltype((y)))`. -- *end example*] Together,
+13. A <dfn export=true>completion signature</dfn> is a function type that
+    describes a completion operation. An asychronous operation has a finite set
+    of possible completion signatures corresponding to the completion operations
+    that the asynchronous operation potentially evaluates ([basic.def.odr]). For
+    a completion function <code><i>set</i></code>, receiver
+    <code><i>rcvr</i></code>, and pack of arguments <code><i>args</i></code>,
+    let `c` be the completion operation <code><i>set</i>(<i>rcvr</i>,
+    <i>args</i>...)</code>, and let `F` be the function type
+    <code>decltype(auto(<i>set</i>))(decltype((<i>args</i>))...)</code>.
+    A completion signature `S` is associated with `c` if and only if
+    <code><i>MATCHING-SIG</i>(S, F)</code> is `true` ([exec.general]). Together,
     a sender type and an environment type `E` determine the set of completion
     signatures of an asynchronous operation that results from connecting the
-    sender with a receiver whose environment has type `E`. <span
+    sender with a receiver that has an environment of type `E`. <span
     class="wg21note">The type of the receiver does not affect an asychronous
     operation's completion signatures, only the type of the receiver's
     environment.</span>
@@ -4824,25 +4822,24 @@ enum class forward_progress_guarantee {
     `sender` concept ([async.ops]).
 
 2. Subclauses [exec.factories] and [exec.adapt] define customizable algorithms
-    that return senders. Each algorithm has a default implementation specified
-    herein. Let `sndr` be the result of an invocation of such an algorithm or an
-    object equal to such ([concepts.equality]), and let `Sndr` be
-    `decltype((sndr))`. Let `Env` be the type of an environment `env` such that
-    `sender_in<Sndr, Env>` is `true`, and let `rcvr` be a receiver whose
-    associated environment is `Env`. For the default implementation of the
+    that return senders. Each algorithm has a default implementation. Let `sndr`
+    be the result of an invocation of such an algorithm or an object equal to
+    such ([concepts.equality]), and let `Sndr` be `decltype((sndr))`. Let `rcvr`
+    be a receiver with associated environment `env` of type `Env` such that
+    `sender_in<Sndr, Env>` is `true`. For the default implementation of the
     algorithm that produced `sndr`, connecting `sndr` to `rcvr` and starting the
     resulting operation state ([async.ops]) necessarily results in the potential
-    evaluation ([intro.execution]) of a set of completion operations whose first
+    evaluation ([basic.def.odr]) of a set of completion operations whose first
     argument is a subexpression equal to `rcvr`. Let `Sigs` be a pack of
     completion signatures corresponding to this set of completion operations.
     Then the type of the expression `get_completion_signatures(sndr, env)` is a
     specialization of the class template `completion_signatures`,
     ([exec.utils.cmplsigs]) the set of whose template arguments is `Sigs`. If a
     user-provided implementation of the algorithm that produced `sndr` is
-    selected instead of the default, the set of completion signatures denoted by
-    the return type of `get_completion_signatures(sndr, env)` shall be a
-    superset of `Sigs`, with any additional completion signatures corresponding
-    to error or stopped completion operations.
+    selected instead of the default, any completion signature that is in the set
+    of types denoted by `completion_signatures_of_t<Sndr, Env>` and that is not
+    part of `Sigs` shall correspond to error or stopped completion operations,
+    unless otherwise specified.
 
 3. This subclause makes use of the following exposition-only entities.
 
@@ -5049,7 +5046,7 @@ enum class forward_progress_guarantee {
                 []&lt;class Sndr, class Rcvr, size_t... Is>(
                   <i>basic-operation</i>&lt;Sndr, Rcvr>* op, Sndr&& sndr, index_sequence&lt;Is...>)
                     noexcept( <i><b>TODO</b></i> ) requires ( <i><b>TODO</b></i> ) {
-                    auto&& [ign1, ign2, child...] = std::forward&lt;Sndr>(sndr);
+                    auto&& [ign1, ign2, ...child] = std::forward&lt;Sndr>(sndr);
                     return <i>product-type</i>{connect(
                       std::forward_like&lt;Sndr>(child),
                       <i>basic-receiver</i>&lt;Sndr, Rcvr, integral_constant&lt;size_t, Is>>{op})...};
@@ -5065,7 +5062,7 @@ enum class forward_progress_guarantee {
 
               template&lt;class Sndr, class Rcvr> // arguments are not associated entities ([lib.tmpl-heads])
                 requires <i>well-formed</i>&lt;<i>state-type</i>, Sndr, Rcvr> &&
-                  <i>well-formed</i>&lt;<i>inner-ops-tuple</i>, Sndr, Rcvr>;
+                  <i>well-formed</i>&lt;<i>inner-ops-tuple</i>, Sndr, Rcvr>
               struct <i>basic-operation</i> {  // exposition only
                 using tag_t = tag_of_t&lt;Sndr>; // exposition only
 
@@ -5080,10 +5077,13 @@ enum class forward_progress_guarantee {
                 {}
 
                 friend void tag_invoke(start_t, <i>basic-operation</i>& self) noexcept {
-                  auto& [ops...] = self.inner_ops_;
+                  auto& [...ops] = self.inner_ops_;
                   <i>impls-for</i>&lt;tag_t>::<i>start</i>(self.state_, self.rcvr_, ops...);
                 }
               };
+
+              template&lt;class Sndr, class Env>
+              using <i>completion-signatures-for</i> =  <i>see below</i>; // exposition only
 
               template&lt;class Tag, class Data, class... Child> // arguments are not associated entities ([lib.tmpl-heads])
               struct <i>basic-sender</i> {  // exposition only
@@ -5104,11 +5104,11 @@ enum class forward_progress_guarantee {
                 template&lt;same_as&lt;get_completion_signatures_t> GetComplSigsTag,
                          <i>decays-to</i>&lt;<i>basic-sender</i>> Self, class Env>
                 friend auto tag_invoke(GetComplSigsTag, Self&& self, Env&& env) noexcept
-                  -> <i>see below</i> {
+                  -> <i>completion-signatures-for</i>&lt;Self, Env> {
                   return {};
                 }
 
-                [[no_unique_address]] Tag <i>tag</i>;  // exposition only
+                Tag <i>tag</i>;            // exposition only
                 Data <i>data</i>;          // exposition only
                 Child<sub><i>0</i></sub> <i>child<sub>0</sub></i>;      // exposition only
                 Child<sub><i>1</i></sub> <i>child<sub>1</sub></i>;      // exposition only
@@ -5159,9 +5159,8 @@ enum class forward_progress_guarantee {
             with a callable object equal to the following lambda:
 
               <pre highlight="c++">
-              [](auto& state, auto& rcvr, auto&... ops) noexcept -> completion_signatures<> {
+              [](auto& state, auto& rcvr, auto&... ops) noexcept -> void {
                 (execution::start(ops), ...);
-                return {};
               }
               </pre>
 
@@ -5171,25 +5170,27 @@ enum class forward_progress_guarantee {
               <pre highlight="c++">
               []&lt;class Index, class Rcvr, class Tag, class... Args>(
                 Index, auto& state, Rcvr& rcvr, Tag, Args&&... args) noexcept
-                  -> completion_signatures&lt;Tag(Args...)>
-                    requires <i>callable</i>&lt;Tag, Rcvr, Args...> {
+                  -> void requires <i>callable</i>&lt;Tag, Rcvr, Args...> {
                 <i>// Mandates: Index::value == 0</i>
-                tag(std::move(rcvr), std::forward&lt;Args>(args)...); 
-                return {};
+                Tag()(std::move(rcvr), std::forward&lt;Args>(args)...); 
               }
               </pre>
 
-        9. The return type of <code><i>basic-sender</i></code>'s customization of
-            `get_completion_signatures` is computed as follows.
-
-              1. Let `Env` be the type of an environment, let the type `Sndr` be
-                  the (possibly cv- and ref-qualified) type of a specialization
-                  of <code><i>basic-sender</i></code>, and let
-                  <code>Child<sub><i>i</i></sub></code> be the type of the
-                  <code><i>i</i></code>-th child sender of `Sndr`, with the same
-                  cv- and ref-qualifications as `Sndr`.
-
-              2. Let <code>ChildEnv<sub><i>i</i></sub></code> be the type 
+        9. For a subexpression `sndr` let `Sndr` be `decltype((sndr))`. Let
+            `rcvr` be a receiver that has an associated environment of type
+            `Env` such that `sender_in<Sndr, Env>` is `true`.
+            <code><i>completion-signatures-for</i>&lt;Sndr, Env></code> denotes
+            a specialization of `completion_signatures`, the set of whose
+            template arguments correspond to the set of completion operations
+            that are potentially evaluated as a result of calling `start` on the
+            operation state that results from connecting `sndr` and `rcvr`. When
+            `sender_in<Sndr, Env>` is `false`, the type denoted by
+            <code><i>completion-signatures-for</i>&lt;Sndr, Env></code>, if any,
+            is not a specialization of `completion_signatures`. <span
+            class="wg21note">When `sender_in<Sndr, Env>` is `false`,
+            implementations are encouraged to use the type denoted by
+            <code><i>completion-signatures-for</i>&lt;Sndr, Env></code> to
+            communicate to users why.</span>
 
 ### Sender concepts <b>[exec.snd.concepts]</b> ### {#spec-execution.snd.concepts}
 
@@ -5241,15 +5242,15 @@ enum class forward_progress_guarantee {
     </pre>
 
 2. Given a subexpression `sndr`, let `Sndr` be `decltype((sndr))`, let `Env` be
-    the type of an environment, and let `rcvr` be a receiver whose associated
-    environment is `Env`. A completion operation is a <dfn
+    the type of an environment, and let `rcvr` be a receiver with an associated
+    environment `Env`. A completion operation is a <dfn
     export=true>permissible completion</dfn> for `Sndr` and `Env` if its
     completion signature appears in the argument list of the specialization of
     `completion_signatures` denoted by `completion_signatures_of_t<Sndr, Env>`.
-    `Sndr` and `Env` model `sender_in<Sndr, Env>` if connecting `sndr` to `rcvr`
-    and starting the resulting operation state does not cause the potential
-    evaluation of any completion operation on `rcvr` that is not a permissible
-    completion for `Sndr` and `Env`.
+    `Sndr` and `Env` model `sender_in<Sndr, Env>` if all the completion
+    operations that are potentially evaluated by connecting `sndr` to `rcvr` and
+    starting the resulting operation state are permissible completions for
+    `Sndr` and `Env`.
 
 3. A type `Sigs` satisfies and models the exposition-only concept
     <code><i>valid-completion-signatures</i></code> if it names a specialization
@@ -6061,8 +6062,8 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
         </pre>
 
     <span class="wg21note">This causes the `transfer(s, sch)` sender to become
-    `schedule_from(sch, s)` when it is connected with a receiver whose
-    execution domain does not customize `transfer`.</span>
+    `schedule_from(sch, s)` when it is connected with a receiver with an
+    execution domain that does not customize `transfer`.</span>
 
 #### `execution::schedule_from` <b>[exec.schedule.from]</b> #### {#spec-execution.senders.adaptors.schedule_from}
 
@@ -6171,7 +6172,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
         <pre highlight="c++">
         template&lt;>
-        struct <i>impls-for</i>&lt;<i>then-cpo</i>> : <i>default-impls</i> {
+        struct <i>impls-for</i>&lt;decltype(auto(<i>then-cpo</i>))> : <i>default-impls</i> {
           static constexpr auto complete =
             []&lt;class Tag, class... Args>(auto, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
               if constexpr (same_as&lt;Tag, <i>set-cpo</i>>) {
@@ -6180,7 +6181,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
               } else {
                 Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
               }
-            }
+            };
         };
         </pre>
 
@@ -6636,7 +6637,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
     <span class="wg21note">This causes the `when_all_with_variant(s...)` sender
     to become `when_all(into_variant(s)...)` when it is connected with a
-    receiver whose execution domain does not customize
+    receiver with an execution domain that does not customize
     `when_all_with_variant`.</span>
 
 4. Given a pack of subexpressions `s...`, let `S` be an object returned from
