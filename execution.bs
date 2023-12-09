@@ -1148,6 +1148,9 @@ The changes since R7 are as follows:
 
   * The `sender_in<Sndr, Env>` concept requires that `E` satisfies `queryable`.
 
+  * The exposition-only class template <code><i>basic-sender</i></code> is greatly
+    enhanced, and the sender algorithms are respecified in term of it.
+
 ## R7 ## {#r7}
 
 The changes since R6 are as follows:
