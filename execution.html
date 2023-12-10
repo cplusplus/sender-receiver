@@ -2246,7 +2246,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-09">2023-12-09</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-10">2023-12-10</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -5959,7 +5959,8 @@ library:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
   <c- k>concept</c-> <i><c- nc>movable</c-><c- o>-</c-><c- n>value</c-></i> <c- o>=</c->
     <c- n>move_constructible</c-><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
-    <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>,</c-> <c- n>T</c-><c- o>></c-><c- p>;</c->
+    <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>,</c-> <c- n>T</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+    <c- p>(</c-><c- o>!</c-><c- n>is_array_v</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>>></c-><c- p>);</c->
 </pre>
       <li data-md>
        <p>For function types <code class="highlight"><c- n>F1</c-></code> and <code class="highlight"><c- n>F2</c-></code> denoting <code class="highlight"><c- n>R1</c-><c- p>(</c-><c- n>Args1</c-><c- p>...)</c-></code> and <code class="highlight"><c- n>R2</c-><c- p>(</c-><c- n>Args2</c-><c- p>...)</c-></code> respectively, <code class="highlight"><i><c- n>MATCHING</c-><c- o>-</c-><c- n>SIG</c-></i><c- p>(</c-><c- n>F1</c-><c- p>,</c-> <c- n>F2</c-><c- p>)</c-></code> is <code class="highlight">true</code> if and only if <code class="highlight"><c- n>same_as</c-><c- o>&lt;</c-><c- n>R1</c-><c- p>(</c-><c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...),</c-> <c- n>R2</c-><c- p>(</c-><c- n>Args2</c-><c- o>&amp;&amp;</c-><c- p>...)</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
@@ -7720,51 +7721,30 @@ asynchronous operations complete synchronously in their start operation
 with a value completion operation, an error completion operation, or a
 stopped completion operation respectively.</p>
     <li data-md>
-     <p>Let <code class="highlight"><c- n>just</c-><c- o>-</c-><c- n>sender</c-></code> be the class template:</p>
-<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i><c- p>...</c-> <c- n>Ts</c-><c- o>></c-> <c- c1>// arguments are not associated entities ([lib.tmpl-heads])</c->
-<c- k>struct</c-> <i><c- nc>just</c-><c- o>-</c-><c- n>sender</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
-  <c- k>using</c-> <c- n>sender_concept</c-> <c- o>=</c-> <c- n>sender_t</c-><c- p>;</c->
-  <c- k>using</c-> <c- n>completion_signatures</c-> <c- o>=</c->
-    <c- n>execution</c-><c- o>::</c-><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>(</c-><c- n>Ts</c-><c- p>...)</c-><c- o>></c-><c- p>;</c->
-
-  <c- n>tuple</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-> <i><c- n>vs</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>R</c-><c- o>></c-> <c- c1>// arguments are not associated entities ([lib.tmpl-heads])</c->
-  <c- k>struct</c-> <i><c- nc>operation</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
-    <c- n>tuple</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-> <i><c- n>vs</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
-    <c- n>R</c-> <i><c- n>r</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
-
-    <c- k>friend</c-> <c- b>void</c-> <c- nf>tag_invoke</c-><c- p>(</c-><c- n>start_t</c-><c- p>,</c-> <i><c- n>operation</c-></i><c- o>&amp;</c-> <c- n>s</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
-      <c- n>apply</c-><c- p>([</c-><c- o>&amp;</c-><c- n>s</c-><c- p>](</c-><c- n>Ts</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>values</c-><c- p>)</c-> <c- p>{</c->
-        <c- n>Tag</c-><c- p>()(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>s</c-><c- p>.</c-><i><c- n>r</c-></i><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>values</c-><c- p>)...);</c->
-      <c- p>},</c-> <c- n>s</c-><c- p>.</c-><i><c- n>vs</c-></i><c- p>);</c->
-    <c- p>}</c->
-  <c- p>};</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- n>receiver_of</c-><c- o>&lt;</c-><c- n>completion_signatures</c-><c- o>></c-> <c- n>R</c-><c- o>></c->
-    <c- k>requires</c-> <c- p>(</c-><c- n>copy_constructible</c-><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-> <c- o>&amp;&amp;</c-><c- p>...)</c->
-  <c- k>friend</c-> <i><c- n>operation</c-></i><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>></c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>connect_t</c-><c- p>,</c-> <c- k>const</c-> <i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&amp;</c-> <c- n>s</c-><c- p>,</c-> <c- n>R</c-> <c- o>&amp;&amp;</c-> <c- n>r</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>return</c-> <c- p>{</c-> <c- n>s</c-><c- p>.</c-><i><c- n>vs</c-></i><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>(</c-><c- n>r</c-><c- p>)</c-> <c- p>};</c->
-  <c- p>}</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- n>receiver_of</c-><c- o>&lt;</c-><c- n>completion_signatures</c-><c- o>></c-> <c- n>R</c-><c- o>></c->
-  <c- k>friend</c-> <i><c- n>operation</c-></i><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>></c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>connect_t</c-><c- p>,</c-> <i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&amp;&amp;</c-> <c- n>s</c-><c- p>,</c-> <c- n>R</c-> <c- o>&amp;&amp;</c-> <c- n>r</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>return</c-> <c- p>{</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>s</c-><c- p>.</c-><i><c- n>vs</c-></i><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>(</c-><c- n>r</c-><c- p>)</c-> <c- p>};</c->
-  <c- p>}</c->
+     <p>The names <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>just_error</c-></code>, and <code class="highlight"><c- n>just_stopped</c-></code> denote a customization
+point objects. Let <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>cpo</c-></i></code> be one of <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>just_error</c-></code>, or <code class="highlight"><c- n>just_stopped</c-></code>. For a pack of subexpressions <code class="highlight"><c- n>ts</c-></code>, let <code class="highlight"><c- n>Ts</c-></code> be the template parameter pack <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>ts</c-><c- p>))</c-></code>. The expression <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>ts</c-><c- p>...)</c-></code> is ill-formed if:</p>
+     <ul>
+      <li data-md>
+       <p><code class="highlight"><c- p>(</c-><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-> <c- o>&amp;&amp;</c-><c- p>...)</c-></code> is <code class="highlight">false</code>, or</p>
+      <li data-md>
+       <p><code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>cpo</c-></i></code> is <code class="highlight"><c- n>just_error</c-></code> and <code class="highlight"><c- k>sizeof</c-><c- p>...(</c-><c- n>ts</c-><c- p>)</c-> <c- o>==</c-> <c- mi>1</c-></code> is <code class="highlight">false</code>, or</p>
+      <li data-md>
+       <p><code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>cpo</c-></i></code> is <code class="highlight"><c- n>just_stopped</c-></code> and <code class="highlight"><c- k>sizeof</c-><c- p>...(</c-><c- n>ts</c-><c- p>)</c-> <c- o>==</c-> <c- mi>0</c-></code> is <code class="highlight">false</code>;</p>
+     </ul>
+     <p>Otherwise, it is expression-equivalent to <code class="highlight"><i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><i><c- n>just</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>,</c-> <i><c- n>product</c-><c- o>-</c-><c- n>type</c-></i><c- p>{</c-><c- n>vs</c-><c- p>...})</c-></code>.</p>
+    <li data-md>
+     <p>For <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>just_error</c-></code>, and <code class="highlight"><c- n>just_stopped</c-></code>, let <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i></code> be <code class="highlight"><c- n>set_value</c-></code>, <code class="highlight"><c- n>set_error</c-></code>, and <code class="highlight"><c- n>set_stopped</c-></code> respectively. The
+exposition-only class template <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i></code> ([exec.snd.general]) is specialized for <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>cpo</c-></i></code> as
+follows:</p>
+<pre class="highlight"><c- k>template</c-><c- o>&lt;></c->
+<c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_t</c-><c- o>&lt;</c-><i><c- n>just</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>>></c-> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->
+  <c- k>static</c-> <c- k>constexpr</c-> <c- k>auto</c-> <c- n>start</c-> <c- o>=</c->
+    <c- p>[](</c-><c- k>auto</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
+      <c- k>auto</c-><c- o>&amp;</c-> <c- p>[...</c-><c- n>ts</c-><c- p>]</c-> <c- o>=</c-> <c- n>state</c-><c- p>;</c->
+      <i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>ts</c-><c- p>)...);</c->
+    <c- p>};</c->
 <c- p>};</c->
 </pre>
-    <li data-md>
-     <p>The name <code class="highlight"><c- n>just</c-></code> denotes a customization point object. For some pack of
-subexpressions <code class="highlight"><c- n>vs</c-></code>, let <code class="highlight"><c- n>Vs</c-></code> be the template parameter pack <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>vs</c-><c- p>))</c-></code>. <code class="highlight"><c- n>just</c-><c- p>(</c-><c- n>vs</c-><c- p>...)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>,</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Vs</c-><c- o>></c-><c- p>...</c-><c- o>></c-><c- p>({</c-><c- n>vs</c-><c- p>...})</c-></code>.</p>
-    <li data-md>
-     <p>The name <code class="highlight"><c- n>just_error</c-></code> denotes a customization point object. For some
-subexpression <code class="highlight"><c- n>err</c-></code>, let <code class="highlight"><c- n>Err</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>err</c-><c- p>))</c-></code>. <code class="highlight"><c- n>just_error</c-><c- p>(</c-><c- n>err</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>set_error_t</c-><c- p>,</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Err</c-><c- o>>></c-><c- p>({</c-><c- n>err</c-><c- p>})</c-></code>.</p>
-    <li data-md>
-     <p>Then name <code class="highlight"><c- n>just_stopped</c-></code> denotes a customization point object. <code class="highlight"><c- n>just_stopped</c-><c- p>()</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>set_stopped_t</c-><c- o>></c-><c- p>()</c-></code>.</p>
-    <li data-md>
-     <p>When used as the initializer of a structured binding declaration,
-expressions of type <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Ts</c-><c- p>...</c-><c- o>></c-></code> behave as do
-expressions of type <code class="highlight"><i><c- n>basic</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <i><c- n>product</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>>></c-></code>.</p>
    </ol>
    <h5 class="heading settled" data-level="11.9.9.3" id="spec-execution.senders.read"><span class="secno">11.9.9.3. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-></code> <b>[exec.read]</b></span><a class="self-link" href="#spec-execution.senders.read"></a></h5>
    <ol>
@@ -8093,7 +8073,7 @@ expression-equivalent to:</p>
 exposition-only class template <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i></code> ([exec.snd.general]) is specialized for each of <code class="highlight"><c- n>then_t</c-></code>, <code class="highlight"><c- n>upon_error_t</c-></code>,
 and <code class="highlight"><c- n>upon_stopped_t</c-></code> as follows:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;></c->
-<c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>(</c-><i><c- n>then</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>))</c-><c- o>></c-> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->
+<c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_t</c-><c- o>&lt;</c-><i><c- n>then</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>>></c-> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->
   <c- k>static</c-> <c- k>constexpr</c-> <c- k>auto</c-> <c- n>complete</c-> <c- o>=</c->
     <c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c-><c- p>(</c-><c- k>auto</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>fn</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
       <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>same_as</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>></c-><c- p>)</c-> <c- p>{</c->
