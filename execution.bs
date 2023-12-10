@@ -5567,15 +5567,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     1. `tag_invoke_result_t<get_completion_signatures_t, S, E>{}` if that
         expression is well-formed,
 
-        * <i>Mandates:</i>
-            <code><i>valid-completion-signatures</i>&lt;Sigs></code>, where
-            `Sigs` names the type
-            `tag_invoke_result_t<get_completion_signatures_t, S, E>`.
-
     2. Otherwise, `remove_cvref_t<S>::completion_signatures{}` if that expression is well-formed,
-
-        * <i>Mandates:</i> <code><i>valid-completion-signatures</i>&lt;Sigs></code>,
-            where `Sigs` names the type `remove_cvref_t<S>::completion_signatures`.
 
     3. Otherwise, if <code><i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;E>></code>
         is `true`, then:
