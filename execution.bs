@@ -3820,7 +3820,8 @@ template&lt;class C>
         template&lt;class T>
           concept <i>movable-value</i> =
             move_constructible&lt;decay_t&lt;T>> &&
-            constructible_from&lt;decay_t&lt;T>, T>;
+            constructible_from&lt;decay_t&lt;T>, T> &&
+            (!is_array_v&lt;remove_cvref_t&lt;T>>);
         </pre>
 
     3. For function types `F1` and `F2` denoting `R1(Args1...)` and `R2(Args2...)`
@@ -5725,60 +5726,40 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     asynchronous operations complete synchronously in their start operation
     with a value completion operation, an error completion operation, or a
     stopped completion operation respectively.
-   
-2. Let `just-sender` be the class template:
 
-    <pre highlight="c++">
-    template&lt;class Tag, <i>movable-value</i>... Ts> // arguments are not associated entities ([lib.tmpl-heads])
-    struct <i>just-sender</i> { // exposition only
-      using is_sender = <i>unspecified</i>;
-      using completion_signatures =
-        execution::completion_signatures&lt;Tag(Ts...)>;
+2. The names `just`, `just_error`, and `just_stopped` denote a customization
+    point objects. Let <code><i>just-cpo</i></code> be one of `just`,
+    `just_error`, or `just_stopped`. For a pack of subexpressions `ts`, let `Ts`
+    be the template parameter pack `decltype((ts))`. The expression
+    <code><i>just-cpo</i>(ts...)</code> is ill-formed if:
 
-      tuple&lt;Ts...> <i>vs</i>; // exposition only
+        - <code>(<i>movable-value</i>&lt;Ts> &&...)</code> is `false`, or
 
-      template&lt;class R> // arguments are not associated entities ([lib.tmpl-heads])
-      struct <i>operation</i> { // exposition only
-        tuple&lt;Ts...> <i>vs</i>; // exposition only
-        R <i>r</i>; // exposition only
+        - <code><i>just-cpo</i></code> is `just_error` and `sizeof...(ts) == 1`
+            is `false`, or
 
-        friend void tag_invoke(start_t, <i>operation</i>& s) noexcept {
-          apply([&s](Ts&... values) {
-            Tag()(std::move(s.<i>r</i>), std::move(values)...);
-          }, s.<i>vs</i>);
-        }
-      };
+        - <code><i>just-cpo</i></code> is `just_stopped` and `sizeof...(ts) == 0`
+            is `false`;
 
-      template&lt;receiver_of&lt;completion_signatures> R>
-        requires (copy_constructible&ltTs> &&...)
-      friend <i>operation</i>&lt;decay_t&lt;R>> tag_invoke(connect_t, const <i>just-sender</i>& s, R && r) {
-        return { s.<i>vs</i>, std::forward&lt;R>(r) };
-      }
+    Otherwise, it is expression-equivalent to <code><i>make-sender</i>(<i>just-cpo</i>,
+    <i>product-type</i>{vs...})</code>.
 
-      template&lt;receiver_of&lt;completion_signatures> R>
-      friend <i>operation</i>&lt;decay_t&lt;R>> tag_invoke(connect_t, <i>just-sender</i>&& s, R && r) {
-        return { std::move(s.<i>vs</i>), std::forward&lt;R>(r) };
-      }
-    };
-    </pre>
+3. For `just`, `just_error`, and `just_stopped`, let <code><i>set-cpo</i></code>
+    be `set_value`, `set_error`, and `set_stopped` respectively. The
+    exposition-only class template <code><i>impls-for</i></code>
+    ([exec.snd.general]) is specialized for <code><i>just-cpo</i></code> as
+    follows:
 
-3. The name `just` denotes a customization point object. For some pack of
-    subexpressions `vs`, let `Vs` be the template parameter pack
-    `decltype((vs))`. `just(vs...)` is expression-equivalent to
-    <code><i>just-sender</i>&lt;set_value_t,
-    remove_cvref_t&lt;Vs>...>({vs...})</i></code>.
-
-4. The name `just_error` denotes a customization point object. For some
-    subexpression `err`, let `Err` be `decltype((err))`. `just_error(err)` is expression-equivalent to
-    <code><i>just-sender</i>&lt;set_error_t, remove_cvref_t&lt;Err>>({err})</i></code>.
-
-5. Then name `just_stopped` denotes a customization point object. `just_stopped()`
-    is expression-equivalent to
-    <code><i>just-sender</i>&lt;set_stopped_t>()</i></code>.
-
-6. When used as the initializer of a structured binding declaration,
-    expressions of type <code><i>just-sender</i>&lt;Tag, Ts...></code> behave as do
-    expressions of type <code><i>basic-sender</i>&lt;Tag, <i>product-type</i>&lt;Ts...>></code>.
+        <pre highlight="c++">
+        template&lt;>
+        struct <i>impls-for</i>&lt;tag_t&lt;<i>just-cpo</i>>> : <i>default-impls</i> {
+          static constexpr auto start =
+            [](auto& state, auto& rcvr) noexcept -> void {
+              auto& [...ts] = state;
+              <i>set-cpo</i>(std::move(rcvr), std::move(ts)...);
+            };
+        };
+        </pre>
 
 #### `execution::read` <b>[exec.read]</b> #### {#spec-execution.senders.read}
 
@@ -6175,7 +6156,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
         <pre highlight="c++">
         template&lt;>
-        struct <i>impls-for</i>&lt;decltype(auto(<i>then-cpo</i>))> : <i>default-impls</i> {
+        struct <i>impls-for</i>&lt;tag_t&lt;<i>then-cpo</i>>> : <i>default-impls</i> {
           static constexpr auto complete =
             []&lt;class Tag, class... Args>(auto, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
               if constexpr (same_as&lt;Tag, <i>set-cpo</i>>) {
