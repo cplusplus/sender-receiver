@@ -429,7 +429,7 @@ struct recv_op : operation_base {
 };
 
 struct recv_sender {
-    using is_sender = void;
+    using sender_concept = std::execution::sender_t;
     SOCKET sock;
     void* data;
     size_t len;
@@ -533,7 +533,7 @@ class _then_receiver
 
 template<exec::sender S, class F>
 struct _then_sender {
-  using is_sender = void;
+  using sender_concept = exec::sender_t;
   S s_;
   F f_;
 
@@ -656,7 +656,7 @@ struct _op {
 
 template<class S>
 struct _retry_sender {
-  using is_sender = void;
+  using sender_concept = exec::sender_t;
   S s_;
   explicit _retry_sender(S s) : s_((S&&) s) {}
 
@@ -746,7 +746,7 @@ class inline_scheduler {
   };
 
   struct _sender {
-    using is_sender = void;
+    using sender_concept = std::execution::sender_t;
     using completion_signatures =
       std::execution::completion_signatures<std::execution::set_value_t()>;
 
@@ -1148,8 +1148,14 @@ The changes since R7 are as follows:
 
   * The `sender_in<Sndr, Env>` concept requires that `E` satisfies `queryable`.
 
+<b>Enhancements:</b>
+
   * The exposition-only class template <code><i>basic-sender</i></code> is greatly
     enhanced, and the sender algorithms are respecified in term of it.
+
+  * `enable_sender` and `enable_receiver` traits now have default
+    implementations that look for nested `sender_concept` and `receiver_concept`
+    types, respectively.
 
 ## R7 ## {#r7}
 
@@ -4137,6 +4143,8 @@ namespace std::execution {
     concept scheduler = <i>see-below</i>;
 
   // [exec.recv], receivers
+  struct receiver_t {};
+
   template&lt;class R>
     inline constexpr bool enable_receiver = <i>see-below</i>;
 
@@ -4169,6 +4177,8 @@ namespace std::execution {
   inline constexpr start_t start{};
 
   // [exec.snd], senders
+  struct sender_t {};
+
   template&lt;class S>
     inline constexpr bool enable_sender = <i>see below</i>;
 
@@ -4712,10 +4722,11 @@ enum class forward_progress_guarantee {
 
     <pre highlight="c++">
     template&lt;class R>
-      inline constexpr bool enable_receiver =
-        requires {
-          typename R::is_receiver;
-        };
+      concept <i>is-receiver</i> = // exposition only
+        derived_from&lt;typename R::receiver_concept, receiver_t>;
+
+    template&lt;class R>
+      inline constexpr bool enable_receiver = <i>is-receiver</i>&lt;R>;
 
     template&lt;class R>
       concept receiver =
@@ -5208,11 +5219,14 @@ enum class forward_progress_guarantee {
 
     <pre highlight="c++">
     template&lt;class Sigs>
-      concept <i>valid-completion-signatures</i> = <i>see below</i>;
+      concept <i>valid-completion-signatures</i> = <i>see below</i>; // exposition only
 
     template&lt;class S>
-      inline constexpr bool enable_sender =
-        requires { typename S::is_sender; };
+      concept <i>is-sender</i> = // exposition only
+        derived_from&lt;typename S::sender_concept, sender_t>;
+
+    template&lt;class S>
+      inline constexpr bool enable_sender = <i>is-sender</i>&lt;S>;
 
     template&lt;<i>is-awaitable</i>&lt;<i>env-promise</i>&lt;empty_env>> S> <i>// [exec.awaitables]</i>
       inline constexpr bool enable_sender&lt;S> = true;
@@ -5731,7 +5745,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     <pre highlight="c++">
     template&lt;class Tag, <i>movable-value</i>... Ts> // arguments are not associated entities ([lib.tmpl-heads])
     struct <i>just-sender</i> { // exposition only
-      using is_sender = <i>unspecified</i>;
+      using sender_concept = sender_t;
       using completion_signatures =
         execution::completion_signatures&lt;Tag(Ts...)>;
 
@@ -5805,7 +5819,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     <pre highlight="c++">
     template&lt;class Tag>
       struct <i>read-sender</i> { // exposition only
-        using is_sender = <i>unspecified</i>;
+        using sender_concept = sender_t;
         template&lt;class R>
           struct <i>operation-state</i> { // exposition only
             R r_; // exposition only
@@ -6937,7 +6951,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
     <pre highlight="c++">
     struct <i>detached-receiver</i> {
-      using is_receiver = <i>unspecified</i>;
+      using receiver_concept = receiver_t;
       <i>detached-operation</i>* <i>op</i>; // <i>exposition only</i>
 
       friend void tag_invoke(set_value_t, <i>detached-receiver</i>&& self) noexcept { delete self.op; }
@@ -7103,7 +7117,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     class receiver_adaptor {
       friend Derived;
      public:
-      using is_receiver = <i>unspecified</i>;
+      using receiver_concept = receiver_t;
 
       // Constructors
       receiver_adaptor() = default;
@@ -7666,7 +7680,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
             <pre highlight="c++">
             struct <i>awaitable-receiver</i> {
-              using is_receiver = <i>unspecified</i>;
+              using receiver_concept = receiver_t;
               variant&lt;monostate, result_t, exception_ptr>* <i>result_ptr_</i>;
               coroutine_handle&lt;P> <i>continuation_</i>;
               // ... <i>see below</i>
