@@ -2246,7 +2246,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-10">2023-12-10</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-11">2023-12-11</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -7753,51 +7753,17 @@ follows:</p>
 completes synchronously in its start operation with a value completion
 result equal to a value read from the receiver’s associated environment.</p>
     <li data-md>
-     <p><code class="highlight"><c- n>read</c-></code> is a customization point object of the unspecified class type:</p>
-<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- o>></c->
-  <c- k>struct</c-> <i><c- nc>read</c-><c- o>-</c-><c- n>sender</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
-
-<c- k>struct</c-> <i><c- nc>read</c-><c- o>-</c-><c- n>t</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- o>></c->
-    <c- k>constexpr</c-> <i><c- n>read</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- o>></c-> <c- k>operator</c-><c- p>()(</c-><c- n>Tag</c-><c- p>)</c-> <c- k>const</c-> <c- k>noexcept</c-> <c- p>{</c->
-      <c- k>return</c-> <c- p>{};</c->
-    <c- p>}</c->
-<c- p>};</c->
-</pre>
+     <p><code class="highlight"><c- n>read</c-></code> is a customization point object. For some query object <code class="highlight"><c- n>q</c-></code> of type <code class="highlight"><c- n>Q</c-></code>,
+the expression <code class="highlight"><c- n>read</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>read</c-><c- p>,</c-> <c- n>q</c-><c- p>)</c-></code>.</p>
     <li data-md>
-     <p><code class="highlight"><i><c- n>read</c-><c- o>-</c-><c- n>sender</c-></i></code> is the exposition-only class template:</p>
-<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- o>></c->
-  <c- k>struct</c-> <i><c- nc>read</c-><c- o>-</c-><c- n>sender</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
-    <c- k>using</c-> <c- n>sender_concept</c-> <c- o>=</c-> <c- n>sender_t</c-><c- p>;</c->
-    <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>R</c-><c- o>></c->
-      <c- k>struct</c-> <i><c- nc>operation</c-><c- o>-</c-><c- n>state</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
-        <c- n>R</c-> <c- n>r_</c-><c- p>;</c-> <c- c1>// exposition only</c->
-
-        <c- k>friend</c-> <c- b>void</c-> <c- nf>tag_invoke</c-><c- p>(</c-><c- n>start_t</c-><c- p>,</c-> <i><c- n>operation</c-><c- o>-</c-><c- n>state</c-></i><c- o>&amp;</c-> <c- n>s</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
-          <i><c- n>TRY</c-><c- o>-</c-><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>s</c-><c- p>.</c-><c- n>r_</c-><c- p>),</c-> <c- n>Tag</c-><c- p>{}(</c-><c- n>get_env</c-><c- p>(</c-><c- n>s</c-><c- p>.</c-><c- n>r_</c-><c- p>)));</c->
-        <c- p>}</c->
-      <c- p>};</c->
-
-    <c- k>template</c-><c- o>&lt;</c-><c- n>receiver</c-> <c- n>R</c-><c- o>></c->
-    <c- k>friend</c-> <i><c- n>operation</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>></c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>connect_t</c-><c- p>,</c-> <i><c- n>read</c-><c- o>-</c-><c- n>sender</c-></i><c- p>,</c-> <c- n>R</c-> <c- o>&amp;&amp;</c-> <c- n>r</c-><c- p>)</c-> <c- p>{</c->
-      <c- k>return</c-> <c- p>{</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>(</c-><c- n>r</c-><c- p>)</c-> <c- p>};</c->
-    <c- p>}</c->
-
-    <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Env</c-><c- o>></c->
-        <c- k>requires</c-> <i><c- n>callable</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c->
-      <c- k>friend</c-> <c- k>auto</c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>get_completion_signatures_t</c-><c- p>,</c-> <i><c- n>read</c-><c- o>-</c-><c- n>sender</c-></i><c- p>,</c-> <c- n>Env</c-><c- p>)</c->
-        <c- o>-></c-> <c- n>completion_signatures</c-><c- o>&lt;</c->
-          <c- n>set_value_t</c-><c- p>(</c-><i><c- n>call</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-><c- p>),</c-> <c- n>set_error_t</c-><c- p>(</c-><c- n>exception_ptr</c-><c- p>)</c-><c- o>></c-><c- p>;</c-> <i><c- c1>// not defined</c-></i>
-
-    <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Env</c-><c- o>></c->
-        <c- k>requires</c-> <i><c- n>nothrow</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c->
-      <c- k>friend</c-> <c- k>auto</c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>get_completion_signatures_t</c-><c- p>,</c-> <i><c- n>read</c-><c- o>-</c-><c- n>sender</c-></i><c- p>,</c-> <c- n>Env</c-><c- p>)</c->
-        <c- o>-></c-> <c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>(</c-><i><c- n>call</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-><c- p>)</c-><c- o>></c-><c- p>;</c-> <i><c- c1>// not defined</c-></i>
-
-    <c- k>friend</c-> <c- n>empty_env</c-> <c- nf>tag_invoke</c-><c- p>(</c-><c- n>get_env_t</c-><c- p>,</c-> <c- k>const</c-> <i><c- n>read</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&amp;</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
-      <c- k>return</c-> <c- p>{};</c->
-    <c- p>}</c->
+     <p>The exposition-only class template <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i></code> ([exec.snd.general])
+is specialized for <code class="highlight"><c- n>read</c-></code> as follows:</p>
+<pre class="highlight"><c- k>template</c-><c- o>&lt;></c->
+<c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_t</c-><c- o>&lt;</c-><c- n>read</c-><c- o>>></c-> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->
+  <c- k>static</c-> <c- k>constexpr</c-> <c- k>auto</c-> <c- n>start</c-> <c- o>=</c-> <c- p>[](</c-><c- k>auto</c-> <c- n>query</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
+    <i><c- n>TRY</c-><c- o>-</c-><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>query</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)));</c->
   <c- p>};</c->
+<c- p>};</c->
 </pre>
    </ol>
    <h4 class="heading settled" data-level="11.9.10" id="spec-execution.senders.adapt"><span class="secno">11.9.10. </span><span class="content">Sender adaptors <b>[exec.adapt]</b></span><a class="self-link" href="#spec-execution.senders.adapt"></a></h4>
