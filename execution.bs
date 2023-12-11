@@ -5963,43 +5963,36 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
           <i>make-sender</i>(on, sch, s));
         </pre>
 
-    1. If a sender `S` returned from `on(sch, s)` is
-        connected with a receiver `R` with environment `E` such that
-        <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does not return a sender that starts `s` on an execution agent of the associated execution resource of `sch` when
-        started, the behavior of calling `connect(S, R)` is undefined.
+4. Let `out_s` and `e` be subexpressions such that `OutS` is `decltype((out_s))`. If
+    <code><i>sender-for</i>&lt;OutS, on_t></code> is `false`, then the expressions
+    `on_t().transform_env(out_s, e)` and `on_t().transform_sender(out_s, e)` are ill-formed;
+    otherwise:
 
-4. Let `s` and `e` be subexpressions such that `S` is `decltype((s))`. If
-    <code><i>sender-for</i>&lt;S, on_t></code> is `false`, then the expression
-    `on_t().transform_sender(s, e)` is ill-formed; otherwise, it returns a sender `s1`
-    such that when `s1` is connected with some receiver `out_r`, it:
+        - `on_t().transform_env(out_s, e)` is equivalent to:
 
-    1. Constructs a receiver `r` such that:
+            <pre highlight="c++">
+            auto&& [ign1, sch, ign2] = out_s;
+            return <i>replace-scheduler</i>(e, sch);
+            </pre>
 
-        1. When `set_value(r)` is called, it calls `connect(s, r2)`, where `r2` is as specified below, which results in `op_state3`. It calls `start(op_state3)`. If any of these throws an exception, it calls `set_error` on `out_r`, passing `current_exception()` as the second argument.
+        - `on_t().transform_sender(out_s, e)` is equivalent to:
 
-        2. `set_error(r, e)` is expression-equivalent to `set_error(out_r, e)`.
+            <pre highlight="c++">
+            auto&& [ign, sch, s] = out_s;
+            return let_value(
+              schedule(sch),
+              [s = std::forward_like&lt;OutS>(s)]() mutable {
+                return std::move(s);
+              });
+            </pre>
 
-        3. `set_stopped(r)` is expression-equivalent to `set_stopped(out_r)`.
-
-        4. `get_env(r)` is expression-equivalent to `get_env(out_r)`.
-
-    2. Calls `schedule(sch)`, which results in `s2`. It then calls `connect(s2, r)`, resulting in `op_state2`.
-
-    3. `op_state2` is wrapped by a new operation state, `op_state1`, that is returned to the caller.
-
-    4. `r2` is a receiver that wraps a reference to `out_r` and forwards all
-        completion operations to it. In addition, `get_env(r2)` returns
-        <code><i>replace-scheduler</i>(e, sch)</code>.
-
-    5. When `start` is called on `op_state1`, it calls `start` on `op_state2`.
-
-    6. The lifetime of `op_state2`, once constructed, lasts until either `op_state3` is constructed or `op_state1` is destroyed, whichever comes first. The lifetime of `op_state3`, once constructed, lasts until `op_state1` is destroyed.
-
-5. Let `s` and `e` be subexpressions such that `S` is `decltype((s))`. If 
-    <code><i>sender-for</i>&lt;S, on_t></code> is `false`, then the expression
-    `on_t().transform_env(s, e)` is ill-formed;
-    otherwise, let `sch` be the scheduler used to construct `s`.
-    `on_t().transform_env(s, e)` is equal to <code><i>replace-scheduler</i>(e, sch)</code>.
+5. Let `out_s` be a subexpression denoting a sender returned from `on(sch, s)`
+    or one equal to such, and let `OutS` be the type `decltype((out_s))`. Let
+    `out_r` be a subexpression denoting a receiver that has an environment of
+    type `E` such that `sender_in<OutS, E>` is `true`. Let `op` be an lvalue
+    referring to the operation state that results from connecting `out_s` with
+    `out_r`. Calling `start(op)` shall start `s` on an execution agent of
+    the associated execution resource of `sch`.
 
 #### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
 
