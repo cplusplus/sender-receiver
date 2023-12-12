@@ -4242,10 +4242,10 @@ namespace std::execution {
   template&lt;class Domain, sender Sender>
     constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndrv);
 
-  template&lt;class Domain, sender Sender, class Env>
+  template&lt;class Domain, sender Sender, queryable Env>
     constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env& env);
 
-  template&lt;class Domain, sender Sender, class Env>
+  template&lt;class Domain, sender Sender, queryable Env>
     constexpr decltype(auto) transform_env(Domain dom, Sender&& sndr, Env&& env) noexcept;
 
   // [exec.snd.apply], sender algorithm application
@@ -5525,7 +5525,7 @@ template&lt;class Domain, sender Sender, queryable Env>
       <i>ENV</i>...)</code>.
 
 <pre highlight="c++">
-template&lt;class Domain, sender Sender, class Env>
+template&lt;class Domain, sender Sender, queryable Env>
   constexpr decltype(auto) transform_env(Domain dom, Sender&& sndr, Env&& env) noexcept;
 </pre>
 
