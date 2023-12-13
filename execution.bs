@@ -3315,13 +3315,13 @@ template&lt;template&lt;class> class>
   struct <i>check-type-alias-exists</i>; // exposition-only
 
 template&lt;class T>
-  concept stoppable_token = <i>see-below</i>;
+  concept stoppable_token = <i>see below</i>;
 
 template&lt;class T, class CB, class Initializer = CB>
-  concept stoppable_token_for = <i>see-below</i>;
+  concept stoppable_token_for = <i>see below</i>;
 
 template&lt;class T>
-  concept unstoppable_token = <i>see-below</i>;
+  concept unstoppable_token = <i>see below</i>;
 </pre>
 </blockquote>
 </ins>
@@ -4068,7 +4068,7 @@ template&lt;class C>
 namespace std {
   // [exec.general], helper concepts
   template&lt;class T>
-    concept <i>movable-value</i> = <i>see-below</i>; <i>// exposition only</i>
+    concept <i>movable-value</i> = <i>see below</i>; <i>// exposition only</i>
 
   template&lt;class From, class To>
     concept <i>decays-to</i> = same_as&lt;decay_t&lt;From>, To>; <i>// exposition only</i>
@@ -4141,19 +4141,19 @@ namespace std::execution {
 
   // [exec.sched], schedulers
   template&lt;class S>
-    concept scheduler = <i>see-below</i>;
+    concept scheduler = <i>see below</i>;
 
   // [exec.recv], receivers
   struct receiver_t {};
 
   template&lt;class R>
-    inline constexpr bool enable_receiver = <i>see-below</i>;
+    inline constexpr bool enable_receiver = <i>see below</i>;
 
   template&lt;class R>
-    concept receiver = <i>see-below</i>;
+    concept receiver = <i>see below</i>;
 
   template&lt;class R, class Completions>
-    concept receiver_of = <i>see-below</i>;
+    concept receiver_of = <i>see below</i>;
 
   namespace <i>receivers</i> { // exposition only
     struct set_value_t;
@@ -4169,7 +4169,7 @@ namespace std::execution {
 
   // [exec.opstate], operation states
   template&lt;class O>
-    concept operation_state = <i>see-below</i>;
+    concept operation_state = <i>see below</i>;
 
   namespace <i>op-state</i> { // exposition only
     struct start_t;
@@ -4184,13 +4184,13 @@ namespace std::execution {
     inline constexpr bool enable_sender = <i>see below</i>;
 
   template&lt;class S>
-    concept sender = <i>see-below</i>;
+    concept sender = <i>see below</i>;
 
   template&lt;class S, class E = empty_env>
-    concept sender_in = <i>see-below</i>;
+    concept sender_in = <i>see below</i>;
 
   template&lt;class S, class R>
-    concept sender_to = <i>see-below</i>;
+    concept sender_to = <i>see below</i>;
 
   template&lt;class... Ts>
     struct <i>type-list</i>; // exposition only
@@ -4419,9 +4419,9 @@ namespace std::this_thread {
     struct <i>sync-wait-env</i>; <i>// exposition only</i>
     template&lt;class S>
         requires sender_in&lt;S, <i>sync-wait-env</i>>
-      using <i>sync-wait-type</i> = <i>see-below</i>; <i>// exposition only</i>
+      using <i>sync-wait-type</i> = <i>see below</i>; <i>// exposition only</i>
     template&lt;class S>
-      using <i>sync-wait-with-variant-type</i> = <i>see-below</i>; <i>// exposition only</i>
+      using <i>sync-wait-with-variant-type</i> = <i>see below</i>; <i>// exposition only</i>
 
     struct sync_wait_t;
     struct sync_wait_with_variant_t;
@@ -7718,7 +7718,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
         }
 
         template&lt;class Value>
-        <i>see-below</i> await_transform(Value&& value);
+        <i>see below</i> await_transform(Value&& value);
 
        private:
         // exposition only
