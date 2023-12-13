@@ -5466,13 +5466,13 @@ expression-equivalent [defns.expression-equivalent] to <code class="highlight"><
   <c- k>struct</c-> <i><c- nc>check</c-><c- o>-</c-><c- n>type</c-><c- o>-</c-><c- n>alias</c-><c- o>-</c-><c- n>exists</c-></i><c- p>;</c-> <c- c1>// exposition-only</c->
 
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
-  <c- k>concept</c-> <c- nc>stoppable_token</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
+  <c- k>concept</c-> <c- nc>stoppable_token</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- p>,</c-> <c- k>class</c-> <c- nc>CB</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Initializer</c-> <c- o>=</c-> <c- n>CB</c-><c- o>></c->
-  <c- k>concept</c-> <c- nc>stoppable_token_for</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
+  <c- k>concept</c-> <c- nc>stoppable_token_for</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
-  <c- k>concept</c-> <c- nc>unstoppable_token</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
+  <c- k>concept</c-> <c- nc>unstoppable_token</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 </pre>
     </blockquote>
    </ins>
@@ -6167,7 +6167,7 @@ whose return type is not the type of a sender.</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-> <c- p>{</c->
   <c- c1>// [exec.general], helper concepts</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
-    <c- k>concept</c-> <i><c- nc>movable</c-><c- o>-</c-><c- n>value</c-></i> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
+    <c- k>concept</c-> <i><c- nc>movable</c-><c- o>-</c-><c- n>value</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>From</c-><c- p>,</c-> <c- k>class</c-> <c- nc>To</c-><c- o>></c->
     <c- k>concept</c-> <i><c- nc>decays</c-><c- o>-</c-><c- n>to</c-></i> <c- o>=</c-> <c- n>same_as</c-><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>From</c-><c- o>></c-><c- p>,</c-> <c- n>To</c-><c- o>></c-><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
@@ -6240,19 +6240,19 @@ whose return type is not the type of a sender.</p>
 
   <c- c1>// [exec.sched], schedulers</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>S</c-><c- o>></c->
-    <c- k>concept</c-> <c- nc>scheduler</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
+    <c- k>concept</c-> <c- nc>scheduler</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- c1>// [exec.recv], receivers</c->
   <c- k>struct</c-> <c- nc>receiver_t</c-> <c- p>{};</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>R</c-><c- o>></c->
-    <c- kr>inline</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- n>enable_receiver</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
+    <c- kr>inline</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- n>enable_receiver</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>R</c-><c- o>></c->
-    <c- k>concept</c-> <c- nc>receiver</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
+    <c- k>concept</c-> <c- nc>receiver</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>R</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Completions</c-><c- o>></c->
-    <c- k>concept</c-> <c- nc>receiver_of</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
+    <c- k>concept</c-> <c- nc>receiver_of</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- k>namespace</c-> <i><c- nn>receivers</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
     <c- k>struct</c-> <c- nc>set_value_t</c-><c- p>;</c->
@@ -6268,7 +6268,7 @@ whose return type is not the type of a sender.</p>
 
   <c- c1>// [exec.opstate], operation states</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>O</c-><c- o>></c->
-    <c- k>concept</c-> <c- nc>operation_state</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
+    <c- k>concept</c-> <c- nc>operation_state</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- k>namespace</c-> <i><c- nn>op</c-><c- o>-</c-><c- nn>state</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
     <c- k>struct</c-> <c- nc>start_t</c-><c- p>;</c->
@@ -6283,13 +6283,13 @@ whose return type is not the type of a sender.</p>
     <c- kr>inline</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- n>enable_sender</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>S</c-><c- o>></c->
-    <c- k>concept</c-> <c- nc>sender</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
+    <c- k>concept</c-> <c- nc>sender</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>S</c-><c- p>,</c-> <c- k>class</c-> <c- nc>E</c-> <c- o>=</c-> <c- n>empty_env</c-><c- o>></c->
-    <c- k>concept</c-> <c- nc>sender_in</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
+    <c- k>concept</c-> <c- nc>sender_in</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>S</c-><c- p>,</c-> <c- k>class</c-> <c- nc>R</c-><c- o>></c->
-    <c- k>concept</c-> <c- nc>sender_to</c-> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c->
+    <c- k>concept</c-> <c- nc>sender_to</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>Ts</c-><c- o>></c->
     <c- k>struct</c-> <i><c- nc>type</c-><c- o>-</c-><c- n>list</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
@@ -6518,9 +6518,9 @@ whose return type is not the type of a sender.</p>
     <c- k>struct</c-> <i><c- nc>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>env</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
     <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>S</c-><c- o>></c->
         <c- k>requires</c-> <c- n>sender_in</c-><c- o>&lt;</c-><c- n>S</c-><c- p>,</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>env</c-></i><c- o>></c->
-      <c- k>using</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
+      <c- k>using</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
     <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>S</c-><c- o>></c->
-      <c- k>using</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>with</c-><c- o>-</c-><c- n>variant</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
+      <c- k>using</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>with</c-><c- o>-</c-><c- n>variant</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
 
     <c- k>struct</c-> <c- nc>sync_wait_t</c-><c- p>;</c->
     <c- k>struct</c-> <c- nc>sync_wait_with_variant_t</c-><c- p>;</c->
@@ -9491,7 +9491,7 @@ expression in a coroutine with promise type <code class="highlight"><c- n>P</c->
     <c- p>}</c->
 
     <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Value</c-><c- o>></c->
-    <i><c- n>see</c-><c- o>-</c-><c- n>below</c-></i> <c- n>await_transform</c-><c- p>(</c-><c- n>Value</c-><c- o>&amp;&amp;</c-> <c- n>value</c-><c- p>);</c->
+    <i><c- n>see</c-> <c- n>below</c-></i> <c- n>await_transform</c-><c- p>(</c-><c- n>Value</c-><c- o>&amp;&amp;</c-> <c- n>value</c-><c- p>);</c->
 
    <c- k>private</c-><c- o>:</c->
     <c- c1>// exposition only</c->
