@@ -4883,7 +4883,19 @@ enum class forward_progress_guarantee {
 
           - otherwise, `tag_invoke(q, e3, as...)` is ill-formed.
 
-    4. For two subexpressions `r` and `e`, let <code><i>SET-VALUE</i>(r,
+    4. For a scheduler `sch`, let <code><i>SCHED-ATTRS</i>(sch)</code> be a
+        queryable object `o1` such that
+        <code>tag_invoke(get_completion_scheduler&lt;<i>Tag</i>>, o1)</code> is a
+        prvalue with the same type and value as `sch` where <i>`Tag`</i> is one
+        of `set_value_t` or `set_stopped_t`; and let
+        <code>tag_invoke(get_domain, o1)</code> be expression-equivalent to
+        <code>tag_invoke(get_domain, sch)</code>. Let
+        <code><i>SCHED-ENV</i>(sch)</code> be a queryable object `o2` such that
+        <code>tag_invoke(get_scheduler, o2)</code> is a prvalue with the same
+        type and value as `sch`, and let <code>tag_invoke(get_domain, o2)</code>
+        be expression-equivalent to <code>tag_invoke(get_domain, sch)</code>.
+
+    5. For two subexpressions `r` and `e`, let <code><i>SET-VALUE</i>(r,
         e)</code> be `(e, set_value(r))` if the type of `e` is `void`;
         otherwise, it is `set_value(r, e)`. Let <code><i>TRY-SET-VALUE</i>(r,
         e)</code> be:
@@ -4899,7 +4911,7 @@ enum class forward_progress_guarantee {
         if `e` is potentially-throwing, except that `r` is evaluated only once;
         or <code><i>SET-VALUE</i>(r, e)</code> otherwise.
 
-    5.  <pre highlight="c++">
+    6.  <pre highlight="c++">
         template&lt;class Default = default_domain, class Sender>
         constexpr auto <i>completion-domain</i>(const Sender& sndr) noexcept;
         </pre>
@@ -4917,7 +4929,7 @@ enum class forward_progress_guarantee {
             prvalue of type `Default`.
             Otherwise, <code><i>completion-domain</i>&lt;Default>(sndr)</code> is ill-formed.
 
-    6.  <pre highlight="c++">
+    7.  <pre highlight="c++">
         template&lt;class Tag, class Env, class Default>
         constexpr decltype(auto) <i>query-with-default</i>(Tag, const Env& env, Default&& value) noexcept(<i>see below</i>);
         </pre>
@@ -4935,7 +4947,7 @@ enum class forward_progress_guarantee {
                                                 : is_nothrow_constructible_v&lt;Default, Default>
                 </pre>
 
-    7.  <pre highlight="c++">
+    8.  <pre highlight="c++">
         template&lt;class Sender>
         constexpr auto <i>get-domain-early</i>(const Sender& sndr) noexcept;
         </pre>
@@ -4948,7 +4960,7 @@ enum class forward_progress_guarantee {
 
             - `return default_domain();`
 
-    8.  <pre highlight="c++">
+    9.  <pre highlight="c++">
         template&lt;class Sender, class Env>
         constexpr auto <i>get-domain-late</i>(const Sender& sndr, const Env& env) noexcept;
         </pre>
@@ -4975,7 +4987,7 @@ enum class forward_progress_guarantee {
             its predecessor, using only its destination scheduler to select a customization. *--end note*]
 
 
-    9.  <pre highlight="c++">
+    10. <pre highlight="c++">
         template&lt;class... T>
         struct <i>product-type</i> {
           T<sub><i>0</i></sub> <i>t<sub>0</sub></i>;      // exposition only
@@ -4988,7 +5000,7 @@ enum class forward_progress_guarantee {
         - <span class="wg21note">An expression of type <code><i>product-type</i></code> is usable as the initializer
             of a structured binding declaration [dcl.struct.bind].</span>
 
-    10. <pre highlight="c++">
+    11. <pre highlight="c++">
         template &lt;semiregular Tag, <i>movable-value</i> Data, sender... Child>
         constexpr auto <i>make-sender</i>(Tag, Data&& data, Child&&... child);
         </pre>
@@ -5908,15 +5920,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 1. `on` adapts an input sender into a sender that will start on an execution
     agent belonging to a particular scheduler's associated execution resource.
 
-2. Let <code><i>replace-scheduler</i>(e, sch)</code> be an expression denoting
-    an object `e2` such that `get_scheduler(e2)` returns a copy of `sch`,
-    `get_domain(e2)` is expression-equivalent to `get_domain(sch)`, and
-    `tag_invoke(tag, e2, args...)` is expression-equivalent to `tag(e, args...)`
-    for all arguments `args...` and for all `tag` whose type satisfies
-    <code><i>forwarding-query</i></code> and is not `get_scheduler_t` or
-    `get_domain_t`.
-
-3. The name `on` denotes a customization point object. For some subexpressions
+2. The name `on` denotes a customization point object. For some subexpressions
     `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If
     `Sch` does not satisfy `scheduler`, or `S` does not satisfy `sender`,
     `on(sch, s)` is ill-formed. Otherwise, the expression `on(sch, s)` is
@@ -5928,7 +5932,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
           <i>make-sender</i>(on, sch, s));
         </pre>
 
-4. Let `out_s` and `e` be subexpressions such that `OutS` is `decltype((out_s))`. If
+3. Let `out_s` and `e` be subexpressions such that `OutS` is `decltype((out_s))`. If
     <code><i>sender-for</i>&lt;OutS, on_t></code> is `false`, then the expressions
     `on_t().transform_env(out_s, e)` and `on_t().transform_sender(out_s, e)` are ill-formed;
     otherwise:
@@ -5937,7 +5941,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
             <pre highlight="c++">
             auto&& [ign1, sch, ign2] = out_s;
-            return <i>replace-scheduler</i>(e, sch);
+            return <i>JOIN-ENV</i>(<i>SCHED-ENV</i>(sch), <i>FWD-ENV</i>(e));
             </pre>
 
         - `on_t().transform_sender(out_s, e)` is equivalent to:
@@ -5951,13 +5955,14 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
               });
             </pre>
 
-5. Let `out_s` be a subexpression denoting a sender returned from `on(sch, s)`
+4. Let `out_s` be a subexpression denoting a sender returned from `on(sch, s)`
     or one equal to such, and let `OutS` be the type `decltype((out_s))`. Let
     `out_r` be a subexpression denoting a receiver that has an environment of
     type `E` such that `sender_in<OutS, E>` is `true`. Let `op` be an lvalue
     referring to the operation state that results from connecting `out_s` with
-    `out_r`. Calling `start(op)` shall start `s` on an execution agent of
-    the associated execution resource of `sch`.
+    `out_r`. Calling `start(op)` shall start `s` on an execution agent of the
+    associated execution resource of `sch`, or failing that, shall execute an
+    error completion on `out_r`.
 
 #### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
 
@@ -5977,25 +5982,18 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
           <i>make-sender</i>(transfer, sch, s));
         </pre>
 
-    If a sender `S` returned from `transfer(s, sch)` is connected with a
-    receiver `R` with environment `E` such that
-    <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does not
-    return a sender that is a result of a call to
-    <code>transform_sender(<i>get-domain-late</i>(S, E), schedule_from(sch, s2), E)</code>,
-    where `s2` is a sender that sends values equal to those sent by `s`,
-    the behavior of calling `connect(S, R)` is undefined.
+3. The exposition-only class template <code><i>impls-for</i></code> is specialized
+    for `transform_t` as follows:
 
-3. For a sender `t` returned from `transfer(s, sch)`, `get_env(t)` shall return
-    a queryable object `q` such that `get_domain(q)` is expression-equivalent to
-    `get_domain(sch)` and `get_completion_scheduler<CPO>(q)` returns a copy of
-    `sch`, where `CPO` is either `set_value_t` or `set_stopped_t`. <span
-    class="wg21note">The `get_completion_scheduler<set_error_t>` query is not
-    implemented, as the scheduler cannot be guaranteed in case an error is
-    thrown while trying to schedule work on the given scheduler object.</span>
-    For all other query objects <code><i>Q</i></code> whose type satisfies
-    <code><i>forwarding-query</i></code>, the expression <code><i>Q</i>(q,
-    args...)</code> shall be equivalent to <code><i>Q</i>(get_env(s),
-    args...)</code>.
+        <pre highlight="c++">
+        template&lt;>
+        struct <i>impls-for</i>&lt;transform_t> : <i>default-impls</i> {
+          static constexpr auto get_attrs =
+            [](const auto& data, const auto& child) noexcept -> decltype(auto) {
+              return <i>JOIN-ENV</i>(<i>SCHED-ATTRS</i>(data), <i>FWD-ENV</i>(get_env(child)));
+            };
+        };
+        </pre>
 
 4. Let `s` and `e` be subexpressions such that `S` is `decltype((s))`. If
     <code><i>sender-for</i>&lt;S, transfer_t></code> is `false`, then the expression
@@ -6003,8 +6001,6 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     is equal to:
 
         <pre highlight="c++">
-        const auto& env = e;
-        auto domain = <i>get-domain-late</i>(s, env);
         auto [tag, data, child] = s;
         return schedule_from(std::move(data), std::move(child));
         </pre>
@@ -6012,6 +6008,16 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     <span class="wg21note">This causes the `transfer(s, sch)` sender to become
     `schedule_from(sch, s)` when it is connected with a receiver with an
     execution domain that does not customize `transfer`.</span>
+
+4. Let `out_s` be a subexpression denoting a sender returned from `transfer(s, sch)`
+    or one equal to such, and let `OutS` be the type `decltype((out_s))`. Let
+    `out_r` be a subexpression denoting a receiver that has an environment of
+    type `E` such that `sender_in<OutS, E>` is `true`. Let `op` be an lvalue
+    referring to the operation state that results from connecting `out_s` with
+    `out_r`. Calling `start(op)` shall start `s` on the current execution agent
+    and execute completion operations on `out_r` on an execution agent of the
+    associated execution resource of `sch`; or failing that, execute an error
+    completion on `out_r`.
 
 #### `execution::schedule_from` <b>[exec.schedule.from]</b> #### {#spec-execution.senders.adaptors.schedule_from}
 
