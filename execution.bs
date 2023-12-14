@@ -3847,24 +3847,24 @@ template&lt;class C>
     queryable object is valid. <span class="wg21note">A query imposes syntactic
     and semantic requirements on its invocations.</span>
 
-2. Given a subexpression `e` that refers to a queryable object `o`, a query
+2. Given a subexpression `env` that refers to a queryable object `o`, a query
     object <code><i>q</i></code>, and a (possibly empty) pack of subexpressions
-    `args`, the expression <code><i>q</i>(e, args...)</code> is equal to
+    `args`, the expression <code><i>q</i>(env, args...)</code> is equal to
     ([concepts.equality]) the expression <code><i>q</i>(c, args...)</code> where
     `c` is a `const` lvalue reference to `o`.
 
 3. The type of a query expression can not be `void`.
 
-4. The expression <code><i>q</i>(e, args...)</code> is equality-preserving
+4. The expression <code><i>q</i>(env, args...)</code> is equality-preserving
     ([concepts.equality]) and does not modify the function object or the
     arguments.
 
-5. If <code>tag_invoke(<i>q</i>, e, args...)</code> is well-formed, then
-    <code><i>q</i>(e, args...)</code> is expression-equivalent to
-    <code>tag_invoke(<i>q</i>, e, args...)</code>.
+5. If <code>tag_invoke(<i>q</i>, env, args...)</code> is well-formed, then
+    <code><i>q</i>(env, args...)</code> is expression-equivalent to
+    <code>tag_invoke(<i>q</i>, env, args...)</code>.
 
 6. Unless otherwise specified, the value returned by the expression
-    <code><i>q</i>(e, args...)</code> is valid as long as `e` is valid.
+    <code><i>q</i>(env, args...)</code> is valid as long as `env` is valid.
 
 ### `queryable` concept <b>[exec.queryable.concept]</b> ### {#spec-execution.queryable.concept}
 
@@ -3876,10 +3876,10 @@ template&lt;class C>
 1. The `queryable` concept specifies the constraints on the types of queryable
     objects.
 
-2. Let `e` be an object of type `E`. The type `E` models `queryable` if for each
+2. Let `env` be an object of type `Env`. The type `Env` models `queryable` if for each
     callable object <code><i>q</i></code> and a pack of subexpressions `args`,
-    if <code>requires { <i>q</i>(e, args...) }</code> is `true` then
-    <code><i>q</i>(e, args...)</code> meets any semantic requirements imposed by
+    if <code>requires { <i>q</i>(env, args...) }</code> is `true` then
+    <code><i>q</i>(env, args...)</code> meets any semantic requirements imposed by
     <code><i>q</i></code>.
 
 ## Asynchronous operations <b>[async.ops]</b> ## {#spec-execution-async.ops}
@@ -4036,11 +4036,11 @@ template&lt;class C>
     let `c` be the completion operation <code><i>set</i>(<i>rcvr</i>,
     <i>args</i>...)</code>, and let `F` be the function type
     <code>decltype(auto(<i>set</i>))(decltype((<i>args</i>))...)</code>.
-    A completion signature `S` is associated with `c` if and only if
-    <code><i>MATCHING-SIG</i>(S, F)</code> is `true` ([exec.general]). Together,
-    a sender type and an environment type `E` determine the set of completion
+    A completion signature `Sndr` is associated with `c` if and only if
+    <code><i>MATCHING-SIG</i>(Sndr, F)</code> is `true` ([exec.general]). Together,
+    a sender type and an environment type `Env` determine the set of completion
     signatures of an asynchronous operation that results from connecting the
-    sender with a receiver that has an environment of type `E`. <span
+    sender with a receiver that has an environment of type `Env`. <span
     class="wg21note">The type of the receiver does not affect an asychronous
     operation's completion signatures, only the type of the receiver's
     environment.</span>
@@ -4140,19 +4140,19 @@ namespace std::execution {
   struct default_domain;
 
   // [exec.sched], schedulers
-  template&lt;class S>
+  template&lt;class Sndr>
     concept scheduler = <i>see below</i>;
 
   // [exec.recv], receivers
   struct receiver_t {};
 
-  template&lt;class R>
+  template&lt;class Rcvr>
     inline constexpr bool enable_receiver = <i>see below</i>;
 
-  template&lt;class R>
+  template&lt;class Rcvr>
     concept receiver = <i>see below</i>;
 
-  template&lt;class R, class Completions>
+  template&lt;class Rcvr, class Completions>
     concept receiver_of = <i>see below</i>;
 
   namespace <i>receivers</i> { // exposition only
@@ -4180,25 +4180,25 @@ namespace std::execution {
   // [exec.snd], senders
   struct sender_t {};
 
-  template&lt;class S>
+  template&lt;class Sndr>
     inline constexpr bool enable_sender = <i>see below</i>;
 
-  template&lt;class S>
+  template&lt;class Sndr>
     concept sender = <i>see below</i>;
 
-  template&lt;class S, class E = empty_env>
+  template&lt;class Sndr, class Env = empty_env>
     concept sender_in = <i>see below</i>;
 
-  template&lt;class S, class R>
+  template&lt;class Sndr, class Rcvr>
     concept sender_to = <i>see below</i>;
 
   template&lt;class... Ts>
     struct <i>type-list</i>; // exposition only
 
-  template&lt;class S, class E = empty_env>
+  template&lt;class Sndr, class Env = empty_env>
     using <i>single-sender-value-type</i> = <i>see below</i>; // exposition only
 
-  template&lt;class S, class E = empty_env>
+  template&lt;class Sndr, class Env = empty_env>
     concept <i>single-sender</i> = <i>see below</i>; // exposition only
 
   // [exec.getcomplsigs], completion signatures
@@ -4208,9 +4208,9 @@ namespace std::execution {
   using <i>completion-signatures</i>::get_completion_signatures_t;
   inline constexpr get_completion_signatures_t get_completion_signatures {};
 
-  template&lt;class S, class E = empty_env>
-      requires sender_in&lt;S, E>
-    using completion_signatures_of_t = <i>call-result-t</i>&lt;get_completion_signatures_t, S, E>;
+  template&lt;class Sndr, class Env = empty_env>
+      requires sender_in&lt;Sndr, Env>
+    using completion_signatures_of_t = <i>call-result-t</i>&lt;get_completion_signatures_t, Sndr, Env>;
 
   template&lt;class... Ts>
     using <i>decayed-tuple</i> = tuple&lt;decay_t&lt;Ts>...>; // exposition only
@@ -4218,39 +4218,39 @@ namespace std::execution {
   template&lt;class... Ts>
     using <i>variant-or-empty</i> = <i>see below</i>; // exposition only
 
-  template&lt;class S,
-           class E = empty_env,
+  template&lt;class Sndr,
+           class Env = empty_env,
            template&lt;class...> class Tuple = <i>decayed-tuple</i>,
            template&lt;class...> class Variant = <i>variant-or-empty</i>>
-      requires sender_in&lt;S, E>
+      requires sender_in&lt;Sndr, Env>
     using value_types_of_t = <i>see below</i>;
 
-  template&lt;class S,
+  template&lt;class Sndr,
            class Env = empty_env,
            template&lt;class...> class Variant = <i>variant-or-empty</i>>
-      requires sender_in&lt;S, E>
+      requires sender_in&lt;Sndr, Env>
     using error_types_of_t = <i>see below</i>;
 
-  template&lt;class S, class E = empty_env>
-      requires sender_in&lt;S, E>
+  template&lt;class Sndr, class Env = empty_env>
+      requires sender_in&lt;Sndr, Env>
     inline constexpr bool sends_stopped = <i>see below</i>;
 
-  template &lt;sender Sender>
+  template &lt;sender Sndr>
     using tag_of_t = see below;
 
   // [exec.snd.transform], sender transformations
-  template&lt;class Domain, sender Sender>
-    constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndrv);
+  template&lt;class Domain, sender Sndr>
+    constexpr sender decltype(auto) transform_sender(Domain dom, Sndr&& sndrv);
 
-  template&lt;class Domain, sender Sender, queryable Env>
-    constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env& env);
+  template&lt;class Domain, sender Sndr, queryable Env>
+    constexpr sender decltype(auto) transform_sender(Domain dom, Sndr&& sndr, const Env& env);
 
-  template&lt;class Domain, sender Sender, queryable Env>
-    constexpr decltype(auto) transform_env(Domain dom, Sender&& sndr, Env&& env) noexcept;
+  template&lt;class Domain, sender Sndr, queryable Env>
+    constexpr decltype(auto) transform_env(Domain dom, Sndr&& sndr, Env&& env) noexcept;
 
   // [exec.snd.apply], sender algorithm application
-  template&lt;class Domain, class Tag, sender Sender, class... Args>
-    constexpr decltype(auto) apply_sender(Domain dom, Tag, Sender&& sndr, Args&&... args) noexcept(<i>see below</i>);
+  template&lt;class Domain, class Tag, sender Sndr, class... Args>
+    constexpr decltype(auto) apply_sender(Domain dom, Tag, Sndr&& sndr, Args&&... args) noexcept(<i>see below</i>);
 
   // [exec.connect], the connect sender algorithm
   namespace <i>senders-connect</i> { // exposition only
@@ -4259,8 +4259,8 @@ namespace std::execution {
   using <i>senders-connect</i>::connect_t;
   inline constexpr connect_t connect{};
 
-  template&lt;class S, class R>
-    using connect_result_t = decltype(connect(declval&lt;S>(), declval&lt;R>()));
+  template&lt;class Sndr, class Rcvr>
+    using connect_result_t = decltype(connect(declval&lt;Sndr>(), declval&lt;Rcvr>()));
 
   // [exec.factories], sender factories
   namespace <i>sender-factories</i> { // exposition only
@@ -4276,8 +4276,8 @@ namespace std::execution {
   inline constexpr schedule_t schedule{};
   inline constexpr <i>unspecified</i> read{};
 
-  template&lt;scheduler S>
-    using schedule_result_t = decltype(schedule(declval&lt;S>()));
+  template&lt;scheduler Sndr>
+    using schedule_result_t = decltype(schedule(declval&lt;Sndr>()));
 
   // [exec.adapt], sender adaptors
   namespace <i>sender-adaptor-closure</i> { // exposition only
@@ -4417,10 +4417,10 @@ namespace std::this_thread {
 
   namespace <i>this-thread</i> { <i>// exposition only</i>
     struct <i>sync-wait-env</i>; <i>// exposition only</i>
-    template&lt;class S>
-        requires sender_in&lt;S, <i>sync-wait-env</i>>
+    template&lt;class Sndr>
+        requires sender_in&lt;Sndr, <i>sync-wait-env</i>>
       using <i>sync-wait-type</i> = <i>see below</i>; <i>// exposition only</i>
-    template&lt;class S>
+    template&lt;class Sndr>
       using <i>sync-wait-with-variant-type</i> = <i>see below</i>; <i>// exposition only</i>
 
     struct sync_wait_t;
@@ -4472,24 +4472,6 @@ namespace std::execution {
 
 ## Queries <b>[exec.queries]</b> ## {#spec-execution.queries}
 
-### `std::get_env` <b>[exec.get.env]</b> ### {#spec-execution.environment.get_env}
-
-1. `get_env` is a customization point object. For some subexpression `o` of type
-    `O`, `get_env(o)` is expression-equivalent to
-
-    1. `tag_invoke(std::get_env, const_cast<const O&>(o))` if that expression is
-        well-formed.
-
-        * <i>Mandates:</i> The expression above is not potentially throwing, and
-            its type satisfies `queryable` ([exec.queryable]).
-
-    2. Otherwise, `empty_env{}`.
-
-2. The value of `get_env(o)` shall be valid while `o` is valid.
-
-3. When passed a sender object, `get_env` returns the sender's attributes. When
-    passed a receiver, `get_env` returns the receiver's environment.
-
 ### `std::forwarding_query` <b>[exec.fwd.env]</b> ### {#spec-execution.forwarding_query}
 
 1. `forwarding_query` asks a query object whether it should be forwarded
@@ -4514,47 +4496,65 @@ namespace std::execution {
 
 1. `get_allocator` asks an object for its associated allocator.
 
-2. The name `get_allocator` denotes a query object. For some subexpression `r`,
-    `get_allocator(r)` is expression-equivalent to
-    <code><i>mandate-nothrow-call</i>(tag_invoke, std::get_allocator,
-    as_const(r))</code>.
+2. The name `get_allocator` denotes a query object. For some subexpression `env`,
+    `get_allocator(env)` is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, get_allocator,
+    as_const(env))</code>.
 
         * <i>Mandates:</i> The type of the expression above
             satisfies <i>Allocator</i>.
 
-3. `forwarding_query(std::get_allocator)` is `true`.
+3. `forwarding_query(get_allocator)` is `true`.
 
 4. `get_allocator()` (with no arguments) is expression-equivalent to
-    `execution::read(std::get_allocator)` ([exec.read]).
+    `execution::read(get_allocator)` ([exec.read]).
 
 ### `std::get_stop_token` <b>[exec.get.stop.token]</b> ### {#spec-execution.get_stop_token}
 
 1. `get_stop_token` asks an object for an associated stop token.
 
-2. The name `get_stop_token` denotes a query object. For some subexpression `r`,
-    `get_stop_token(r)` is expression-equivalent to:
+2. The name `get_stop_token` denotes a query object. For some subexpression `env`,
+    `get_stop_token(env)` is expression-equivalent to:
 
-    1. <code><i>mandate-nothrow-call</i>(tag_invoke, std::get_stop_token,
-        as_const(r))</code>, if this expression is well-formed.
+    1. <code><i>mandate-nothrow-call</i>(tag_invoke, get_stop_token,
+        as_const(env))</code>, if this expression is well-formed.
 
         * <i>Mandates:</i> The type of the expression above satisfies
             `stoppable_token`.
 
     2. Otherwise, `never_stop_token{}`.
 
-3. `forwarding_query(std::get_stop_token)` is a core constant
+3. `forwarding_query(get_stop_token)` is a core constant
     expression and has value `true`.
 
 4. `get_stop_token()` (with no arguments) is expression-equivalent to
-    `execution::read(std::get_stop_token)` ([exec.read]).
+    `execution::read(get_stop_token)` ([exec.read]).
+
+### `execution::get_env` <b>[exec.get.env]</b> ### {#spec-execution.environment.get_env}
+
+1. `get_env` is a customization point object. For some subexpression `o` of type
+    `O`, `get_env(o)` is expression-equivalent to
+
+    1. `tag_invoke(get_env, const_cast<const O&>(o))` if that expression is
+        well-formed.
+
+        * <i>Mandates:</i> The expression above is not potentially throwing, and
+            its type satisfies `queryable` ([exec.queryable]).
+
+    2. Otherwise, `empty_env{}`.
+
+2. The value of `get_env(o)` shall be valid while `o` is valid.
+
+3. When passed a sender object, `get_env` returns the sender's attributes. When
+    passed a receiver, `get_env` returns the receiver's environment.
 
 ### `execution::get_domain` <b>[exec.get.domain]</b> ### {#spec-execution.get_domain}
 
 1. `get_domain` asks an object for an associated execution domain tag.
 
-2. The name `get_domain` denotes a query object. For some subexpression `r`,
-    `get_domain(r)` is expression-equivalent to
-    <code><i>mandate-nothrow-call</i>(tag_invoke, get_domain, as_const(r))</code>,
+2. The name `get_domain` denotes a query object. For some subexpression `env`,
+    `get_domain(env)` is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, get_domain, as_const(env))</code>,
     if this expression is well-formed.
 
 3. `forwarding_query(execution::get_domain)` is a core constant
@@ -4568,8 +4568,8 @@ namespace std::execution {
 1. `get_scheduler` asks an object for its associated scheduler.
 
 2. The name `get_scheduler` denotes a query object. For some
-    subexpression `r`,  `get_scheduler(r)` is expression-equivalent to
-    <code><i>mandate-nothrow-call</i>(tag_invoke, get_scheduler, as_const(r))</code>.
+    subexpression `env`,  `get_scheduler(env)` is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, get_scheduler, as_const(env))</code>.
 
         * <i>Mandates:</i> The type of the expression above satisfies `scheduler`.
 
@@ -4583,8 +4583,8 @@ namespace std::execution {
 1. `get_delegatee_scheduler` asks an object for a scheduler that can be used to delegate work to for the purpose of forward progress delegation.
 
 2. The name `get_delegatee_scheduler` denotes a query object. For some
-    subexpression `r`, `get_delegatee_scheduler(r)` is expression-equivalent to
-    <code><i>mandate-nothrow-call</i>(tag_invoke, get_delegatee_scheduler, as_const(r))</code>.
+    subexpression `env`, `get_delegatee_scheduler(env)` is expression-equivalent to
+    <code><i>mandate-nothrow-call</i>(tag_invoke, get_delegatee_scheduler, as_const(env))</code>.
 
         * <i>Mandates:</i> The type of the expression above is satisfies `scheduler`.
 
@@ -4605,33 +4605,33 @@ enum class forward_progress_guarantee {
 
 1. `get_forward_progress_guarantee` asks a scheduler about the forward progress guarantees of execution agents created by that scheduler.
 
-2. The name `get_forward_progress_guarantee` denotes a query object. For some subexpression `s`, let `S` be `decltype((s))`. If `S` does not satisfy `scheduler`, `get_forward_progress_guarantee` is ill-formed.
-    Otherwise, `get_forward_progress_guarantee(s)` is expression-equivalent to:
+2. The name `get_forward_progress_guarantee` denotes a query object. For some subexpression `sch`, let `Sch` be `decltype((sch))`. If `Sch` does not satisfy `scheduler`, `get_forward_progress_guarantee` is ill-formed.
+    Otherwise, `get_forward_progress_guarantee(sch)` is expression-equivalent to:
 
-    1. <code><i>mandate-nothrow-call</i>(tag_invoke, get_forward_progress_guarantee, as_const(s))</code>, if this expression is well-formed.
+    1. <code><i>mandate-nothrow-call</i>(tag_invoke, get_forward_progress_guarantee, as_const(sch))</code>, if this expression is well-formed.
 
         * <i>Mandates:</i> The type of the expression above is
             `forward_progress_guarantee`.
 
     2. Otherwise, `forward_progress_guarantee::weakly_parallel`.
 
-3. If `get_forward_progress_guarantee(s)` for some scheduler `s` returns `forward_progress_guarantee::concurrent`, all execution agents created by that scheduler shall provide the concurrent forward progress guarantee. If it returns
+3. If `get_forward_progress_guarantee(sch)` for some scheduler `sch` returns `forward_progress_guarantee::concurrent`, all execution agents created by that scheduler shall provide the concurrent forward progress guarantee. If it returns
     `forward_progress_guarantee::parallel`, all execution agents created by that scheduler shall provide at least the parallel forward progress guarantee.
 
 ### `this_thread::execute_may_block_caller` <b>[exec.execute.may.block.caller]</b> ### {#spec-execution.execute_may_block_caller}
 
-1. `this_thread::execute_may_block_caller` asks a scheduler `s` whether a call `execute(s, f)` with any invocable `f` may block the thread where such a call occurs.
+1. `this_thread::execute_may_block_caller` asks a scheduler `sch` whether a call `execute(sch, f)` with any invocable `f` may block the thread where such a call occurs.
 
-2. The name `this_thread::execute_may_block_caller` denotes a query object. For some subexpression `s`, let `S` be `decltype((s))`. If `S` does not satisfy `scheduler`, `this_thread::execute_may_block_caller` is ill-formed. Otherwise,
-    `this_thread::execute_may_block_caller(s)` is expression-equivalent to:
+2. The name `this_thread::execute_may_block_caller` denotes a query object. For some subexpression `sch`, let `Sch` be `decltype((sch))`. If `Sch` does not satisfy `scheduler`, `this_thread::execute_may_block_caller` is ill-formed. Otherwise,
+    `this_thread::execute_may_block_caller(sch)` is expression-equivalent to:
 
-    1. <code><i>mandate-nothrow-call</i>(tag_invoke, this_thread::execute_may_block_caller, as_const(s))</code>, if this expression is well-formed.
+    1. <code><i>mandate-nothrow-call</i>(tag_invoke, this_thread::execute_may_block_caller, as_const(sch))</code>, if this expression is well-formed.
 
         * <i>Mandates:</i> The type of the expression above is `bool`.
 
     2. Otherwise, `true`.
 
-3. If `this_thread::execute_may_block_caller(s)` for some scheduler `s` returns `false`, no `execute(s, f)` call with some invocable `f` shall block the calling thread.
+3. If `this_thread::execute_may_block_caller(sch)` for some scheduler `sch` returns `false`, no `execute(sch, f)` call with some invocable `f` shall block the calling thread.
 
 ### `execution::get_completion_scheduler` <b>[exec.completion.scheduler]</b> ### {#spec-execution.get_completion_scheduler}
 
@@ -4651,10 +4651,10 @@ enum class forward_progress_guarantee {
         * <i>Mandates:</i> The type of the expression above satisfies
             `scheduler`.
 
-3. If, for some sender `s` and completion function `C` that has an associated
-    completion tag `Tag`, `get_completion_scheduler<Tag>(get_env(s))` is
-    well-formed and results in a scheduler `sch`, and the sender `s` invokes
-    `C(r, args...)`, for some receiver `r` that has been connected to `s`, with
+3. If, for some sender `sndr` and completion function `C` that has an associated
+    completion tag `Tag`, `get_completion_scheduler<Tag>(get_env(sndr))` is
+    well-formed and results in a scheduler `sch`, and the sender `sndr` invokes
+    `C(rcvr, args...)`, for some receiver `rcvr` that has been connected to `sndr`, with
     additional arguments `args...`, on an execution agent that does not
     belong to the associated execution resource of `sch`, the behavior is
     undefined.
@@ -4669,21 +4669,21 @@ enum class forward_progress_guarantee {
     scheduler. A valid invocation of `schedule` is a schedule-expression.
 
     <pre highlight="c++">
-    template&lt;class S>
+    template&lt;class Sch>
       concept scheduler =
-        queryable&lt;S> &&
-        requires(S&& s, const get_completion_scheduler_t&lt;set_value_t> tag) {
-          { schedule(std::forward&lt;S>(s)) } -> sender;
-          { tag_invoke(tag, std::get_env(
-              schedule(std::forward&lt;S>(s)))) } -> same_as&lt;remove_cvref_t&lt;S>>;
+        queryable&lt;Sch> &&
+        requires(Sch&& sch, const get_completion_scheduler_t&lt;set_value_t> tag) {
+          { schedule(std::forward&lt;Sch>(sch)) } -> sender;
+          { tag_invoke(tag, get_env(
+              schedule(std::forward&lt;Sch>(sch)))) } -> same_as&lt;remove_cvref_t&lt;Sch>>;
         } &&
-        equality_comparable&lt;remove_cvref_t&lt;S>> &&
-        copy_constructible&lt;remove_cvref_t&lt;S>>;
+        equality_comparable&lt;remove_cvref_t&lt;Sch>> &&
+        copy_constructible&lt;remove_cvref_t&lt;Sch>>;
     </pre>
 
-2. Let `S` be the type of a scheduler and let `E` be the type of an execution
-    environment for which `sender_in<schedule_result_t<S>, E>` is `true`. Then
-    <code><i>sender-of-in</i>&lt;schedule_result_t&lt;S>, E></code> shall be `true`.
+2. Let `Sch` be the type of a scheduler and let `Env` be the type of an execution
+    environment for which `sender_in<schedule_result_t<Sch>, Env>` is `true`. Then
+    <code><i>sender-of-in</i>&lt;schedule_result_t&lt;Sch>, Env></code> shall be `true`.
 
 3. None of a scheduler's copy constructor, destructor, equality comparison, or
     `swap` member functions shall exit via an exception.
@@ -4692,16 +4692,16 @@ enum class forward_progress_guarantee {
     shall introduce data races as a result of concurrent invocations of those
     functions from different threads.
 
-5. For any two (possibly `const`) values `s1` and `s2` of some scheduler type
-    `S`, `s1 == s2` shall return `true` only if both `s1` and `s2` share the
+5. For any two (possibly `const`) values `sch1` and `sch2` of some scheduler type
+    `Sch`, `sch1 == sch2` shall return `true` only if both `sch1` and `sch2` share the
     same associated execution resource.
 
-6. For a given scheduler expression `s`, the expression
-    `get_completion_scheduler<set_value_t>(std::get_env(schedule(s)))` shall
-    compare equal to `s`.
+6. For a given scheduler expression `sch`, the expression
+    `get_completion_scheduler<set_value_t>(get_env(schedule(sch)))` shall
+    compare equal to `sch`.
 
-7. For a given scheduler expression `s`, if the expression `get_domain(s)`
-    is well-formed, then the expression `get_domain(get_env(schedule(s)))`
+7. For a given scheduler expression `sch`, if the expression `get_domain(sch)`
+    is well-formed, then the expression `get_domain(get_env(schedule(sch)))`
     is also well-formed and has the same type.
 
 8. A scheduler type's destructor shall not block pending completion of any
@@ -4722,35 +4722,35 @@ enum class forward_progress_guarantee {
     customization point is used to access a receiver's associated environment.
 
     <pre highlight="c++">
-    template&lt;class R>
+    template&lt;class Rcvr>
       concept <i>is-receiver</i> = // exposition only
-        derived_from&lt;typename R::receiver_concept, receiver_t>;
+        derived_from&lt;typename Rcvr::receiver_concept, receiver_t>;
 
-    template&lt;class R>
-      inline constexpr bool enable_receiver = <i>is-receiver</i>&lt;R>;
+    template&lt;class Rcvr>
+      inline constexpr bool enable_receiver = <i>is-receiver</i>&lt;Rcvr>;
 
-    template&lt;class R>
+    template&lt;class Rcvr>
       concept receiver =
-        enable_receiver&lt;remove_cvref_t&lt;R>> &&
-        requires(const remove_cvref_t&lt;R>& r) {
-          { get_env(r) } -> queryable;
+        enable_receiver&lt;remove_cvref_t&lt;Rcvr>> &&
+        requires(const remove_cvref_t&lt;Rcvr>& rcvr) {
+          { get_env(rcvr) } -> queryable;
         } &&
-        move_constructible&lt;remove_cvref_t&lt;R>> &&  <i>// rvalues are movable, and</i>
-        constructible_from&lt;remove_cvref_t&lt;R>, R>; <i>// lvalues are copyable</i>
+        move_constructible&lt;remove_cvref_t&lt;Rcvr>> &&  <i>// rvalues are movable, and</i>
+        constructible_from&lt;remove_cvref_t&lt;Rcvr>, Rcvr>; <i>// lvalues are copyable</i>
 
-    template&lt;class Signature, class R>
+    template&lt;class Signature, class Rcvr>
       concept <i>valid-completion-for</i> = <i>// exposition only</i>
         requires (Signature* sig) {
           []&lt;class Tag, class... Args>(Tag(*)(Args...))
-              requires <i>callable</i>&lt;Tag, remove_cvref_t&lt;R>, Args...>
+              requires <i>callable</i>&lt;Tag, remove_cvref_t&lt;Rcvr>, Args...>
           {}(sig);
         };
 
-    template&lt;class R, class Completions>
+    template&lt;class Rcvr, class Completions>
       concept receiver_of =
-        receiver&lt;R> &amp;&amp;
+        receiver&lt;Rcvr> &&
         requires (Completions* completions) {
-          []&lt;<i>valid-completion-for</i>&lt;R>...Sigs>(completion_signatures&lt;Sigs...>*)
+          []&lt;<i>valid-completion-for</i>&lt;Rcvr>...Sigs>(completion_signatures&lt;Sigs...>*)
           {}(completions);
         };
     </pre>
@@ -4760,12 +4760,12 @@ enum class forward_progress_guarantee {
     for types that do not. Such specializations shall be usable in constant
     expressions ([expr.const]) and have type `const bool`.
 
-4. Let `r` be a receiver and let `op_state` be an operation state associated
-    with an asynchronous operation created by connecting `r` with a sender. Let
-    `token` be a stop token equal to `get_stop_token(get_env(r))`. `token` shall
+4. Let `rcvr` be a receiver and let `op_state` be an operation state associated
+    with an asynchronous operation created by connecting `rcvr` with a sender. Let
+    `token` be a stop token equal to `get_stop_token(get_env(rcvr))`. `token` shall
     remain valid for the duration of the asynchronous operation's lifetime
     ([async.ops]). <span class="wg21note">This means that, unless it knows about
-    further guarantees provided by the type of receiver `r`, the implementation
+    further guarantees provided by the type of receiver `rcvr`, the implementation
     of `op_state` can not use `token` after it executes a completion operation.
     This also implies that any stop callbacks registered on `token` must be
     destroyed before the invocation of the completion operation.</span>
@@ -4773,26 +4773,26 @@ enum class forward_progress_guarantee {
 ### `execution::set_value` <b>[exec.set.value]</b> ### {#spec-execution.receivers.set_value}
 
 1. `set_value` is a value completion function ([async.ops]). Its associated
-    completion tag is `set_value_t`. The expression `set_value(R, Vs...)` for
-    some subexpression `R` and pack of subexpressions `Vs` is ill-formed if `R`
+    completion tag is `set_value_t`. The expression `set_value(rcvr, Vs...)` for
+    some subexpression `rcvr` and pack of subexpressions `vs` is ill-formed if `rcvr`
     is an lvalue or a `const` rvalue. Otherwise, it is expression-equivalent to
-    <code><i>mandate-nothrow-call</i>(tag_invoke, set_value, R, Vs...)</code>.
+    <code><i>mandate-nothrow-call</i>(tag_invoke, set_value, rcvr, vs...)</code>.
 
 ### `execution::set_error` <b>[exec.set.error]</b> ### {#spec-execution.receivers.set_error}
 
 1. `set_error` is an error completion function. Its associated completion tag is
-    `set_error_t`. The expression `set_error(R, E)` for some subexpressions `R`
-    and `E` is ill-formed if `R` is an lvalue or a `const` rvalue. Otherwise, it is
+    `set_error_t`. The expression `set_error(rcvr, err)` for some subexpressions `rcvr`
+    and `err` is ill-formed if `rcvr` is an lvalue or a `const` rvalue. Otherwise, it is
     expression-equivalent to <code><i>mandate-nothrow-call</i>(tag_invoke,
-    set_error, R, E)</code>.
+    set_error, rcvr, err)</code>.
 
 ### `execution::set_stopped` <b>[exec.set.stopped]</b> ### {#spec-execution.receivers.set_stopped}
 
 1. `set_stopped` is a stopped completion function. Its associated completion tag
-    is `set_stopped_t`.  The expression `set_stopped(R)` for some subexpression
-    `R` is ill-formed if `R` is an lvalue or a `const` rvalue. Otherwise, it is
+    is `set_stopped_t`.  The expression `set_stopped(rcvr)` for some subexpression
+    `rcvr` is ill-formed if `rcvr` is an lvalue or a `const` rvalue. Otherwise, it is
     expression-equivalent to <code><i>mandate-nothrow-call</i>(tag_invoke,
-    set_stopped, R)</code>.
+    set_stopped, rcvr)</code>.
 
 ## Operation states <b>[exec.opstate]</b> ## {#spec-execution.opstate}
 
@@ -4858,30 +4858,30 @@ enum class forward_progress_guarantee {
 
 3. This subclause makes use of the following exposition-only entities.
 
-    1. For a queryable object `e`, let <code><i>FWD-ENV</i>(e)</code> be a
+    1. For a queryable object `env`, let <code><i>FWD-ENV</i>(env)</code> be a
         queryable object such that for a query object `q` and a pack of
         subexpressions `as`, the expression <code>tag_invoke(q,
-        <i>FWD-ENV</i>(e), as...)</code> is ill-formed if
+        <i>FWD-ENV</i>(env), as...)</code> is ill-formed if
         `forwarding_query(q)` is `false`;
-        otherwise, it is expression-equivalent to `tag_invoke(q, e, as...)`.
+        otherwise, it is expression-equivalent to `tag_invoke(q, env, as...)`.
 
     2. For a query object `q` and a subexpression `v`, let
-        <code><i>MAKE-ENV</i>(q, v)</code> be a queryable object `e` such that
-        `tag_invoke(q, e)` is a `const` lvalue reference to an object
+        <code><i>MAKE-ENV</i>(q, v)</code> be a queryable object `env` such that
+        `tag_invoke(q, env)` is a `const` lvalue reference to an object
         decay-copied from `v`. Unless otherwise stated, the object to which
-        `tag_invoke(q, e)` refers remains valid while `e` remains valid.
+        `tag_invoke(q, env)` refers remains valid while `env` remains valid.
 
-    3. For two queryable objects `e1` and `e2`, a query object `q` and a pack of
-        subexpressions `as`, let <code><i>JOIN-ENV</i>(e1, e2)</code> be an
-        environment `e3` such that `tag_invoke(q, e3, as...)` is
+    3. For two queryable objects `env1` and `env2`, a query object `q` and a pack of
+        subexpressions `as`, let <code><i>JOIN-ENV</i>(env1, env2)</code> be an
+        environment `env3` such that `tag_invoke(q, env3, as...)` is
         expression-equivalent to:
 
-          - `tag_invoke(q, e1, as...)` if that expression is well-formed,
+          - `tag_invoke(q, env1, as...)` if that expression is well-formed,
 
-          - otherwise, `tag_invoke(q, e2, as...)` if that expression is
+          - otherwise, `tag_invoke(q, env2, as...)` if that expression is
               well-formed,
 
-          - otherwise, `tag_invoke(q, e3, as...)` is ill-formed.
+          - otherwise, `tag_invoke(q, env3, as...)` is ill-formed.
 
     4. For a scheduler `sch`, let <code><i>SCHED-ATTRS</i>(sch)</code> be a
         queryable object `o1` such that
@@ -4895,25 +4895,25 @@ enum class forward_progress_guarantee {
         type and value as `sch`, and let <code>tag_invoke(get_domain, o2)</code>
         be expression-equivalent to <code>tag_invoke(get_domain, sch)</code>.
 
-    5. For two subexpressions `r` and `e`, let <code><i>SET-VALUE</i>(r,
-        e)</code> be `(e, set_value(r))` if the type of `e` is `void`;
-        otherwise, it is `set_value(r, e)`. Let <code><i>TRY-SET-VALUE</i>(r,
-        e)</code> be:
+    5. For two subexpressions `rcvr` and `expr`, let <code><i>SET-VALUE</i>(rcvr,
+        expr)</code> be `(expr, set_value(rcvr))` if the type of `expr` is `void`;
+        otherwise, it is `set_value(rcvr, expr)`. Let <code><i>TRY-SET-VALUE</i>(rcvr,
+        expr)</code> be:
 
             <pre highlight="c++">
             try {
-              <i>SET-VALUE</i>(r, e);
+              <i>SET-VALUE</i>(rcvr, expr);
             } catch(...) {
-              set_error(r, current_exception());
+              set_error(rcvr, current_exception());
             }
             </pre>
 
-        if `e` is potentially-throwing, except that `r` is evaluated only once;
-        or <code><i>SET-VALUE</i>(r, e)</code> otherwise.
+        if `expr` is potentially-throwing, except that `rcvr` is evaluated only once;
+        or <code><i>SET-VALUE</i>(rcvr, expr)</code> otherwise.
 
     6.  <pre highlight="c++">
-        template&lt;class Default = default_domain, class Sender>
-        constexpr auto <i>completion-domain</i>(const Sender& sndr) noexcept;
+        template&lt;class Default = default_domain, class Sndr>
+        constexpr auto <i>completion-domain</i>(const Sndr& sndr) noexcept;
         </pre>
 
         1. *Effects:* Let <code><i>COMPL-DOMAIN</i>(T)</code> be the type of the expression
@@ -4948,8 +4948,8 @@ enum class forward_progress_guarantee {
                 </pre>
 
     8.  <pre highlight="c++">
-        template&lt;class Sender>
-        constexpr auto <i>get-domain-early</i>(const Sender& sndr) noexcept;
+        template&lt;class Sndr>
+        constexpr auto <i>get-domain-early</i>(const Sndr& sndr) noexcept;
         </pre>
 
         1. <i>Effects:</i> Equivalent to the first of the following that is well-formed:
@@ -4961,13 +4961,13 @@ enum class forward_progress_guarantee {
             - `return default_domain();`
 
     9.  <pre highlight="c++">
-        template&lt;class Sender, class Env>
-        constexpr auto <i>get-domain-late</i>(const Sender& sndr, const Env& env) noexcept;
+        template&lt;class Sndr, class Env>
+        constexpr auto <i>get-domain-late</i>(const Sndr& sndr, const Env& env) noexcept;
         </pre>
 
         1. <i>Effects:</i> Equivalent to:
 
-            - If <code><i>sender-for</i>&lt;Sender, transfer_t></code> is `true`, then
+            - If <code><i>sender-for</i>&lt;Sndr, transfer_t></code> is `true`, then
                 <code>return <i>query-or-default</i>(get_domain, sch, default_domain())</code> where `sch`
                 is the scheduler that was used to construct `sndr`,
 
@@ -5157,7 +5157,7 @@ enum class forward_progress_guarantee {
               <pre highlight="c++">
               [](const auto& data, const auto&... child) noexcept -> decltype(auto) {
                 if constexpr (sizeof...(child) == 1)
-                  return <i>FWD-ENV</i>(execution::get_env(child...)); //
+                  return <i>FWD-ENV</i>(get_env(child...)); //
                 else
                   return empty_env();
               }
@@ -5168,8 +5168,8 @@ enum class forward_progress_guarantee {
 
               <pre highlight="c++">
               []&lt;class Rcvr>(auto index, auto& state, const Rcvr& rcvr) noexcept
-                -> decltype(<i>FWD-ENV</i>(execution::get_env(rcvr))) {
-                return <i>FWD-ENV</i>(execution::get_env(rcvr));
+                -> decltype(<i>FWD-ENV</i>(get_env(rcvr))) {
+                return <i>FWD-ENV</i>(get_env(rcvr));
               }
               </pre>
 
@@ -5234,40 +5234,40 @@ enum class forward_progress_guarantee {
     template&lt;class Sigs>
       concept <i>valid-completion-signatures</i> = <i>see below</i>; // exposition only
 
-    template&lt;class S>
+    template&lt;class Sndr>
       concept <i>is-sender</i> = // exposition only
-        derived_from&lt;typename S::sender_concept, sender_t>;
+        derived_from&lt;typename Sndr::sender_concept, sender_t>;
 
-    template&lt;class S>
-      inline constexpr bool enable_sender = <i>is-sender</i>&lt;S>;
+    template&lt;class Sndr>
+      inline constexpr bool enable_sender = <i>is-sender</i>&lt;Sndr>;
 
-    template&lt;<i>is-awaitable</i>&lt;<i>env-promise</i>&lt;empty_env>> S> <i>// [exec.awaitables]</i>
-      inline constexpr bool enable_sender&lt;S> = true;
+    template&lt;<i>is-awaitable</i>&lt;<i>env-promise</i>&lt;empty_env>> Sndr> <i>// [exec.awaitables]</i>
+      inline constexpr bool enable_sender&lt;Sndr> = true;
 
-    template&lt;class S>
+    template&lt;class Sndr>
       concept sender =
-        enable_sender&lt;remove_cvref_t&lt;S>> &&
-        requires (const remove_cvref_t&lt;S>& s) {
-          { get_env(s) } -> queryable;
+        enable_sender&lt;remove_cvref_t&lt;Sndr>> &&
+        requires (const remove_cvref_t&lt;Sndr>& sndr) {
+          { get_env(sndr) } -> queryable;
         } &&
-        move_constructible&lt;remove_cvref_t&lt;S>> &&  <i>// rvalues are movable, and</i>
-        constructible_from&lt;remove_cvref_t&lt;S>, S>; <i>// lvalues are copyable</i>
+        move_constructible&lt;remove_cvref_t&lt;Sndr>> &&  <i>// rvalues are movable, and</i>
+        constructible_from&lt;remove_cvref_t&lt;Sndr>, Sndr>; <i>// lvalues are copyable</i>
 
-    template&lt;class S, class E = empty_env>
+    template&lt;class Sndr, class Env = empty_env>
       concept sender_in =
-        sender&lt;S> &&
-        queryable&lt;E> &&
-        requires (S&& s, E&& e) {
-          { get_completion_signatures(std::forward&lt;S>(s), std::forward&lt;E>(e)) } ->
+        sender&lt;Sndr> &&
+        queryable&lt;Env> &&
+        requires (Sndr&& sndr, Env&& env) {
+          { get_completion_signatures(std::forward&lt;Sndr>(sndr), std::forward&lt;Env>(env)) } ->
             <i>valid-completion-signatures</i>;
         };
 
-    template&lt;class S, class R>
+    template&lt;class Sndr, class Rcvr>
       concept sender_to =
-        sender_in&lt;S, env_of_t&lt;R>> &amp;&amp;
-        receiver_of&lt;R, completion_signatures_of_t&lt;S, env_of_t&lt;R>>> &amp;&amp;
-        requires (S&amp;&amp; s, R&amp;&amp; r) {
-          connect(std::forward&lt;S>(s), std::forward&lt;R>(r));
+        sender_in&lt;Sndr, env_of_t&lt;Rcvr>> &&
+        receiver_of&lt;Rcvr, completion_signatures_of_t&lt;Sndr, env_of_t&lt;Rcvr>>> &&
+        requires (Sndr&& sndr, Rcvr&& rcvr) {
+          connect(std::forward&lt;Sndr>(sndr), std::forward&lt;Rcvr>(rcvr));
         };
     </pre>
 
@@ -5299,24 +5299,24 @@ enum class forward_progress_guarantee {
     template&lt;class... As>
       using <i>value-signature</i> = set_value_t(As...); <i>// exposition only</i>
 
-    template&lt;class S, class E, class... Values>
+    template&lt;class Sndr, class Env, class... Values>
       concept <i>sender-of-in</i> =
-        sender_in&lt;S, E> &&
+        sender_in&lt;Sndr, Env> &&
         <i>MATCHING-SIG</i>( <i>// see [exec.general]</i>
           set_value_t(Values...),
-          value_types_of_t&lt;S, E, <i>value-signature</i>, type_identity_t>);
+          value_types_of_t&lt;Sndr, Env, <i>value-signature</i>, type_identity_t>);
 
-    template&lt;class S, class... Values>
-      concept <i>sender-of</i> = <i>sender-of-in</i>&lt;S, empty_env, Values...>;
+    template&lt;class Sndr, class... Values>
+      concept <i>sender-of</i> = <i>sender-of-in</i>&lt;Sndr, empty_env, Values...>;
     </pre>
 
-6. Let `s` be an expression such that `decltype((s))` is `S`. The type
-    `tag_of_t<S>` is as follows:
+6. Let `sndr` be an expression such that `decltype((sndr))` is `Sndr`. The type
+    `tag_of_t<Sndr>` is as follows:
 
-      - If the declaration `auto&& [tag, data, ...children] = s;` would be
-        well-formed, `tag_of_t<S>` is an alias for `decltype(auto(tag))`.
+      - If the declaration `auto&& [tag, data, ...children] = sndr;` would be
+        well-formed, `tag_of_t<Sndr>` is an alias for `decltype(auto(tag))`.
 
-      - Otherwise, `tag_of_t<S>` is ill-formed.
+      - Otherwise, `tag_of_t<Sndr>` is ill-formed.
 
     <div class="ed-note">
     There is no way in standard C++ to determine whether the above declaration
@@ -5328,10 +5328,10 @@ enum class forward_progress_guarantee {
 7. Let <code><i>sender-for</i></code> be an exposition-only concept defined as follows:
 
     <pre highlight="c++">
-    template&lt;class Sender, class Tag>
+    template&lt;class Sndr, class Tag>
     concept <i>sender-for</i> =
-      sender&lt;Sender> &&
-      same_as&lt;tag_of_t&lt;Sender>, Tag>;
+      sender&lt;Sndr> &&
+      same_as&lt;tag_of_t&lt;Sndr>, Tag>;
     </pre>
 
 8. For a type `T`, <code><i>SET-VALUE-SIG</i>(T)</code> names the type
@@ -5356,7 +5356,7 @@ enum class forward_progress_guarantee {
     expression-equivalent to the series of transformations and conversions
     applied to `c` as the operand of an *await-expression* in a coroutine,
     resulting in lvalue <i>`e`</i> as described by [expr.await]/3.2-4, where `p`
-    is an lvalue referring to the coroutine's promise type, `P`. <span
+    is an lvalue referring to the coroutine's promise type, `Promise`. <span
     class="wg21note">This includes the invocation of the promise type's
     `await_transform` member if any, the invocation of the `operator co_await`
     picked by overload resolution if any, and any necessary implicit
@@ -5373,18 +5373,18 @@ enum class forward_progress_guarantee {
     template&lt;class T>
     concept <i>await-suspend-result</i> = <i>see below</i>;
 
-    template&lt;class A, class P>
+    template&lt;class A, class Promise>
     concept <i>is-awaiter</i> = <i>// exposition only</i>
-      requires (A& a, coroutine_handle&lt;P> h) {
+      requires (A& a, coroutine_handle&lt;Promise> h) {
         a.await_ready() ? 1 : 0;
         { a.await_suspend(h) } -> <i>await-suspend-result</i>;
         a.await_resume();
       };
 
-    template&lt;class C, class P>
+    template&lt;class C, class Promise>
     concept <i>is-awaitable</i> =
-      requires (C (*fc)() noexcept, P& p) {
-        { <i>GET-AWAITER</i>(fc(), p) } -> <i>is-awaiter</i>&lt;P>;
+      requires (C (*fc)() noexcept, Promise& p) {
+        { <i>GET-AWAITER</i>(fc(), p) } -> <i>is-awaiter</i>&lt;Promise>;
       };
     </pre>
 
@@ -5396,7 +5396,7 @@ enum class forward_progress_guarantee {
         - `T` is a specialization of `coroutine_handle`.
 
 3. For a subexpression `c` such that `decltype((c))` is type `C`, and
-    an lvalue `p` of type `P`, <code><i>await-result-type</i>&lt;C, P></code>
+    an lvalue `p` of type `Promise`, <code><i>await-result-type</i>&lt;C, Promise></code>
     names the type <code>decltype(<i>GET-AWAITER</i>(c, p).await_resume())</code>.
 
 4. Let <code><i>with-await-transform</i></code> be the exposition-only class template:
@@ -5443,163 +5443,163 @@ enum class forward_progress_guarantee {
 
 <pre highlight="c++">
 struct default_domain {
-  template &lt;sender Sender>
-    static constexpr sender decltype(auto) transform_sender(Sender&& sndr) noexcept(<i>see below</i>);
+  template &lt;sender Sndr>
+    static constexpr sender decltype(auto) transform_sender(Sndr&& sndr) noexcept(<i>see below</i>);
 
-  template &lt;sender Sender, queryable Env>
-    static constexpr sender decltype(auto) transform_sender(Sender&& sndr, const Env& env) noexcept(<i>see below</i>);
+  template &lt;sender Sndr, queryable Env>
+    static constexpr sender decltype(auto) transform_sender(Sndr&& sndr, const Env& env) noexcept(<i>see below</i>);
 
-  template &lt;sender Sender, queryable Env>
-    static constexpr decltype(auto) transform_env(Sender&& sndr, Env&& env) noexcept;
+  template &lt;sender Sndr, queryable Env>
+    static constexpr decltype(auto) transform_env(Sndr&& sndr, Env&& env) noexcept;
 
-  template&lt;class Tag, sender Sender, class... Args>
-    static constexpr decltype(auto) apply_sender(Tag, Sender&& sndr, Args&&... args) noexcept(<i>see below</i>);
+  template&lt;class Tag, sender Sndr, class... Args>
+    static constexpr decltype(auto) apply_sender(Tag, Sndr&& sndr, Args&&... args) noexcept(<i>see below</i>);
 };
 </pre>
 
 #### Static members <b>[exec.domain.default.statics]</b> #### {#spec-execution.default_domain.statics}
 
 <pre highlight="c++">
-template &lt;sender Sender>
-  constexpr sender decltype(auto) default_domain::transform_sender(Sender&& sndr) noexcept(<i>see below</i>);
+template &lt;sender Sndr>
+  constexpr sender decltype(auto) default_domain::transform_sender(Sndr&& sndr) noexcept(<i>see below</i>);
 </pre>
 
-1. <i>Returns:</i> `tag_of_t<Sender>().transform_sender(std::forward<Sender>(sndr))`
-    if that expression is well-formed; otherwise, `std::forward<Sender>(sndr)`.
+1. <i>Returns:</i> `tag_of_t<Sndr>().transform_sender(std::forward<Sndr>(sndr))`
+    if that expression is well-formed; otherwise, `std::forward<Sndr>(sndr)`.
 
 2. <i>Remarks:</i> The exception specification is equivalent to:
 
     <pre highlight="c++">
-    noexcept(tag_of_t&lt;Sender>().transform_sender(std::forward&lt;Sender>(sndr)))
+    noexcept(tag_of_t&lt;Sndr>().transform_sender(std::forward&lt;Sndr>(sndr)))
     </pre>
 
     if that expression is well-formed; otherwise, `true`;
 
 <pre highlight="c++">
-template &lt;sender Sender, queryable Env>
-  constexpr sender decltype(auto) default_domain::transform_sender(Sender&& sndr, const Env& env) noexcept(<i>see below</i>);
+template &lt;sender Sndr, queryable Env>
+  constexpr sender decltype(auto) default_domain::transform_sender(Sndr&& sndr, const Env& env) noexcept(<i>see below</i>);
 </pre>
 
-1. <i>Returns:</i> `tag_of_t<Sender>().transform_sender(std::forward<Sender>(sndr), env)`
-    if that expression is well-formed; otherwise, `std::forward<Sender>(sndr)`.
+1. <i>Returns:</i> `tag_of_t<Sndr>().transform_sender(std::forward<Sndr>(sndr), env)`
+    if that expression is well-formed; otherwise, `std::forward<Sndr>(sndr)`.
 
 2. <i>Remarks:</i> The exception specification is equivalent to:
 
     <pre highlight="c++">
-    noexcept(tag_of_t&lt;Sender>().transform_sender(std::forward&lt;Sender>(sndr), env))
+    noexcept(tag_of_t&lt;Sndr>().transform_sender(std::forward&lt;Sndr>(sndr), env))
     </pre>
 
     if that expression is well-formed; otherwise, `true`;
 
 <pre highlight="c++">
-template &lt;sender Sender, queryable Env>
-  constexpr decltype(auto) default_domain::transform_env(Sender&& sndr, Env&& env) noexcept;
+template &lt;sender Sndr, queryable Env>
+  constexpr decltype(auto) default_domain::transform_env(Sndr&& sndr, Env&& env) noexcept;
 </pre>
 
-3. <i>Returns:</i> `tag_of_t<Sender>().transform_env(std::forward<Sender>(sndr), std::forward<Env>(env))`
+3. <i>Returns:</i> `tag_of_t<Sndr>().transform_env(std::forward<Sndr>(sndr), std::forward<Env>(env))`
     if that expression is well-formed; otherwise, `static_cast<Env>(std::forward<Env>(env))`.
 
 4. <i>Mandates:</i> The selected expression in <i>Returns:</i> is not potentially throwing.
 
 <pre highlight="c++">
-template&lt;class Tag, sender Sender, class... Args>
-  static constexpr decltype(auto) default_domain::apply_sender(Tag, Sender&& sndr, Args&&... args) noexcept(<i>see below</i>);
+template&lt;class Tag, sender Sndr, class... Args>
+  static constexpr decltype(auto) default_domain::apply_sender(Tag, Sndr&& sndr, Args&&... args) noexcept(<i>see below</i>);
 </pre>
 
-5. <i>Returns:</i> `Tag().apply_sender(std::forward<Sender>(sndr), std::forward<Args>(args)...)`
+5. <i>Returns:</i> `Tag().apply_sender(std::forward<Sndr>(sndr), std::forward<Args>(args)...)`
     if that expression is well-formed; otherwise, this function shall not participate
     in overload resolution.
 
 6. <i>Remarks:</i> The exception specification is equivalent to:
 
     <pre highlight="c++">
-    noexcept(Tag().apply_sender(std::forward&lt;Sender>(sndr), std::forward&lt;Args>(args)...))
+    noexcept(Tag().apply_sender(std::forward&lt;Sndr>(sndr), std::forward&lt;Args>(args)...))
     </pre>
 
 ### `execution::transform_sender` <b>[exec.snd.transform]</b> ### {#spec-execution.sender_transform}
 
 <pre highlight="c++">
-template&lt;class Domain, sender Sender>
-  constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr);
+template&lt;class Domain, sender Sndr>
+  constexpr sender decltype(auto) transform_sender(Domain dom, Sndr&& sndr);
 
-template&lt;class Domain, sender Sender, queryable Env>
-  constexpr sender decltype(auto) transform_sender(Domain dom, Sender&& sndr, const Env& env);
+template&lt;class Domain, sender Sndr, queryable Env>
+  constexpr sender decltype(auto) transform_sender(Domain dom, Sndr&& sndr, const Env& env);
 </pre>
 
 1. <i>Returns:</i> Let <code><i>ENV</i></code> be a parameter pack consisting of
       the single expression `env` for the second overload and an empty pack for
-      the first. Let `s2` be the expression
-      <code>dom.transform_sender(std::forward&lt;Sender>(sndr),
+      the first. Let `sndr2` be the expression
+      <code>dom.transform_sender(std::forward&lt;Sndr>(sndr),
       <i>ENV</i>...)</code> if that expression is well-formed; otherwise,
-      <code>default_domain().transform_sender(std::forward&lt;Sender>(sndr),
-      <i>ENV</i>...)</code>. If `s2` and `sndr` have the same type ignoring *cv*
-      qualifiers, returns `s2`; otherwise, <code>transform_sender(dom, s2,
+      <code>default_domain().transform_sender(std::forward&lt;Sndr>(sndr),
+      <i>ENV</i>...)</code>. If `sndr2` and `sndr` have the same type ignoring *cv*
+      qualifiers, returns `sndr2`; otherwise, <code>transform_sender(dom, sndr2,
       <i>ENV</i>...)</code>.
 
 <pre highlight="c++">
-template&lt;class Domain, sender Sender, queryable Env>
-  constexpr decltype(auto) transform_env(Domain dom, Sender&& sndr, Env&& env) noexcept;
+template&lt;class Domain, sender Sndr, queryable Env>
+  constexpr decltype(auto) transform_env(Domain dom, Sndr&& sndr, Env&& env) noexcept;
 </pre>
 
-3. <i>Returns:</i> `dom.transform_sender(std::forward<Sender>(sndr), std::forward<Env>(env))` if that
+3. <i>Returns:</i> `dom.transform_sender(std::forward<Sndr>(sndr), std::forward<Env>(env))` if that
       expression is well-formed; otherwise,
-      `default_domain().transform_sender(std::forward<Sender>(sndr), std::forward<Env>(env))`.
+      `default_domain().transform_sender(std::forward<Sndr>(sndr), std::forward<Env>(env))`.
 
 ### `execution::apply_sender` <b>[exec.snd.apply]</b> ### {#spec-execution.apply_sender}
 
 <pre highlight="c++">
-template&lt;class Domain, class Tag, sender Sender, class... Args>
-  constexpr decltype(auto) apply_sender(Domain dom, Tag, Sender&& sndr, Args&&... args) noexcept(<i>see below</i>);
+template&lt;class Domain, class Tag, sender Sndr, class... Args>
+  constexpr decltype(auto) apply_sender(Domain dom, Tag, Sndr&& sndr, Args&&... args) noexcept(<i>see below</i>);
 </pre>
 
-1. <i>Returns:</i> `dom.apply_sender(Tag(), std::forward<Sender>(sndr), std::forward<Args>(args)...)` if that
+1. <i>Returns:</i> `dom.apply_sender(Tag(), std::forward<Sndr>(sndr), std::forward<Args>(args)...)` if that
       expression is well-formed; otherwise,
-      `default_domain().apply_sender(Tag(), std::forward<Sender>(sndr), std::forward<Args>(args)...)`
+      `default_domain().apply_sender(Tag(), std::forward<Sndr>(sndr), std::forward<Args>(args)...)`
       if that expression is well-formed; otherwise, this function shall not participate in
       overload resolution.
 
 2. <i>Remarks:</i> The exception specification is equivalent to:
 
       <pre highlight="c++">
-      noexcept(dom.apply_sender(Tag(), std::forward&lt;Sender>(sndr), std::forward&lt;Args>(args)...))
+      noexcept(dom.apply_sender(Tag(), std::forward&lt;Sndr>(sndr), std::forward&lt;Args>(args)...))
       </pre>
 
       if that expression is well-formed; otherwise,
 
       <pre highlight="c++">
-      noexcept(default_domain().apply_sender(Tag(), std::forward&lt;Sender>(sndr), std::forward&lt;Args>(args)...))
+      noexcept(default_domain().apply_sender(Tag(), std::forward&lt;Sndr>(sndr), std::forward&lt;Args>(args)...))
       </pre>
 
 ### `execution::get_completion_signatures` <b>[exec.getcomplsigs]</b> ### {#spec-execution.getcomplsigs}
 
-1. `get_completion_signatures` is a customization point object. Let `s` be an
-    expression such that `decltype((s))` is `S`, and let `e` be an expression
-    such that `decltype((e))` is `E`. Then `get_completion_signatures(s, e)` is
+1. `get_completion_signatures` is a customization point object. Let `sndr` be an
+    expression such that `decltype((sndr))` is `Sndr`, and let `env` be an expression
+    such that `decltype((env))` is `Env`. Then `get_completion_signatures(sndr, env)` is
     expression-equivalent to:
 
-    1. `tag_invoke_result_t<get_completion_signatures_t, S, E>{}` if that
+    1. `tag_invoke_result_t<get_completion_signatures_t, Sndr, Env>{}` if that
         expression is well-formed,
 
-    2. Otherwise, `remove_cvref_t<S>::completion_signatures{}` if that expression is well-formed,
+    2. Otherwise, `remove_cvref_t<Sndr>::completion_signatures{}` if that expression is well-formed,
 
-    3. Otherwise, if <code><i>is-awaitable</i>&lt;S, <i>env-promise</i>&lt;E>></code>
+    3. Otherwise, if <code><i>is-awaitable</i>&lt;Sndr, <i>env-promise</i>&lt;Env>></code>
         is `true`, then:
 
             <pre highlight="c++">
             completion_signatures<
-              <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;S, <i>env-promise</i>&lt;E>>), <i>// see [exec.snd.concepts]</i>
+              <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;Sndr, <i>env-promise</i>&lt;Env>>), <i>// see [exec.snd.concepts]</i>
               set_error_t(exception_ptr),
               set_stopped_t()>{}
             </pre>
 
-    4. Otherwise, `get_completion_signatures(s, e)` is ill-formed.
+    4. Otherwise, `get_completion_signatures(sndr, env)` is ill-formed.
 
-2. Let `r` be an rvalue receiver of type `R`, and let `S` be the type of a
-    sender such that `sender_in<S, env_of_t<R>>` is `true`. Let `Sigs...` be the
+2. Let `rcvr` be an rvalue receiver of type `Rcvr`, and let `Sndr` be the type of a
+    sender such that `sender_in<Sndr, env_of_t<Rcvr>>` is `true`. Let `Sigs...` be the
     template arguments of the `completion_signatures` specialization named by
-    `completion_signatures_of_t<S, env_of_t<R>>`. Let <code><i>CSO</i></code> be
-    a completion function. If sender `S` or its operation state cause the
-    expression <code><i>CSO</i>(r, args...)</code> to be potentially evaluated
+    `completion_signatures_of_t<Sndr, env_of_t<Rcvr>>`. Let <code><i>CSO</i></code> be
+    a completion function. If sender `Sndr` or its operation state cause the
+    expression <code><i>CSO</i>(rcvr, args...)</code> to be potentially evaluated
     ([basic.def.odr]) then there shall be a signature `Sig` in `Sigs...` such
     that <code><i>MATCHING-SIG</i>(tag_t&lt;<i>CSO</i>>(decltype(args)...),
     Sig)</code> is `true` ([exec.general]).
@@ -5609,8 +5609,8 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 1. `connect` connects ([async.op]) a sender with a receiver.
 
 2. The name `connect` denotes a customization point object. For subexpressions
-    `s` and `r`, let `S` be `decltype((s))` and `R` be `decltype((r))`, and let
-    `DS` and `DR` be the decayed types of `S` and `R`, respectively. 
+    `sndr` and `rcvr`, let `Sndr` be `decltype((sndr))` and `Rcvr` be `decltype((rcvr))`, and let
+    `DS` and `DR` be the decayed types of `Sndr` and `Rcvr`, respectively. 
     
 3. Let <code><i>connect-awaitable-promise</i></code> be the following class:
 
@@ -5618,12 +5618,12 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     struct <i>connect-awaitable-promise</i> : <i>with-await-transform</i>&lt;<i>connect-awaitable-promise</i>> {
       DR& <i>rcvr</i>; <i>// exposition only</i>
 
-      <i>connect-awaitable-promise</i>(DS&, DR& r) noexcept : <i>rcvr</i>(r) {}
+      <i>connect-awaitable-promise</i>(DS&, DR& rcvr) noexcept : <i>rcvr</i>(rcvr) {}
 
       suspend_always initial_suspend() noexcept { return {}; }
-      [[noreturn]] suspend_always final_suspend() noexcept { std::terminate(); }
-      [[noreturn]] void unhandled_exception() noexcept { std::terminate(); }
-      [[noreturn]] void return_void() noexcept { std::terminate(); }
+      [[noreturn]] suspend_always final_suspend() noexcept { terminate(); }
+      [[noreturn]] void unhandled_exception() noexcept { terminate(); }
+      [[noreturn]] void return_void() noexcept { terminate(); }
 
       coroutine_handle<> unhandled_stopped() noexcept {
         set_stopped((DR&&) <i>rcvr</i>);
@@ -5688,36 +5688,36 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
       return awaiter{fn};
     };
 
-    <i>operation-state-task</i> <i>connect-awaitable</i>(DS s, DR r) requires receiver_of&lt;DR, Sigs> {
+    <i>operation-state-task</i> <i>connect-awaitable</i>(DS sndr, DR rcvr) requires receiver_of&lt;DR, Sigs> {
       exception_ptr ep;
       try {
         if constexpr (same_as&lt;V, void>) {
-          co_await std::move(s);
-          co_await <i>suspend-complete</i>(set_value, std::move(r));
+          co_await std::move(sndr);
+          co_await <i>suspend-complete</i>(set_value, std::move(rcvr));
         } else {
-          co_await <i>suspend-complete</i>(set_value, std::move(r), co_await std::move(s));
+          co_await <i>suspend-complete</i>(set_value, std::move(rcvr), co_await std::move(sndr));
         }
       } catch(...) {
         ep = current_exception();
       }
-      co_await <i>suspend-complete</i>(set_error, std::move(r), std::move(ep));
+      co_await <i>suspend-complete</i>(set_error, std::move(rcvr), std::move(ep));
     }
     </pre>
 
-6. If `S` does not satisfy `sender` or if `R` does not satisfy `receiver`,
-    `connect(s, r)` is ill-formed. Otherwise, the expression `connect(s, r)` is
+6. If `Sndr` does not satisfy `sender` or if `Rcvr` does not satisfy `receiver`,
+    `connect(sndr, rcvr)` is ill-formed. Otherwise, the expression `connect(sndr, rcvr)` is
     expression-equivalent to:
 
-    1. `tag_invoke(connect, s, r)` if
-        <code><i>connectable-with-tag-invoke</i>&lt;S, R></code> is modeled.
+    1. `tag_invoke(connect, sndr, rcvr)` if
+        <code><i>connectable-with-tag-invoke</i>&lt;Sndr, Rcvr></code> is modeled.
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above
             satisfies `operation_state`.
 
-    2. Otherwise, <code><i>connect-awaitable</i>(s, r)</code> if that expression is
+    2. Otherwise, <code><i>connect-awaitable</i>(sndr, rcvr)</code> if that expression is
         well-formed.
 
-    3. Otherwise, `connect(s, r)` is ill-formed.
+    3. Otherwise, `connect(sndr, rcvr)` is ill-formed.
 
 ### Sender factories <b>[exec.factories]</b> ### {#spec-execution.senders.factories}
 
@@ -5726,17 +5726,17 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 1. `schedule` obtains a schedule-sender ([async.ops]) from a scheduler.
 
 2. The name `schedule` denotes a customization point object. For some
-    subexpression `s`, the expression `schedule(s)` is expression-equivalent to:
+    subexpression `sch`, the expression `schedule(sch)` is expression-equivalent to:
 
-    1. `tag_invoke(schedule, s)`, if that expression is valid. If the function
+    1. `tag_invoke(schedule, sch)`, if that expression is valid. If the function
         selected by `tag_invoke` does not return a sender whose `set_value`
-        completion scheduler is equivalent to `s`, the behavior of calling
-        `schedule(s)` is undefined.
+        completion scheduler is equivalent to `sch`, the behavior of calling
+        `schedule(sch)` is undefined.
 
         * <i>Mandates:</i> The type of the `tag_invoke` expression above
             satisfies `sender`.
 
-    2. Otherwise, `schedule(s)` is ill-formed.
+    2. Otherwise, `schedule(sch)` is ill-formed.
 
 #### `execution::just`, `execution::just_error`, `execution::just_stopped` <b>[exec.just]</b> #### {#spec-execution.senders.just}
 
@@ -5819,16 +5819,16 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     of the sender adaptor.
 
 4. Unless otherwise specified, a parent sender ([async.ops]) with a single child
-    sender `s` has an associated attribute object equal to
-    <code><i>FWD-ENV</i>(get_env(s))</code> ([exec.fwd.env]). Unless
+    sender `sndr` has an associated attribute object equal to
+    <code><i>FWD-ENV</i>(get_env(sndr))</code> ([exec.fwd.env]). Unless
     otherwise specified, a parent sender with more than one child senders has an
     associated attributes object equal to <code>empty_env{}</code>. These
     requirements apply to any function that is selected by the implementation of
     the sender adaptor.
 
 5. Unless otherwise specified, when a parent sender is connected to a receiver
-    `r`, any receiver used to connect a child sender has an associated
-    environment equal to <code><i>FWD-ENV</i>(get_env(r))</code>. This
+    `rcvr`, any receiver used to connect a child sender has an associated
+    environment equal to <code><i>FWD-ENV</i>(get_env(rcvr))</code>. This
     requirements applies to any sender returned from a function that is selected
     by the implementation of such sender adaptor.
 
@@ -5843,14 +5843,14 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
     <pre highlight="c++">
     namespace <i>sender-adaptors</i> { // exposition only
-      template&lt;class Sch, class S> // arguments are not associated entities ([lib.tmpl-heads])
+      template&lt;class Sch, class Sndr> // arguments are not associated entities ([lib.tmpl-heads])
       class <i>on-sender</i> {
         // ...
       };
 
       struct on_t {
-        template&lt;scheduler Sch, sender S>
-        <i>on-sender</i>&lt;Sch, S> operator()(Sch&& sch, S&& s) const {
+        template&lt;scheduler Sch, sender Sndr>
+        <i>on-sender</i>&lt;Sch, Sndr> operator()(Sch&& sch, Sndr&& sndr) const {
           // ...
         }
       };
@@ -5861,33 +5861,36 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     -- <i>end example</i>]
 
 7. If a sender returned from a sender adaptor specified in this subclause is
-    specified to include `set_error_t(E)` among its set of completion signatures
-    where `decay_t<E>` names the type `exception_ptr`, but the implementation
+    specified to include `set_error_t(Err)` among its set of completion signatures
+    where `decay_t<Err>` names the type `exception_ptr`, but the implementation
     does not potentially evaluate an error completion operation with an
     `exception_ptr` argument, the implementation is allowed to omit the
     `exception_ptr` error completion signature from the set.
 
 #### Sender adaptor closure objects <b>[exec.adapt.objects]</b> #### {#spec-execution.senders.adaptor.objects}
 
-1. A <i>pipeable sender adaptor closure object</i> is a function object that accepts one or more `sender` arguments and returns a `sender`. For a sender adaptor closure object `C` and an expression `S` such that `decltype((S))` models `sender`, the following
-    expressions are equivalent and yield a `sender`:
+1. A <i>pipeable sender adaptor closure object</i> is a function object that
+    accepts one or more `sender` arguments and returns a `sender`. For a sender
+    adaptor closure object `c` and an expression `sndr` such that
+    `decltype((sndr))` models `sender`, the following expressions are equivalent
+    and yield a `sender`:
 
     <pre highlight="c++">
-    C(S)
-    S | C
+    c(sndr)
+    sndr | c
     </pre>
 
-    Given an additional pipeable sender adaptor closure object `D`, the expression `C | D` produces another pipeable sender adaptor closure object `E`:
+    Given an additional pipeable sender adaptor closure object `d`, the expression `c | d` produces another pipeable sender adaptor closure object `e`:
 
-    `E` is a perfect forwarding call wrapper ([func.require]) with the following properties:
+    `e` is a perfect forwarding call wrapper ([func.require]) with the following properties:
 
-    - Its target object is an object `d` of type `decay_t<decltype((D))>` direct-non-list-initialized with `D`.
+    - Its target object is an object `d2` of type `decay_t<decltype((d))>` direct-non-list-initialized with `d`.
 
-    - It has one bound argument entity, an object `c` of type `decay_t<decltype((C))>` direct-non-list-initialized with `C`.
+    - It has one bound argument entity, an object `c2` of type `decay_t<decltype((c))>` direct-non-list-initialized with `C`.
 
-    - Its call pattern is `d(c(arg))`, where `arg` is the argument used in a function call expression of `E`.
+    - Its call pattern is `d2(c2(arg))`, where `arg` is the argument used in a function call expression of `e`.
 
-    The expression `C | D` is well-formed if and only if the initializations of the state entities of `E` are all well-formed.
+    The expression `c | d` is well-formed if and only if the initializations of the state entities of `e` are all well-formed.
 
 2. An object `t` of type `T` is a pipeable sender adaptor closure object if `T` models `derived_from<sender_adaptor_closure<T>>`, `T` has no other base
     classes of type `sender_adaptor_closure<U>` for any other type `U`, and `T` does not model `sender`.
@@ -5901,8 +5904,8 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
 5. If a pipeable sender adaptor object accepts only one argument, then it is a pipeable sender adaptor closure object.
 
-6. If a pipeable sender adaptor object `adaptor` accepts more than one argument, then let `s` be an expression such that `decltype((s))` models `sender`,
-    let `args...` be arguments such that `adaptor(s, args...)` is a well-formed expression as specified in the rest of this subclause
+6. If a pipeable sender adaptor object `adaptor` accepts more than one argument, then let `sndr` be an expression such that `decltype((sndr))` models `sender`,
+    let `args...` be arguments such that `adaptor(sndr, args...)` is a well-formed expression as specified in the rest of this subclause
     ([exec.adapt.objects]), and let `BoundArgs` be a pack that denotes `decay_t<decltype((args))>...`. The expression `adaptor(args...)`
     produces a pipeable sender adaptor closure object `f` that is a perfect forwarding call wrapper with the following properties:
 
@@ -5910,7 +5913,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
     - Its bound argument entities `bound_args` consist of objects of types `BoundArgs...` direct-non-list-initialized with `std::forward<decltype((args))>(args)...`, respectively.
 
-    - Its call pattern is `adaptor(r, bound_args...)`, where `r` is the argument used in a function call expression of `f`.
+    - Its call pattern is `adaptor(rcvr, bound_args...)`, where `rcvr` is the argument used in a function call expression of `f`.
 
     The expression `adaptor(args...)` is well-formed if and only if the initializations of the bound argument entities of the result, as specified above,
      are all well-formed.
@@ -5921,48 +5924,48 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     agent belonging to a particular scheduler's associated execution resource.
 
 2. The name `on` denotes a customization point object. For some subexpressions
-    `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be `decltype((s))`. If
-    `Sch` does not satisfy `scheduler`, or `S` does not satisfy `sender`,
-    `on(sch, s)` is ill-formed. Otherwise, the expression `on(sch, s)` is
+    `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be `decltype((sndr))`. If
+    `Sch` does not satisfy `scheduler`, or `Sndr` does not satisfy `sender`,
+    `on(sch, sndr)` is ill-formed. Otherwise, the expression `on(sch, sndr)` is
     expression-equivalent to:
 
         <pre highlight="c++">
         transform_sender(
           <i>query-or-default</i>(get_domain, sch, default_domain()),
-          <i>make-sender</i>(on, sch, s));
+          <i>make-sender</i>(on, sch, sndr));
         </pre>
 
-3. Let `out_s` and `e` be subexpressions such that `OutS` is `decltype((out_s))`. If
-    <code><i>sender-for</i>&lt;OutS, on_t></code> is `false`, then the expressions
-    `on_t().transform_env(out_s, e)` and `on_t().transform_sender(out_s, e)` are ill-formed;
+3. Let `out_sndr` and `env` be subexpressions such that `OutSndr` is `decltype((out_sndr))`. If
+    <code><i>sender-for</i>&lt;OutSndr, on_t></code> is `false`, then the expressions
+    `on_t().transform_env(out_sndr, env)` and `on_t().transform_sender(out_sndr, env)` are ill-formed;
     otherwise:
 
-        - `on_t().transform_env(out_s, e)` is equivalent to:
+        - `on_t().transform_env(out_sndr, env)` is equivalent to:
 
             <pre highlight="c++">
-            auto&& [ign1, sch, ign2] = out_s;
-            return <i>JOIN-ENV</i>(<i>SCHED-ENV</i>(sch), <i>FWD-ENV</i>(e));
+            auto&& [ign1, sch, ign2] = out_sndr;
+            return <i>JOIN-ENV</i>(<i>SCHED-ENV</i>(sch), <i>FWD-ENV</i>(env));
             </pre>
 
-        - `on_t().transform_sender(out_s, e)` is equivalent to:
+        - `on_t().transform_sender(out_sndr, env)` is equivalent to:
 
             <pre highlight="c++">
-            auto&& [ign, sch, s] = out_s;
+            auto&& [ign, sch, sndr] = out_sndr;
             return let_value(
               schedule(sch),
-              [s = std::forward_like&lt;OutS>(s)]() mutable {
-                return std::move(s);
+              [sndr = std::forward_like&lt;OutSndr>(sndr)]() mutable {
+                return std::move(sndr);
               });
             </pre>
 
-4. Let `out_s` be a subexpression denoting a sender returned from `on(sch, s)`
-    or one equal to such, and let `OutS` be the type `decltype((out_s))`. Let
-    `out_r` be a subexpression denoting a receiver that has an environment of
-    type `E` such that `sender_in<OutS, E>` is `true`. Let `op` be an lvalue
-    referring to the operation state that results from connecting `out_s` with
-    `out_r`. Calling `start(op)` shall start `s` on an execution agent of the
+4. Let `out_sndr` be a subexpression denoting a sender returned from `on(sch, sndr)`
+    or one equal to such, and let `OutSndr` be the type `decltype((out_sndr))`. Let
+    `out_rcvr` be a subexpression denoting a receiver that has an environment of
+    type `Env` such that `sender_in<OutSndr, Env>` is `true`. Let `op` be an lvalue
+    referring to the operation state that results from connecting `out_sndr` with
+    `out_rcvr`. Calling `start(op)` shall start `sndr` on an execution agent of the
     associated execution resource of `sch`, or failing that, shall execute an
-    error completion on `out_r`.
+    error completion on `out_rcvr`.
 
 #### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
 
@@ -5971,15 +5974,15 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     transition between different execution resources when executed.</span>
 
 2. The name `transfer` denotes a customization point object. For some
-    subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be
-    `decltype((s))`. If `Sch` does not satisfy `scheduler`, or `S` does not
-    satisfy `sender`, `transfer(s, sch)` is ill-formed. Otherwise, the
-    expression `transfer(s, sch)` is expression-equivalent to:
+    subexpressions `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be
+    `decltype((sndr))`. If `Sch` does not satisfy `scheduler`, or `Sndr` does not
+    satisfy `sender`, `transfer(sndr, sch)` is ill-formed. Otherwise, the
+    expression `transfer(sndr, sch)` is expression-equivalent to:
 
         <pre highlight="c++">
         transform_sender(
-          <i>get-domain-early</i>(s),
-          <i>make-sender</i>(transfer, sch, s));
+          <i>get-domain-early</i>(sndr),
+          <i>make-sender</i>(transfer, sch, sndr));
         </pre>
 
 3. The exposition-only class template <code><i>impls-for</i></code> is specialized
@@ -5995,29 +5998,29 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
         };
         </pre>
 
-4. Let `s` and `e` be subexpressions such that `S` is `decltype((s))`. If
-    <code><i>sender-for</i>&lt;S, transfer_t></code> is `false`, then the expression
-    `transfer_t().transform_sender(s, e)` is ill-formed; otherwise, it
+4. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If
+    <code><i>sender-for</i>&lt;Sndr, transfer_t></code> is `false`, then the expression
+    `transfer_t().transform_sender(sndr, env)` is ill-formed; otherwise, it
     is equal to:
 
         <pre highlight="c++">
-        auto [tag, data, child] = s;
+        auto [tag, data, child] = sndr;
         return schedule_from(std::move(data), std::move(child));
         </pre>
 
-    <span class="wg21note">This causes the `transfer(s, sch)` sender to become
-    `schedule_from(sch, s)` when it is connected with a receiver with an
+    <span class="wg21note">This causes the `transfer(sndr, sch)` sender to become
+    `schedule_from(sch, sndr)` when it is connected with a receiver with an
     execution domain that does not customize `transfer`.</span>
 
-4. Let `out_s` be a subexpression denoting a sender returned from `transfer(s, sch)`
-    or one equal to such, and let `OutS` be the type `decltype((out_s))`. Let
-    `out_r` be a subexpression denoting a receiver that has an environment of
-    type `E` such that `sender_in<OutS, E>` is `true`. Let `op` be an lvalue
-    referring to the operation state that results from connecting `out_s` with
-    `out_r`. Calling `start(op)` shall start `s` on the current execution agent
-    and execute completion operations on `out_r` on an execution agent of the
+4. Let `out_sndr` be a subexpression denoting a sender returned from `transfer(sndr, sch)`
+    or one equal to such, and let `OutSndr` be the type `decltype((out_sndr))`. Let
+    `out_rcvr` be a subexpression denoting a receiver that has an environment of
+    type `Env` such that `sender_in<OutSndr, Env>` is `true`. Let `op` be an lvalue
+    referring to the operation state that results from connecting `out_sndr` with
+    `out_rcvr`. Calling `start(op)` shall start `sndr` on the current execution agent
+    and execute completion operations on `out_rcvr` on an execution agent of the
     associated execution resource of `sch`; or failing that, execute an error
-    completion on `out_r`.
+    completion on `out_rcvr`.
 
 #### `execution::schedule_from` <b>[exec.schedule.from]</b> #### {#spec-execution.senders.adaptors.schedule_from}
 
@@ -6027,64 +6030,64 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     used in the implementation of `transfer`.</span>
 
 3. The name `schedule_from` denotes a customization point object. For some
-    subexpressions `sch` and `s`, let `Sch` be `decltype((sch))` and `S` be
-    `decltype((s))`. If `Sch` does not satisfy `scheduler`, or `S` does not
+    subexpressions `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be
+    `decltype((sndr))`. If `Sch` does not satisfy `scheduler`, or `Sndr` does not
     satisfy `sender`, `schedule_from` is ill-formed. Otherwise, the expression
-    `schedule_from(sch, s)` is expression-equivalent to:
+    `schedule_from(sch, sndr)` is expression-equivalent to:
 
         <pre highlight="c++">
         transform_sender(
           <i>query-or-default</i>(get_domain, sch, default_domain()),
-          <i>make-schedule-from-sender</i>(sch, s));
+          <i>make-schedule-from-sender</i>(sch, sndr));
         </pre>
 
-        where <code><i>make-schedule-from-sender</i>(sch, s)</code> is expression-equivalent to
-        <code><i>make-sender</i>(schedule_from, sch, s)</code> and returns a sender object
-        `s2` that behaves as follows:
+        where <code><i>make-schedule-from-sender</i>(sch, sndr)</code> is expression-equivalent to
+        <code><i>make-sender</i>(schedule_from, sch, sndr)</code> and returns a sender object
+        `sndr2` that behaves as follows:
 
-    1. When `s2` is connected with some receiver `out_r`, it:
+    1. When `sndr2` is connected with some receiver `out_rcvr`, it:
 
-        1. Constructs a receiver `r` such that when a receiver completion
-            operation <code><i>Tag</i>(r, args...)</code> is called, it
+        1. Constructs a receiver `rcvr` such that when a receiver completion
+            operation <code><i>Tag</i>(rcvr, args...)</code> is called, it
             decay-copies `args...` into `op_state` (see below) as `args2...` and
-            constructs a receiver `r2` such that:
+            constructs a receiver `rcvr2` such that:
 
-            1. When `set_value(r2)` is called, it calls
-                <code><i>Tag</i>(out_r, std::move(args2)...)</code>.
+            1. When `set_value(rcvr2)` is called, it calls
+                <code><i>Tag</i>(out_rcvr, std::move(args2)...)</code>.
 
-            2. `set_error(r2, e)` is expression-equivalent to `set_error(out_r, e)`.
+            2. `set_error(rcvr2, err)` is expression-equivalent to `set_error(out_rcvr, err)`.
 
-            3. `set_stopped(r2)` is expression-equivalent to `set_stopped(out_r)`.
+            3. `set_stopped(rcvr2)` is expression-equivalent to `set_stopped(out_rcvr)`.
 
-            4. `get_env(r2)` is equal to `get_env(r)`.
+            4. `get_env(rcvr2)` is equal to `get_env(rcvr)`.
 
-            It then calls `schedule(sch)`, resulting in a sender `s3`. It then
-            calls `connect(s3, r2)`, resulting in an operation state
+            It then calls `schedule(sch)`, resulting in a sender `sndr3`. It then
+            calls `connect(sndr3, rcvr2)`, resulting in an operation state
             `op_state3`. It then calls `start(op_state3)`. If any of these
-            throws an exception, it catches it and calls `set_error(out_r,
+            throws an exception, it catches it and calls `set_error(out_rcvr,
             current_exception())`. If any of these expressions would be
-            ill-formed, then <code><i>Tag</i>(r, args...)</code> is ill-formed.
+            ill-formed, then <code><i>Tag</i>(rcvr, args...)</code> is ill-formed.
 
-        2. Calls `connect(s, r)` resulting in an operation state `op_state2`. If
-            this expression would be ill-formed, `connect(s2, out_r)` is
+        2. Calls `connect(sndr, rcvr)` resulting in an operation state `op_state2`. If
+            this expression would be ill-formed, `connect(sndr2, out_rcvr)` is
             ill-formed.
 
         3. Returns an operation state `op_state` that contains `op_state2`. When
             `start(op_state)` is called, calls `start(op_state2)`. The lifetime
             of `op_state3` ends when `op_state` is destroyed.
 
-    2. If a sender `S` returned from `schedule_from(sch, s)` is connected with a
-        receiver `R` with environmment `E` such that
-        <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does not
-        return a sender that completes on an execution agent belonging to the
-        associated execution resource of `sch` and completing with the same
-        async result ([async.ops]) as `s`, the behavior of calling
-        `connect(S, R)` is undefined.
+    2. If a sender `out_sndr` returned from `schedule_from(sch, sndr)` is
+        connected with a receiver `rcvr` with environmment `env` such that
+        <code>transform_sender(<i>get-domain-late</i>(out_sndr, env), out_sndr,
+        env)</code> does not return a sender that completes on an execution
+        agent belonging to the associated execution resource of `sch` and
+        completing with the same async result ([async.ops]) as `sndr`, the
+        behavior of calling `connect(out_sndr, rcvr)` is undefined.
 
 
-3. For a sender `t` returned from `schedule_from(sch, s)`, `get_env(t)` shall
-    return a queryable object `q` such that `get_domain(q)` is
-    expression-equivalent to `get_domain(sch)` and
+3. For a sender `out_sndr` returned from `schedule_from(sch, sndr)`,
+    `get_env(out_sndr)` shall return a queryable object `q` such that
+    `get_domain(q)` is expression-equivalent to `get_domain(sch)` and
     `get_completion_scheduler<CPO>(q)` returns a copy of `sch`, where `CPO` is
     either `set_value_t` or `set_stopped_t`. The
     `get_completion_scheduler<set_error_t>` query is not implemented, as the
@@ -6092,7 +6095,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     schedule work on the given scheduler object. For all other query objects
     <code><i>Q</i></code> whose type satisfies
     <code><i>forwarding-query</i></code>, the expression <code><i>Q</i>(q,
-    args...)</code> shall be equivalent to <code><i>Q</i>(get_env(s),
+    args...)</code> shall be equivalent to <code><i>Q</i>(get_env(sndr),
     args...)</code>.
 
 #### `execution::then`, `execution::upon_error`, `execution::upon_stopped` <b>[exec.then]</b> #### {#spec-execution.senders.adaptor.then}
@@ -6104,18 +6107,18 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
 2. The names `then`, `upon_error`, and `upon_stopped` denote customization point
     objects. Let the expression <code><i>then-cpo</i></code> be one of `then`,
-    `upon_error`, or `upon_stopped`. For subexpressions `s` and `f`, let `S` be
-    `decltype((s))` and let `F` be the decayed type of `f`. If `S` does not
+    `upon_error`, or `upon_stopped`. For subexpressions `sndr` and `f`, let `Sndr` be
+    `decltype((sndr))` and let `F` be the decayed type of `f`. If `Sndr` does not
     satisfy `sender`, or `F` does not satisfy <code><i>movable-value</i></code>,
-    <code><i>then-cpo</i>(s, f)</code> is ill-formed.
+    <code><i>then-cpo</i>(sndr, f)</code> is ill-formed.
     
-3. Otherwise, the expression <code><i>then-cpo</i>(s, f)</code> is
+3. Otherwise, the expression <code><i>then-cpo</i>(sndr, f)</code> is
     expression-equivalent to:
 
         <pre highlight="c++">
         transform_sender(
-          <i>get-domain-early</i>(s),
-          <i>make-sender</i>(<i>then-cpo</i>, f, s));
+          <i>get-domain-early</i>(sndr),
+          <i>make-sender</i>(<i>then-cpo</i>, f, sndr));
         </pre>
 
 4. For `then`, `upon_error`, and `upon_stopped`, let <code><i>set-cpo</i></code>
@@ -6139,12 +6142,12 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
         };
         </pre>
 
-5. The expression <code><i>then-cpo</i>(s, f)</code> has undefined behavior
-    unless it returns a sender `out_s` that:
+5. The expression <code><i>then-cpo</i>(sndr, f)</code> has undefined behavior
+    unless it returns a sender `out_sndr` that:
 
     1. Invokes `f` or a copy of such with the value, error, or stopped result
-        datums of `s` (for `then`, `upon_error`, and `upon_stopped`
-        respectively), using the result value of `f` as `out_s`'s value
+        datums of `sndr` (for `then`, `upon_error`, and `upon_stopped`
+        respectively), using the result value of `f` as `out_sndr`'s value
         completion, and
 
     2. Forwards all other completion operations unchanged.
@@ -6159,226 +6162,226 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 2. Let the expression <code><i>let-cpo</i></code> be one of `let_value`,
     `let_error`, or `let_stopped` and let <code><i>set-cpo</i></code> be the
     completion function that corresponds to <code><i>let-cpo</i></code>
-    (`set_value` for `let_value`, etc.). For subexpressions `s` and `re`, let
-    <code><i>inner-env</i>(s, re)</code> be an environment `e` such that:
+    (`set_value` for `let_value`, etc.). For subexpressions `sndr` and `rcvr_env`, let
+    <code><i>inner-env</i>(sndr, rcvr_env)</code> be an environment `env` such that:
 
-        1. `get_domain(e)` is expression-equivalent
-            <code><i>get-domain-late</i>(s, re)</code>,
+        1. `get_domain(env)` is expression-equivalent
+            <code><i>get-domain-late</i>(sndr, rcvr_env)</code>,
         
-        2. `get_scheduler(e)` is expression-equivalent to the first
+        2. `get_scheduler(env)` is expression-equivalent to the first
             well-formed expression below:
 
-            - <code>get_completion_scheduler&lt;<i>set-cpo-t</i>>(get_env(s))</code>,
+            - <code>get_completion_scheduler&lt;<i>set-cpo-t</i>>(get_env(sndr))</code>,
                 where <code><i>set-cpo-t</i></code> is the type of
                 <code><i>set-cpo</i></code>.
             
-            - `get_scheduler(re)`
+            - `get_scheduler(rcvr_env)`
             
-            or if neither of them are, `get_scheduler(e)` is ill-formed.
+            or if neither of them are, `get_scheduler(env)` is ill-formed.
 
-        3. For all other query objects <code><i>Q</i></code> and arguments `args...`,
-            <code><i>Q</i>(e, args...)</code> is expression-equivalent to
-            <code><i>Q</i>(re, args...)</code>.
+        3. For all other query objects <code><i>q</i></code> and arguments `args...`,
+            <code><i>q</i>(env, args...)</code> is expression-equivalent to
+            <code><i>q</i>(rcvr_env, args...)</code>.
 
 3. The names `let_value`, `let_error`, and `let_stopped` denote customization
-    point objects. For subexpressions `s` and `f`, let `S` be `decltype((s))`,
+    point objects. For subexpressions `sndr` and `f`, let `Sndr` be `decltype((sndr))`,
     let `F` be the decayed type of `f`, and let `f2` be an xvalue that refers to
-    an object decay-copied from `f`. If `S` does not satisfy `sender` or if `F`
+    an object decay-copied from `f`. If `Sndr` does not satisfy `sender` or if `F`
     does not satisfy <code><i>movable-value</i></code>, the expression
-    <code><i>let-cpo</i>(s, f)</code> is ill-formed. If `F` does not satisfy
-    `invocable`, the expression `let_stopped(s, f)` is ill-formed. Otherwise,
-    the expression <code><i>let-cpo</i>(s, f)</code> is expression-equivalent
+    <code><i>let-cpo</i>(sndr, f)</code> is ill-formed. If `F` does not satisfy
+    `invocable`, the expression `let_stopped(sndr, f)` is ill-formed. Otherwise,
+    the expression <code><i>let-cpo</i>(sndr, f)</code> is expression-equivalent
     to:
 
       <pre highlight="c++">
       transform_sender(
-        <i>get-domain-early</i>(s),
-        <i>make-let-sender</i>(f, s));
+        <i>get-domain-early</i>(sndr),
+        <i>make-let-sender</i>(f, sndr));
       </pre>
 
-    where <code><i>make-let-sender</i>(f, s)</code> is expression-equivalent to
-    <code><i>make-sender</i>(<i>let-cpo</i>, f, s)</code> and returns a sender
-    object `s2` that behaves as follows:
+    where <code><i>make-let-sender</i>(f, sndr)</code> is expression-equivalent to
+    <code><i>make-sender</i>(<i>let-cpo</i>, f, sndr)</code> and returns a sender
+    object `sndr2` that behaves as follows:
 
-    1. When `s2` is connected to some receiver `out_r`, it:
+    1. When `sndr2` is connected to some receiver `out_rcvr`, it:
 
-        1. Decay-copies `out_r` into `op_state2` (see below). `out_r2` is an
-            xvalue referring to the copy of `out_r`. 
+        1. Decay-copies `out_rcvr` into `op_state2` (see below). `out_rcvr2` is an
+            xvalue referring to the copy of `out_rcvr`. 
 
-        2. Constructs a receiver `r` such that:
+        2. Constructs a receiver `rcvr` such that:
 
-            1. When <code><i>set-cpo</i>(r, args...)</code> is called, the
-                receiver `r` decay-copies `args...` into `op_state2` as
+            1. When <code><i>set-cpo</i>(rcvr, args...)</code> is called, the
+                receiver `rcvr` decay-copies `args...` into `op_state2` as
                 `args2...`, then calls `invoke(f2, args2...)`, resulting in a
-                sender `s3`. It then calls `connect(s3, out_r3)`, resulting in
-                an operation state `op_state3`, where `out_r3` is a receiver
+                sender `sndr3`. It then calls `connect(sndr3, out_rcvr3)`, resulting in
+                an operation state `op_state3`, where `out_rcvr3` is a receiver
                 described below. `op_state3` is saved as a part of `op_state2`.
                 It then calls `start(op_state3)`. If any of these throws an
-                exception, it catches it and calls `set_error(out_r2,
+                exception, it catches it and calls `set_error(out_rcvr2,
                 current_exception())`. If any of these expressions would be
-                ill-formed, <code><i>set-cpo</i>(r, args...)</code> is
+                ill-formed, <code><i>set-cpo</i>(rcvr, args...)</code> is
                 ill-formed.
 
-            2. <code><i>CF</i>(r, args...)</code> is expression-equivalent to
-                <code><i>CF</i>(out_r2, args...)</code>, where
+            2. <code><i>CF</i>(rcvr, args...)</code> is expression-equivalent to
+                <code><i>CF</i>(out_rcvr2, args...)</code>, where
                 <code><i>CF</i></code> is a completion function other than
                 <code><i>set-cpo</i></code>.
             
-            3. `get_env(r)` is expression-equivalent to `get_env(out_r)`.
+            3. `get_env(rcvr)` is expression-equivalent to `get_env(out_rcvr)`.
 
-            4. `out_r3` is a receiver that forwards its completion operations
-                to `out_r2` and for which `get_env(out_r3)` returns
-                <code><i>inner-env</i>(get_env(s), get_env(out_r2))</code>.
+            4. `out_rcvr3` is a receiver that forwards its completion operations
+                to `out_rcvr2` and for which `get_env(out_rcvr3)` returns
+                <code><i>inner-env</i>(get_env(sndr), get_env(out_rcvr2))</code>.
 
-         2. Calls `connect(s, r)` resulting in an operation state `op_state2`.
-             If the expression `connect(s, r)` is ill-formed, `connect(s2,
-             out_r)` is ill-formed.
+         2. Calls `connect(sndr, rcvr)` resulting in an operation state `op_state2`.
+             If the expression `connect(sndr, rcvr)` is ill-formed, `connect(sndr2,
+             out_rcvr)` is ill-formed.
         
         3. Returns an operation state `op_state` that stores `op_state2`.
             `start(op_state)` is expression-equivalent to `start(op_state2)`.
 
-5. Let `s` and `e` be subexpressions such that `S` is `decltype((s))` and `E` is
-    `decltype((e))`. If <code><i>sender-for</i>&lt;S, <i>let-cpo-t</i>></code> is `false` where
+5. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))` and `Env` is
+    `decltype((env))`. If <code><i>sender-for</i>&lt;Sndr, <i>let-cpo-t</i>></code> is `false` where
     <code><i>let-cpo-t</i></code> is the type of <code><i>let-cpo</i></code>, then the expression
-    <code><i>let-cpo-t</i>().transform_env(s, e)</code> is ill-formed. Otherwise, it is equal
-    to <code><i>inner-env</i>(get_env(s), e)</code>.
+    <code><i>let-cpo-t</i>().transform_env(sndr, env)</code> is ill-formed. Otherwise, it is equal
+    to <code><i>inner-env</i>(get_env(sndr), env)</code>.
 
-6. If a sender `S` returned from <code><i>let-cpo</i>(s, f)</code> is connected to a
-    receiver `R` with environment `E` such that
-    <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does not return a
+6. If a sender `out_sndr` returned from <code><i>let-cpo</i>(sndr, f)</code> is connected to a
+    receiver `rcvr` with environment `env` such that
+    <code>transform_sender(<i>get-domain-late</i>(out_sndr, env), out_sndr, env)</code> does not return a
     sender that:
   
-        - invokes `f` when <code><i>set-cpo</i></code> is called with `s`'s result datums,
+        - invokes `f` when <code><i>set-cpo</i></code> is called with `sndr`'s result datums,
         
         - makes its completion dependent on the completion of a sender returned by
             `f`, and
 
-        - propagates the other completion operations sent by `s`,
+        - propagates the other completion operations sent by `sndr`,
     
-    the behavior of calling `connect(S, R)` is undefined.
+    the behavior of calling `connect(out_sndr, rcvr)` is undefined.
 
 #### `execution::bulk` <b>[exec.bulk]</b> #### {#spec-execution.senders.adapt.bulk}
 
 1. `bulk` runs a task repeatedly for every index in an index space.
 
-2. The name `bulk` denotes a customization point object. For some
-    subexpressions `s`, `shape`, and `f`, let `S` be `decltype((s))`, `Shape` be
-    `decltype((shape))`, and `F` be `decltype((f))`. If `S` does not satisfy
-    `sender` or `Shape` does not satisfy `integral`,
-    `bulk` is ill-formed. Otherwise, the expression
-    `bulk(s, shape, f)` is expression-equivalent to:
+2. The name `bulk` denotes a customization point object. For some subexpressions
+    `sndr`, `shape`, and `f`, let `Sndr` be `decltype((sndr))`, `Shape` be
+    `decltype((shape))`, and `F` be `decltype((f))`. If `Sndr` does not satisfy
+    `sender` or `Shape` does not satisfy `integral`, `bulk` is ill-formed.
+    Otherwise, the expression `bulk(sndr, shape, f)` is expression-equivalent
+    to:
 
       <pre highlight="c++">
       transform_sender(
-        <i>get-domain-early</i>(s),
-        <i>make-bulk-sender</i>(<i>product-type</i>{shape, f}, s));
+        <i>get-domain-early</i>(sndr),
+        <i>make-bulk-sender</i>(<i>product-type</i>{shape, f}, sndr));
       </pre>
 
-    where <code><i>make-bulk-sender</i>(t, s)</code> is expression-equivalent to
-    <code><i>make-sender</i>(bulk, t, s)</code> for a subexpression `t` and
-    returns a sender object `s2` that behaves as follows:
+    where <code><i>make-bulk-sender</i>(t, sndr)</code> is expression-equivalent to
+    <code><i>make-sender</i>(bulk, t, sndr)</code> for a subexpression `t` and
+    returns a sender object `sndr2` that behaves as follows:
 
-    3. When `s2` is connected with a receiver `out_r`, it:
+    3. When `sndr2` is connected with a receiver `out_rcvr`, it:
 
-        1. Constructs a receiver `r`:
+        1. Constructs a receiver `rcvr`:
 
-            1. When `set_value(r, args...)` is called, calls `f(i, args...)` for
+            1. When `set_value(rcvr, args...)` is called, calls `f(i, args...)` for
                 each `i` of type `Shape` from `0` to `shape`, then calls
-                `set_value(out_r, args...)`. If any of these throws an
-                exception, it catches it and calls `set_error(out_r,
+                `set_value(out_rcvr, args...)`. If any of these throws an
+                exception, it catches it and calls `set_error(out_rcvr,
                 current_exception())`. If any of these expressions are
-                ill-formed, `set_value(r, args...)` is ill-formed.
+                ill-formed, `set_value(rcvr, args...)` is ill-formed.
 
-            2. When `set_error(r, e)` is called, calls `set_error(out_r, e)`.
+            2. When `set_error(rcvr, err)` is called, calls `set_error(out_rcvr, err)`.
 
-            3. When `set_stopped(r)` is called, calls `set_stopped(out_r, e)`.
+            3. When `set_stopped(rcvr)` is called, calls `set_stopped(out_rcvr)`.
 
-        2. Calls `connect(s, r)`, which results in an operation state `op_state2`.
+        2. Calls `connect(sndr, rcvr)`, which results in an operation state `op_state2`.
 
         3. Returns an operation state `op_state` that contains `op_state2`. When
             `start(op_state)` is called, calls `start(op_state2)`.
 
-    4. Let `S` be the result of calling `bulk(s, shape, f)` or a copy of such.
-        If `S` is connected to a receiver `R` with environment `E` such that
-        <code>transform_sender(<i>get-domain-late</i>(S, E), S, E)</code> does
+    4. Let `out_sndr` be the result of calling `bulk(sndr, shape, f)` or a copy of such.
+        If `out_sndr` is connected to a receiver `rcvr` with environment `env` such that
+        <code>transform_sender(<i>get-domain-late</i>(out_sndr, env), out_sndr, env)</code> does
         not return a sender that invokes `f(i, args...)` for each `i` of type
         `Shape` from `0` to `shape` where `args` is a pack of subexpressions
         referring to the value completion result datums of the input sender, or
         does not execute a value completion operation with said datums, the
-        behavior of calling `connect(S, R)` is undefined.
+        behavior of calling `connect(out_sndr, rcvr)` is undefined.
 
 #### `execution::split` <b>[exec.split]</b> #### {#spec-execution.senders.adapt.split}
 
 1. `split` adapts an arbitrary sender into a sender that can be connected multiple times.
 
 2. Let <code><i>split-env</i></code> be the type of an environment such that,
-    given an instance `e`, the expression `get_stop_token(e)` is well-formed and
+    given an instance `env`, the expression `get_stop_token(env)` is well-formed and
     has type `stop_token`.
 
 3. The name `split` denotes a customization point object. For some
-    subexpression `s`, let `S` be `decltype((s))`. If
-    <code>sender_in&lt;S, <i>split-env</i>></code> or
-    `constructible_from<decay_t<env_of_t<S>>, env_of_t<S>>` is `false`,
+    subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
+    <code>sender_in&lt;Sndr, <i>split-env</i>></code> or
+    `constructible_from<decay_t<env_of_t<Sndr>>, env_of_t<Sndr>>` is `false`,
     `split` is ill-formed. Otherwise, the expression
-    `split(s)` is expression-equivalent to:
+    `split(sndr)` is expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
-        <i>get-domain-early</i>(s),
-        <i>make-sender</i>(split, s));
+        <i>get-domain-early</i>(sndr),
+        <i>make-sender</i>(split, sndr));
       </pre>
 
-    1. Let `s` be a subexpression such that `S` is `decltype((s))`, and let
-        `e...` be a pack of subexpressions such that `sizeof...(e) <= 1` is
-        `true`. If <code><i>sender-for</i>&lt;S, split_t></code> is `false`,
-        then the expression `split_t().transform_sender(s, e...)` is ill-formed;
-        otherwise, it returns a sender `s2` that:
+    1. Let `sndr` be a subexpression such that `Sndr` is `decltype((sndr))`, and let
+        `env...` be a pack of subexpressions such that `sizeof...(env) <= 1` is
+        `true`. If <code><i>sender-for</i>&lt;Sndr, split_t></code> is `false`,
+        then the expression `split_t().transform_sender(sndr, env...)` is ill-formed;
+        otherwise, it returns a sender `sndr2` that:
 
         1. Creates an object `sh_state` that contains a `stop_source`, a list of
-            pointers to operation states awaiting the completion of `s`, and that
+            pointers to operation states awaiting the completion of `sndr`, and that
             also reserves space for storing:
 
-            * the operation state that results from connecting `s` with `r` described below, and
-            * the sets of values and errors with which `s` can complete, with
+            * the operation state that results from connecting `sndr` with `rcvr` described below, and
+            * the sets of values and errors with which `sndr` can complete, with
                 the addition of `exception_ptr`.
-            * the result of decay-copying `get_env(s)`.
+            * the result of decay-copying `get_env(sndr)`.
 
-        2. Constructs a receiver `r` such that:
+        2. Constructs a receiver `rcvr` such that:
 
-            1. When `set_value(r, args...)` is called, decay-copies
+            1. When `set_value(rcvr, args...)` is called, decay-copies
                 the expressions `args...` into `sh_state`. It then notifies all
                 the operation states in `sh_state`'s list of operation states
                 that the results are ready. If any exceptions are thrown, the
-                exception is caught and `set_error(r,
+                exception is caught and `set_error(rcvr,
                 current_exception())` is called instead.
 
-            2. When `set_error(r, e)` is called, decay-copies `e`
+            2. When `set_error(rcvr, err)` is called, decay-copies `err`
                 into `sh_state`. It then notifies the operation states in
                 `sh_state`'s list of operation states that the results are ready.
 
-            3. When `set_stopped(r)` is called, notifies the
+            3. When `set_stopped(rcvr)` is called, notifies the
                 operation states in `sh_state`'s list of operation states that
                 the results are ready.
 
-            4. `get_env(r)` is an expression <code><i>e</i></code> of type
+            4. `get_env(rcvr)` is an expression <code><i>env</i></code> of type
                 <code><i>split-env</i></code> such that
-                <code>get_stop_token(<i>e</i>)</code> is well-formed
+                <code>get_stop_token(<i>env</i>)</code> is well-formed
                 and returns the results of calling `get_token()` on `sh_state`'s
                 stop source.
 
-        3. Calls `get_env(s)` and decay-copies the result into
+        3. Calls `get_env(sndr)` and decay-copies the result into
             `sh_state`.
 
-        4. Calls `connect(s, r)`, resulting in an operation state
+        4. Calls `connect(sndr, rcvr)`, resulting in an operation state
             `op_state2`. `op_state2` is saved in `sh_state`.
 
-        5. When `s2` is connected with a receiver `out_r` of type `OutR`, it
+        5. When `sndr2` is connected with a receiver `out_rcvr` of type `OutRcvr`, it
             returns an operation state object `op_state` that contains:
 
-              * An object `out_r2` of type `OutR` decay-copied from `out_r`,
+              * An object `out_rcvr2` of type `OutRcvr` decay-copied from `out_rcvr`,
               * A reference to `sh_state`,
               * A stop callback of type
-                <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
+                <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutRcvr>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
                 where <code><i>stop-callback-fn</i></code> is the unspecified
                 class type:
 
@@ -6393,15 +6396,15 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
         6. When `start(op_state)` is called:
 
-            * If one of `r`'s completion functions has executed, then let
+            * If one of `rcvr`'s completion functions has executed, then let
                 <code><i>Tag</i></code> be the completion function that was
-                called. Calls <code><i>Tag</i>(out_r2, args2...)</code>,
+                called. Calls <code><i>Tag</i>(out_rcvr2, args2...)</code>,
                 where `args2...` is a pack of const lvalues referencing the
                 subobjects of `sh_state` that have been saved by the original
-                call to <code><i>Tag</i>(r, args...)</code> and returns.
+                call to <code><i>Tag</i>(rcvr, args...)</code> and returns.
 
             * Otherwise, it emplace constructs the stop callback optional with
-                the arguments `get_stop_token(get_env(out_r2))` and
+                the arguments `get_stop_token(get_env(out_rcvr2))` and
                 <code><i>stop-callback-fn</i>{<i>stop-src</i>}</code>, where
                 <code><i>stop-src</i></code> refers to the stop source of
                 `sh_state`.
@@ -6412,37 +6415,37 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
                   * If <code><i>stop-src</i>.stop_requested()</code> is `true`,
                       all of the operation states in `sh_state`'s list of operation
-                      states are notified as if `set_stopped(r)` had
+                      states are notified as if `set_stopped(rcvr)` had
                       been called.
 
                   * Otherwise, `start(op_state2)` is called.
 
-        7. When `r` completes it will notify `op_state` that the result are
+        7. When `rcvr` completes it will notify `op_state` that the result are
             ready. Let <code><i>Tag</i></code> be whichever
-            completion function was called on receiver `r`. `op_state`'s
+            completion function was called on receiver `rcvr`. `op_state`'s
             stop callback optional is reset. Then
-            <code><i>Tag</i>(std::move(out_r2), args2...)</code> is called,
+            <code><i>Tag</i>(std::move(out_rcvr2), args2...)</code> is called,
             where `args2...` is a pack of const lvalues referencing the subobjects of
             `sh_state` that have been saved by the original call to
-            <code><i>Tag</i>(r, args...)</code>.
+            <code><i>Tag</i>(rcvr, args...)</code>.
 
-        8. Ownership of `sh_state` is shared by `s2` and by every `op_state`
-            that results from connecting `s2` to a receiver.
+        8. Ownership of `sh_state` is shared by `sndr2` and by every `op_state`
+            that results from connecting `sndr2` to a receiver.
 
-    2. Given subexpressions `s2` where `s2` is a sender returned from `split`
-        or a copy of such, `get_env(s2)` shall return an lvalue reference to the
-        object in `sh_state` that was initialized with the result of `get_env(s)`.
+    2. Given subexpressions `sndr2` where `sndr2` is a sender returned from `split`
+        or a copy of such, `get_env(sndr2)` shall return an lvalue reference to the
+        object in `sh_state` that was initialized with the result of `get_env(sndr)`.
 
-5. Let `s` be a sender expression, `r` be an instance of the receiver type
-    described above, `s2` be a sender returned from `split(s)` or a copy of
-    such, `r2` is the receiver to which `s2` is connected, and `args` is the
-    pack of subexpressions passed to `r`'s completion function
-    <code><i>CSO</i></code> when `s` completes. `s2` shall invoke
-    <code><i>CSO</i>(r2, args2...)</code> where `args2` is a pack of const
+5. Let `sndr` be a sender expression, `rcvr` be an instance of the receiver type
+    described above, `sndr2` be a sender returned from `split(sndr)` or a copy of
+    such, `rcvr2` is the receiver to which `sndr2` is connected, and `args` is the
+    pack of subexpressions passed to `rcvr`'s completion function
+    <code><i>CSO</i></code> when `sndr` completes. `sndr2` shall invoke
+    <code><i>CSO</i>(rcvr2, args2...)</code> where `args2` is a pack of const
     lvalue references to objects decay-copied from `args`, or by calling
-    <code>set_error(r2, e2)</code> for some subexpression `e2`. The objects
-    passed to `r2`'s completion operation shall be valid until after the
-    completion of the invocation of `r2`'s completion operation.
+    <code>set_error(rcvr2, err2)</code> for some subexpression `err2`. The objects
+    passed to `rcvr2`'s completion operation shall be valid until after the
+    completion of the invocation of `rcvr2`'s completion operation.
 
 #### `execution::when_all` <b>[exec.when.all]</b> #### {#spec-execution.senders.adaptor.when_all}
 
@@ -6450,81 +6453,81 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     a sender that completes when all input senders have completed. `when_all`
     only accepts senders with a single value completion signature and on success
     concatenates all the input senders' value result datums into its own value
-    completion operation. `when_all_with_variant(s...)` is semantically
-    equivalent to `when_all(into_variant(s)...)`, where `s` is a pack of
+    completion operation. `when_all_with_variant(sndr...)` is semantically
+    equivalent to `when_all(into_variant(sndr)...)`, where `sndr` is a pack of
     subexpressions of sender types.
 
 2. The names `when_all` and `when_all_with_variant` denote customization point
-    objects. For some subexpressions <code>s<i><sub>i</sub></i>...</code>, let
-    <code>S<i><sub>i</sub></i>...</code> be
-    <code>decltype((s<i><sub>i</sub></i>))...</code>. The expressions
-    <code>when_all(s<i><sub>i</sub></i>...)</code> and
-    <code>when_all_with_variant(s<i><sub>i</sub></i>...)</code> are ill-formed if
+    objects. For some subexpressions <code>sndr<i><sub>i</sub></i>...</code>, let
+    <code>Sndr<i><sub>i</sub></i>...</code> be
+    <code>decltype((sndr<i><sub>i</sub></i>))...</code>. The expressions
+    <code>when_all(sndr<i><sub>i</sub></i>...)</code> and
+    <code>when_all_with_variant(sndr<i><sub>i</sub></i>...)</code> are ill-formed if
     any of the following is true:
 
-      * If the number of subexpressions <code>s<i><sub>i</sub></i>...</code> is 0, or
+      * If the number of subexpressions <code>sndr<i><sub>i</sub></i>...</code> is 0, or
 
-      * If any type <code>S<i><sub>i</sub></i></code> does not satisfy `sender`.
+      * If any type <code>Sndr<i><sub>i</sub></i></code> does not satisfy `sender`.
 
-      * If the expression <code><i>get-domain-early</i>(s<sub><i>i</i></sub>)</code> has a
+      * If the expression <code><i>get-domain-early</i>(sndr<sub><i>i</i></sub>)</code> has a
         different type for any other value of <code><i>i</i></code>.
 
     Otherwise, those expressions have the semantics specified below.
 
-3. The expression <code>when_all(s<i><sub>i</sub></i>...)</code> is
+3. The expression <code>when_all(sndr<i><sub>i</sub></i>...)</code> is
     expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
-        <i>get-domain-early</i>(s<sub><i>0</i></sub>),
-        <i>make-when-all-sender</i>(s<sub><i>0</i></sub>, ... s<sub><i>n-1</i></sub>));
+        <i>get-domain-early</i>(sndr<sub><i>0</i></sub>),
+        <i>make-when-all-sender</i>(sndr<sub><i>0</i></sub>, ... sndr<sub><i>n-1</i></sub>));
       </pre>
 
-    where <code><i>make-when-all-sender</i>(s<sub><i>i</i></sub>...)</code> is
+    where <code><i>make-when-all-sender</i>(sndr<sub><i>i</i></sub>...)</code> is
     expression-equivalent to <code><i>make-sender</i>(when_all,
-    <i>unspecified</i>, s<sub><i>i</i></sub>...)</code> and returns a sender
+    <i>unspecified</i>, sndr<sub><i>i</i></sub>...)</code> and returns a sender
     object `w` of type `W` that behaves as follows:
 
-    1. When `w` is connected with some receiver `out_r` of type `OutR`, it
+    1. When `w` is connected with some receiver `out_rcvr` of type `OutRcvr`, it
         returns an operation state `op_state` specified as below:
 
-        1. For each sender <code>s<i><sub>i</sub></i></code>, constructs a
-            receiver <code>r<i><sub>i</sub></i></code> such that:
+        1. For each sender <code>sndr<i><sub>i</sub></i></code>, constructs a
+            receiver <code>rcvr<i><sub>i</sub></i></code> such that:
 
-            1. If <code>set_value(r<i><sub>i</sub></i>,
+            1. If <code>set_value(rcvr<i><sub>i</sub></i>,
                 t<i><sub>i</sub></i>...)</code> is called for every
-                <code>r<i><sub>i</sub></i></code>, `op_state`'s associated stop
-                callback optional is reset and <code>set_value(out_r,
+                <code>rcvr<i><sub>i</sub></i></code>, `op_state`'s associated stop
+                callback optional is reset and <code>set_value(out_rcvr,
                 t<i><sub>0</sub></i>..., t<i><sub>1</sub></i>..., ...,
                 t<i><sub>n-1</sub></i>...)</code> is called, where `n` the number
-                of subexpressions in <code>s<i><sub>i</sub></i>...</code>.
+                of subexpressions in <code>sndr<i><sub>i</sub></i>...</code>.
 
             2. Otherwise, `set_error` or `set_stopped` was called for at least
-                one receiver <code>r<i><sub>i</sub></i></code>. If the first such
+                one receiver <code>rcvr<i><sub>i</sub></i></code>. If the first such
                 to complete did so with the call
-                <code>set_error(r<i><sub>i</sub></i>, e)</code>, `request_stop`
+                <code>set_error(rcvr<i><sub>i</sub></i>, err)</code>, `request_stop`
                 is called on `op_state`'s associated stop source. When all child
                 operations have completed, `op_state`'s associated stop callback
-                optional is reset and `set_error(out_r, e)` is called.
+                optional is reset and `set_error(out_rcvr, err)` is called.
 
             3. Otherwise, `request_stop` is called on `op_state`'s associated
                 stop source. When all child operations have completed,
                 `op_state`'s associated stop callback optional is reset and
-                `set_stopped(out_r)` is called.
+                `set_stopped(out_rcvr)` is called.
 
-            4. For each receiver <code>r<i><sub>i</sub></i></code>,
-                <code>get_env(r<i><sub>i</sub></i>)</code> is an expression
-                <code><i>e</i></code> such that
-                <code>get_stop_token(<i>e</i>)</code> is well-formed and returns
+            4. For each receiver <code>rcvr<i><sub>i</sub></i></code>,
+                <code>get_env(rcvr<i><sub>i</sub></i>)</code> is an expression
+                <code><i>env</i></code> such that
+                <code>get_stop_token(<i>env</i>)</code> is well-formed and returns
                 the results of calling `get_token()` on `op_state`'s associated
-                stop source, and for which <code>tag_invoke(tag, <i>e</i>,
-                args...)</code> is expression-equivalent to `tag(get_env(out_r),
+                stop source, and for which <code>tag_invoke(tag, <i>env</i>,
+                args...)</code> is expression-equivalent to `tag(get_env(out_rcvr),
                 args...)` for all arguments `args...` and all `tag` whose type
                 satisfies <code><i>forwarding-query</i></code> and is not
                 `get_stop_token_t`.
 
-        2. For each sender <code>s<i><sub>i</sub></i></code>, calls
-            <code>connect(s<i><sub>i</sub></i>, r<i><sub>i</sub></i>)</code>,
+        2. For each sender <code>sndr<i><sub>i</sub></i></code>, calls
+            <code>connect(sndr<i><sub>i</sub></i>, rcvr<i><sub>i</sub></i>)</code>,
             resulting in operation states
             <code>child_op<i><sub>i</sub></i></code>.
 
@@ -6535,7 +6538,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
             * A stop source of type `in_place_stop_source`,
 
             * A stop callback of type
-                <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
+                <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutRcvr>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
                 where <code><i>stop-callback-fn</i></code> is the unspecified
                 class type:
 
@@ -6551,54 +6554,52 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
         4. When `start(op_state)` is called it:
 
             * Emplace constructs the stop callback optional with the arguments
-                `get_stop_token(get_env(out_r))` and
+                `get_stop_token(get_env(out_rcvr))` and
                 <code><i>stop-callback-fn</i>{<i>stop-src</i>}</code>, where
                 <code><i>stop-src</i></code> refers to the stop source of
                 `op_state`.
 
             * Then, it checks to see if
                 <code><i>stop-src</i>.stop_requested()</code> is true. If so, it
-                calls `set_stopped(out_r)`.
+                calls `set_stopped(out_rcvr)`.
 
             * Otherwise, calls <code>start(child_op<i><sub>i</sub></i>)</code>
                 for each <code>child_op<i><sub>i</sub></i></code>.
 
-4. The expression <code>when_all_with_variant(s<sub><i>i</i></sub>...)</code> is
+4. The expression <code>when_all_with_variant(sndr<sub><i>i</i></sub>...)</code> is
     expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
-        <i>get-domain-early</i>(s<sub><i>0</i></sub>),
-        <i>make-sender</i>(when_all_with_variant, <i>unspecified</i>, s<sub><i>0</i></sub>, ... s<sub><i>n-1</i></sub>));
+        <i>get-domain-early</i>(sndr<sub><i>0</i></sub>),
+        <i>make-sender</i>(when_all_with_variant, <i>unspecified</i>, sndr<sub><i>0</i></sub>, ... sndr<sub><i>n-1</i></sub>));
       </pre>
 
-    where <code><i>make-when-all-sender</i>(s<sub><i>i</i></sub>...)</code> is
+    where <code><i>make-when-all-sender</i>(sndr<sub><i>i</i></sub>...)</code> is
     expression-equivalent to <code><i>make-sender</i>(when_all,
-    <i>unspecified</i>, s<sub><i>i</i></sub>...)</code> and returns a sender
+    <i>unspecified</i>, sndr<sub><i>i</i></sub>...)</code> and returns a sender
     object `w` of type `W` that behaves as follows:
 
-5. Let `s` and `e` be subexpressions such that `S` is `decltype((s))`. If
-    <code><i>sender-for</i>&lt;S, when_all_with_variant_t></code> is `false`,
-    then the expression `when_all_with_variant_t().transform_sender(s, e)` is
+5. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If
+    <code><i>sender-for</i>&lt;Sndr, when_all_with_variant_t></code> is `false`,
+    then the expression `when_all_with_variant_t().transform_sender(sndr, env)` is
     ill-formed; otherwise, it is equal to:
 
       <pre highlight="c++">
-      const auto& env = e;
-      auto domain = <i>get-domain-late</i>(s, env);
-      auto [tag, data, ...child] = s;
+      auto [tag, data, ...child] = sndr;
       return when_all(into_variant(std::move(child))...);
       </pre>
 
-    <span class="wg21note">This causes the `when_all_with_variant(s...)` sender
-    to become `when_all(into_variant(s)...)` when it is connected with a
+    <span class="wg21note">This causes the `when_all_with_variant(sndr...)` sender
+    to become `when_all(into_variant(sndr)...)` when it is connected with a
     receiver with an execution domain that does not customize
     `when_all_with_variant`.</span>
 
-4. Given a pack of subexpressions `s...`, let `S` be an object returned from
-    `when_all(s...)` or `when_all_with_variant(s...)` or a copy of such, and let
-    `E` be the environment object returned from `get_env(S)`. Given a query
-    object `Q`, `tag_invoke(Q, E)` is expression-equivalent to
-    <code><i>get-domain-early</i>(s<sub><i>0</i></sub>)</code> when `Q` is
+4. Given a pack of subexpressions `sndr...`, let `out_sndr` be an object returned from
+    `when_all(sndr...)` or `when_all_with_variant(sndr...)` or a copy of such, and let
+    `env` be the environment object returned from `get_env(out_sndr)`. Given a query
+    object `q`, `tag_invoke(q, env)` is expression-equivalent to
+    <code><i>get-domain-early</i>(sndr<sub><i>0</i></sub>)</code> when `q` is
     `get_domain`; otherwise, it is ill-formed.
 
 #### `execution::into_variant` <b>[exec.into.variant]</b> #### {#spec-execution.senders.adapt.into_variant}
@@ -6610,45 +6611,45 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     a sender returned from `into_variant`.
 
     <pre highlight="c++">
-        template&lt;class S, class E>
-            requires sender_in&lt;S, E>
+        template&lt;class Sndr, class Env>
+            requires sender_in&lt;Sndr, Env>
           using <i>into-variant-type</i> =
-            value_types_of_t&lt;S, E>;
+            value_types_of_t&lt;Sndr, Env>;
     </pre>
 
-3. `into_variant` is a customization point object. For some subexpression `s`,
-    let `S` be `decltype((s))`. If `S` does not satisfy `sender`,
-    `into_variant(s)` is ill-formed. Otherwise, `into_variant(s)` is
+3. `into_variant` is a customization point object. For some subexpression `sndr`,
+    let `Sndr` be `decltype((sndr))`. If `Sndr` does not satisfy `sender`,
+    `into_variant(sndr)` is ill-formed. Otherwise, `into_variant(sndr)` is
     expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
-        <i>get-domain-early</i>(s),
-        <i>make-into-variant-sender</i>(s))
+        <i>get-domain-early</i>(sndr),
+        <i>make-into-variant-sender</i>(sndr))
       </pre>
 
-    where <code><i>make-into-variant-sender</i>(s)</code> is
+    where <code><i>make-into-variant-sender</i>(sndr)</code> is
     expression-equivalent to <code><i>make-sender</i>(into_variant,
-    <i>unspecified</i>, s)</code> and returns a sender object `s2` that behaves
+    <i>unspecified</i>, sndr)</code> and returns a sender object `sndr2` that behaves
     as follows:
 
-    1. When `s2` is connected with some receiver `out_r`, it:
+    1. When `sndr2` is connected with some receiver `out_rcvr`, it:
 
-        1. Constructs a receiver `r` such that:
+        1. Constructs a receiver `rcvr` such that:
 
-            1. If `set_value(r, ts...)` is called, calls <code>set_value(out_r,
-                <i>into-variant-type</i>&lt;S,
-                env_of_t&lt;decltype((r))>>(<i>decayed-tuple</i>&lt;decltype(ts)...>(ts...)))</code>.
-                If this expression throws an exception, calls `set_error(out_r,
+            1. If `set_value(rcvr, ts...)` is called, calls <code>set_value(out_rcvr,
+                <i>into-variant-type</i>&lt;Sndr,
+                env_of_t&lt;decltype((rcvr))>>(<i>decayed-tuple</i>&lt;decltype(ts)...>(ts...)))</code>.
+                If this expression throws an exception, calls `set_error(out_rcvr,
                 current_exception())`.
 
-            2. `set_error(r, e)` is expression-equivalent to `set_error(out_r,
-                e)`.
+            2. `set_error(rcvr, err)` is expression-equivalent to `set_error(out_rcvr,
+                err)`.
 
-            3. `set_stopped(r)` is expression-equivalent to
-                `set_stopped(out_r)`.
+            3. `set_stopped(rcvr)` is expression-equivalent to
+                `set_stopped(out_rcvr)`.
 
-        2. Calls `connect(s, r)`, resulting in an operation state `op_state2`.
+        2. Calls `connect(sndr, rcvr)`, resulting in an operation state `op_state2`.
 
         3. Returns an operation state `op_state` that contains `op_state2`. When
             `start(op_state)` is called, calls `start(op_state2)`.
@@ -6657,24 +6658,22 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
 1. `stopped_as_optional` maps an input sender's stopped completion operation into the value completion operation as an empty optional. The input sender's value completion operation is also converted into an optional. The result is a sender that never completes with stopped, reporting cancellation by completing with an empty optional.
 
-2. The name `stopped_as_optional` denotes a customization point object. For some subexpression `s`, let `S` be `decltype((s))`.
-    The expression `stopped_as_optional(s)` is expression-equivalent to:
+2. The name `stopped_as_optional` denotes a customization point object. For some subexpression `sndr`, let `Sndr` be `decltype((sndr))`.
+    The expression `stopped_as_optional(sndr)` is expression-equivalent to:
 
     <pre highlight="c++">
     transform_sender(
-      <i>get-sender-domain</i>(s),
-      <i>make-sender</i>(stopped_as_optional, <i>unspecified</i>, s))
+      <i>get-sender-domain</i>(sndr),
+      <i>make-sender</i>(stopped_as_optional, <i>unspecified</i>, sndr))
     </pre>
 
-3. Let `s` and `e` be subexpressions such that `S` is `decltype((s))` and `E` is `decltype((e))`.
-    If either <code><i>sender-for</i>&lt;S, stopped_as_optional_t></code> or <code><i>single-sender</i>&lt;S, E></code> is `false`
-    then the expression `stopped_as_optional_t().transform_sender(s, e)` is ill-formed; otherwise, it is equal to:
+3. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))` and `Env` is `decltype((env))`.
+    If either <code><i>sender-for</i>&lt;Sndr, stopped_as_optional_t></code> or <code><i>single-sender</i>&lt;Sndr, Env></code> is `false`
+    then the expression `stopped_as_optional_t().transform_sender(sndr, env)` is ill-formed; otherwise, it is equal to:
 
     <pre highlight="c++">
-    const auto& env = e;
-    auto domain = <i>get-env-domain</i>(env);
-    auto [tag, data, child] = s;
-    using V = <i>single-sender-value-type</i>&lt;S, E>;
+    auto [tag, data, child] = sndr;
+    using V = <i>single-sender-value-type</i>&lt;Sndr, Env>;
     return let_stopped(
         then(std::move(child),
                   []&lt;class T>(T&& t) { return optional<V>(std::forward<T>(t)); }),
@@ -6688,22 +6687,20 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     that never completes with stopped, reporting cancellation by completing with
     an error.
 
-2. The name `stopped_as_error` denotes a customization point object. For some subexpressions `s` and `e`, let `S` be `decltype((s))` and let `E` be `decltype((e))`. If the type `S` does not satisfy `sender` or if the type `E` doesn't satisfy <code><i>movable-value</i></code>, `stopped_as_error(s, e)` is ill-formed. Otherwise, the expression `stopped_as_error(s, e)` is expression-equivalent to:
+2. The name `stopped_as_error` denotes a customization point object. For some subexpressions `sndr` and `err`, let `Sndr` be `decltype((sndr))` and let `Err` be `decltype((err))`. If the type `Sndr` does not satisfy `sender` or if the type `Err` doesn't satisfy <code><i>movable-value</i></code>, `stopped_as_error(sndr, err)` is ill-formed. Otherwise, the expression `stopped_as_error(sndr, err)` is expression-equivalent to:
 
     <pre highlight="c++">
     transform_sender(
-      <i>get-sender-domain</i>(s),
-      <i>make-sender</i>(stopped_as_error, e, s))
+      <i>get-sender-domain</i>(sndr),
+      <i>make-sender</i>(stopped_as_error, err, sndr))
     </pre>
 
-3. Let `s` and `e` be subexpressions such that `S` is `decltype((s))` and `E` is `decltype((e))`.
-    If <code><i>sender_for</i>&lt;S, stopped_as_error_t></code> is `false`, then the expression
-    `stopped_as_error_t().transform_sender(s, e)` is ill-formed; otherwise, it is equal to:
+3. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))` and `Env` is `decltype((env))`.
+    If <code><i>sender-for</i>&lt;Sndr, stopped_as_error_t></code> is `false`, then the expression
+    `stopped_as_error_t().transform_sender(sndr, env)` is ill-formed; otherwise, it is equal to:
 
     <pre highlight="c++">
-    const auto& env = e;
-    auto domain = <i>get-env-domain</i>(env);
-    auto [tag, data, child] = s;
+    auto [tag, data, child] = sndr;
     return let_stopped(
         std::move(child),
         [err = std::move(data)]() mutable { return just_error(std::move(err)); });
@@ -6715,79 +6712,79 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     that is usable as intput to additional sender algorithms.
 
 2. Let <code><i>ensure-started-env</i></code> be the type of an execution
-    environment such that, given an instance `e`, the expression
-    `get_stop_token(e)` is well-formed and has type `stop_token`.
+    environment such that, given an instance `env`, the expression
+    `get_stop_token(env)` is well-formed and has type `stop_token`.
 
 3. The name `ensure_started` denotes a customization point object.
-    For some subexpression `s`, let `S` be `decltype((s))`. If
-    <code>sender_in&lt;S, <i>ensure-started-env</i>></code> or
-    `constructible_from<decay_t<env_of_t<S>>, env_of_t<S>>` is
-    `false`, `ensure_started(s)` is ill-formed. Otherwise, the
-    expression `ensure_started(s)` is expression-equivalent to:
+    For some subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
+    <code>sender_in&lt;Sndr, <i>ensure-started-env</i>></code> or
+    `constructible_from<decay_t<env_of_t<Sndr>>, env_of_t<Sndr>>` is
+    `false`, `ensure_started(sndr)` is ill-formed. Otherwise, the
+    expression `ensure_started(sndr)` is expression-equivalent to:
 
     <pre highlight="c++">
     transform_sender(
-      <i>get-sender-domain</i>(s),
-      <i>make-sender</i>(ensure_started, s))
+      <i>get-sender-domain</i>(sndr),
+      <i>make-sender</i>(ensure_started, sndr))
     </pre>
 
-    1. Let `s` be a subexpression such that `S` is `decltype((s))`, and let `e...` be a pack of
-        subexpressions such that <code>sizeof...(e) &lt;= 1</code> is `true`.
-        If <code><i>sender-for</i>&lt;S, ensure_started_t></code> is `false`, then the expression
-        `ensure_started_t().transform_sender(s, e...)` is ill-formed; otherwise, it returns
-        a sender `s2`, that:
+    1. Let `sndr` be a subexpression such that `Sndr` is `decltype((sndr))`, and let `env...` be a pack of
+        subexpressions such that <code>sizeof...(env) &lt;= 1</code> is `true`.
+        If <code><i>sender-for</i>&lt;Sndr, ensure_started_t></code> is `false`, then the expression
+        `ensure_started_t().transform_sender(sndr, env...)` is ill-formed; otherwise, it returns
+        a sender `sndr2`, that:
 
         1. Creates an object `sh_state` that contains a `stop_source`, an
             initially null pointer to an operation state awaitaing completion,
             and that also reserves space for storing:
 
-            * the operation state that results from connecting `s` with `r` described below, and
-            * the sets of values and errors with which `s` can complete, with
+            * the operation state that results from connecting `sndr` with `rcvr` described below, and
+            * the sets of values and errors with which `sndr` can complete, with
                 the addition of `exception_ptr`.
-            * the result of decay-copying `get_env(s)`.
+            * the result of decay-copying `get_env(sndr)`.
 
-            `s2` shares ownership of `sh_state` with `r` described below.
+            `sndr2` shares ownership of `sh_state` with `rcvr` described below.
 
-        2. Constructs a receiver `r` such that:
+        2. Constructs a receiver `rcvr` such that:
 
-            1. When `set_value(r, args...)` is called, decay-copies
+            1. When `set_value(rcvr, args...)` is called, decay-copies
                 the expressions `args...` into `sh_state`. It then checks
                 `sh_state` to see if there is an operation state awaiting
                 completion; if so, it notifies the operation state that the
                 results are ready. If any exceptions are thrown, the exception
-                is caught and `set_error(r, current_exception())` is
+                is caught and `set_error(rcvr, current_exception())` is
                 called instead.
 
-            2. When `set_error(r, e)` is called, decay-copies `e`
+            2. When `set_error(rcvr, err)` is called, decay-copies `err`
                 into `sh_state`. If there is an operation state awaiting completion,
                 it then notifies the operation state that the results are ready.
 
-            3. When `set_stopped(r)` is called, it then notifies any
+            3. When `set_stopped(rcvr)` is called, it then notifies any
                 awaiting operation state that the results are ready.
 
-            4. `get_env(r)` is an expression <code><i>e</i></code> of type
+            4. `get_env(rcvr)` is an expression <code><i>env</i></code> of type
                 <code><i>ensure-started-env</i></code> such that
-                <code>get_stop_token(<i>e</i>)</code> is well-formed
+                <code>get_stop_token(<i>env</i>)</code> is well-formed
                 and returns the results of calling `get_token()` on `sh_state`'s
                 stop source.
 
-            5. `r` shares ownership of `sh_state` with `s2`. After `r`
+            5. `rcvr` shares ownership of `sh_state` with `sndr2`. After `rcvr`
                 has been completed, it releases its ownership of `sh_state`.
 
-        3. Calls `get_env(s)` and decay-copies the result into
+        3. Calls `get_env(sndr)` and decay-copies the result into
             `sh_state`.
 
-        4. Calls `connect(s, r)`, resulting in an operation state
+        4. Calls `connect(sndr, rcvr)`, resulting in an operation state
             `op_state2`. `op_state2` is saved in `sh_state`. It then calls
             `start(op_state2)`.
 
-        5. When `s2` is connected with a receiver `out_r` of type `OutR`, it
+        5. When `sndr2` is connected with a receiver `out_rcvr` of type `OutRcvr`, it
             returns an operation state object `op_state` that contains:
 
-              * An object `out_r2` of type `OutR` decay-copied from `out_r`,
+              * An object `out_rcvr2` of type `OutRcvr` decay-copied from `out_rcvr`,
               * A reference to `sh_state`,
               * A stop callback of type
-                <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutR>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
+                <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutRcvr>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
                 where <code><i>stop-callback-fn</i></code> is the unspecified
                 class type:
 
@@ -6800,62 +6797,62 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
                 };
                 </pre>
 
-              `s2` transfers its ownership of `sh_state` to `op_state`.
+              `sndr2` transfers its ownership of `sh_state` to `op_state`.
 
         6. When `start(op_state)` is called:
 
-            * If `r` has already been completed, then let
+            * If `rcvr` has already been completed, then let
                 <code><i>CF</i></code> be whichever completion function
-                was used to complete `r`. Calls
-                <code><i>CF</i>(out_r2, args2...)</code>, where `args2...` is a
+                was used to complete `rcvr`. Calls
+                <code><i>CF</i>(out_rcvr2, args2...)</code>, where `args2...` is a
                 pack of xvalues referencing the subobjects of `sh_state` that have
-                been saved by the original call to <code><i>CF</i>(r,
+                been saved by the original call to <code><i>CF</i>(rcvr,
                 args...)</code> and returns.
 
             * Otherwise, it emplace constructs the stop callback optional with
-                the arguments `get_stop_token(get_env(out_r2))` and
+                the arguments `get_stop_token(get_env(out_rcvr2))` and
                 <code><i>stop-callback-fn</i>{<i>stop-src</i>}</code>, where
                 <code><i>stop-src</i></code> refers to the stop source of
                 `sh_state`.
 
             * Then, it checks to see if
                 <code><i>stop-src</i>.stop_requested()</code> is `true`. If so, it
-                calls `set_stopped(out_r2)`.
+                calls `set_stopped(out_rcvr2)`.
 
             * Otherwise, it sets `sh_state` operation state pointer to the
                 address of `op_state`, registering itself as awaiting the result
-                of the completion of `r`.
+                of the completion of `rcvr`.
 
-        7. When `r` completes it will notify `op_state` that the result are
+        7. When `rcvr` completes it will notify `op_state` that the result are
             ready. Let <code><i>CF</i></code> be whichever
-            completion function was used to complete `r`. `op_state`'s stop
+            completion function was used to complete `rcvr`. `op_state`'s stop
             callback optional is reset. Then
-            <code><i>CF</i>(std::move(out_r2), args2...)</code> is called,
+            <code><i>CF</i>(std::move(out_rcvr2), args2...)</code> is called,
             where `args2...` is a pack of xvalues referencing the subobjects of
             `sh_state` that have been saved by the original call to
-            <code><i>CF</i>(r, args...)</code>.
+            <code><i>CF</i>(rcvr, args...)</code>.
 
-        8. [*Note:* If sender `s2` is destroyed without being connected to a
+        8. [*Note:* If sender `sndr2` is destroyed without being connected to a
             receiver, or if it is connected but the operation state is destroyed
-            without having been started, then when `r`
+            without having been started, then when `rcvr`
             completes and it releases its shared ownership of `sh_state`,
             `sh_state` will be destroyed and the results of the operation are
             discarded. -- *end note*]
 
-    4. Given a subexpression `s`, let `s2` be the result of `ensure_started(s)`.
-        The result of `get_env(s2)` shall return an lvalue reference to the
-        object in `sh_state` that was initialized with the result of `get_env(s)`.
+    4. Given a subexpression `sndr`, let `sndr2` be the result of `ensure_started(sndr)`.
+        The result of `get_env(sndr2)` shall return an lvalue reference to the
+        object in `sh_state` that was initialized with the result of `get_env(sndr)`.
 
-  4. Let `s` be a sender expression, `r` be an instance of the receiver type
-      described above, `s2` be a sender returned
-      from `ensure_started(s)` or a copy of such, `r2` is the receiver
-      to which `s2` is connected, and `args` is the pack of subexpressions
-      passed to `r`'s completion function <code><i>CSO</i></code>
-      when `s` completes. `s2` shall invoke <code><i>CSO</i>(r2, args2...)</code> where
+  4. Let `sndr` be a sender expression, `rcvr` be an instance of the receiver type
+      described above, `sndr2` be a sender returned
+      from `ensure_started(sndr)` or a copy of such, `rcvr2` is the receiver
+      to which `sndr2` is connected, and `args` is the pack of subexpressions
+      passed to `rcvr`'s completion function <code><i>CSO</i></code>
+      when `sndr` completes. `sndr2` shall invoke <code><i>CSO</i>(rcvr2, args2...)</code> where
       `args2` is a pack of xvalue references to objects decay-copied from
-      `args`, or by calling <code>set_error(r2, e2)</code> for some subexpression
-      `e2`. The objects passed to `r2`'s completion operation shall
-      be valid until after the completion of the invocation of `r2`'s completion
+      `args`, or by calling <code>set_error(rcvr2, err2)</code> for some subexpression
+      `err2`. The objects passed to `rcvr2`'s completion operation shall
+      be valid until after the completion of the invocation of `rcvr2`'s completion
       operation.
 
 ### Sender consumers <b>[exec.consumers]</b> ### {#spec-execution.senders.consumers}
@@ -6866,22 +6863,22 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     the lifetimes of any objects.
 
 2. The name `start_detached` denotes a customization point object. For some
-    subexpression `s`, let `S` be `decltype((s))`. If `S` does not satisfy
-    <code>sender_in&lt;empty_env></code>, `start_detached` is ill-formed.
-    Otherwise, the expression `start_detached(s)` is expression-equivalent to:
+    subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
+    `sender_in<Sndr, empty_env>` is `false`, `start_detached` is ill-formed.
+    Otherwise, the expression `start_detached(sndr)` is expression-equivalent to:
 
     <pre highlight="c++">
-    apply_sender(<i>get-sender-domain</i>(s), start_detached, s)
+    apply_sender(<i>get-sender-domain</i>(sndr), start_detached, sndr)
     </pre>
     
     * <i>Mandates:</i> The type of the expression above is `void`.
 
-    If the expression above does not eagerly start the sender `s` after
+    If the expression above does not eagerly start the sender `sndr` after
     connecting it with a receiver that ignores value and stopped completion
     operations and calls `terminate()` on error completions, the behavior of
-    calling `start_detached(s)` is undefined.
+    calling `start_detached(sndr)` is undefined.
 
-3. Let `s` be a subexpression such that `S` is `decltype((s))`, and let
+3. Let `sndr` be a subexpression such that `Sndr` is `decltype((sndr))`, and let
     <code><i>detached-receiver</i></code> and
     <code><i>detached-operation</i></code> be the following exposition-only
     class types:
@@ -6898,18 +6895,18 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     };
 
     struct <i>detached-operation</i> {
-      connect_result_t&lt;S, <i>detached-receiver</i>> op; // <i>exposition only</i>
+      connect_result_t&lt;Sndr, <i>detached-receiver</i>> op; // <i>exposition only</i>
 
-      explicit <i>detached-operation</i>(S&& s)
-        : op(connect(std::forward&lt;S>(s), <i>detached-receiver</i>{this}))
+      explicit <i>detached-operation</i>(Sndr&& sndr)
+        : op(connect(std::forward&lt;Sndr>(sndr), <i>detached-receiver</i>{this}))
       {}
     };
     </pre>
 
-4. If <code>sender_to&lt;S, <i>detached-receiver</i>></code> is `false`, the
-    expression `start_detached.apply_sender(s)` is ill-formed; otherwise, it is
+4. If <code>sender_to&lt;Sndr, <i>detached-receiver</i>></code> is `false`, the
+    expression `start_detached.apply_sender(sndr)` is ill-formed; otherwise, it is
     expression-equivalent to <code>start(*new
-    <i>detached-operation</i>(s))</code>.
+    <i>detached-operation</i>(sndr))</code>.
 
 #### `this_thread::sync_wait` <b>[exec.sync.wait]</b> #### {#spec-execution.senders.consumers.sync_wait}
 
@@ -6918,9 +6915,9 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     completed, and to obtain the values (if any) it completed with. `sync_wait`
     requires that the input sender has exactly one value completion signature.
 
-2. For any receiver `r` created by an implementation of `sync_wait` and
-    `sync_wait_with_variant`, the expressions `get_scheduler(get_env(r))` and
-    `get_delegatee_scheduler(get_env(r))` shall be well-formed. For a receiver
+2. For any receiver `rcvr` created by an implementation of `sync_wait` and
+    `sync_wait_with_variant`, the expressions `get_scheduler(get_env(rcvr))` and
+    `get_delegatee_scheduler(get_env(rcvr))` shall be well-formed. For a receiver
     created by the default implementation of `this_thread::sync_wait`, these
     expressions shall return a scheduler to the same thread-safe,
     first-in-first-out queue of work such that tasks scheduled to the queue
@@ -6932,61 +6929,61 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     <code><i>sync-wait-with-variant-type</i></code> are used to determine the
     return types of `this_thread::sync_wait` and
     `this_thread::sync_wait_with_variant`. Let <code><i>sync-wait-env</i></code>
-    be the type of the expression `get_env(r)` where `r` is an instance of the
+    be the type of the expression `get_env(rcvr)` where `rcvr` is an instance of the
     receiver created by the default implementation of `sync_wait`.
 
     <pre highlight="c++">
-    template&lt;sender_in&lt;<i>sync-wait-env</i>> S>
+    template&lt;sender_in&lt;<i>sync-wait-env</i>> Sndr>
       using <i>sync-wait-type</i> =
-        optional&lt;value_types_of_t&lt;S, <i>sync-wait-env</i>, <i>decayed-tuple</i>, type_identity_t>>;
+        optional&lt;value_types_of_t&lt;Sndr, <i>sync-wait-env</i>, <i>decayed-tuple</i>, type_identity_t>>;
 
-    template&lt;sender_in&lt;<i>sync-wait-env</i>> S>
-      using <i>sync-wait-with-variant-type</i> = optional&lt;<i>into-variant-type</i>&lt;S, <i>sync-wait-env</i>>>;
+    template&lt;sender_in&lt;<i>sync-wait-env</i>> Sndr>
+      using <i>sync-wait-with-variant-type</i> = optional&lt;<i>into-variant-type</i>&lt;Sndr, <i>sync-wait-env</i>>>;
     </pre>
 
 4. The name `this_thread::sync_wait` denotes a customization point object. For
-    some subexpression `s`, let `S` be `decltype((s))`. If
-    <code>sender_in&lt;S, <i>sync-wait-env</i>></code> is `false`,
-    or if the type `completion_signatures_of_t&lt;S, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t>` is ill-formed,
-    `this_thread::sync_wait(s)` is ill-formed.
-    Otherwise, `this_thread::sync_wait(s)` is expression-equivalent to:
+    some subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
+    <code>sender_in&lt;Sndr, <i>sync-wait-env</i>></code> is `false`,
+    or if the type <code>completion_signatures_of_t&lt;Sndr, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t></code> is ill-formed,
+    `this_thread::sync_wait(sndr)` is ill-formed.
+    Otherwise, `this_thread::sync_wait(sndr)` is expression-equivalent to:
 
     <pre highlight="c++">
-    apply_sender(<i>get_sender-domain</i>(s), sync_wait, s)
+    apply_sender(<i>get_sender-domain</i>(sndr), sync_wait, sndr)
     </pre>
 
-    * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>></code>.
+    * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-type</i>&lt;Sndr, <i>sync-wait-env</i>></code>.
 
-5. Let <code><i>sync-wait-receiver</i></code> be a class type that satisfies `receiver`, let `r` be an xvalue of that type,
-    and let `cr` be a const lvalue refering to `r` such that `get_env(cr)` has type <code><i>sync-wait-env</i></code>.
-    If <code>sender_in&lt;S, <i>sync-wait-env</i>></code> is `false`, or if the type
-    <code>completion_signatures_of_t&lt;S, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t></code> is ill-formed,
-    the expression `sync_wait_t().apply_sender(s)` is ill-formed; otherwise it has the following effects:
+5. Let <code><i>sync-wait-receiver</i></code> be a class type that satisfies `receiver`, let `rcvr` be an xvalue of that type,
+    and let `crcvr` be a const lvalue refering to `rcvr` such that `get_env(crcvr)` has type <code><i>sync-wait-env</i></code>.
+    If <code>sender_in&lt;Sndr, <i>sync-wait-env</i>></code> is `false`, or if the type
+    <code>completion_signatures_of_t&lt;Sndr, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t></code> is ill-formed,
+    the expression `sync_wait_t().apply_sender(sndr)` is ill-formed; otherwise it has the following effects:
 
-        1. Calls `connect(s, r)`, resulting in an operation state `op_state`, then calls `start(op_state)`.
+        1. Calls `connect(sndr, rcvr)`, resulting in an operation state `op_state`, then calls `start(op_state)`.
 
-        2. Blocks the current thread until a completion operation of `r` is executed. When it is:
+        2. Blocks the current thread until a completion operation of `rcvr` is executed. When it is:
 
-            1. If `set_value(r, ts...)` has been called, returns <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>>{<i>decayed-tuple</i>&lt;decltype(ts)...>{ts...}}</code>. If that expression exits exceptionally, the exception is propagated to the caller of `sync_wait`.
+            1. If `set_value(rcvr, ts...)` has been called, returns <code><i>sync-wait-type</i>&lt;Sndr, <i>sync-wait-env</i>>{<i>decayed-tuple</i>&lt;decltype(ts)...>{ts...}}</code>. If that expression exits exceptionally, the exception is propagated to the caller of `sync_wait`.
 
-            2. If `set_error(r, e)` has been called, let `E` be the decayed type of `e`. If `E` is `exception_ptr`, calls `std::rethrow_exception(e)`. Otherwise, if the `E` is `error_code`, throws `system_error(e)`. Otherwise, throws `e`.
+            2. If `set_error(rcvr, err)` has been called, let `Err` be the decayed type of `err`. If `Err` is `exception_ptr`, calls `rethrow_exception(err)`. Otherwise, if the `Err` is `error_code`, throws `system_error(err)`. Otherwise, throws `err`.
 
-            3. If `set_stopped(r)` has been called, returns <code><i>sync-wait-type</i>&lt;S, <i>sync-wait-env</i>>{}</code>.
+            3. If `set_stopped(rcvr)` has been called, returns <code><i>sync-wait-type</i>&lt;Sndr, <i>sync-wait-env</i>>{}</code>.
 
 6. The name `this_thread::sync_wait_with_variant` denotes a customization point
-    object. For some subexpression `s`, let `S` be the type of
-    `into_variant(s)`. If <code>sender_in&lt;S,
+    object. For some subexpression `sndr`, let `Sndr` be the type of
+    `into_variant(sndr)`. If <code>sender_in&lt;Sndr,
     <i>sync-wait-env</i>></code> is `false`,
-    `this_thread::sync_wait_with_variant(s)` is ill-formed. Otherwise,
-    `this_thread::sync_wait_with_variant(s)` is expression-equivalent to:
+    `this_thread::sync_wait_with_variant(sndr)` is ill-formed. Otherwise,
+    `this_thread::sync_wait_with_variant(sndr)` is expression-equivalent to:
 
     <pre highlight="c++">
-    apply_sender(<i>get-sender-domain</i>(s), sync_wait_with_variant, s)
+    apply_sender(<i>get-sender-domain</i>(sndr), sync_wait_with_variant, sndr)
     </pre>
 
-    * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-with-variant-type</i>&lt;S, <i>sync-wait-env</i>></code>.
+    * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-with-variant-type</i>&lt;Sndr, <i>sync-wait-env</i>></code>.
 
-7. The expression `sync_wait_with_variant_t().apply_sender(s)` is expression-equivalent to `this_thread::sync_wait(into_variant(s))`.
+7. The expression `sync_wait_with_variant_t().apply_sender(sndr)` is expression-equivalent to `this_thread::sync_wait(into_variant(sndr))`.
 
 ## `execution::execute` <b>[exec.execute]</b> ## {#spec-execution.execute}
 
@@ -7002,10 +6999,10 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     </pre>
     * <i>Mandates:</i> The type of the expression above is `void`.
 
-3. For some subexpressions `s` and `f` where `F` is `decltype((f))`,
+3. For some subexpressions `sndr` and `f` where `F` is `decltype((f))`,
     if `F` does not satisfy `invocable`, the expression
-    `execute_t().apply_sender(s, f)` is ill-formed; otherwise it is
-    expression-equivalent to `start_detached(then(s, f))`.
+    `execute_t().apply_sender(sndr, f)` is ill-formed; otherwise it is
+    expression-equivalent to `start_detached(then(sndr, f))`.
 
 ## Sender/receiver utilities <b>[exec.utils]</b> ## {#spec-execution.snd_rec_utils}
 
@@ -7015,8 +7012,8 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     // [<i>Editorial note:</i> copy_cvref_t as in [[P1450R3]] -- <i>end note</i>]
     // Mandates: is_base_of_v&lt;T, remove_reference_t&lt;U>> is true
     template&lt;class T, class U>
-      copy_cvref_t&lt;U&amp;&amp;, T> <i>c-style-cast</i>(U&amp;&amp; u) noexcept requires <i>decays-to</i>&lt;T, T> {
-        return (copy_cvref_t&lt;U&amp;&amp;, T>) std::forward&lt;U>(u);
+      copy_cvref_t&lt;U&&, T> <i>c-style-cast</i>(U&& u) noexcept requires <i>decays-to</i>&lt;T, T> {
+        return (copy_cvref_t&lt;U&&, T>) std::forward&lt;U>(u);
       }
     </pre>
 
@@ -7071,20 +7068,20 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
       // Member functions
       template&lt;class Self>
         requires <i>HAS-BASE</i>
-      decltype(auto) base(this Self&amp;&amp; self) noexcept {
+      decltype(auto) base(this Self&& self) noexcept {
         return (std::forward&lt;Self>(self).base_);
       }
 
       // [exec.utils.rcvr.adptr.nonmembers] Non-member functions
       template&lt;class... As>
-        friend void tag_invoke(set_value_t, Derived&amp;&amp; self, As&amp;&amp;... as) noexcept;
+        friend void tag_invoke(set_value_t, Derived&& self, As&&... as) noexcept;
 
-      template&lt;class E>
-        friend void tag_invoke(set_error_t, Derived&amp;&amp; self, E&amp;&amp; e) noexcept;
+      template&lt;class Err>
+        friend void tag_invoke(set_error_t, Derived&& self, Err&& err) noexcept;
 
-      friend void tag_invoke(set_stopped_t, Derived&amp;&amp; self) noexcept;
+      friend void tag_invoke(set_stopped_t, Derived&& self) noexcept;
 
-      friend decltype(auto) tag_invoke(get_env_t, const Derived&amp; self)
+      friend decltype(auto) tag_invoke(get_env_t, const Derived& self)
           noexcept(<i>see below</i>);
 
       [[no_unique_address]] Base base_; // present if and only if <i>HAS-BASE</i> is true
@@ -7100,14 +7097,14 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
      using _int_completion =
        completion_signatures&lt;set_value_t(int)>;
 
-     template&lt;receiver_of&lt;_int_completion> R>
-       class my_receiver : receiver_adaptor&lt;my_receiver&lt;R>, R> {
-         friend receiver_adaptor&lt;my_receiver, R>;
+     template&lt;receiver_of&lt;_int_completion> Rcvr>
+       class my_receiver : receiver_adaptor&lt;my_receiver&lt;Rcvr>, Rcvr> {
+         friend receiver_adaptor&lt;my_receiver, Rcvr>;
          void set_value() && {
            set_value(std::move(*this).base(), 42);
          }
         public:
-         using receiver_adaptor&lt;my_receiver, R>::receiver_adaptor;
+         using receiver_adaptor&lt;my_receiver, Rcvr>::receiver_adaptor;
        };
      </pre>
      -- <i>end example</i>]
@@ -7116,7 +7113,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
     <pre highlight="c++">
     template&lt;class... As>
-      friend void tag_invoke(set_value_t, Derived&amp;&amp; self, As&amp;&amp;... as) noexcept;
+      friend void tag_invoke(set_value_t, Derived&& self, As&&... as) noexcept;
     </pre>
 
     1. Let `SET-VALUE-MBR` be the expression `std::move(self).set_value(std::forward<As>(as)...)`.
@@ -7132,13 +7129,13 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
         * Otherwise, <code>set_value(<i>GET-BASE</i>(std::move(self)), std::forward&lt;As>(as)...)</code>.
 
     <pre highlight="c++">
-    template&lt;class E>
-      friend void tag_invoke(set_error_t, Derived&amp;&amp; self, E&amp;&amp; e) noexcept;
+    template&lt;class Err>
+      friend void tag_invoke(set_error_t, Derived&& self, Err&& err) noexcept;
     </pre>
 
-    1. Let `SET-ERROR-MBR` be the expression `std::move(self).set_error(std::forward<E>(e))`.
+    1. Let `SET-ERROR-MBR` be the expression `std::move(self).set_error(std::forward<Err>(err))`.
 
-    2. <i>Constraints:</i> Either `SET-ERROR-MBR` is a valid expression or `typename Derived::set_error` denotes a type and <code><i>callable</i>&lt;set_error_t, <i>BASE-TYPE</i>(Derived), E></code> is `true`.
+    2. <i>Constraints:</i> Either `SET-ERROR-MBR` is a valid expression or `typename Derived::set_error` denotes a type and <code><i>callable</i>&lt;set_error_t, <i>BASE-TYPE</i>(Derived), Err></code> is `true`.
 
     3. <i>Mandates:</i> `SET-ERROR-MBR`, if that expression is valid, is not potentially-throwing.
 
@@ -7146,10 +7143,10 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
         * If `SET-ERROR-MBR` is a valid expression, `SET-ERROR-MBR`;
 
-        * Otherwise, <code>set_error(<i>GET-BASE</i>(std::move(self)), std::forward&lt;E>(e))</code>.
+        * Otherwise, <code>set_error(<i>GET-BASE</i>(std::move(self)), std::forward&lt;Err>(err))</code>.
 
     <pre highlight="c++">
-    friend void tag_invoke(set_stopped_t, Derived&amp;&amp; self) noexcept;
+    friend void tag_invoke(set_stopped_t, Derived&& self) noexcept;
     </pre>
 
     1. Let `SET-STOPPED-MBR` be the expression `std::move(self).set_stopped()`.
@@ -7165,23 +7162,23 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
         * Otherwise, <code>set_stopped(<i>GET-BASE</i>(std::move(self)))</code>.
 
     <pre highlight="c++">
-    friend decltype(auto) tag_invoke(get_env_t, const Derived&amp; self)
+    friend decltype(auto) tag_invoke(get_env_t, const Derived& self)
       noexcept(<i>see below</i>);
     </pre>
 
-    1. <i>Constraints:</i> Either `self.get_env()` is a valid expression or `typename Derived::get_env` denotes a type and <code><i>callable</i>&lt;get_env_t, <i>BASE-TYPE</i>(const Derived&amp;)></code> is `true`.
+    1. <i>Constraints:</i> Either `self.get_env()` is a valid expression or `typename Derived::get_env` denotes a type and <code><i>callable</i>&lt;get_env_t, <i>BASE-TYPE</i>(const Derived&)></code> is `true`.
 
     2. <i>Effects:</i> Equivalent to:
 
         * If `self.get_env()` is a valid expression, `self.get_env()`;
 
-        * Otherwise, <code>std::get_env(<i>GET-BASE</i>(self))</code>.
+        * Otherwise, <code>get_env(<i>GET-BASE</i>(self))</code>.
 
     3. <i>Remarks:</i> The expression in the `noexcept` clause is:
 
         * If `self.get_env()` is a valid expression, `noexcept(self.get_env())`;
 
-        * Otherwise, <code>noexcept(std::get_env(<i>GET-BASE</i>(self)))</code>.
+        * Otherwise, <code>noexcept(get_env(<i>GET-BASE</i>(self)))</code>.
 
 ### `execution::completion_signatures` <b>[exec.utils.cmplsigs]</b> ### {#spec-execution.snd_rec_utils.completion_sigs}
 
@@ -7201,12 +7198,12 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
       };
 
       // Declares my_sender to be a sender that can complete by calling
-      // one of the following for a receiver expression R:
-      //    set_value(R)
-      //    set_value(R, int{...}, float{...})
-      //    set_error(R, exception_ptr{...})
-      //    set_error(R, error_code{...})
-      //    set_stopped(R)
+      // one of the following for a receiver expression rcvr:
+      //    set_value(rcvr)
+      //    set_value(rcvr, int{...}, float{...})
+      //    set_error(rcvr, exception_ptr{...})
+      //    set_error(rcvr, error_code{...})
+      //    set_stopped(rcvr)
      </pre>
      -- <i>end example</i>]
 
@@ -7229,7 +7226,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     1. A type `Fn` satisfies <code><i>completion-signature</i></code> if and only if it is a function type with one of the following forms:
 
         * <code>set_value_t(<i>Vs</i>...)</code>, where <code><i>Vs</i></code> is an arbitrary parameter pack.
-        * <code>set_error_t(<i>E</i>)</code>, where <code><i>E</i></code> is an arbitrary type.
+        * <code>set_error_t(<i>Err</i>)</code>, where <code><i>Err</i></code> is an arbitrary type.
         * `set_stopped_t()`
 
     <pre highlight="c++">
@@ -7269,27 +7266,27 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
     template&lt;<i>completion-signature</i>... Fns>
       struct completion_signatures {};
 
-    template&lt;class S,
-              class E = empty_env,
+    template&lt;class Sndr,
+              class Env = empty_env,
               template&lt;class...> class Tuple = <i>decayed-tuple</i>,
               template&lt;class...> class Variant = <i>variant-or-empty</i>>
-        requires sender_in&lt;S, E>
+        requires sender_in&lt;Sndr, Env>
       using value_types_of_t =
-          <i>gather-signatures</i>&lt;set_value_t, completion_signatures_of_t&lt;S, E>, Tuple, Variant>;
+          <i>gather-signatures</i>&lt;set_value_t, completion_signatures_of_t&lt;Sndr, Env>, Tuple, Variant>;
 
-    template&lt;class S,
-              class E = empty_env,
+    template&lt;class Sndr,
+              class Env = empty_env,
               template&lt;class...> class Variant = <i>variant-or-empty</i>>
-        requires sender_in&lt;S, E>
+        requires sender_in&lt;Sndr, Env>
       using error_types_of_t =
-          <i>gather-signatures</i>&lt;set_error_t, completion_signatures_of_t&lt;S, E>, type_identity_t, Variant>;
+          <i>gather-signatures</i>&lt;set_error_t, completion_signatures_of_t&lt;Sndr, Env>, type_identity_t, Variant>;
 
-    template&lt;class S, class E = empty_env>
-        requires sender_in&lt;S, E>
+    template&lt;class Sndr, class Env = empty_env>
+        requires sender_in&lt;Sndr, Env>
       inline constexpr bool sends_stopped =
           !same_as&lt;
             <i>type-list</i>&lt;>,
-            <i>gather-signatures</i>&lt;set_stopped_t, completion_signatures_of_t&lt;S, E>, <i>type-list</i>, <i>type-list</i>>>;
+            <i>gather-signatures</i>&lt;set_stopped_t, completion_signatures_of_t&lt;Sndr, Env>, <i>type-list</i>, <i>type-list</i>>>;
     </pre>
 
 ### `execution::transform_completion_signatures` <b>[exec.utils.tfxcmplsigs]</b> ### {#spec-execution.snd_rec_utils.transform_completion_sigs}
@@ -7302,8 +7299,8 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
 2. [<i>Example:</i>
     <pre highlight="c++">
-    // Given a sender S and an environment Env, adapt the completion
-    // signatures of S by lvalue-ref qualifying the values, adding an additional
+    // Given a sender Sndr and an environment Env, adapt the completion
+    // signatures of Sndr by lvalue-ref qualifying the values, adding an additional
     // exception_ptr error completion if its not already there, and leaving the
     // other completion signatures alone.
     template&lt;class... Args>
@@ -7313,7 +7310,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
     using my_completion_signatures =
       transform_completion_signatures&lt;
-        completion_signatures_of_t&lt;S, Env>,
+        completion_signatures_of_t&lt;Sndr, Env>,
         completion_signatures&lt;set_error_t(exception_ptr)>,
         my_set_value_t>;
     </pre>
@@ -7401,7 +7398,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
         run_loop* <i>loop_</i>;
         <i>run-loop-opstate-base</i>* <i>next_</i>;
       };
-      template&lt;receiver_of&lt;completion_signatures&lt;set_value_t()>> R>
+      template&lt;receiver_of&lt;completion_signatures&lt;set_value_t()>> Rcvr>
         using <i>run-loop-opstate</i> = <i>unspecified</i>; // exposition only
 
       // [exec.run.loop.members] Member functions:
@@ -7447,28 +7444,28 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
   2. An instance of <code><i>run-loop-sender</i></code> remains valid until the
      end of the lifetime of its associated `run_loop` instance.
 
-  3. Let <code><i>s</i></code> be an expression of type
-     <code><i>run-loop-sender</i></code>, let <code><i>r</i></code> be an
-     expression such that <code>decltype(<i>r</i>)</code> models the
+  3. Let <code><i>sndr</i></code> be an expression of type
+     <code><i>run-loop-sender</i></code>, let <code><i>rcvr</i></code> be an
+     expression such that <code>decltype(<i>rcvr</i>)</code> models the
      `receiver_of` concept, and let `C` be either `set_value_t` or
      `set_stopped_t`. Then:
 
-    * The expression <code>connect(<i>s</i>, <i>r</i>)</code> has type <code><i>run-loop-opstate</i>&lt;decay_t&lt;decltype(<i>r</i>)>></code> and is potentially-throwing if and only if the initialiation of <code>decay_t&lt;decltype(<i>r</i>)></code> from <code><i>r</i></code> is potentially-throwing.
+    * The expression <code>connect(<i>sndr</i>, <i>rcvr</i>)</code> has type <code><i>run-loop-opstate</i>&lt;decay_t&lt;decltype(<i>rcvr</i>)>></code> and is potentially-throwing if and only if the initialiation of <code>decay_t&lt;decltype(<i>rcvr</i>)></code> from <code><i>rcvr</i></code> is potentially-throwing.
 
-    * The expression <code>get_completion_scheduler&lt;C>(get_env(<i>s</i>))</code> is not potentially-throwing, has type <code><i>run-loop-scheduler</i></code>, and compares equal to the <code><i>run-loop-scheduler</i></code> instance from which <code><i>s</i></code> was obtained.
+    * The expression <code>get_completion_scheduler&lt;C>(get_env(<i>sndr</i>))</code> is not potentially-throwing, has type <code><i>run-loop-scheduler</i></code>, and compares equal to the <code><i>run-loop-scheduler</i></code> instance from which <code><i>sndr</i></code> was obtained.
 
   <pre highlight="c++">
-  template&lt;receiver_of&lt;completion_signatures&lt;set_value_t()>> R> // arguments are not associated entities ([lib.tmpl-heads])
+  template&lt;receiver_of&lt;completion_signatures&lt;set_value_t()>> Rcvr> // arguments are not associated entities ([lib.tmpl-heads])
     struct <i>run-loop-opstate</i>;
   </pre>
 
-  1. <code><i>run-loop-opstate</i>&lt;<i>R</i>></code> inherits unambiguously from <code><i>run-loop-opstate-base</i></code>.
+  1. <code><i>run-loop-opstate</i>&lt;<i>Rcvr</i>></code> inherits unambiguously from <code><i>run-loop-opstate-base</i></code>.
 
-  2. Let <code><i>o</i></code> be a non-`const` lvalue of type <code><i>run-loop-opstate</i>&lt;R></code>, and let <code><i>REC</i>(<i>o</i>)</code> be a non-`const` lvalue reference to an instance of type <code><i>R</i></code> that was initialized with the expression <code><i>r</i></code> passed to the invocation of `connect` that returned <code><i>o</i></code>. Then:
+  2. Let <code><i>o</i></code> be a non-`const` lvalue of type <code><i>run-loop-opstate</i>&lt;Rcvr></code>, and let <code><i>REC</i>(<i>o</i>)</code> be a non-`const` lvalue reference to an instance of type <code><i>Rcvr</i></code> that was initialized with the expression <code><i>rcvr</i></code> passed to the invocation of `connect` that returned <code><i>o</i></code>. Then:
 
     * The object to which <code><i>REC</i>(<i>o</i>)</code> refers remains valid for the lifetime of the object to which <code><i>o</i></code> refers.
 
-    * The type <code><i>run-loop-opstate</i>&lt;R></code> overrides <code><i>run-loop-opstate-base</i>::execute()</code> such that <code><i>o</i>.execute()</code> is equivalent to the following:
+    * The type <code><i>run-loop-opstate</i>&lt;Rcvr></code> overrides <code><i>run-loop-opstate-base</i>::execute()</code> such that <code><i>o</i>.execute()</code> is equivalent to the following:
 
         <pre highlight="c++">
         if (get_stop_token(<i>REC</i>(<i>o</i>)).stop_requested()) {
@@ -7561,54 +7558,51 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 1. `as_awaitable` transforms an object into one that is awaitable within a particular coroutine. This subclause makes use of the following exposition-only entities:
 
     <pre highlight="c++">
-    template&lt;class S, class E>
+    template&lt;class Sndr, class Env>
       using <i>single-sender-value-type</i> = <i>see below</i>;
 
-    template&lt;class S, class E>
+    template&lt;class Sndr, class Env>
       concept <i>single-sender</i> =
-        sender_in&lt;S, E> &amp;&amp;
-        requires { typename <i>single-sender-value-type</i>&lt;S, E>; };
+        sender_in&lt;Sndr, Env> &&
+        requires { typename <i>single-sender-value-type</i>&lt;Sndr, Env>; };
 
-    template&lt;class S, class P>
+    template&lt;class Sndr, class Promise>
       concept <i>awaitable-sender</i> =
-        <i>single-sender</i>&lt;S, <i>ENV-OF</i>(P)> &amp;&amp;
-        sender_to&lt;S, <i>awaitable-receiver</i>> &amp;&amp; // see below
-        requires (P&amp; p) {
+        <i>single-sender</i>&lt;Sndr, env_of_t<Promise>> &&
+        sender_to&lt;Sndr, <i>awaitable-receiver</i>> && // see below
+        requires (Promise& p) {
           { p.unhandled_stopped() } -> convertible_to&lt;coroutine_handle&lt;>>;
         };
 
-    template&lt;class S, class P>
+    template&lt;class Sndr, class Promise>
       class <i>sender-awaitable</i>;
     </pre>
 
-    where <code><i>ENV-OF</i>(P)</code> names the type `env_of_t<P>` if that type
-    is well-formed, or <code>empty_env</code> otherwise.
-
     1. Alias template <i>single-sender-value-type</i> is defined as follows:
 
-        1. If `value_types_of_t<S, E, Tuple, Variant>` would have the form `Variant<Tuple<T>>`, then <code><i>single-sender-value-type</i>&lt;S, E></code> is an alias for type `decay_t<T>`.
+        1. If `value_types_of_t<Sndr, Env, Tuple, Variant>` would have the form `Variant<Tuple<T>>`, then <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is an alias for type `decay_t<T>`.
 
-        2. Otherwise, if `value_types_of_t<S, E, Tuple, Variant>` would have the form `Variant<Tuple<>>` or `Variant<>`, then <code><i>single-sender-value-type</i>&lt;S, E></code> is an alias for type `void`.
+        2. Otherwise, if `value_types_of_t<Sndr, Env, Tuple, Variant>` would have the form `Variant<Tuple<>>` or `Variant<>`, then <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is an alias for type `void`.
 
-        3. Otherwise, <code><i>single-sender-value-type</i>&lt;S, E></code> is ill-formed.
+        3. Otherwise, <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is ill-formed.
 
-    2. The type <code><i>sender-awaitable</i>&lt;S, P></code> is equivalent to the following:
+    2. The type <code><i>sender-awaitable</i>&lt;Sndr, Promise></code> is equivalent to the following:
 
         <pre highlight="c++">
-        template&lt;class S, class P> // arguments are not associated entities ([lib.tmpl-heads])
+        template&lt;class Sndr, class Promise> // arguments are not associated entities ([lib.tmpl-heads])
         class <i>sender-awaitable</i> {
           struct unit {};
-          using value_t = <i>single-sender-value-type</i>&lt;S, <i>ENV-OF</i>(P)>;
+          using value_t = <i>single-sender-value-type</i>&lt;Sndr, env_of_t<Promise>>;
           using result_t = conditional_t&lt;is_void_v&lt;value_t>, unit, value_t>;
           struct <i>awaitable-receiver</i>;
 
           variant&lt;monostate, result_t, exception_ptr> <i>result_</i>{};
-          connect_result_t&lt;S, <i>awaitable-receiver</i>> <i>state_</i>;
+          connect_result_t&lt;Sndr, <i>awaitable-receiver</i>> <i>state_</i>;
 
          public:
-          <i>sender-awaitable</i>(S&& s, P& p);
+          <i>sender-awaitable</i>(Sndr&& sndr, Promise& p);
           bool await_ready() const noexcept { return false; }
-          void await_suspend(coroutine_handle&lt;P>) noexcept { start(<i>state_</i>); }
+          void await_suspend(coroutine_handle&lt;Promise>) noexcept { start(<i>state_</i>); }
           value_t await_resume();
         };
         </pre>
@@ -7619,31 +7613,31 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
             struct <i>awaitable-receiver</i> {
               using receiver_concept = receiver_t;
               variant&lt;monostate, result_t, exception_ptr>* <i>result_ptr_</i>;
-              coroutine_handle&lt;P> <i>continuation_</i>;
+              coroutine_handle&lt;Promise> <i>continuation_</i>;
               // ... <i>see below</i>
             };
             </pre>
 
-            Let `r` be an rvalue expression of type <code><i>awaitable-receiver</i></code>, let `cr` be a `const` lvalue that refers to `r`, let `vs...` be an arbitrary function parameter pack of types `Vs...`, and let `err` be an arbitrary expression of type `Err`. Then:
+            Let `rcvr` be an rvalue expression of type <code><i>awaitable-receiver</i></code>, let `crcvr` be a `const` lvalue that refers to `rcvr`, let `vs` be a parameter pack of types `Vs...`, and let `err` be an arbitrary expression of type `Err`. Then:
 
-              1. If `constructible_from<result_t, Vs...>` is satisfied, the expression `set_value(r, vs...)` is equivalent to:
+              1. If `constructible_from<result_t, Vs...>` is satisfied, the expression `set_value(rcvr, vs...)` is equivalent to:
 
                   <pre highlight="c++">
                   try {
-                    r.<i>result_ptr_</i>->emplace&lt;1>(vs...);
+                    rcvr.<i>result_ptr_</i>->emplace&lt;1>(vs...);
                   } catch(...) {
-                    r.<i>result_ptr_</i>->emplace&lt;2>(current_exception());
+                    rcvr.<i>result_ptr_</i>->emplace&lt;2>(current_exception());
                   }
-                  r.<i>continuation_</i>.resume();
+                  rcvr.<i>continuation_</i>.resume();
                   </pre>
 
-                  Otherwise, `set_value(r, vs...)` is ill-formed.
+                  Otherwise, `set_value(rcvr, vs...)` is ill-formed.
 
-              2. The expression `set_error(r, err)` is equivalent to:
+              2. The expression `set_error(rcvr, err)` is equivalent to:
 
                   <pre highlight="c++">
-                  r.<i>result_ptr_</i>->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err));
-                  r.<i>continuation_</i>.resume();
+                  rcvr.<i>result_ptr_</i>->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err));
+                  rcvr.<i>continuation_</i>.resume();
                   </pre>
 
                   where <code><i>AS-EXCEPT-PTR</i>(err)</code> is:
@@ -7654,49 +7648,49 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
                   3. Otherwise, `make_exception_ptr(err)`.
 
-              3. The expression `set_stopped(r)` is equivalent to
-                <code>static_cast&lt;coroutine_handle&lt;>>(r.<i>continuation_</i>.promise().unhandled_stopped()).resume()</code>.
+              3. The expression `set_stopped(rcvr)` is equivalent to
+                <code>static_cast&lt;coroutine_handle&lt;>>(rcvr.<i>continuation_</i>.promise().unhandled_stopped()).resume()</code>.
 
               4. For any expression `tag` whose type satisfies <code><i>forwarding-query</i></code>
-                  and for any pack of subexpressions `as`, `tag_invoke(tag, get_env(cr), as...)`
-                  is expression-equivalent to <code>tag(get_env(as_const(cr.<i>continuation_</i>.promise())),
+                  and for any pack of subexpressions `as`, `tag_invoke(tag, get_env(crcvr), as...)`
+                  is expression-equivalent to <code>tag(get_env(as_const(crcvr.<i>continuation_</i>.promise())),
                   as...)</code> when that expression is well-formed.
 
-        2. <b><code><i>sender-awaitable</i>::<i>sender-awaitable</i>(S&& s, P& p)</code></b>
+        2. <b><code><i>sender-awaitable</i>::<i>sender-awaitable</i>(Sndr&& sndr, Promise& p)</code></b>
 
-            - <i>Effects:</i> initializes <i>`state_`</i> with <code>connect(std::forward&lt;S>(s), <i>awaitable-receiver</i>{&<i>result_</i>, coroutine_handle&lt;P>::from_promise(p)})</code>.
+            - <i>Effects:</i> initializes <i>`state_`</i> with <code>connect(std::forward&lt;Sndr>(sndr), <i>awaitable-receiver</i>{&<i>result_</i>, coroutine_handle&lt;Promise>::from_promise(p)})</code>.
 
         3. <b><code>value_t <i>sender-awaitable</i>::await_resume()</code></b>
 
             - <i>Effects:</i> equivalent to:
 
                 <pre highlight="c++">
-                if (<i>result_</i>.index()) == 2)
+                if (<i>result_</i>.index() == 2)
                   rethrow_exception(get&lt;2>(<i>result_</i>));
                 if constexpr (!is_void_v&lt;value_t>)
                   return std::forward&lt;value_t>(get&lt;1>(<i>result_</i>));
                 </pre>
 
-2. `as_awaitable` is a customization point object. For some subexpressions `e` and `p` where `p` is an lvalue, `E` names the type `decltype((e))` and `P` names the type `decltype((p))`, `as_awaitable(e, p)` is expression-equivalent to the following:
+2. `as_awaitable` is a customization point object. For some subexpressions `expr` and `p` where `p` is an lvalue, `Expr` names the type `decltype((expr))` and `Promise` names the type `decltype((p))`, `as_awaitable(expr, p)` is expression-equivalent to the following:
 
-    1. `tag_invoke(as_awaitable, e, p)` if that expression is well-formed.
+    1. `tag_invoke(as_awaitable, expr, p)` if that expression is well-formed.
 
-        * <i>Mandates:</i> <code><i>is-awaitable</i>&lt;A, P></code> is `true`, where `A` is the type of the `tag_invoke` expression above.
+        * <i>Mandates:</i> <code><i>is-awaitable</i>&lt;A, Promise></code> is `true`, where `A` is the type of the `tag_invoke` expression above.
 
-    2. Otherwise, `e` if <code><i>is-awaitable</i>&lt;E, <i>U</i>></code> is
+    2. Otherwise, `expr` if <code><i>is-awaitable</i>&lt;Expr, <i>U</i>></code> is
         `true`, where <code><i>U</i></code> is an unspecified class type that
         lacks a member named `await_transform`. <span class="wg21note">The
-        condition is not <code><i>is-awaitable</i>&lt;E, P></code> as that
+        condition is not <code><i>is-awaitable</i>&lt;Expr, Promise></code> as that
         creates the potential for constraint recursion.</span>
 
-        * <i>Preconditions:</i> <code><i>is-awaitable</i>&lt;E, P></code> is
-            `true` and the expression `co_await e` in a coroutine with promise
+        * <i>Preconditions:</i> <code><i>is-awaitable</i>&lt;Expr, Promise></code> is
+            `true` and the expression `co_await expr` in a coroutine with promise
             type <code><i>U</i></code> is expression-equivalent to the same
-            expression in a coroutine with promise type `P`.
+            expression in a coroutine with promise type `Promise`.
 
-    3. Otherwise, <code><i>sender-awaitable</i>{e, p}</code> if <code><i>awaitable-sender</i>&lt;E, P></code> is `true`.
+    3. Otherwise, <code><i>sender-awaitable</i>{expr, p}</code> if <code><i>awaitable-sender</i>&lt;Expr, Promise></code> is `true`.
 
-    4. Otherwise, `e`.
+    4. Otherwise, `expr`.
 
 ### `execution::with_awaitable_senders` <b>[exec.with.awaitable.senders]</b> ### {#spec-execution.coro_utils.with_awaitable_senders}
 
@@ -7747,7 +7741,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
         }
         </pre>
 
-  3. <b><code><i>call-result-t</i>&lt;as_awaitable_t, Value, Promise&amp;> await_transform(Value&amp;&amp; value)</code></b>
+  3. <b><code><i>call-result-t</i>&lt;as_awaitable_t, Value, Promise&> await_transform(Value&& value)</code></b>
 
       - <i>Effects:</i> equivalent to:
 
