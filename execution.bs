@@ -4773,7 +4773,7 @@ enum class forward_progress_guarantee {
 ### `execution::set_value` <b>[exec.set.value]</b> ### {#spec-execution.receivers.set_value}
 
 1. `set_value` is a value completion function ([async.ops]). Its associated
-    completion tag is `set_value_t`. The expression `set_value(rcvr, Vs...)` for
+    completion tag is `set_value_t`. The expression `set_value(rcvr, vs...)` for
     some subexpression `rcvr` and pack of subexpressions `vs` is ill-formed if `rcvr`
     is an lvalue or a `const` rvalue. Otherwise, it is expression-equivalent to
     <code><i>mandate-nothrow-call</i>(tag_invoke, set_value, rcvr, vs...)</code>.
