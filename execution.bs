@@ -6058,7 +6058,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
         <pre highlight="c++">
         template&lt;>
-        struct <i>impls-for</i>&lt;tag_t&lt;schedule_from_t> : <i>default-impls</i> {
+        struct <i>impls-for</i>&lt;tag_t&lt;schedule_from_t>> : <i>default-impls</i> {
           static constexpr auto <i>get-attrs</i> = <i>see below</i>;
           static constexpr auto <i>get-state</i> = <i>see below</i>;
           static constexpr auto <i>complete</i> = <i>see below</i>;
