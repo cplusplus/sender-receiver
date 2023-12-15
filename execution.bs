@@ -4897,19 +4897,21 @@ enum class forward_progress_guarantee {
 
     5. For two subexpressions `rcvr` and `expr`, let <code><i>SET-VALUE</i>(rcvr,
         expr)</code> be `(expr, set_value(rcvr))` if the type of `expr` is `void`;
-        otherwise, it is `set_value(rcvr, expr)`. Let <code><i>TRY-SET-VALUE</i>(rcvr,
-        expr)</code> be:
+        otherwise, it is `set_value(rcvr, expr)`. Let
+        <code><i>TRY-EVAL</i>(rcvr, expr)</code> be:
 
             <pre highlight="c++">
             try {
-              <i>SET-VALUE</i>(rcvr, expr);
+              expr;
             } catch(...) {
               set_error(rcvr, current_exception());
             }
             </pre>
 
-        if `expr` is potentially-throwing, except that `rcvr` is evaluated only once;
-        or <code><i>SET-VALUE</i>(rcvr, expr)</code> otherwise.
+        if `expr` is potentially-throwing; otherwise, `expr`. Let
+        <code><i>TRY-SET-VALUE</i>(rcvr, expr)</code> be
+        <code><i>TRY-EVAL</i>(rcvr, <i>SET-VALUE</i>(rcvr, expr))</code>
+        except that `rcvr` is evaluated only once.
 
     6.  <pre highlight="c++">
         template&lt;class Default = default_domain, class Sndr>
@@ -5142,6 +5144,12 @@ enum class forward_progress_guarantee {
                   ...
                 Child<sub><i>n-1</i></sub> <i>child<sub>n-1</sub></i>;   // exposition only
               };
+
+              template &lt;class Sndr>
+              using <i>data-type</i> = decltype((declval&lt;Sndr>().<i>data</i>)); // exposition only
+
+              template &lt;class Sndr, size_t N = 0>
+              using <i>child-type</i> = decltype((declval&lt;Sndr>().<i>child<sub>N</sub></i>)); // exposition only
               </pre>
 
         2. It is unspecified whether instances of <code><i>basic-sender</i></code> can be
@@ -5177,7 +5185,7 @@ enum class forward_progress_guarantee {
             with a callable object equal to the following lambda:
 
               <pre highlight="c++">
-              []&lt;class Sndr>(Sndr&& sndr, auto& rcvr) noexcept -> decltype(auto) {
+              []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) noexcept -> decltype(auto) {
                 return get&lt;1>(std::forward&lt;Sndr>(sndr));
               }
               </pre>
@@ -6029,74 +6037,125 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     class="wg21note">`schedule_from` is not meant to be used in user code; it is
     used in the implementation of `transfer`.</span>
 
-3. The name `schedule_from` denotes a customization point object. For some
+2. The name `schedule_from` denotes a customization point object. For some
     subexpressions `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be
     `decltype((sndr))`. If `Sch` does not satisfy `scheduler`, or `Sndr` does not
-    satisfy `sender`, `schedule_from` is ill-formed. Otherwise, the expression
-    `schedule_from(sch, sndr)` is expression-equivalent to:
+    satisfy `sender`, `schedule_from` is ill-formed.
+    
+3. Otherwise, the expression `schedule_from(sch, sndr)` is expression-equivalent
+    to:
 
         <pre highlight="c++">
         transform_sender(
           <i>query-or-default</i>(get_domain, sch, default_domain()),
-          <i>make-schedule-from-sender</i>(sch, sndr));
+          <i>make-sender</i>(schedule_from, sch, sndr));
         </pre>
 
-        where <code><i>make-schedule-from-sender</i>(sch, sndr)</code> is expression-equivalent to
-        <code><i>make-sender</i>(schedule_from, sch, sndr)</code> and returns a sender object
-        `sndr2` that behaves as follows:
 
-    1. When `sndr2` is connected with some receiver `out_rcvr`, it:
+4. The exposition-only class template <code><i>impls-for</i></code>
+    ([exec.snd.general]) is specialized for `schedule_from_t` as
+    follows:
 
-        1. Constructs a receiver `rcvr` such that when a receiver completion
-            operation <code><i>Tag</i>(rcvr, args...)</code> is called, it
-            decay-copies `args...` into `op_state` (see below) as `args2...` and
-            constructs a receiver `rcvr2` such that:
+        <pre highlight="c++">
+        template&lt;>
+        struct <i>impls-for</i>&lt;tag_t&lt;schedule_from_t> : <i>default-impls</i> {
+          static constexpr auto <i>get-attrs</i> = <i>see below</i>;
+          static constexpr auto <i>get-state</i> = <i>see below</i>;
+          static constexpr auto <i>complete</i> = <i>see below</i>;
+        };
+        </pre>
 
-            1. When `set_value(rcvr2)` is called, it calls
-                <code><i>Tag</i>(out_rcvr, std::move(args2)...)</code>.
+    1. The member <code><i>impls-for</i>&lt;schedule_from_t>::<i>get-attrs</i></code> is initialized
+        with a callable object equal to the following lambda:
 
-            2. `set_error(rcvr2, err)` is expression-equivalent to `set_error(out_rcvr, err)`.
+          <pre highlight="c++">
+          [](const auto& data, const auto& child) noexcept -> decltype(auto) {
+            return <i>JOIN-ENV</i>(<i>SCHED-ATTRS</i>(data), <i>FWD-ENV</i>(get_env(child)));
+          }
+          </pre>
 
-            3. `set_stopped(rcvr2)` is expression-equivalent to `set_stopped(out_rcvr)`.
+    2. The member <code><i>impls-for</i>&lt;schedule_from_t>::<i>get-state</i></code> is initialized
+        with a callable object equal to the following lambda:
 
-            4. `get_env(rcvr2)` is equal to `get_env(rcvr)`.
+          <pre highlight="c++">
+          []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr)
+              requires sender_in&lt;<i>child-type</i>&lt;Sndr>, env_of_t&lt;Rcvr>> {
+            return apply(
+              [&]&lt;class Sch, class Child>(auto, Sch sch, Child&& child) {
+                using <i>variant-type</i> = <i>see below</i>;
+                using <i>receiver-type</i> = <i>see below</i>;
 
-            It then calls `schedule(sch)`, resulting in a sender `sndr3`. It then
-            calls `connect(sndr3, rcvr2)`, resulting in an operation state
-            `op_state3`. It then calls `start(op_state3)`. If any of these
-            throws an exception, it catches it and calls `set_error(out_rcvr,
-            current_exception())`. If any of these expressions would be
-            ill-formed, then <code><i>Tag</i>(rcvr, args...)</code> is ill-formed.
+                struct <i>state-type</i> {
+                  Rcvr& rcvr;
+                  <i>variant-type</i> async_result;
+                  connect_result_t&lt;schedule_result_t&lt;Sch>, <i>receiver-type</i>> op_state2;
 
-        2. Calls `connect(sndr, rcvr)` resulting in an operation state `op_state2`. If
-            this expression would be ill-formed, `connect(sndr2, out_rcvr)` is
-            ill-formed.
+                  explicit <i>state-type</i>(Sch sch, Rcvr& rcvr)
+                    : rcvr(rcvr), op_state2(connect(schedule(sch), <i>receiver-type</i>{<i></i>{}, this})) {}
+                };
+                return <i>state-type</i>{sch, rcvr};
+              },
+              std::forward&lt;Sndr>(sndr));
+          }
+          </pre>
 
-        3. Returns an operation state `op_state` that contains `op_state2`. When
-            `start(op_state)` is called, calls `start(op_state2)`. The lifetime
-            of `op_state3` ends when `op_state` is destroyed.
+          1. Let `Sigs` be a pack of the arguments to the
+              `completion_signatures` specialiation named by
+              `completion_signatures_of_t<Child, env_of_t<Rcvr>>`. Let
+              <i>`as-tuple`</i> be an alias template that transforms a
+              completion signature `Tag(Args...)` into the `tuple`
+              specialization <code><i>decayed-tuple</i>&lt;Tag, Args...></code>.
+              Then <i>`variant-type`</i> names the type
+              <code>variant&lt;monostate, <i>as-tuple</i>&lt;Sigs>...></code>.
 
-    2. If a sender `out_sndr` returned from `schedule_from(sch, sndr)` is
-        connected with a receiver `rcvr` with environmment `env` such that
-        <code>transform_sender(<i>get-domain-late</i>(out_sndr, env), out_sndr,
-        env)</code> does not return a sender that completes on an execution
-        agent belonging to the associated execution resource of `sch` and
-        completing with the same async result ([async.ops]) as `sndr`, the
-        behavior of calling `connect(out_sndr, rcvr)` is undefined.
+          2. Let <i>`receiver-type`</i> denote the following class:
 
+                <pre highlight="c++">
+                struct <i>receiver-type</i> : receiver_adaptor&lt;<i>receiver-type</i>> {
+                  <i>state-type</i>* state;
 
-3. For a sender `out_sndr` returned from `schedule_from(sch, sndr)`,
-    `get_env(out_sndr)` shall return a queryable object `q` such that
-    `get_domain(q)` is expression-equivalent to `get_domain(sch)` and
-    `get_completion_scheduler<CPO>(q)` returns a copy of `sch`, where `CPO` is
-    either `set_value_t` or `set_stopped_t`. The
-    `get_completion_scheduler<set_error_t>` query is not implemented, as the
-    scheduler cannot be guaranteed in case an error is thrown while trying to
-    schedule work on the given scheduler object. For all other query objects
-    <code><i>Q</i></code> whose type satisfies
-    <code><i>forwarding-query</i></code>, the expression <code><i>Q</i>(q,
-    args...)</code> shall be equivalent to <code><i>Q</i>(get_env(sndr),
-    args...)</code>.
+                  Rcvr&& base() && noexcept { return std::move(state->rcvr); }
+                  const Rcvr& base() const & noexcept { return state->rcvr; }
+
+                  void set_value() && noexcept {
+                    visit(
+                      [this]&lt;class Tuple>(Tuple& result) noexcept -> void {
+                        if constexpr (!same_as&lt;monostate, Tuple>) {
+                          auto& [tag, ...args] = result;
+                          tag(std::move(state->rcvr), std::move(args)...);
+                        }
+                      },
+                      state->async_result);
+                  }
+                };
+                </pre>
+
+    3. The member <code><i>impls-for</i>&lt;schedule_from_t>::<i>complete</i></code>
+        is initialized with a callable object equal to the following lambda:
+
+          <pre highlight="c++">
+          []&lt;class Tag, class... Args>(auto, auto& state, auto& rcvr, Tag, Args&&... args) noexcept -> void {
+            using result_t = <i>decayed-tuple</i>&lt;Tag, Args...>;
+            constexpr bool nothrow = is_nothrow_constructible_v&lt;result_t, Tag, Args...>;
+            <i>TRY-EVAL</i>(std::move(rcvr), [&]() noexcept(nothrow) {
+              state.async_result.template emplace&lt;result_t>(Tag(), std::forward<Args>(args)...); }());
+            if ((state.async_result.index() + 1) > 1) // not valueless and index != 0
+              start(state.op_state2);
+          };
+          </pre>
+
+5. Let the subexpression `out_sndr` denote the result of the invocation
+    `schedule_from(sch, sndr)` or an object copied or moved from such, and let
+    the subexpression `rcvr` denote a receiver such that the expression
+    `connect(out_sndr, rcvr)` is well-formed. The expression
+    `connect(out_sndr, rcvr)` has undefined behavior unless it creates an
+    asynchronous operation ([async.ops]) that, when started:
+
+      - eventually completes on an execution agent belonging to the associated
+        execution resource of `sch`, and
+
+      - completes with the same async result as `sndr`.
+
 
 #### `execution::then`, `execution::upon_error`, `execution::upon_stopped` <b>[exec.then]</b> #### {#spec-execution.senders.adaptor.then}
 
