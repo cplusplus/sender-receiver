@@ -5003,11 +5003,14 @@ enum class forward_progress_guarantee {
             of a structured binding declaration [dcl.struct.bind].</span>
 
     11. <pre highlight="c++">
-        template &lt;semiregular Tag, <i>movable-value</i> Data, sender... Child>
+        template &lt;semiregular Tag, <i>movable-value</i> Data = <i>see below</i>, sender... Child>
         constexpr auto <i>make-sender</i>(Tag, Data&& data, Child&&... child);
         </pre>
 
-        1. <i>Returns:</i> A prvalue of type <code><i>basic-sender</i>&lt;Tag, decay_t&lt;Data>, decay_t&lt;Child>...></code>
+        1. _Remarks:_ The default template argument for the `Data` template parameter
+            names and unspecified empty trivial class type.
+
+        2. <i>Returns:</i> A prvalue of type <code><i>basic-sender</i>&lt;Tag, decay_t&lt;Data>, decay_t&lt;Child>...></code>
             where the <code><i>tag</i></code> member has been default-initialized and the
             <code><i>data</i></code> and <code><i>child<sub>n</sub></i>...</code> members have
             been direct initialized from their respective forwarded arguments, where
@@ -6387,7 +6390,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
       <pre highlight="c++">
       transform_sender(
         <i>get-domain-early</i>(sndr),
-        <i>make-sender</i>(split, sndr));
+        <i>make-sender</i>(split, {}, sndr));
       </pre>
 
     1. Let `sndr` be a subexpression such that `Sndr` is `decltype((sndr))`, and let
@@ -6544,7 +6547,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     where <code><i>make-when-all-sender</i>(sndr<sub><i>i</i></sub>...)</code> is
     expression-equivalent to <code><i>make-sender</i>(when_all,
-    <i>unspecified</i>, sndr<sub><i>i</i></sub>...)</code> and returns a sender
+    {}, sndr<sub><i>i</i></sub>...)</code> and returns a sender
     object `w` of type `W` that behaves as follows:
 
     1. When `w` is connected with some receiver `out_rcvr` of type `OutRcvr`, it
@@ -6631,12 +6634,12 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
       <pre highlight="c++">
       transform_sender(
         <i>get-domain-early</i>(sndr<sub><i>0</i></sub>),
-        <i>make-sender</i>(when_all_with_variant, <i>unspecified</i>, sndr<sub><i>0</i></sub>, ... sndr<sub><i>n-1</i></sub>));
+        <i>make-sender</i>(when_all_with_variant, {}, sndr<sub><i>0</i></sub>, ... sndr<sub><i>n-1</i></sub>));
       </pre>
 
     where <code><i>make-when-all-sender</i>(sndr<sub><i>i</i></sub>...)</code> is
     expression-equivalent to <code><i>make-sender</i>(when_all,
-    <i>unspecified</i>, sndr<sub><i>i</i></sub>...)</code> and returns a sender
+    {}, sndr<sub><i>i</i></sub>...)</code> and returns a sender
     object `w` of type `W` that behaves as follows:
 
 5. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If
@@ -6689,7 +6692,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     where <code><i>make-into-variant-sender</i>(sndr)</code> is
     expression-equivalent to <code><i>make-sender</i>(into_variant,
-    <i>unspecified</i>, sndr)</code> and returns a sender object `sndr2` that behaves
+    {}, sndr)</code> and returns a sender object `sndr2` that behaves
     as follows:
 
     1. When `sndr2` is connected with some receiver `out_rcvr`, it:
@@ -6723,7 +6726,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     <pre highlight="c++">
     transform_sender(
       <i>get-sender-domain</i>(sndr),
-      <i>make-sender</i>(stopped_as_optional, <i>unspecified</i>, sndr))
+      <i>make-sender</i>(stopped_as_optional, {}, sndr))
     </pre>
 
 3. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))` and `Env` is `decltype((env))`.
@@ -6784,7 +6787,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     <pre highlight="c++">
     transform_sender(
       <i>get-sender-domain</i>(sndr),
-      <i>make-sender</i>(ensure_started, sndr))
+      <i>make-sender</i>(ensure_started, {}, sndr))
     </pre>
 
     1. Let `sndr` be a subexpression such that `Sndr` is `decltype((sndr))`, and let `env...` be a pack of
