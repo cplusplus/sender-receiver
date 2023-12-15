@@ -5144,6 +5144,12 @@ enum class forward_progress_guarantee {
                   ...
                 Child<sub><i>n-1</i></sub> <i>child<sub>n-1</sub></i>;   // exposition only
               };
+
+              template &lt;class Sndr>
+              using <i>data-type</i> = decltype((declval&lt;Sndr>().<i>data</i>)); // exposition only
+
+              template &lt;class Sndr, size_t N = 0>
+              using <i>child-type</i> = decltype((declval&lt;Sndr>().<i>child<sub>N</sub></i>)); // exposition only
               </pre>
 
         2. It is unspecified whether instances of <code><i>basic-sender</i></code> can be
@@ -5179,8 +5185,7 @@ enum class forward_progress_guarantee {
             with a callable object equal to the following lambda:
 
               <pre highlight="c++">
-              []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) noexcept -> decltype(auto)
-                requires sender_in&lt;??, env_of_t&lt;Rcvr>> {
+              []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) noexcept -> decltype(auto) {
                 return get&lt;1>(std::forward&lt;Sndr>(sndr));
               }
               </pre>
@@ -6073,20 +6078,20 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         with a callable object equal to the following lambda:
 
           <pre highlight="c++">
-          []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) requires <i>see below</i> {
+          []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr)
+              requires sender_in&lt;<i>child-type</i>&lt;Sndr>, env_of_t&lt;Rcvr>> {
             return apply(
               [&]&lt;class Sch, class Child>(auto, Sch sch, Child&& child) {
-                struct <i>state-type</i> {
-                  using <i>variant-type</i> = <i>see below</i>;
-                  using <i>receiver-type</i> = <i>see below</i>;
+                using <i>variant-type</i> = <i>see below</i>;
+                using <i>receiver-type</i> = <i>see below</i>;
 
+                struct <i>state-type</i> {
                   Rcvr& rcvr;
                   <i>variant-type</i> async_result;
                   connect_result_t&lt;schedule_result_t&lt;Sch>, <i>receiver-type</i>> op_state2;
 
                   explicit <i>state-type</i>(Sch sch, Rcvr& rcvr)
-                    : rcvr(rcvr),
-                    , op_state2(connect(schedule(sch), <i>receiver-type</i>{this})) {}
+                    : rcvr(rcvr), op_state2(connect(schedule(sch), <i>receiver-type</i>{<i></i>{}, this})) {}
                 };
                 return <i>state-type</i>{sch, rcvr};
               },
@@ -6107,8 +6112,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
                 <pre highlight="c++">
                 struct <i>receiver-type</i> : receiver_adaptor&lt;<i>receiver-type</i>> {
-                  explicit <i>receiver-type</i>(<i>state-type</i>* state)
-                    : state(state) {}
+                  <i>state-type</i>* state;
 
                   Rcvr&& base() && noexcept { return std::move(state->rcvr); }
                   const Rcvr& base() const & noexcept { return state->rcvr; }
