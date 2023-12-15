@@ -5008,7 +5008,7 @@ enum class forward_progress_guarantee {
         </pre>
 
         1. _Remarks:_ The default template argument for the `Data` template parameter
-            names and unspecified empty trivial class type.
+            names an unspecified empty trivial class type.
 
         2. <i>Returns:</i> A prvalue of type <code><i>basic-sender</i>&lt;Tag, decay_t&lt;Data>, decay_t&lt;Child>...></code>
             where the <code><i>tag</i></code> member has been default-initialized and the
