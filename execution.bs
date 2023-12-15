@@ -7017,7 +7017,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-type</i>&lt;Sndr, <i>sync-wait-env</i>></code>.
 
 5. Let <code><i>sync-wait-receiver</i></code> be a class type that satisfies `receiver`, let `rcvr` be an xvalue of that type,
-    and let `crcvr` be a const lvalue refering to `rcvr` such that `get_env(crcvr)` has type <code><i>sync-wait-env</i></code>.
+    and let `crcvr` be a const lvalue referring to `rcvr` such that `get_env(crcvr)` has type <code><i>sync-wait-env</i></code>.
     If <code>sender_in&lt;Sndr, <i>sync-wait-env</i>></code> is `false`, or if the type
     <code>completion_signatures_of_t&lt;Sndr, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t></code> is ill-formed,
     the expression `sync_wait_t().apply_sender(sndr)` is ill-formed; otherwise it has the following effects:
