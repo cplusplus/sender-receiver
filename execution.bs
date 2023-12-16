@@ -7045,7 +7045,15 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-with-variant-type</i>&lt;Sndr, <i>sync-wait-env</i>></code>.
 
-7. The expression `sync_wait_with_variant_t().apply_sender(sndr)` is expression-equivalent to `this_thread::sync_wait(into_variant(sndr))`.
+7. The expression `sync_wait_with_variant_t().apply_sender(sndr)` is
+    equal to:
+
+        <pre highlight="c++">
+        if (auto opt_value = sync_wait(into_variant(sndr))) {
+          return std::move(get&lt;0>(*opt_value));
+        }
+        return nullopt;
+        </pre>
 
 ## `execution::execute` <b>[exec.execute]</b> ## {#spec-execution.execute}
 
