@@ -7011,7 +7011,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     Otherwise, `this_thread::sync_wait(sndr)` is expression-equivalent to:
 
     <pre highlight="c++">
-    apply_sender(<i>get_sender-domain</i>(sndr), sync_wait, sndr)
+    apply_sender(<i>get-domain-early</i>(sndr), sync_wait, sndr)
     </pre>
 
     * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-type</i>&lt;Sndr, <i>sync-wait-env</i>></code>.
