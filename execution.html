@@ -8832,7 +8832,13 @@ object. For some subexpression <code class="highlight"><c- n>sndr</c-></code>, l
        <p><i>Mandates:</i> The type of the expression above is <code class="highlight"><i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>with</c-><c- o>-</c-><c- n>variant</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>env</c-></i><c- o>></c-></code>.</p>
      </ul>
     <li data-md>
-     <p>The expression <code class="highlight"><c- n>sync_wait_with_variant_t</c-><c- p>().</c-><c- n>apply_sender</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-><c- p>(</c-><c- n>into_variant</c-><c- p>(</c-><c- n>sndr</c-><c- p>))</c-></code>.</p>
+     <p>The expression <code class="highlight"><c- n>sync_wait_with_variant_t</c-><c- p>().</c-><c- n>apply_sender</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is
+equal to:</p>
+<pre class="highlight"><c- k>if</c-> <c- p>(</c-><c- k>auto</c-> <c- n>opt_value</c-> <c- o>=</c-> <c- n>sync_wait</c-><c- p>(</c-><c- n>into_variant</c-><c- p>(</c-><c- n>sndr</c-><c- p>)))</c-> <c- p>{</c->
+  <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>get</c-><c- o>&lt;</c-><c- mi>0</c-><c- o>></c-><c- p>(</c-><c- o>*</c-><c- n>opt_value</c-><c- p>));</c->
+<c- p>}</c->
+<c- k>return</c-> <c- n>nullopt</c-><c- p>;</c->
+</pre>
    </ol>
    <h3 class="heading settled" data-level="11.10" id="spec-execution.execute"><span class="secno">11.10. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>execute</c-></code> <b>[exec.execute]</b></span><a class="self-link" href="#spec-execution.execute"></a></h3>
    <ol>
