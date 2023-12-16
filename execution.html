@@ -2246,7 +2246,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-15">2023-12-15</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-16">2023-12-16</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -8797,7 +8797,7 @@ receiver created by the default implementation of <code class="highlight"><c- n>
 some subexpression <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>env</c-></i><c- o>></c-></code> is <code class="highlight">false</code>,
 or if the type <code class="highlight"><c- n>completion_signatures_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>env</c-></i><c- p>,</c-> <i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- p>,</c-> <c- n>type_identity_t</c-><c- o>></c-></code> is ill-formed, <code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is ill-formed.
 Otherwise, <code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to:</p>
-<pre class="highlight"><c- n>apply_sender</c-><c- p>(</c-><i><c- n>get_sender</c-><c- o>-</c-><c- n>domain</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>sync_wait</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c->
+<pre class="highlight"><c- n>apply_sender</c-><c- p>(</c-><i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>early</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>sync_wait</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c->
 </pre>
      <ul>
       <li data-md>
