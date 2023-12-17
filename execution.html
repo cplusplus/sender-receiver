@@ -2246,7 +2246,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-16">2023-12-16</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-17">2023-12-17</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -8121,13 +8121,14 @@ completion, and</p>
    <h5 class="heading settled" data-level="11.9.10.7" id="spec-execution.senders.adapt.let"><span class="secno">11.9.10.7. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_value</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_stopped</c-></code>, <b>[exec.let]</b></span><a class="self-link" href="#spec-execution.senders.adapt.let"></a></h5>
    <ol>
     <li data-md>
-     <p><code class="highlight"><c- n>let_value</c-></code> transforms a sender’s value completion into a new child
-asynchronous operation. <code class="highlight"><c- n>let_error</c-></code> transforms a sender’s error completion
-into a new child asynchronous operation. <code class="highlight"><c- n>let_stopped</c-></code> transforms a sender’s
-stopped completion into a new child asynchronous operation.</p>
+     <p><code class="highlight"><c- n>let_value</c-></code>, <code class="highlight"><c- n>let_error</c-></code>, and <code class="highlight"><c- n>let_stopped</c-></code> transform a sender’s value,
+error, and stopped completions respectively into a new child asynchronous
+operation by passing the sender’s result datums to a user-specified
+callable, which returns a new sender that is connected and started.</p>
     <li data-md>
      <p>Let the expression <code class="highlight"><i><c- n>let</c-><c- o>-</c-><c- n>cpo</c-></i></code> be one of <code class="highlight"><c- n>let_value</c-></code>, <code class="highlight"><c- n>let_error</c-></code>, or <code class="highlight"><c- n>let_stopped</c-></code> and let <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i></code> be the
-completion function that corresponds to <code class="highlight"><i><c- n>let</c-><c- o>-</c-><c- n>cpo</c-></i></code> (<code class="highlight"><c- n>set_value</c-></code> for <code class="highlight"><c- n>let_value</c-></code>, etc.). For subexpressions <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>rcvr_env</c-></code>, let <code class="highlight"><i><c- n>inner</c-><c- o>-</c-><c- n>env</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr_env</c-><c- p>)</c-></code> be an environment <code class="highlight"><c- n>env</c-></code> such that:</p>
+completion function that corresponds to <code class="highlight"><i><c- n>let</c-><c- o>-</c-><c- n>cpo</c-></i></code> (<code class="highlight"><c- n>set_value</c-></code> for <code class="highlight"><c- n>let_value</c-></code>, etc.). For subexpressions <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>rcvr_env</c-></code>, let <code class="highlight"><i><c- n>inner</c-><c- o>-</c-><c- n>env</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr_env</c-><c- p>)</c-></code> be <code class="highlight"><i><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><i><c- n>sched</c-><c- o>-</c-><c- n>env</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr_env</c-><c- p>),</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>rcvr_env</c-><c- p>))</c-></code>,
+where <code class="highlight"><i><c- n>sched</c-><c- o>-</c-><c- n>env</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr_env</c-><c- p>)</c-></code> is an environment <code class="highlight"><c- n>env</c-></code> such that:</p>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>get_domain</c-><c- p>(</c-><c- n>env</c-><c- p>)</c-></code> is expression-equivalent <code class="highlight"><i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>late</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr_env</c-><c- p>)</c-></code>,</p>
@@ -8136,14 +8137,11 @@ completion function that corresponds to <code class="highlight"><i><c- n>let</c-
 well-formed expression below:</p>
        <ul>
         <li data-md>
-         <p><code class="highlight"><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-><c- o>-</c-><c- n>t</c-></i><c- o>></c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>sndr</c-><c- p>))</c-></code>,
-where <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-><c- o>-</c-><c- n>t</c-></i></code> is the type of <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i></code>.</p>
+         <p><code class="highlight"><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>tag_t</c-><c- o>&lt;</c-><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>>></c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>sndr</c-><c- p>))</c-></code></p>
         <li data-md>
          <p><code class="highlight"><c- n>get_scheduler</c-><c- p>(</c-><c- n>rcvr_env</c-><c- p>)</c-></code></p>
        </ul>
        <p>or if neither of them are, <code class="highlight"><c- n>get_scheduler</c-><c- p>(</c-><c- n>env</c-><c- p>)</c-></code> is ill-formed.</p>
-      <li data-md>
-       <p>For all other query objects <code class="highlight"><i><c- n>q</c-></i></code> and arguments <code class="highlight"><c- n>args</c-><c- p>...</c-></code>, <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>rcvr_env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>.</p>
      </ol>
     <li data-md>
      <p>The names <code class="highlight"><c- n>let_value</c-></code>, <code class="highlight"><c- n>let_error</c-></code>, and <code class="highlight"><c- n>let_stopped</c-></code> denote customization
