@@ -6216,16 +6216,18 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 #### `execution::let_value`, `execution::let_error`, `execution::let_stopped`,  <b>[exec.let]</b> #### {#spec-execution.senders.adapt.let}
 
-1. `let_value` transforms a sender's value completion into a new child
-    asynchronous operation. `let_error` transforms a sender's error completion
-    into a new child asynchronous operation. `let_stopped` transforms a sender's
-    stopped completion into a new child asynchronous operation.
+1. `let_value`, `let_error`, and `let_stopped` transform a sender's value,
+    error, and stopped completions respectively into a new child asynchronous
+    operation by passing the sender's result datums to a user-specified
+    callable, which returns a new sender that is connected and started.
 
 2. Let the expression <code><i>let-cpo</i></code> be one of `let_value`,
     `let_error`, or `let_stopped` and let <code><i>set-cpo</i></code> be the
     completion function that corresponds to <code><i>let-cpo</i></code>
     (`set_value` for `let_value`, etc.). For subexpressions `sndr` and `rcvr_env`, let
-    <code><i>inner-env</i>(sndr, rcvr_env)</code> be an environment `env` such that:
+    <code><i>inner-env</i>(sndr, rcvr_env)</code> be
+    <code><i>JOIN-ENV</i>(<i>sched-env</i>(sndr, rcvr_env), <i>FWD-ENV</i>(rcvr_env))</code>,
+    where <code><i>sched-env</i>(sndr, rcvr_env)</code> is an environment `env` such that:
 
         1. `get_domain(env)` is expression-equivalent
             <code><i>get-domain-late</i>(sndr, rcvr_env)</code>,
@@ -6233,17 +6235,11 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         2. `get_scheduler(env)` is expression-equivalent to the first
             well-formed expression below:
 
-            - <code>get_completion_scheduler&lt;<i>set-cpo-t</i>>(get_env(sndr))</code>,
-                where <code><i>set-cpo-t</i></code> is the type of
-                <code><i>set-cpo</i></code>.
-            
-            - `get_scheduler(rcvr_env)`
-            
-            or if neither of them are, `get_scheduler(env)` is ill-formed.
+            - <code>get_completion_scheduler&lt;tag_t&lt;<i>set-cpo</i>>>(get_env(sndr))</code>
 
-        3. For all other query objects <code><i>q</i></code> and arguments `args...`,
-            <code><i>q</i>(env, args...)</code> is expression-equivalent to
-            <code><i>q</i>(rcvr_env, args...)</code>.
+            - `get_scheduler(rcvr_env)`
+
+            or if neither of them are, `get_scheduler(env)` is ill-formed.
 
 3. The names `let_value`, `let_error`, and `let_stopped` denote customization
     point objects. For subexpressions `sndr` and `f`, let `Sndr` be `decltype((sndr))`,
