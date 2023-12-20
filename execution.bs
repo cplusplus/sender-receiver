@@ -6129,7 +6129,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
               } else {
                 Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
               }
-            }
+            };
         };
         </pre>
 
