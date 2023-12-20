@@ -4856,8 +4856,8 @@ enum class forward_progress_guarantee {
         `tag_invoke(q, e)` refers remains valid while `e` remains valid.
 
     3. For two queryable objects `e1` and `e2`, a query object `q` and a pack of
-        subexpressions `as`, let <code><i>JOIN-ENV</i>(e1, e2)</code> be an
-        environment `e3` such that `tag_invoke(q, e3, as...)` is
+        subexpressions `as`, let <code><i>JOIN-ENV</i>(e1, e2)</code> be a
+        queryable object `e3` such that `tag_invoke(q, e3, as...)` is
         expression-equivalent to:
 
           - `tag_invoke(q, e1, as...)` if that expression is well-formed,
