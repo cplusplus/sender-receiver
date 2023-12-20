@@ -4851,7 +4851,7 @@ enum class forward_progress_guarantee {
 
     2. For a query object `q` and a subexpression `v`, let
         <code><i>MAKE-ENV</i>(q, v)</code> be a queryable object `e` such that
-        `tag_invoke(q, e)` is a `const` lvalue reference to an object
+        the result of `tag_invoke(q, e)` is a `const` lvalue reference to an object
         decay-copied from `v`. Unless otherwise stated, the object to which
         `tag_invoke(q, e)` refers remains valid while `e` remains valid.
 
