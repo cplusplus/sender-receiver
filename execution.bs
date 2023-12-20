@@ -1112,7 +1112,7 @@ The authors are aware of a number of other implementations of sender/receiver fr
     This is a complete implementation written from the specification in this paper. Its primary purpose is to help find specification bugs and to harden the wording of the proposal. It is
     fit for broad use and for contribution to libc++.
 
-    It is current with R7 of this paper.
+    It is current with R8 of this paper.
 
 * <b>[Reference implementation for the Microsoft STL](https://github.com/miscco/STL/tree/proposal/executors) by Michael Schellenberger Costa</b>
 
@@ -5002,15 +5002,28 @@ enum class forward_progress_guarantee {
         - <span class="wg21note">An expression of type <code><i>product-type</i></code> is usable as the initializer
             of a structured binding declaration [dcl.struct.bind].</span>
 
-    11. <pre highlight="c++">
+    12. <pre highlight="c++">
+        template&lt;<i>callable</i> Fn>
+        struct <i>emplacer</i> { // exposition only
+          Fn fn;  // exposition only
+          operator <i>call-result-t</i>&lt;Fn> () && noexcept(<i>nothrow-callable</i>&lt;Fn>) {
+            return std::move(fn)();
+          }
+        };
+        </pre>
+
+        1. <span class="wg21note">The type `emplacer<Fn>` is used to emplace non-movable
+            types into containers like `tuple`, `optional`, and `variant`.</span>
+
+    13. <pre highlight="c++">
         template &lt;semiregular Tag, <i>movable-value</i> Data = <i>see below</i>, sender... Child>
         constexpr auto <i>make-sender</i>(Tag, Data&& data, Child&&... child);
         </pre>
 
-        1. _Remarks:_ The default template argument for the `Data` template parameter
-            names an unspecified empty trivial class type.
+        1. *Remarks:* The default template argument for the `Data` template parameter
+            denotes an unspecified empty trivial class type.
 
-        2. <i>Returns:</i> A prvalue of type <code><i>basic-sender</i>&lt;Tag, decay_t&lt;Data>, decay_t&lt;Child>...></code>
+        2. *Returns:* A prvalue of type <code><i>basic-sender</i>&lt;Tag, decay_t&lt;Data>, decay_t&lt;Child>...></code>
             where the <code><i>tag</i></code> member has been default-initialized and the
             <code><i>data</i></code> and <code><i>child<sub>n</sub></i>...</code> members have
             been direct initialized from their respective forwarded arguments, where
@@ -5294,7 +5307,7 @@ enum class forward_progress_guarantee {
     `Sndr` and `Env`.
 
 3. A type `Sigs` satisfies and models the exposition-only concept
-    <code><i>valid-completion-signatures</i></code> if it names a specialization
+    <code><i>valid-completion-signatures</i></code> if it denotes a specialization
     of the `completion_signatures` class template.
 
 4. <i>Remarks:</i> Pursuant to [namespace.std], users can specialize `enable_sender` to
@@ -5345,8 +5358,8 @@ enum class forward_progress_guarantee {
       same_as&lt;tag_of_t&lt;Sndr>, Tag>;
     </pre>
 
-8. For a type `T`, <code><i>SET-VALUE-SIG</i>(T)</code> names the type
-    `set_value_t()` if `T` is *cv* `void`; otherwise, it names the type
+8. For a type `T`, <code><i>SET-VALUE-SIG</i>(T)</code> denotes the type
+    `set_value_t()` if `T` is *cv* `void`; otherwise, it denotes the type
     `set_value_t(T)`.
 
 9. Library-provided sender types:
@@ -5408,7 +5421,7 @@ enum class forward_progress_guarantee {
 
 3. For a subexpression `c` such that `decltype((c))` is type `C`, and
     an lvalue `p` of type `Promise`, <code><i>await-result-type</i>&lt;C, Promise></code>
-    names the type <code>decltype(<i>GET-AWAITER</i>(c, p).await_resume())</code>.
+    denotes the type <code>decltype(<i>GET-AWAITER</i>(c, p).await_resume())</code>.
 
 4. Let <code><i>with-await-transform</i></code> be the exposition-only class template:
 
@@ -5873,7 +5886,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 7. If a sender returned from a sender adaptor specified in this subclause is
     specified to include `set_error_t(Err)` among its set of completion signatures
-    where `decay_t<Err>` names the type `exception_ptr`, but the implementation
+    where `decay_t<Err>` denotes the type `exception_ptr`, but the implementation
     does not potentially evaluate an error completion operation with an
     `exception_ptr` argument, the implementation is allowed to omit the
     `exception_ptr` error completion signature from the set.
@@ -6103,12 +6116,12 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           </pre>
 
           1. Let `Sigs` be a pack of the arguments to the
-              `completion_signatures` specialiation named by
+              `completion_signatures` specialization named by
               `completion_signatures_of_t<Child, env_of_t<Rcvr>>`. Let
               <i>`as-tuple`</i> be an alias template that transforms a
               completion signature `Tag(Args...)` into the `tuple`
               specialization <code><i>decayed-tuple</i>&lt;Tag, Args...></code>.
-              Then <i>`variant-type`</i> names the type
+              Then <i>`variant-type`</i> denotes the type
               <code>variant&lt;monostate, <i>as-tuple</i>&lt;Sigs>...></code>.
 
           2. Let <i>`receiver-type`</i> denote the following class:
@@ -6224,99 +6237,152 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 2. Let the expression <code><i>let-cpo</i></code> be one of `let_value`,
     `let_error`, or `let_stopped` and let <code><i>set-cpo</i></code> be the
     completion function that corresponds to <code><i>let-cpo</i></code>
-    (`set_value` for `let_value`, etc.). For subexpressions `sndr` and `rcvr_env`, let
-    <code><i>inner-env</i>(sndr, rcvr_env)</code> be
-    <code><i>JOIN-ENV</i>(<i>sched-env</i>(sndr, rcvr_env), <i>FWD-ENV</i>(rcvr_env))</code>,
-    where <code><i>sched-env</i>(sndr, rcvr_env)</code> is an environment `env` such that:
+    (`set_value` for `let_value`, etc.). For a subexpression `sndr`, let
+    <code><i>let-env</i>(sndr)</code> be expression-equivalent to the first
+    well-formed expression below:
 
-        1. `get_domain(env)` is expression-equivalent
-            <code><i>get-domain-late</i>(sndr, rcvr_env)</code>,
-        
-        2. `get_scheduler(env)` is expression-equivalent to the first
-            well-formed expression below:
+      - <code><i>SCHED-ENV</i>(get_completion_scheduler&lt;tag_t&lt;<i>set-cpo</i>>>(get_env(sndr)))</code>
 
-            - <code>get_completion_scheduler&lt;tag_t&lt;<i>set-cpo</i>>>(get_env(sndr))</code>
+      - <code><i>MAKE-ENV</i>(get_domain, get_domain(get_env(sndr)))</code>
 
-            - `get_scheduler(rcvr_env)`
-
-            or if neither of them are, `get_scheduler(env)` is ill-formed.
+      - `empty_env{}`
 
 3. The names `let_value`, `let_error`, and `let_stopped` denote customization
     point objects. For subexpressions `sndr` and `f`, let `Sndr` be `decltype((sndr))`,
-    let `F` be the decayed type of `f`, and let `f2` be an xvalue that refers to
-    an object decay-copied from `f`. If `Sndr` does not satisfy `sender` or if `F`
+    let `F` be the decayed type of `f`. If `Sndr` does not satisfy `sender` or if `F`
     does not satisfy <code><i>movable-value</i></code>, the expression
     <code><i>let-cpo</i>(sndr, f)</code> is ill-formed. If `F` does not satisfy
-    `invocable`, the expression `let_stopped(sndr, f)` is ill-formed. Otherwise,
-    the expression <code><i>let-cpo</i>(sndr, f)</code> is expression-equivalent
-    to:
+    `invocable`, the expression `let_stopped(sndr, f)` is ill-formed.
+
+4. Otherwise, the expression <code><i>let-cpo</i>(sndr, f)</code> is
+    expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
         <i>get-domain-early</i>(sndr),
-        <i>make-let-sender</i>(f, sndr));
+        <i>make-sender</i>(<i>let-cpo</i>, f, sndr));
       </pre>
 
-    where <code><i>make-let-sender</i>(f, sndr)</code> is expression-equivalent to
-    <code><i>make-sender</i>(<i>let-cpo</i>, f, sndr)</code> and returns a sender
-    object `sndr2` that behaves as follows:
+5. The exposition-only class template <code><i>impls-for</i></code>
+    ([exec.snd.general]) is specialized for <code><i>let-cpo</i></code> as
+    follows:
 
-    1. When `sndr2` is connected to some receiver `out_rcvr`, it:
+        <pre highlight="c++">
+        template&lt;class State, class Rcvr, class... Args>
+        void <i>let-bind</i>(State& state, Rcvr& rcvr, Args&&... args); // exposition only
 
-        1. Decay-copies `out_rcvr` into `op_state2` (see below). `out_rcvr2` is an
-            xvalue referring to the copy of `out_rcvr`. 
+        template&lt;>
+        struct <i>impls-for</i>&lt;tag_t&lt;<i>let-cpo</i>>> : <i>default-impls</i> {
+          static constexpr auto <i>get-state</i> = <i>see below</i>;
+          static constexpr auto <i>complete</i> = <i>see below</i>;
+        };
+        </pre>
 
-        2. Constructs a receiver `rcvr` such that:
+        1. Let <i>`receiver2`</i> denote the following exposition-only class template:
 
-            1. When <code><i>set-cpo</i>(rcvr, args...)</code> is called, the
-                receiver `rcvr` decay-copies `args...` into `op_state2` as
-                `args2...`, then calls `invoke(f2, args2...)`, resulting in a
-                sender `sndr3`. It then calls `connect(sndr3, out_rcvr3)`, resulting in
-                an operation state `op_state3`, where `out_rcvr3` is a receiver
-                described below. `op_state3` is saved as a part of `op_state2`.
-                It then calls `start(op_state3)`. If any of these throws an
-                exception, it catches it and calls `set_error(out_rcvr2,
-                current_exception())`. If any of these expressions would be
-                ill-formed, <code><i>set-cpo</i>(rcvr, args...)</code> is
-                ill-formed.
+            <pre highlight="c++">
+            template&lt;class Rcvr, class Env>
+            struct <i>receiver2</i> : receiver_adaptor&lt;<i>receiver2</i>&lt;Rcvr, Env>, Rcvr> {
+              explicit <i>receiver2</i>(Rcvr rcvr, Env env)
+                : <i>receiver2</i>::receiver_adaptor{std::move(rcvr)}, env(std::move(env)) {}
 
-            2. <code><i>CF</i>(rcvr, args...)</code> is expression-equivalent to
-                <code><i>CF</i>(out_rcvr2, args...)</code>, where
-                <code><i>CF</i></code> is a completion function other than
-                <code><i>set-cpo</i></code>.
-            
-            3. `get_env(rcvr)` is expression-equivalent to `get_env(out_rcvr)`.
+              auto get_env() const noexcept {
+                return <i>JOIN-ENV</i>(env, <i>FWD-ENV</i>(execution::get_env(this->base())));
+              }
 
-            4. `out_rcvr3` is a receiver that forwards its completion operations
-                to `out_rcvr2` and for which `get_env(out_rcvr3)` returns
-                <code><i>inner-env</i>(get_env(sndr), get_env(out_rcvr2))</code>.
+              Env env; // exposition only
+            };
+            </pre>
 
-         2. Calls `connect(sndr, rcvr)` resulting in an operation state `op_state2`.
-             If the expression `connect(sndr, rcvr)` is ill-formed, `connect(sndr2,
-             out_rcvr)` is ill-formed.
-        
-        3. Returns an operation state `op_state` that stores `op_state2`.
-            `start(op_state)` is expression-equivalent to `start(op_state2)`.
+        2. <code><i>impls-for</i>&lt;tag_t&lt;<i>let-cpo</i>>>::<i>get-state</i></code> is
+            is initialized with a callable object equal to the following:
 
-5. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))` and `Env` is
-    `decltype((env))`. If <code><i>sender-for</i>&lt;Sndr, <i>let-cpo-t</i>></code> is `false` where
-    <code><i>let-cpo-t</i></code> is the type of <code><i>let-cpo</i></code>, then the expression
-    <code><i>let-cpo-t</i>().transform_env(sndr, env)</code> is ill-formed. Otherwise, it is equal
-    to <code><i>inner-env</i>(get_env(sndr), env)</code>.
+            <pre highlight="c++">
+            []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) requires <i>see below</i> {
+              auto&& [tag, data, child] = std::forward&lt;Sndr>(sndr);
+              return [&]&lt;class Fn, class Env>(Fn fn, Env env) {
+                using <i>args-variant-type</i> = <i>see below</i>;
+                using <i>ops2-variant-type</i> = <i>see below</i>;
 
-6. If a sender `out_sndr` returned from <code><i>let-cpo</i>(sndr, f)</code> is connected to a
-    receiver `rcvr` with environment `env` such that
-    <code>transform_sender(<i>get-domain-late</i>(out_sndr, env), out_sndr, env)</code> does not return a
-    sender that:
-  
-        - invokes `f` when <code><i>set-cpo</i></code> is called with `sndr`'s result datums,
-        
-        - makes its completion dependent on the completion of a sender returned by
-            `f`, and
+                struct <i>state-type</i> {
+                  Fn fn;
+                  Env env;
+                  <i>args-variant-type</i> args;
+                  <i>ops2-variant-type</i> ops2;
+                };
+                return <i>state-type</i>{std::move(fn), std::move(env), {}, {}};
+              }(std::forward_like&lt;Sndr>(data), <i>let-env</i>(child));
+            }
+            </pre>
 
-        - propagates the other completion operations sent by `sndr`,
-    
-    the behavior of calling `connect(out_sndr, rcvr)` is undefined.
+            1. Let `Sigs` be a pack of the arguments to the `completion_signatures`
+                specialization named by
+                <code>completion_signatures_of_t&lt;<i>child-type</i>&lt;Sndr>,
+                env_of_t&lt;Rcvr>></code>. Let `LetSigs` be a pack of those types in `Sigs`
+                with a return type of <code>tag_t&lt;<i>set-cpo</i>></code>. Let
+                <i>`as-tuple`</i> be an alias template such that
+                <code><i>as-tuple</i>&lt;Tag(Args...)></code> denotes the type
+                <code><i>decayed-tuple</i>&lt;Args...></code>. Then
+                <i>`args-variant-type`</i> denotes the type <code>variant&lt;monostate,
+                <i>as-tuple</i>&lt;LetSigs>...></code>.
+
+            2. Let <i>`as-ops2`</i> be an alias template such that
+                <code><i>as-ops2</i>&lt;Tag(Args...)></code> denotes the type
+                <code><i>call-result-t</i>&lt;Fn, decay_t&lt;Args>&...></code>.
+                Then <i>`ops2-variant-type`</i> denotes the type
+                <code>variant&lt;monostate,
+                connect_result_t&lt;<i>as-ops2</i>&lt;LetSigs>,
+                <i>receiver2</i>&lt;Rcvr, Env>>...></code>.
+
+            3. The <i>requires-clause</i> constraining the above lambda is
+                satisfied if and only if the types <i>`args-variant-type`</i>
+                and <i>`ops2-variant-type`</i> are well-formed.
+
+        3. The exposition-only function template <i>`let-bind`</i> is equal to:
+
+            <pre highlight="c++">
+            auto& args = state.args.emplace&lt;<i>decayed-tuple</i>&lt;Args...>>(std::forward&lt;Args>(args)...);
+            auto sndr2 = apply(std::move(state.fn), args);
+            auto rcvr2 = <i>receiver2</i>{std::move(rcvr), std::move(state.env)};
+            auto mkop2 = [&] { return connect(std::move(sndr2), std::move(rcvr2)); };
+            auto& op2 = state.ops2.emplace&lt;decltype(mkop2())>(<i>emplacer</i>{mkop2});
+            start(op2);
+            </pre>
+
+        4. <code><i>impls-for</i>&lt;tag_t&lt;<i>let-cpo</i>>>::<i>complete</i></code> is
+            is initialized with a callable object equal to the following:
+
+            <pre highlight="c++">
+            []&lt;class Tag, class... Args>
+              (auto, auto& state, auto& rcvr, Tag, Args&&... args) noexcept -> void {
+                if constexpr (same_as&lt;Tag, tag_t&lt;<i>set-cpo</i>>>) {
+                  <i>TRY-EVAL</i>(std::move(rcvr), <i>let-bind</i>(state, rcvr, std::forward&lt;Args>(args)...));
+                } else {
+                  Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
+                }
+              }
+            </pre>
+
+6. Let `sndr` and `env` be subexpressions, and let `Sndr` be `decltype((sndr))`.
+    If <code><i>sender-for</i>&lt;Sndr, tag_t&lt;<i>let-cpo</i>>></code> is
+    `false`, then the expression <code><i>let-cpo</i>.transform_env(sndr,
+    env)</code> is ill-formed. Otherwise, it is equal to
+    <code><i>JOIN-ENV</i>(<i>let-env</i>(sndr), <i>FWD-ENV</i>(env))</code>.
+
+7. Let the subexpression `out_sndr` denote the result of the invocation
+    <code><i>let-cpo</i>(sndr, f)</code> or an object copied or moved from such,
+    and let the subexpression `rcvr` denote a receiver such that the expression
+    `connect(out_sndr, rcvr)` is well-formed. The expression `connect(out_sndr,
+    rcvr)` has undefined behavior unless it creates an asynchronous operation
+    ([async.ops]) that, when started:
+
+      - invokes `f` when <code><i>set-cpo</i></code> is called with `sndr`'s
+          result datums,
+
+      - makes its completion dependent on the completion of a sender returned
+          by `f`, and
+
+      - propagates the other completion operations sent by `sndr`.
 
 #### `execution::bulk` <b>[exec.bulk]</b> #### {#spec-execution.senders.adapt.bulk}
 
