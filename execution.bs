@@ -6326,12 +6326,12 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                 <i>`args-variant-type`</i> denotes the type <code>variant&lt;monostate,
                 <i>as-tuple</i>&lt;LetSigs>...></code>.
 
-            2. Let <i>`as-ops2`</i> be an alias template such that
-                <code><i>as-ops2</i>&lt;Tag(Args...)></code> denotes the type
+            2. Let <i>`as-sndr2`</i> be an alias template such that
+                <code><i>as-sndr2</i>&lt;Tag(Args...)></code> denotes the type
                 <code><i>call-result-t</i>&lt;Fn, decay_t&lt;Args>&...></code>.
                 Then <i>`ops2-variant-type`</i> denotes the type
                 <code>variant&lt;monostate,
-                connect_result_t&lt;<i>as-ops2</i>&lt;LetSigs>,
+                connect_result_t&lt;<i>as-sndr2</i>&lt;LetSigs>,
                 <i>receiver2</i>&lt;Rcvr, Env>>...></code>.
 
             3. The <i>requires-clause</i> constraining the above lambda is
