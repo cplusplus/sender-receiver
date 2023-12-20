@@ -6122,7 +6122,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
         template&lt;>
         struct <i>impls-for</i>&lt;tag_t&lt;<i>then-cpo</i>>> : <i>default-impls</i> {
           static constexpr auto complete =
-            []&lt;class Tag, class... Args>(auto, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
+            []&lt;class Tag, class... Args>(auto /* index */, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
               if constexpr (same_as&lt;Tag, tag_t&lt;<i>set-cpo</i>>>) {
                 <i>TRY-SET-VALUE</i>(std::move(rcvr),
                               invoke(std::move(fn), std::forward&lt;Args>(args)...));
