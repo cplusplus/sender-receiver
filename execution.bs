@@ -6120,7 +6120,7 @@ template&lt;class Domain, class Tag, sender Sender, class... Args>
 
         <pre highlight="c++">
         template&lt;>
-        struct <i>impls-for</i>&lt;<i>then-cpo</i>> : <i>default-impls</i> {
+        struct <i>impls-for</i>&lt;tag_t&lt;<i>then-cpo</i>>> : <i>default-impls</i> {
           static constexpr auto complete =
             []&lt;class Tag, class... Args>(auto, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
               if constexpr (same_as&lt;Tag, <i>set-cpo</i>>) {
