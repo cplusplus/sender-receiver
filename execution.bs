@@ -3142,9 +3142,23 @@ Much of this wording follows the wording of [[P0443R14]].
 
 # Library introduction <b>[library]</b> # {#spec-library}
 
-<div class="ed-note">Add the header `<execution>` to Table 23: C++ library headers [tab:headers.cpp]
+<div class="ed-note">Add the header `<execution>` to Table 23: C++ library
+headers [tab:headers.cpp]</div>
 
-In subclause [conforming], after [lib.types.movedfrom], add the following new subclause with suggested stable name [lib.tmpl-heads].</div>
+<div class="ed-note">At the end of [expos.only.entity], add the following:</div>
+
+<ins>
+<blockquote>
+
+3. An object `dst` is said to be <dfn export=true>decay-copied from</dfn> a
+    subexpression `src` if the type of `dst` is `decay_t<decltype((src))>`,
+    and `dst` is copy-initialized from `src`.
+
+</blockquote>
+</ins>
+
+<div class="ed-note">In subclause [conforming], after [lib.types.movedfrom],
+add the following new subclause with suggested stable name [lib.tmpl-heads].</div>
 
 <ins>
 <blockquote>
@@ -4867,14 +4881,14 @@ enum class forward_progress_guarantee {
 
     2. For a query object `q` and a subexpression `v`, let
         <code><i>MAKE-ENV</i>(q, v)</code> be a queryable object `env` such that
-        `tag_invoke(q, env)` is a `const` lvalue reference to an object
-        decay-copied from `v`. Unless otherwise stated, the object to which
+        the result of `tag_invoke(q, env)` has a value equal to `v`
+        ([concepts.equality]). Unless otherwise stated, the object to which
         `tag_invoke(q, env)` refers remains valid while `env` remains valid.
 
-    3. For two queryable objects `env1` and `env2`, a query object `q` and a pack of
-        subexpressions `as`, let <code><i>JOIN-ENV</i>(env1, env2)</code> be an
-        environment `env3` such that `tag_invoke(q, env3, as...)` is
-        expression-equivalent to:
+    3. For two queryable objects `env1` and `env2`, a query object `q` and a
+        pack of subexpressions `as`, let <code><i>JOIN-ENV</i>(env1,
+        env2)</code> be a queryable object `env3` such that `tag_invoke(q, env3,
+        as...)` is expression-equivalent to:
 
           - `tag_invoke(q, env1, as...)` if that expression is well-formed,
 
@@ -4883,7 +4897,12 @@ enum class forward_progress_guarantee {
 
           - otherwise, `tag_invoke(q, env3, as...)` is ill-formed.
 
-    4. For a scheduler `sch`, let <code><i>SCHED-ATTRS</i>(sch)</code> be a
+    4. The expansions of <i>`FWD-ENV`</i>, <i>`MAKE-ENV`</i>, and
+        <i>`JOIN-ENV`</i> can be context-dependent; *i.e.*, they can expand to
+        expressions with different types and value categories in different
+        contexts for the same arguments.
+
+    5. For a scheduler `sch`, let <code><i>SCHED-ATTRS</i>(sch)</code> be a
         queryable object `o1` such that
         <code>tag_invoke(get_completion_scheduler&lt;<i>Tag</i>>, o1)</code> is a
         prvalue with the same type and value as `sch` where <i>`Tag`</i> is one
@@ -4895,7 +4914,7 @@ enum class forward_progress_guarantee {
         type and value as `sch`, and let <code>tag_invoke(get_domain, o2)</code>
         be expression-equivalent to <code>tag_invoke(get_domain, sch)</code>.
 
-    5. For two subexpressions `rcvr` and `expr`, let <code><i>SET-VALUE</i>(rcvr,
+    6. For two subexpressions `rcvr` and `expr`, let <code><i>SET-VALUE</i>(rcvr,
         expr)</code> be `(expr, set_value(rcvr))` if the type of `expr` is `void`;
         otherwise, it is `set_value(rcvr, expr)`. Let
         <code><i>TRY-EVAL</i>(rcvr, expr)</code> be:
@@ -4913,7 +4932,7 @@ enum class forward_progress_guarantee {
         <code><i>TRY-EVAL</i>(rcvr, <i>SET-VALUE</i>(rcvr, expr))</code>
         except that `rcvr` is evaluated only once.
 
-    6.  <pre highlight="c++">
+    7.  <pre highlight="c++">
         template&lt;class Default = default_domain, class Sndr>
         constexpr auto <i>completion-domain</i>(const Sndr& sndr) noexcept;
         </pre>
@@ -4931,7 +4950,7 @@ enum class forward_progress_guarantee {
             prvalue of type `Default`.
             Otherwise, <code><i>completion-domain</i>&lt;Default>(sndr)</code> is ill-formed.
 
-    7.  <pre highlight="c++">
+    8.  <pre highlight="c++">
         template&lt;class Tag, class Env, class Default>
         constexpr decltype(auto) <i>query-with-default</i>(Tag, const Env& env, Default&& value) noexcept(<i>see below</i>);
         </pre>
@@ -4949,7 +4968,7 @@ enum class forward_progress_guarantee {
                                                 : is_nothrow_constructible_v&lt;Default, Default>
                 </pre>
 
-    8.  <pre highlight="c++">
+    9.  <pre highlight="c++">
         template&lt;class Sndr>
         constexpr auto <i>get-domain-early</i>(const Sndr& sndr) noexcept;
         </pre>
@@ -4962,7 +4981,7 @@ enum class forward_progress_guarantee {
 
             - `return default_domain();`
 
-    9.  <pre highlight="c++">
+    10. <pre highlight="c++">
         template&lt;class Sndr, class Env>
         constexpr auto <i>get-domain-late</i>(const Sndr& sndr, const Env& env) noexcept;
         </pre>
@@ -4989,7 +5008,7 @@ enum class forward_progress_guarantee {
             its predecessor, using only its destination scheduler to select a customization. *--end note*]
 
 
-    10. <pre highlight="c++">
+    11. <pre highlight="c++">
         template&lt;class... T>
         struct <i>product-type</i> {
           T<sub><i>0</i></sub> <i>t<sub>0</sub></i>;      // exposition only
@@ -4999,8 +5018,9 @@ enum class forward_progress_guarantee {
         };
         </pre>
 
-        - <span class="wg21note">An expression of type <code><i>product-type</i></code> is usable as the initializer
-            of a structured binding declaration [dcl.struct.bind].</span>
+        1. <span class="wg21note">An expression of type
+            <code><i>product-type</i></code> is usable as the initializer of a
+            structured binding declaration [dcl.struct.bind].</span>
 
     12. <pre highlight="c++">
         template&lt;<i>callable</i> Fn>
@@ -5168,14 +5188,14 @@ enum class forward_progress_guarantee {
               using <i>child-type</i> = decltype((declval&lt;Sndr>().<i>child<sub>N</sub></i>)); // exposition only
               </pre>
 
-        2. It is unspecified whether instances of <code><i>basic-sender</i></code> can be
+        3. It is unspecified whether instances of <code><i>basic-sender</i></code> can be
             aggregate initialized.
 
-        3. <span class="wg21note">An expression of type <code><i>basic-sender</i></code> is usable as the
+        4. <span class="wg21note">An expression of type <code><i>basic-sender</i></code> is usable as the
             initializer of a structured binding declaration
             [dcl.struct.bind].</span>
 
-        4. The member <code><i>default-impls</i>::<i>get-attrs</i></code> is initialized
+        5. The member <code><i>default-impls</i>::<i>get-attrs</i></code> is initialized
             with a callable object equal to the following lambda:
 
               <pre highlight="c++">
@@ -5187,7 +5207,7 @@ enum class forward_progress_guarantee {
               }
               </pre>
 
-        5. The member <code><i>default-impls</i>::<i>get-env</i></code> is initialized
+        6. The member <code><i>default-impls</i>::<i>get-env</i></code> is initialized
             with a callable object equal to the following lambda:
 
               <pre highlight="c++">
@@ -5197,7 +5217,7 @@ enum class forward_progress_guarantee {
               }
               </pre>
 
-        6. The member <code><i>default-impls</i>::<i>get-state</i></code> is initialized
+        7. The member <code><i>default-impls</i>::<i>get-state</i></code> is initialized
             with a callable object equal to the following lambda:
 
               <pre highlight="c++">
@@ -5206,7 +5226,7 @@ enum class forward_progress_guarantee {
               }
               </pre>
 
-        7. The member <code><i>default-impls</i>::<i>start</i></code> is initialized
+        8. The member <code><i>default-impls</i>::<i>start</i></code> is initialized
             with a callable object equal to the following lambda:
 
               <pre highlight="c++">
@@ -5215,7 +5235,7 @@ enum class forward_progress_guarantee {
               }
               </pre>
 
-        8. The member <code><i>default-impls</i>::<i>complete</i></code> is initialized
+        9. The member <code><i>default-impls</i>::<i>complete</i></code> is initialized
             with a callable object equal to the following lambda:
 
               <pre highlight="c++">
@@ -5227,7 +5247,7 @@ enum class forward_progress_guarantee {
               }
               </pre>
 
-        9. For a subexpression `sndr` let `Sndr` be `decltype((sndr))`. Let
+        10. For a subexpression `sndr` let `Sndr` be `decltype((sndr))`. Let
             `rcvr` be a receiver that has an associated environment of type
             `Env` such that `sender_in<Sndr, Env>` is `true`.
             <code><i>completion-signatures-for</i>&lt;Sndr, Env></code> denotes
@@ -5237,11 +5257,12 @@ enum class forward_progress_guarantee {
             operation state that results from connecting `sndr` and `rcvr`. When
             `sender_in<Sndr, Env>` is `false`, the type denoted by
             <code><i>completion-signatures-for</i>&lt;Sndr, Env></code>, if any,
-            is not a specialization of `completion_signatures`. <span
-            class="wg21note">When `sender_in<Sndr, Env>` is `false`,
+            is not a specialization of `completion_signatures`.
+
+            *Recommended practice:* When `sender_in<Sndr, Env>` is `false`,
             implementations are encouraged to use the type denoted by
             <code><i>completion-signatures-for</i>&lt;Sndr, Env></code> to
-            communicate to users why.</span>
+            communicate to users why.
 
 ### Sender concepts <b>[exec.snd.concepts]</b> ### {#spec-execution.snd.concepts}
 
@@ -5630,7 +5651,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 ### `execution::connect` <b>[exec.connect]</b> ### {#spec-execution.senders.connect}
 
-1. `connect` connects ([async.op]) a sender with a receiver.
+1. `connect` connects ([async.ops]) a sender with a receiver.
 
 2. The name `connect` denotes a customization point object. For subexpressions
     `sndr` and `rcvr`, let `Sndr` be `decltype((sndr))` and `Rcvr` be `decltype((rcvr))`, and let
@@ -6197,23 +6218,23 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         </pre>
 
 4. For `then`, `upon_error`, and `upon_stopped`, let <code><i>set-cpo</i></code>
-    be `set_value_t`, `set_error_t`, and `set_stopped_t` respectively. The
+    be `set_value`, `set_error`, and `set_stopped` respectively. The
     exposition-only class template <code><i>impls-for</i></code>
-    ([exec.snd.general]) is specialized for each of `then_t`, `upon_error_t`,
-    and `upon_stopped_t` as follows:
+    ([exec.snd.general]) is specialized for <i>`then-cpo`</i> as follows:
 
         <pre highlight="c++">
         template&lt;>
         struct <i>impls-for</i>&lt;tag_t&lt;<i>then-cpo</i>>> : <i>default-impls</i> {
           static constexpr auto complete =
-            []&lt;class Tag, class... Args>(auto, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
-              if constexpr (same_as&lt;Tag, <i>set-cpo</i>>) {
-                <i>TRY-SET-VALUE</i>(std::move(rcvr),
-                              invoke(std::move(fn), std::forward&lt;Args>(args)...));
-              } else {
-                Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
-              }
-            };
+            []&lt;class Tag, class... Args>
+              (auto /*index*/, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
+                if constexpr (same_as&lt;Tag, tag_t&lt;<i>set-cpo</i>>>) {
+                  <i>TRY-SET-VALUE</i>(std::move(rcvr),
+                                invoke(std::move(fn), std::forward&lt;Args>(args)...));
+                } else {
+                  Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
+                }
+              };
         };
         </pre>
 
