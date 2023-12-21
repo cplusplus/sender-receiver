@@ -2246,7 +2246,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-19">2023-12-19</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-12-21">2023-12-21</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -5318,11 +5318,21 @@ via an exception.</p>
     </blockquote>
    </ins>
    <h2 class="heading settled" data-level="8" id="spec-library"><span class="secno">8. </span><span class="content">Library introduction <b>[library]</b></span><a class="self-link" href="#spec-library"></a></h2>
-   <div class="ed-note">
-    Add the header <code class="highlight"><c- o>&lt;</c-><c- n>execution</c-><c- o>></c-></code> to Table 23: C++ library headers [tab:headers.cpp] 
-    <p>In subclause [conforming], after [lib.types.movedfrom], add the following new subclause with suggested stable name [lib.tmpl-heads].</p>
-   </div>
-   <p></p>
+   <div class="ed-note">Add the header <code class="highlight"><c- o>&lt;</c-><c- n>execution</c-><c- o>></c-></code> to Table 23: C++ library
+headers [tab:headers.cpp]</div>
+   <div class="ed-note">At the end of [expos.only.entity], add the following:</div>
+   <ins>
+    <blockquote>
+     <ol start="3">
+      <li data-md>
+       <p>An object <code class="highlight"><c- n>dst</c-></code> is said to be <dfn data-dfn-type="dfn" data-export id="decay-copied-from">decay-copied from<a class="self-link" href="#decay-copied-from"></a></dfn> a
+subexpression <code class="highlight"><c- n>src</c-></code> if the type of <code class="highlight"><c- n>dst</c-></code> is <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>((</c-><c- n>src</c-><c- p>))</c-><c- o>></c-></code>,
+and <code class="highlight"><c- n>dst</c-></code> is copy-initialized from <code class="highlight"><c- n>src</c-></code>.</p>
+     </ol>
+    </blockquote>
+   </ins>
+   <div class="ed-note">In subclause [conforming], after [lib.types.movedfrom],
+add the following new subclause with suggested stable name [lib.tmpl-heads].</div>
    <ins>
     <blockquote>
       <strong>16.4.6.17  Class template-heads</strong> 
@@ -6946,13 +6956,11 @@ queryable object such that for a query object <code class="highlight"><c- n>q</c
 subexpressions <code class="highlight"><c- n>as</c-></code>, the expression <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>env</c-><c- p>),</c-> <c- n>as</c-><c- p>...)</c-></code> is ill-formed if <code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is <code class="highlight">false</code>;
 otherwise, it is expression-equivalent to <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>env</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code>.</p>
       <li data-md>
-       <p>For a query object <code class="highlight"><c- n>q</c-></code> and a subexpression <code class="highlight"><c- n>v</c-></code>, let <code class="highlight"><i><c- n>MAKE</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code> be a queryable object <code class="highlight"><c- n>env</c-></code> such that <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is a <code class="highlight"><c- k>const</c-></code> lvalue reference to an object
-decay-copied from <code class="highlight"><c- n>v</c-></code>. Unless otherwise stated, the object to which <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> refers remains valid while <code class="highlight"><c- n>env</c-></code> remains valid.</p>
+       <p>For a query object <code class="highlight"><c- n>q</c-></code> and a subexpression <code class="highlight"><c- n>v</c-></code>, let <code class="highlight"><i><c- n>MAKE</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code> be a queryable object <code class="highlight"><c- n>env</c-></code> such that
+the result of <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> has a value equal to <code class="highlight"><c- n>v</c-></code> ([concepts.equality]). Unless otherwise stated, the object to which <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> refers remains valid while <code class="highlight"><c- n>env</c-></code> remains valid.</p>
       <li data-md>
-       <p>For two queryable objects <code class="highlight"><c- n>env1</c-></code> and <code class="highlight"><c- n>env2</c-></code>, a query object <code class="highlight"><c- n>q</c-></code> and a pack of
-subexpressions <code class="highlight"><c- n>as</c-></code>, let <code class="highlight"><i><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>env1</c-><c- p>,</c-> <c- n>env2</c-><c- p>)</c-></code> be an
-environment <code class="highlight"><c- n>env3</c-></code> such that <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>env3</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> is
-expression-equivalent to:</p>
+       <p>For two queryable objects <code class="highlight"><c- n>env1</c-></code> and <code class="highlight"><c- n>env2</c-></code>, a query object <code class="highlight"><c- n>q</c-></code> and a
+pack of subexpressions <code class="highlight"><c- n>as</c-></code>, let <code class="highlight"><i><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>env1</c-><c- p>,</c-> <c- n>env2</c-><c- p>)</c-></code> be a queryable object <code class="highlight"><c- n>env3</c-></code> such that <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>env3</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> is expression-equivalent to:</p>
        <ul>
         <li data-md>
          <p><code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>env1</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> if that expression is well-formed,</p>
@@ -6962,6 +6970,10 @@ expression-equivalent to:</p>
         <li data-md>
          <p>otherwise, <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>env3</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> is ill-formed.</p>
        </ul>
+      <li data-md>
+       <p>The expansions of <i><code class="highlight"><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></code></i>, <i><code class="highlight"><c- n>MAKE</c-><c- o>-</c-><c- n>ENV</c-></code></i>, and <i><code class="highlight"><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></code></i> can be context-dependent; <em>i.e.</em>, they can expand to
+expressions with different types and value categories in different
+contexts for the same arguments.</p>
       <li data-md>
        <p>For a scheduler <code class="highlight"><c- n>sch</c-></code>, let <code class="highlight"><i><c- n>SCHED</c-><c- o>-</c-><c- n>ATTRS</c-></i><c- p>(</c-><c- n>sch</c-><c- p>)</c-></code> be a
 queryable object <code class="highlight"><c- n>o1</c-></code> such that <code class="highlight"><c- n>tag_invoke</c-><c- p>(</c-><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><i><c- n>Tag</c-></i><c- o>></c-><c- p>,</c-> <c- n>o1</c-><c- p>)</c-></code> is a
@@ -7059,11 +7071,11 @@ its predecessor, using only its destination scheduler to select a customization.
   <c- n>T</c-><sub><i><c- n>n</c-><c- mi>-1</c-></i></sub> <i><c- n>t</c-><sub><c- n>n</c-><c- mi>-1</c-></sub></i><c- p>;</c->   <c- c1>// exposition only</c->
 <c- p>};</c->
 </pre>
-       <ul>
+       <ol>
         <li data-md>
-         <p><span class="wg21note">An expression of type <code class="highlight"><i><c- n>product</c-><c- o>-</c-><c- n>type</c-></i></code> is usable as the initializer
-of a structured binding declaration [dcl.struct.bind].</span></p>
-       </ul>
+         <p><span class="wg21note">An expression of type <code class="highlight"><i><c- n>product</c-><c- o>-</c-><c- n>type</c-></i></code> is usable as the initializer of a
+structured binding declaration [dcl.struct.bind].</span></p>
+       </ol>
       <li data-md>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><i><c- n>callable</c-></i> <c- n>Fn</c-><c- o>></c->
 <c- k>struct</c-> <i><c- nc>emplacer</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
@@ -7281,9 +7293,10 @@ a specialization of <code class="highlight"><c- n>completion_signatures</c-></co
 template arguments correspond to the set of completion operations
 that are potentially evaluated as a result of calling <code class="highlight"><c- n>start</c-></code> on the
 operation state that results from connecting <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>rcvr</c-></code>. When <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">false</code>, the type denoted by <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code>, if any,
-is not a specialization of <code class="highlight"><c- n>completion_signatures</c-></code>. <span class="wg21note">When <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">false</code>,
+is not a specialization of <code class="highlight"><c- n>completion_signatures</c-></code>.</p>
+         <p><em>Recommended practice:</em> When <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">false</code>,
 implementations are encouraged to use the type denoted by <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> to
-communicate to users why.</span></p>
+communicate to users why.</p>
        </ol>
      </ol>
    </ol>
@@ -7617,7 +7630,7 @@ that <code class="highlight"><i><c- n>MATCHING</c-><c- o>-</c-><c- n>SIG</c-></i
    <h4 class="heading settled" data-level="11.9.8" id="spec-execution.senders.connect"><span class="secno">11.9.8. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> <b>[exec.connect]</b></span><a class="self-link" href="#spec-execution.senders.connect"></a></h4>
    <ol>
     <li data-md>
-     <p><code class="highlight"><c- n>connect</c-></code> connects ([async.op]) a sender with a receiver.</p>
+     <p><code class="highlight"><c- n>connect</c-></code> connects ([async.ops]) a sender with a receiver.</p>
     <li data-md>
      <p>The name <code class="highlight"><c- n>connect</c-></code> denotes a customization point object. For subexpressions <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>rcvr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> and <code class="highlight"><c- n>Rcvr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>rcvr</c-><c- p>))</c-></code>, and let <code class="highlight"><c- n>DS</c-></code> and <code class="highlight"><c- n>DR</c-></code> be the decayed types of <code class="highlight"><c- n>Sndr</c-></code> and <code class="highlight"><c- n>Rcvr</c-></code>, respectively.</p>
     <li data-md>
@@ -8104,20 +8117,20 @@ expression-equivalent to:</p>
   <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><i><c- n>then</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>,</c-> <c- n>f</c-><c- p>,</c-> <c- n>sndr</c-><c- p>));</c->
 </pre>
     <li data-md>
-     <p>For <code class="highlight"><c- n>then</c-></code>, <code class="highlight"><c- n>upon_error</c-></code>, and <code class="highlight"><c- n>upon_stopped</c-></code>, let <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i></code> be <code class="highlight"><c- n>set_value_t</c-></code>, <code class="highlight"><c- n>set_error_t</c-></code>, and <code class="highlight"><c- n>set_stopped_t</c-></code> respectively. The
-exposition-only class template <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i></code> ([exec.snd.general]) is specialized for each of <code class="highlight"><c- n>then_t</c-></code>, <code class="highlight"><c- n>upon_error_t</c-></code>,
-and <code class="highlight"><c- n>upon_stopped_t</c-></code> as follows:</p>
+     <p>For <code class="highlight"><c- n>then</c-></code>, <code class="highlight"><c- n>upon_error</c-></code>, and <code class="highlight"><c- n>upon_stopped</c-></code>, let <code class="highlight"><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i></code> be <code class="highlight"><c- n>set_value</c-></code>, <code class="highlight"><c- n>set_error</c-></code>, and <code class="highlight"><c- n>set_stopped</c-></code> respectively. The
+exposition-only class template <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i></code> ([exec.snd.general]) is specialized for <i><code class="highlight"><c- n>then</c-><c- o>-</c-><c- n>cpo</c-></code></i> as follows:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;></c->
 <c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_t</c-><c- o>&lt;</c-><i><c- n>then</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>>></c-> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->
   <c- k>static</c-> <c- k>constexpr</c-> <c- k>auto</c-> <c- n>complete</c-> <c- o>=</c->
-    <c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c-><c- p>(</c-><c- k>auto</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>fn</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
-      <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>same_as</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>></c-><c- p>)</c-> <c- p>{</c->
-        <i><c- n>TRY</c-><c- o>-</c-><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c->
-                      <c- n>invoke</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>fn</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...));</c->
-      <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
-        <c- n>Tag</c-><c- p>()(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...);</c->
-      <c- p>}</c->
-    <c- p>};</c->
+    <c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
+      <c- p>(</c-><c- k>auto</c-> <c- d>/*index*/</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>fn</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
+        <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>same_as</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>tag_t</c-><c- o>&lt;</c-><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>>></c-><c- p>)</c-> <c- p>{</c->
+          <i><c- n>TRY</c-><c- o>-</c-><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c->
+                        <c- n>invoke</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>fn</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...));</c->
+        <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+          <c- n>Tag</c-><c- p>()(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...);</c->
+        <c- p>}</c->
+      <c- p>};</c->
 <c- p>};</c->
 </pre>
     <li data-md>
@@ -9781,6 +9794,7 @@ expression in a coroutine with promise type <code class="highlight"><c- n>Promis
    <li><a href="#completion-signature">completion signature</a><span>, in § 11.3</span>
    <li><a href="#completion-tag">completion tag</a><span>, in § 11.3</span>
    <li><a href="#connect">connect</a><span>, in § 11.3</span>
+   <li><a href="#decay-copied-from">decay-copied from</a><span>, in § 8</span>
    <li><a href="#disposition">disposition</a><span>, in § 11.3</span>
    <li><a href="#environment">environment</a><span>, in § 11.3</span>
    <li><a href="#error-completion">error completion</a><span>, in § 11.3</span>
