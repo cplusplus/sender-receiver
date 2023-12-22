@@ -2891,7 +2891,7 @@ of a cancellable <code class="highlight"><c- n>async_recv</c-><c- p>()</c-></cod
                              <c- n>static_cast</c-><c- o>&lt;</c-><c- n>WSAOVERLAPPED</c-><c- o>*></c-><c- p>(</c-><c- o>&amp;</c-><c- n>self</c-><c- p>),</c-> NULL<c- p>);</c->
         <c- k>if</c-> <c- p>(</c-><c- n>result</c-> <c- o>==</c-> <c- n>SOCKET_ERROR</c-><c- p>)</c-> <c- p>{</c->
             <c- b>int</c-> <c- n>errorCode</c-> <c- o>=</c-> <c- n>WSAGetLastError</c-><c- p>();</c->
-            <c- k>if</c-> <c- p>(</c-><c- n>errorCode</c-> <c- o>!=</c-> <c- n>WSA_IO_PENDING</c-><c- p>))</c-> <c- p>{</c->
+            <c- k>if</c-> <c- p>(</c-><c- n>errorCode</c-> <c- o>!=</c-> <c- n>WSA_IO_PENDING</c-><c- p>)</c-> <c- p>{</c->
                 <c- k>if</c-> <c- p>(</c-><c- n>errorCode</c-> <c- o>==</c-> <c- n>WSA_OPERATION_ABORTED</c-><c- p>)</c-> <c- p>{</c->
                     <c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>set_stopped</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>self</c-><c- p>.</c-><c- n>receiver</c-><c- p>));</c->
                 <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
@@ -4707,7 +4707,7 @@ We believe sender consumers read better with function call syntax.</p>
 <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- n>snd</c-> <c- o>:</c-> <c- n>read_socket_async</c-><c- p>(</c-><c- n>socket</c-><c- p>,</c-> <c- n>span</c-><c- p>{</c-><c- n>buff</c-><c- p>}))</c-> <c- p>{</c->
   <c- k>try</c-> <c- p>{</c->
     <c- k>if</c-> <c- p>(</c-><c- n>optional</c-><c- o>&lt;</c-><c- b>size_t</c-><c- o>></c-> <c- n>bytes_read</c-> <c- o>=</c->
-          <c- k>co_await</c-> <c- n>execution</c-><c- o>::</c-><c- n>stopped_as_optional</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>snd</c-><c- p>)))</c->
+          <c- k>co_await</c-> <c- n>execution</c-><c- o>::</c-><c- n>stopped_as_optional</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>snd</c-><c- p>)))</c-> <c- p>{</c->
       <c- c1>// OK, we read some bytes into buff. Process them here....</c->
     <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
       <c- c1>// The socket read was cancelled and returned no data. React</c->
@@ -8313,8 +8313,7 @@ initialized with a callable object equal to the following lambda:</p>
         <c- p>}</c->
         <c- n>Tag</c-><c- p>()(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...);</c->
       <c- p>}());</c->
-    <c- p>}</c->
-    <c- k>else</c-> <c- p>{</c->
+    <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
       <c- n>Tag</c-><c- p>()(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...);</c->
     <c- p>}</c->
   <c- p>}</c->
