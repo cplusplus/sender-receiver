@@ -6440,7 +6440,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         };
         </pre>
 
-    1. The member <code><i>impls-for</i>&lt;tag_t&lt;bulk>>::complete</code> is
+    1. The member <code><i>impls-for</i>&lt;bulk_t>::complete</code> is
         initialized with a callable object equal to the following lambda:
 
           <pre highlight="c++">
