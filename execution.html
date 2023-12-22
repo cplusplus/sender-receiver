@@ -7065,6 +7065,11 @@ its predecessor, using only its destination scheduler to select a customization.
       <li data-md>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>T</c-><c- o>></c->
 <c- k>struct</c-> <i><c- nc>product</c-><c- o>-</c-><c- n>type</c-></i> <c- p>{</c->
+  <c- k>using</c-> <c- n>type</c-><sub><i><c- n>0</c-></i></sub> <c- o>=</c-> <c- n>T</c-><sub><i><c- n>0</c-></i></sub><c- p>;</c->      <c- c1>// exposition only</c->
+  <c- k>using</c-> <c- n>type</c-><sub><i><c- n>1</c-></i></sub> <c- o>=</c-> <c- n>T</c-><sub><i><c- n>1</c-></i></sub><c- p>;</c->      <c- c1>// exposition only</c->
+    <c- p>...</c->
+  <c- k>using</c-> <c- n>type</c-><sub><i><c- n>n</c-><c- mi>-1</c-></i></sub> <c- o>=</c-> <c- n>T</c-><sub><i><c- n>n</c-><c- mi>-1</c-></i></sub><c- p>;</c->   <c- c1>// exposition only</c->
+
   <c- n>T</c-><sub><i><c- n>0</c-></i></sub> <i><c- n>t</c-><sub><c- n>0</c-></sub></i><c- p>;</c->      <c- c1>// exposition only</c->
   <c- n>T</c-><sub><i><c- n>1</c-></i></sub> <i><c- n>t</c-><sub><c- n>1</c-></sub></i><c- p>;</c->      <c- c1>// exposition only</c->
     <c- p>...</c->
@@ -8276,45 +8281,61 @@ and let the subexpression <code class="highlight"><c- n>rcvr</c-></code> denote 
     <li data-md>
      <p><code class="highlight"><c- n>bulk</c-></code> runs a task repeatedly for every index in an index space.</p>
     <li data-md>
-     <p>The name <code class="highlight"><c- n>bulk</c-></code> denotes a customization point object. For some subexpressions <code class="highlight"><c- n>sndr</c-></code>, <code class="highlight"><c- n>shape</c-></code>, and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>, <code class="highlight"><c- n>Shape</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>shape</c-><c- p>))</c-></code>, and <code class="highlight"><c- n>F</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>f</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>Sndr</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code> or <code class="highlight"><c- n>Shape</c-></code> does not satisfy <code class="highlight"><c- n>integral</c-></code>, <code class="highlight"><c- n>bulk</c-></code> is ill-formed.
-Otherwise, the expression <code class="highlight"><c- n>bulk</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>shape</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is expression-equivalent
-to:</p>
+     <p>The name <code class="highlight"><c- n>bulk</c-></code> denotes a customization point object. For subexpressions <code class="highlight"><c- n>sndr</c-></code>, <code class="highlight"><c- n>shape</c-></code>, and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>, let <code class="highlight"><c- n>Shape</c-></code> be
+the decayed type of <code class="highlight"><c- n>shape</c-></code>, and let <code class="highlight"><c- n>F</c-></code> be the decayed type of <code class="highlight"><c- n>f</c-></code>. If <code class="highlight"><c- n>Sndr</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, or if <code class="highlight"><c- n>Shape</c-></code> does not satisfy <code class="highlight"><c- n>integral</c-></code>,
+or if <code class="highlight"><c- n>F</c-></code> does not satisfy <code class="highlight"><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i></code>, <code class="highlight"><c- n>bulk</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>shape</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is ill-formed.</p>
+    <li data-md>
+     <p>Otherwise, the expression <code class="highlight"><c- n>bulk</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>shape</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is
+expression-equivalent to:</p>
 <pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
   <i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>early</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>),</c->
-  <i><c- n>make</c-><c- o>-</c-><c- n>bulk</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><i><c- n>product</c-><c- o>-</c-><c- n>type</c-></i><c- p>{</c-><c- n>shape</c-><c- p>,</c-> <c- n>f</c-><c- p>},</c-> <c- n>sndr</c-><c- p>));</c->
+  <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>bulk</c-><c- p>,</c-> <i><c- n>product</c-><c- o>-</c-><c- n>type</c-></i><c- p>{</c-><c- n>shape</c-><c- p>,</c-> <c- n>f</c-><c- p>},</c-> <c- n>sndr</c-><c- p>));</c->
 </pre>
-     <p>where <code class="highlight"><i><c- n>make</c-><c- o>-</c-><c- n>bulk</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>t</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>bulk</c-><c- p>,</c-> <c- n>t</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> for a subexpression <code class="highlight"><c- n>t</c-></code> and
-returns a sender object <code class="highlight"><c- n>sndr2</c-></code> that behaves as follows:</p>
-     <ol start="3">
+    <li data-md>
+     <p>The exposition-only class template <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i></code> ([exec.snd.general]) is specialized for <code class="highlight"><c- n>bulk_t</c-></code> as follows:</p>
+<pre class="highlight"><c- k>template</c-><c- o>&lt;></c->
+<c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>bulk_t</c-><c- o>></c-> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->
+  <c- k>static</c-> <c- k>constexpr</c-> <c- k>auto</c-> <c- n>complete</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
+<c- p>};</c->
+</pre>
+     <ol>
       <li data-md>
-       <p>When <code class="highlight"><c- n>sndr2</c-></code> is connected with a receiver <code class="highlight"><c- n>out_rcvr</c-></code>, it:</p>
+       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_t</c-><c- o>&lt;</c-><c- n>bulk</c-><c- o>>>::</c-><c- n>complete</c-></code> is
+initialized with a callable object equal to the following lambda:</p>
+<pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Index</c-><c- p>,</c-> <c- k>class</c-> <c- nc>State</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
+  <c- p>(</c-><c- n>Index</c-><c- p>,</c-> <c- n>State</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- k>requires</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>{</c->
+    <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>same_as</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>set_value_t</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+      <c- k>auto</c-><c- o>&amp;</c-> <c- p>[</c-><c- n>shape</c-><c- p>,</c-> <c- n>f</c-><c- p>]</c-> <c- o>=</c-> <c- n>state</c-><c- p>;</c->
+      <c- k>constexpr</c-> <c- b>bool</c-> <c- n>nothrow</c-> <c- o>=</c-> <c- k>noexcept</c-><c- p>(</c-><c- n>f</c-><c- p>(</c-><c- k>auto</c-><c- p>(</c-><c- n>shape</c-><c- p>),</c-> <c- n>args</c-><c- p>...));</c->
+      <i><c- n>TRY</c-><c- o>-</c-><c- n>EVAL</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- p>[</c-><c- o>&amp;</c-><c- p>]()</c-> <c- k>noexcept</c-><c- p>(</c-><c- n>nothrow</c-><c- p>)</c-> <c- p>{</c->
+        <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- n>max</c-> <c- o>=</c-> <c- n>shape</c-><c- p>,</c-> <c- n>i</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- n>max</c-><c- p>;</c-> <c- o>++</c-><c- n>i</c-><c- p>)</c-> <c- p>{</c->
+          <c- n>f</c-><c- p>(</c-><c- k>auto</c-><c- p>(</c-><c- n>i</c-><c- p>),</c-> <c- n>args</c-><c- p>...);</c->
+        <c- p>}</c->
+        <c- n>Tag</c-><c- p>()(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...);</c->
+      <c- p>}());</c->
+    <c- p>}</c->
+    <c- k>else</c-> <c- p>{</c->
+      <c- n>Tag</c-><c- p>()(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...);</c->
+    <c- p>}</c->
+  <c- p>}</c->
+</pre>
        <ol>
         <li data-md>
-         <p>Constructs a receiver <code class="highlight"><c- n>rcvr</c-></code>:</p>
-         <ol>
-          <li data-md>
-           <p>When <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is called, calls <code class="highlight"><c- n>f</c-><c- p>(</c-><c- n>i</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> for
-each <code class="highlight"><c- n>i</c-></code> of type <code class="highlight"><c- n>Shape</c-></code> from <code class="highlight"><c- mi>0</c-></code> to <code class="highlight"><c- n>shape</c-></code>, then calls <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>out_rcvr</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>. If any of these throws an
-exception, it catches it and calls <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_rcvr</c-><c- p>,</c-> <c- n>current_exception</c-><c- p>())</c-></code>. If any of these expressions are
-ill-formed, <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is ill-formed.</p>
-          <li data-md>
-           <p>When <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>err</c-><c- p>)</c-></code> is called, calls <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>out_rcvr</c-><c- p>,</c-> <c- n>err</c-><c- p>)</c-></code>.</p>
-          <li data-md>
-           <p>When <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)</c-></code> is called, calls <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>out_rcvr</c-><c- p>)</c-></code>.</p>
-         </ol>
-        <li data-md>
-         <p>Calls <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code>, which results in an operation state <code class="highlight"><c- n>op_state2</c-></code>.</p>
-        <li data-md>
-         <p>Returns an operation state <code class="highlight"><c- n>op_state</c-></code> that contains <code class="highlight"><c- n>op_state2</c-></code>. When <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>op_state</c-><c- p>)</c-></code> is called, calls <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>op_state2</c-><c- p>)</c-></code>.</p>
+         <p>The expression in the <em>requires-clause</em> of the lambda above is <code class="highlight">true</code> if and only if <code class="highlight"><c- n>Tag</c-></code> denotes a type other than <code class="highlight"><c- n>set_value_t</c-></code> or if the expression <code class="highlight"><c- n>f</c-><c- p>(</c-><c- k>auto</c-><c- p>(</c-><c- n>shape</c-><c- p>),</c-> <c- n>args</c-><c- p>...)</c-></code> is well-formed.</p>
        </ol>
-      <li data-md>
-       <p>Let <code class="highlight"><c- n>out_sndr</c-></code> be the result of calling <code class="highlight"><c- n>bulk</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>shape</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> or a copy of such.
-If <code class="highlight"><c- n>out_sndr</c-></code> is connected to a receiver <code class="highlight"><c- n>rcvr</c-></code> with environment <code class="highlight"><c- n>env</c-></code> such that <code class="highlight"><c- n>transform_sender</c-><c- p>(</c-><i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>late</c-></i><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>),</c-> <c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> does
-not return a sender that invokes <code class="highlight"><c- n>f</c-><c- p>(</c-><c- n>i</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> for each <code class="highlight"><c- n>i</c-></code> of type <code class="highlight"><c- n>Shape</c-></code> from <code class="highlight"><c- mi>0</c-></code> to <code class="highlight"><c- n>shape</c-></code> where <code class="highlight"><c- n>args</c-></code> is a pack of subexpressions
-referring to the value completion result datums of the input sender, or
-does not execute a value completion operation with said datums, the
-behavior of calling <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code> is undefined.</p>
      </ol>
+    <li data-md>
+     <p>Let the subexpression <code class="highlight"><c- n>out_sndr</c-></code> denote the result of the invocation <code class="highlight"><c- n>bulk</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>shape</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> or an object copied or moved from such,
+and let the subexpression <code class="highlight"><c- n>rcvr</c-></code> denote a receiver such that the expression <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code> is well-formed. The expression <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code> has undefined behavior unless it creates an asynchronous operation
+([async.ops]) that, when started:</p>
+     <ul>
+      <li data-md>
+       <p>on a value completion operation, invokes <code class="highlight"><c- n>f</c-><c- p>(</c-><c- n>i</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> for every <code class="highlight"><c- n>i</c-></code> of type <code class="highlight"><c- n>Shape</c-></code> from <code class="highlight"><c- mi>0</c-></code> to <code class="highlight"><c- n>shape</c-></code>, where <code class="highlight"><c- n>args</c-></code> is a pack of lvalue
+  subexpressions referring to the value completion result datums of the
+  input sender, and</p>
+      <li data-md>
+       <p>propagates all completion operations sent by <code class="highlight"><c- n>sndr</c-></code>.</p>
+     </ul>
    </ol>
    <h5 class="heading settled" data-level="11.9.10.9" id="spec-execution.senders.adapt.split"><span class="secno">11.9.10.9. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>split</c-></code> <b>[exec.split]</b></span><a class="self-link" href="#spec-execution.senders.adapt.split"></a></h5>
    <ol>
