@@ -355,7 +355,7 @@ struct recv_op : operation_base {
                              static_cast<WSAOVERLAPPED*>(&self), NULL);
         if (result == SOCKET_ERROR) {
             int errorCode = WSAGetLastError();
-            if (errorCode != WSA_IO_PENDING)) {
+            if (errorCode != WSA_IO_PENDING) {
                 if (errorCode == WSA_OPERATION_ABORTED) {
                     std::execution::set_stopped(std::move(self.receiver));
                 } else {
@@ -2306,7 +2306,7 @@ Another possibility is for an async API to return a *range* of senders: if the A
     for (auto snd : read_socket_async(socket, span{buff})) {
       try {
         if (optional&lt;size_t> bytes_read =
-              co_await execution::stopped_as_optional(std::move(snd)))
+              co_await execution::stopped_as_optional(std::move(snd))) {
           // OK, we read some bytes into buff. Process them here....
         } else {
           // The socket read was cancelled and returned no data. React
@@ -6455,8 +6455,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                   }
                   Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
                 }());
-              }
-              else {
+              } else {
                 Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
               }
             }
