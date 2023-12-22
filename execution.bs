@@ -5011,6 +5011,11 @@ enum class forward_progress_guarantee {
     11. <pre highlight="c++">
         template&lt;class... T>
         struct <i>product-type</i> {
+          using type<sub><i>0</i></sub> = T<sub><i>0</i></sub>;      // exposition only
+          using type<sub><i>1</i></sub> = T<sub><i>1</i></sub>;      // exposition only
+            ...
+          using type<sub><i>n-1</i></sub> = T<sub><i>n-1</i></sub>;   // exposition only
+
           T<sub><i>0</i></sub> <i>t<sub>0</sub></i>;      // exposition only
           T<sub><i>1</i></sub> <i>t<sub>1</sub></i>;      // exposition only
             ...
@@ -6409,51 +6414,71 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 1. `bulk` runs a task repeatedly for every index in an index space.
 
-2. The name `bulk` denotes a customization point object. For some subexpressions
-    `sndr`, `shape`, and `f`, let `Sndr` be `decltype((sndr))`, `Shape` be
-    `decltype((shape))`, and `F` be `decltype((f))`. If `Sndr` does not satisfy
-    `sender` or `Shape` does not satisfy `integral`, `bulk` is ill-formed.
-    Otherwise, the expression `bulk(sndr, shape, f)` is expression-equivalent
-    to:
+2. The name `bulk` denotes a customization point object. For subexpressions
+    `sndr`, `shape`, and `f`, let `Sndr` be `decltype((sndr))`, let `Shape` be
+    the decayed type of `shape`, and let `F` be the decayed type of `f`. If
+    `Sndr` does not satisfy `sender`, or if `Shape` does not satisfy `integral`,
+    or if `F` does not satisfy <code><i>movable-value</i></code>, <code>bulk(sndr,
+    shape, f)</code> is ill-formed.
 
-      <pre highlight="c++">
-      transform_sender(
-        <i>get-domain-early</i>(sndr),
-        <i>make-bulk-sender</i>(<i>product-type</i>{shape, f}, sndr));
-      </pre>
+3. Otherwise, the expression <code>bulk(sndr, shape, f)</code> is
+    expression-equivalent to:
 
-    where <code><i>make-bulk-sender</i>(t, sndr)</code> is expression-equivalent to
-    <code><i>make-sender</i>(bulk, t, sndr)</code> for a subexpression `t` and
-    returns a sender object `sndr2` that behaves as follows:
+        <pre highlight="c++">
+        transform_sender(
+          <i>get-domain-early</i>(sndr),
+          <i>make-sender</i>(bulk, <i>product-type</i>{shape, f}, sndr));
+        </pre>
 
-    3. When `sndr2` is connected with a receiver `out_rcvr`, it:
+4. The exposition-only class template <code><i>impls-for</i></code>
+    ([exec.snd.general]) is specialized for `bulk_t` as follows:
 
-        1. Constructs a receiver `rcvr`:
+        <pre highlight="c++">
+        template&lt;>
+        struct <i>impls-for</i>&lt;bulk_t> : <i>default-impls</i> {
+          static constexpr auto complete = <i>see below</i>;
+        };
+        </pre>
 
-            1. When `set_value(rcvr, args...)` is called, calls `f(i, args...)` for
-                each `i` of type `Shape` from `0` to `shape`, then calls
-                `set_value(out_rcvr, args...)`. If any of these throws an
-                exception, it catches it and calls `set_error(out_rcvr,
-                current_exception())`. If any of these expressions are
-                ill-formed, `set_value(rcvr, args...)` is ill-formed.
+    1. The member <code><i>impls-for</i>&lt;tag_t&lt;bulk>>::complete</code> is
+        initialized with a callable object equal to the following lambda:
 
-            2. When `set_error(rcvr, err)` is called, calls `set_error(out_rcvr, err)`.
+          <pre highlight="c++">
+          []&lt;class Index, class State, class Rcvr, class Tag, class... Args>
+            (Index, State& state, Rcvr& rcvr, Tag, Args&&... args) noexcept -> void requires <i>see below</i> {
+              if constexpr (same_as&lt;Tag, set_value_t>) {
+                auto& [shape, f] = state;
+                constexpr bool nothrow = noexcept(f(auto(shape), args...));
+                <i>TRY-EVAL</i>(std::move(rcvr), [&]() noexcept(nothrow) {
+                  for (auto max = shape, i = 0; i < max; ++i) {
+                    f(auto(i), args...);
+                  }
+                  Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
+                }());
+              }
+              else {
+                Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
+              }
+            }
+          </pre>
 
-            3. When `set_stopped(rcvr)` is called, calls `set_stopped(out_rcvr)`.
+          1. The expression in the *requires-clause* of the lambda above is
+              `true` if and only if `Tag` denotes a type other than `set_value_t`
+              or if the expression `f(auto(shape), args...)` is well-formed.
 
-        2. Calls `connect(sndr, rcvr)`, which results in an operation state `op_state2`.
+5. Let the subexpression `out_sndr` denote the result of the invocation
+    <code>bulk(sndr, shape, f)</code> or an object copied or moved from such,
+    and let the subexpression `rcvr` denote a receiver such that the expression
+    `connect(out_sndr, rcvr)` is well-formed. The expression `connect(out_sndr,
+    rcvr)` has undefined behavior unless it creates an asynchronous operation
+    ([async.ops]) that, when started:
 
-        3. Returns an operation state `op_state` that contains `op_state2`. When
-            `start(op_state)` is called, calls `start(op_state2)`.
+      - on a value completion operation, invokes `f(i, args...)` for every `i`
+          of type `Shape` from `0` to `shape`, where `args` is a pack of lvalue
+          subexpressions referring to the value completion result datums of the
+          input sender, and
 
-    4. Let `out_sndr` be the result of calling `bulk(sndr, shape, f)` or a copy of such.
-        If `out_sndr` is connected to a receiver `rcvr` with environment `env` such that
-        <code>transform_sender(<i>get-domain-late</i>(out_sndr, env), out_sndr, env)</code> does
-        not return a sender that invokes `f(i, args...)` for each `i` of type
-        `Shape` from `0` to `shape` where `args` is a pack of subexpressions
-        referring to the value completion result datums of the input sender, or
-        does not execute a value completion operation with said datums, the
-        behavior of calling `connect(out_sndr, rcvr)` is undefined.
+      - propagates all completion operations sent by `sndr`.
 
 #### `execution::split` <b>[exec.split]</b> #### {#spec-execution.senders.adapt.split}
 
