@@ -5059,6 +5059,10 @@ enum class forward_progress_guarantee {
               template&lt;class T, class... Us>
               concept <i>one-of</i> = (same_as&lt;T, Us> ||...); // exposition only
 
+              template&lt;class Tag>
+              concept <i>completion-tag</i> = // exposition only
+                <i>one-of</i>&lt;Tag, set_value_t, set_error_t, set_stopped_t>;
+
               template&lt;template&lt;class...> class T, class... Args>
               concept <i>well-formed</i> = requires { typename T&lt;Args...>; }; // exposition only
 
@@ -5094,7 +5098,7 @@ enum class forward_progress_guarantee {
                 using tag_t = tag_of_t&lt;Sndr>; // exposition only
                 using receiver_concept = receiver_t;
 
-                template&lt;<i>one-of</i>&lt;set_value_t, set_error_t, set_stopped_t> Tag, class... Args>
+                template&lt;<i>completion-tag</i> Tag, class... Args>
                   requires <i>cpo-callable</i>&lt;<i>impls-for</i>&lt;tag_t>::<i>complete</i>,
                     Index, <i>state-type</i>&lt;Sndr, Rcvr>&, Rcvr&, Tag, Args...>
                 friend void tag_invoke(Tag, <i>basic-receiver</i>&& self, Args&&... args) noexcept {
@@ -6479,142 +6483,233 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
       - propagates all completion operations sent by `sndr`.
 
-#### `execution::split` <b>[exec.split]</b> #### {#spec-execution.senders.adapt.split}
+#### `execution::split` and `execution::ensure_started` <b>[exec.split]</b> #### {#spec-execution.senders.adapt.split}
 
-1. `split` adapts an arbitrary sender into a sender that can be connected multiple times.
+1. `split` adapts an arbitrary sender into a sender that can be connected
+    multiple times. `ensure_started` eagerly starts the execution of a sender,
+    returning a sender that is usable as input to additional sender algorithms.
 
-2. Let <code><i>split-env</i></code> be the type of an environment such that,
-    given an instance `env`, the expression `get_stop_token(env)` is well-formed and
-    has type `stop_token`.
+2. Let <code><i>shared-env</i></code> be the type of an environment such that,
+    given an instance `env`, the expression `get_stop_token(env)` is well-formed
+    and has type `in_place_stop_token`.
 
-3. The name `split` denotes a customization point object. For some
-    subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
-    <code>sender_in&lt;Sndr, <i>split-env</i>></code> or
+3. The names `split` and `ensure_started` denote customization point objects.
+    Let the expression <i>`shared-cpo`</i> be one of `split` or
+    `ensure_started`. For a subexpression `sndr`, let `Sndr` be
+    `decltype((sndr))`. If <code>sender_in&lt;Sndr, <i>shared-env</i>></code> or
     `constructible_from<decay_t<env_of_t<Sndr>>, env_of_t<Sndr>>` is `false`,
-    `split` is ill-formed. Otherwise, the expression
-    `split(sndr)` is expression-equivalent to:
+    <code><i>shared-cpo</i>(sndr)</code> is ill-formed.
+
+4. Otherwise, the expression <code><i>shared-cpo</i>(sndr)</code> is
+    expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
         <i>get-domain-early</i>(sndr),
-        <i>make-sender</i>(split, {}, sndr));
+        <i>make-sender</i>(<i>shared-cpo</i>, {}, sndr));
       </pre>
 
-    1. Let `sndr` be a subexpression such that `Sndr` is `decltype((sndr))`, and let
-        `env...` be a pack of subexpressions such that `sizeof...(env) <= 1` is
-        `true`. If <code><i>sender-for</i>&lt;Sndr, split_t></code> is `false`,
-        then the expression `split_t().transform_sender(sndr, env...)` is ill-formed;
-        otherwise, it returns a sender `sndr2` that:
+5. Let <i>`local-state`</i> denote the following exposition-only class:
 
-        1. Creates an object `sh_state` that contains a `stop_source`, a list of
-            pointers to operation states awaiting the completion of `sndr`, and that
-            also reserves space for storing:
+    <pre highlight="c++">
+    struct <i>local-state-base</i> {
+      virtual ~<i>local-state-base</i>() = default;
+      virtual void <i>notify</i>() noexcept = 0;
+      virtual void <i>detach</i>() noexcept = 0;
+      <i>local-state-base</i>* next{nullptr};
+    };
 
-            * the operation state that results from connecting `sndr` with `rcvr` described below, and
-            * the sets of values and errors with which `sndr` can complete, with
-                the addition of `exception_ptr`.
-            * the result of decay-copying `get_env(sndr)`.
+    template&lt;class Sndr, class Rcvr>
+    struct <i>local-state</i> : <i>local-state-base</i> {
+      using <i>on-stop-request</i> = <i>see below</i>;
+      using <i>on-stop-callback</i> = typename stop_token_of_t&lt;env_of_t&lt;Rcvr>>::
+                                  template callback_type&lt;<i>on-stop-request</i>>;
 
-        2. Constructs a receiver `rcvr` such that:
+      <i>local-state</i>(Sndr&& sndr, Rcvr& rcvr) noexcept;
+      ~<i>local-state</i>();
 
-            1. When `set_value(rcvr, args...)` is called, decay-copies
-                the expressions `args...` into `sh_state`. It then notifies all
-                the operation states in `sh_state`'s list of operation states
-                that the results are ready. If any exceptions are thrown, the
-                exception is caught and `set_error(rcvr,
-                current_exception())` is called instead.
+      void <i>notify</i>() noexcept override;
+      void <i>detach</i>() noexcept override;
 
-            2. When `set_error(rcvr, err)` is called, decay-copies `err`
-                into `sh_state`. It then notifies the operation states in
-                `sh_state`'s list of operation states that the results are ready.
+      optional&lt;<i>on-stop-callback</i>> on_stop;
+      <i>shared-state</i>&lt;Sndr>* sh_state;
+      Rcvr* rcvr;
+    };
+    </pre>
 
-            3. When `set_stopped(rcvr)` is called, notifies the
-                operation states in `sh_state`'s list of operation states that
-                the results are ready.
+    1. Let <i>`on-stop-request`</i> denote the following exposition-only class:
 
-            4. `get_env(rcvr)` is an expression <code><i>env</i></code> of type
-                <code><i>split-env</i></code> such that
-                <code>get_stop_token(<i>env</i>)</code> is well-formed
-                and returns the results of calling `get_token()` on `sh_state`'s
-                stop source.
+        <pre highlight="c++">
+        struct <i>on-stop-request</i> {
+          in_place_stop_source& stop_src;
+          void operator()() noexcept { stop_src.request_stop(); }
+        };
+        </pre>
 
-        3. Calls `get_env(sndr)` and decay-copies the result into
-            `sh_state`.
+    2. <pre highlight="c++">
+        <i>local-state</i>(Sndr&& sndr, Rcvr& rcvr) noexcept;</pre>
 
-        4. Calls `connect(sndr, rcvr)`, resulting in an operation state
-            `op_state2`. `op_state2` is saved in `sh_state`.
+        1. *Effects:* Equivalent to:
 
-        5. When `sndr2` is connected with a receiver `out_rcvr` of type `OutRcvr`, it
-            returns an operation state object `op_state` that contains:
+            <pre highlight="c++">
+            auto&& [tag, data, child] = std::forward&lt;Sndr>(sndr);
+            sh_state = data.sh_state;
+            sh_state->ref_count.fetch_add(1, memory_order_relaxed);
+            this->rcvr = &rcvr;
+            </pre>
 
-              * An object `out_rcvr2` of type `OutRcvr` decay-copied from `out_rcvr`,
-              * A reference to `sh_state`,
-              * A stop callback of type
-                <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutRcvr>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
-                where <code><i>stop-callback-fn</i></code> is the unspecified
-                class type:
+    3. <pre highlight="c++">
+        ~<i>local-state</i>();</pre>
 
-                <pre highlight="c++">
-                struct <i>stop-callback-fn</i> {
-                  stop_source& <i>stop_src_</i>;
-                  void operator()() noexcept {
-                    <i>stop_src_</i>.request_stop();
-                  }
-                };
-                </pre>
+        1. *Effects:* Equivalent to:
 
-        6. When `start(op_state)` is called:
+            <pre highlight="c++">
+            <i>detach</i>();
+            sh_state-><i>dec-ref</i>();
+            </pre>
 
-            * If one of `rcvr`'s completion functions has executed, then let
-                <code><i>Tag</i></code> be the completion function that was
-                called. Calls <code><i>Tag</i>(out_rcvr2, args2...)</code>,
-                where `args2...` is a pack of const lvalues referencing the
-                subobjects of `sh_state` that have been saved by the original
-                call to <code><i>Tag</i>(rcvr, args...)</code> and returns.
+    4. <pre highlight="c++">
+        void <i>notify</i>() noexcept override;</pre>
 
-            * Otherwise, it emplace constructs the stop callback optional with
-                the arguments `get_stop_token(get_env(out_rcvr2))` and
-                <code><i>stop-callback-fn</i>{<i>stop-src</i>}</code>, where
-                <code><i>stop-src</i></code> refers to the stop source of
-                `sh_state`.
+        1. *Effects:* Equivalent to:
 
-            * Otherwise, it adds a pointer to `op_state` to the list of
-                operation states in `sh_state`. If `op_state` is the first such
-                state added to the list:
+            <pre highlight="c++">
+            on_stop.reset();
+            visit(
+              [this]&lt;class Tuple>(Tuple&& tupl) noexcept -> void {
+                apply(
+                  [this](auto tag, auto&... args) noexcept -> void {
+                    tag(std::move(*rcvr), std::forward_like&lt;Tuple>(args)...);
+                  },
+                  tupl);
+              },
+              <i>QUAL</i>(sh_state->result));
+            )
+            </pre>
 
-                  * If <code><i>stop-src</i>.stop_requested()</code> is `true`,
-                      all of the operation states in `sh_state`'s list of operation
-                      states are notified as if `set_stopped(rcvr)` had
-                      been called.
+            where <i>`QUAL`</i> is `std::move` if `tag_of_t<Sndr>` is
+            <i>`ensure-started-tag`</i>, and `as_const` otherwise.
 
-                  * Otherwise, `start(op_state2)` is called.
+    5. <pre highlight="c++">
+        void <i>detach</i>() noexcept override;</pre>
 
-        7. When `rcvr` completes it will notify `op_state` that the result are
-            ready. Let <code><i>Tag</i></code> be whichever
-            completion function was called on receiver `rcvr`. `op_state`'s
-            stop callback optional is reset. Then
-            <code><i>Tag</i>(std::move(out_rcvr2), args2...)</code> is called,
-            where `args2...` is a pack of const lvalues referencing the subobjects of
-            `sh_state` that have been saved by the original call to
-            <code><i>Tag</i>(rcvr, args...)</code>.
+        1. *Effects:* Equivalent to <code>sh_state-><i>detach</i>()</code>
+            if `tag_of_t<Sndr>` is <i>`ensure-started-tag`</i>; otherwise,
+            nothing.
 
-        8. Ownership of `sh_state` is shared by `sndr2` and by every `op_state`
-            that results from connecting `sndr2` to a receiver.
+6. Let <i>`shared-receiver`</i> denote the following exposition-only class
+    template:
 
-    2. Given subexpressions `sndr2` where `sndr2` is a sender returned from `split`
-        or a copy of such, `get_env(sndr2)` shall return an lvalue reference to the
-        object in `sh_state` that was initialized with the result of `get_env(sndr)`.
+    <pre highlight="c++">
+    template&lt;class Sndr>
+    struct <i>shared-receiver</i> {
+      using receiver_concept = receiver_t;
 
-5. Let `sndr` be a sender expression, `rcvr` be an instance of the receiver type
-    described above, `sndr2` be a sender returned from `split(sndr)` or a copy of
-    such, `rcvr2` is the receiver to which `sndr2` is connected, and `args` is the
-    pack of subexpressions passed to `rcvr`'s completion function
-    <code><i>CSO</i></code> when `sndr` completes. `sndr2` shall invoke
-    <code><i>CSO</i>(rcvr2, args2...)</code> where `args2` is a pack of const
-    lvalue references to objects decay-copied from `args`, or by calling
-    <code>set_error(rcvr2, err2)</code> for some subexpression `err2`. The objects
-    passed to `rcvr2`'s completion operation shall be valid until after the
-    completion of the invocation of `rcvr2`'s completion operation.
+      template&lt;<i>completion-tag</i> Tag, class... Args>
+      friend void tag_invoke(Tag, <i>shared-receiver</i>&& self, Args&&... args) noexcept {
+        try {
+          using tuple_t = <i>decayed-tuple</i>&lt;Tag, Args...>;
+          self.sh_state->result.template emplace&lt;tuple_t>(Tag(), std::forward&lt;Args>(args)...);
+        } catch (...) {
+          using tuple_t = tuple&lt;set_error_t, exception_ptr>;
+          self.sh_state->result.template emplace&lt;tuple_t>(set_error, current_exception());
+        }
+        self.sh_state-><i>notify</i>();
+      }
+
+      friend decltype(auto) tag_invoke(get_env_t, const <i>shared-receiver</i>& self) noexcept {
+        return <i>MAKE-ENV</i>(get_stop_token, self.sh_state->stop_src.get_token());
+      }
+
+      <i>shared-state</i>&lt;Sndr>* sh_state;
+    };
+    </pre>
+
+7. Let <i>`shared-state`</i> denote the following exposition-only class
+    template:
+
+    <pre highlight="c++">
+    template&lt;class Sndr>
+    struct <i>shared-state</i> {
+      using <i>variant-type</i> = <i>see below</i>;
+
+      explicit <i>shared-state</i>(Sndr&& sndr);
+
+      void <i>start-op</i>() noexcept;
+      void <i>notify</i>() noexcept;
+      void <i>detach</i>() noexcept;
+      void <i>dec-ref</i>() noexcept;
+
+      in_place_stop_source stop_src{};
+      <i>variant-type</i> result{};
+      atomic&lt;void*> head{nullptr};
+      atomic&lt;size_t> ref_count{1};
+      connect_result_t&lt;Sndr, <i>shared-receiver</i>&lt;Sndr>> op_state2;
+    };
+    </pre>
+
+      1. Let `Sigs` be a pack of the arguments to the
+          `completion_signatures` specialization named by
+          `completion_signatures_of_t<Sndr>`. Let <i>`as-tuple`</i> be an
+          alias template such that
+          <code><i>as-tuple</i>&lt;Tag(Args...)></code> denotes the type
+          <code><i>decayed-tuple</i>&lt;Tag, Args...></code>. Then
+          <i>`variant-type`</i> denotes the type
+          <code>variant&lt;tuple&lt;set_stopped_t>, tuple&lt;set_error_t,
+          exception_ptr>, <i>as-tuple</i>&lt;Sigs>...></code>, but with
+          duplicate types removed.
+
+      2. <pre highlight="c++">
+          explicit <i>shared-state</i>(Sndr&& sndr);</pre>
+
+          1. *Effects:* Initializes `op_state2` with the result of
+              <code>connect(std::forward&lt;Sndr>(sndr), <i>shared-receiver</i>{this})</code>.
+
+      3. <pre highlight="c++">
+          void <i>start-op</i>() noexcept;</pre>
+
+          1. *Effects:* Atomically increments `ref_count`. If
+              `stop_src.stop_requested()` is `true`, calls
+              <code><i>notify</i>()</code>; otherwise, calls
+              `start(op_state2)`.
+
+      4. <pre highlight="c++">
+          void <i>notify</i>() noexcept;</pre>
+
+          1. *Effects:* Atomically exchanges the current value of `head` with
+            `this` and saves the previous value in a local `state` of type
+            <code><i>local-state-base</i>*</code>. While `state` is not
+            `nullptr`, calls <code>state-><i>notify</i>()</code>, then sets
+            `state` to `state->next`. Finally, calls
+            <code><i>dec-ref</i>()</code>.
+
+      5. <pre highlight="c++">
+          void <i>detach</i>() noexcept;</pre>
+
+          1. *Effects:* Atomically reads the value of `head`. If it is `nullptr`,
+              calls `stop_src.request_stop()`. <span class="wg21note">This has
+              the effect of requesting early termination of any asynchronous
+              operation that was started as a result of a call to `ensure_started`,
+              but only if the resulting sender was never connected and started.
+              </span>
+
+      5. <pre highlight="c++">
+          void <i>dec-ref</i>() noexcept;</pre>
+
+          1. *Effects:* Atomically decrements `ref_count`. If the new value of
+              `ref_count` is `0`, calls `delete this`.
+
+8. The exposition-only class template <code><i>impls-for</i></code>
+    ([exec.snd.general]) is specialized for <code><i>shared-cpo</i></code> as
+    follows:
+
+        <pre highlight="c++">
+        template&lt;>
+        struct <i>impls-for</i>&lt;tag_t&lt;<i>shared-cpo</i>>> : <i>default-impls</i> {
+          static constexpr auto <i>get-state</i> = <i>see below</i>;
+          static constexpr auto <i>start</i> = <i>see below</i>;
+        };
+        </pre>
 
 #### `execution::when_all` <b>[exec.when.all]</b> #### {#spec-execution.senders.adaptor.when_all}
 
@@ -6874,155 +6969,6 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         std::move(child),
         [err = std::move(data)]() mutable { return just_error(std::move(err)); });
     </pre>
-
-#### `execution::ensure_started` <b>[exec.ensure.started]</b> #### {#spec-execution.senders.adapt.ensure_started}
-
-1. `ensure_started` eagerly starts the execution of a sender, returning a sender
-    that is usable as intput to additional sender algorithms.
-
-2. Let <code><i>ensure-started-env</i></code> be the type of an execution
-    environment such that, given an instance `env`, the expression
-    `get_stop_token(env)` is well-formed and has type `stop_token`.
-
-3. The name `ensure_started` denotes a customization point object.
-    For some subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
-    <code>sender_in&lt;Sndr, <i>ensure-started-env</i>></code> or
-    `constructible_from<decay_t<env_of_t<Sndr>>, env_of_t<Sndr>>` is
-    `false`, `ensure_started(sndr)` is ill-formed. Otherwise, the
-    expression `ensure_started(sndr)` is expression-equivalent to:
-
-    <pre highlight="c++">
-    transform_sender(
-      <i>get-sender-domain</i>(sndr),
-      <i>make-sender</i>(ensure_started, {}, sndr))
-    </pre>
-
-    1. Let `sndr` be a subexpression such that `Sndr` is `decltype((sndr))`, and let `env...` be a pack of
-        subexpressions such that <code>sizeof...(env) &lt;= 1</code> is `true`.
-        If <code><i>sender-for</i>&lt;Sndr, ensure_started_t></code> is `false`, then the expression
-        `ensure_started_t().transform_sender(sndr, env...)` is ill-formed; otherwise, it returns
-        a sender `sndr2`, that:
-
-        1. Creates an object `sh_state` that contains a `stop_source`, an
-            initially null pointer to an operation state awaitaing completion,
-            and that also reserves space for storing:
-
-            * the operation state that results from connecting `sndr` with `rcvr` described below, and
-            * the sets of values and errors with which `sndr` can complete, with
-                the addition of `exception_ptr`.
-            * the result of decay-copying `get_env(sndr)`.
-
-            `sndr2` shares ownership of `sh_state` with `rcvr` described below.
-
-        2. Constructs a receiver `rcvr` such that:
-
-            1. When `set_value(rcvr, args...)` is called, decay-copies
-                the expressions `args...` into `sh_state`. It then checks
-                `sh_state` to see if there is an operation state awaiting
-                completion; if so, it notifies the operation state that the
-                results are ready. If any exceptions are thrown, the exception
-                is caught and `set_error(rcvr, current_exception())` is
-                called instead.
-
-            2. When `set_error(rcvr, err)` is called, decay-copies `err`
-                into `sh_state`. If there is an operation state awaiting completion,
-                it then notifies the operation state that the results are ready.
-
-            3. When `set_stopped(rcvr)` is called, it then notifies any
-                awaiting operation state that the results are ready.
-
-            4. `get_env(rcvr)` is an expression <code><i>env</i></code> of type
-                <code><i>ensure-started-env</i></code> such that
-                <code>get_stop_token(<i>env</i>)</code> is well-formed
-                and returns the results of calling `get_token()` on `sh_state`'s
-                stop source.
-
-            5. `rcvr` shares ownership of `sh_state` with `sndr2`. After `rcvr`
-                has been completed, it releases its ownership of `sh_state`.
-
-        3. Calls `get_env(sndr)` and decay-copies the result into
-            `sh_state`.
-
-        4. Calls `connect(sndr, rcvr)`, resulting in an operation state
-            `op_state2`. `op_state2` is saved in `sh_state`. It then calls
-            `start(op_state2)`.
-
-        5. When `sndr2` is connected with a receiver `out_rcvr` of type `OutRcvr`, it
-            returns an operation state object `op_state` that contains:
-
-              * An object `out_rcvr2` of type `OutRcvr` decay-copied from `out_rcvr`,
-              * A reference to `sh_state`,
-              * A stop callback of type
-                <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutRcvr>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
-                where <code><i>stop-callback-fn</i></code> is the unspecified
-                class type:
-
-                <pre highlight="c++">
-                struct <i>stop-callback-fn</i> {
-                  stop_source& <i>stop_src_</i>;
-                  void operator()() noexcept {
-                    <i>stop_src_</i>.request_stop();
-                  }
-                };
-                </pre>
-
-              `sndr2` transfers its ownership of `sh_state` to `op_state`.
-
-        6. When `start(op_state)` is called:
-
-            * If `rcvr` has already been completed, then let
-                <code><i>CF</i></code> be whichever completion function
-                was used to complete `rcvr`. Calls
-                <code><i>CF</i>(out_rcvr2, args2...)</code>, where `args2...` is a
-                pack of xvalues referencing the subobjects of `sh_state` that have
-                been saved by the original call to <code><i>CF</i>(rcvr,
-                args...)</code> and returns.
-
-            * Otherwise, it emplace constructs the stop callback optional with
-                the arguments `get_stop_token(get_env(out_rcvr2))` and
-                <code><i>stop-callback-fn</i>{<i>stop-src</i>}</code>, where
-                <code><i>stop-src</i></code> refers to the stop source of
-                `sh_state`.
-
-            * Then, it checks to see if
-                <code><i>stop-src</i>.stop_requested()</code> is `true`. If so, it
-                calls `set_stopped(out_rcvr2)`.
-
-            * Otherwise, it sets `sh_state` operation state pointer to the
-                address of `op_state`, registering itself as awaiting the result
-                of the completion of `rcvr`.
-
-        7. When `rcvr` completes it will notify `op_state` that the result are
-            ready. Let <code><i>CF</i></code> be whichever
-            completion function was used to complete `rcvr`. `op_state`'s stop
-            callback optional is reset. Then
-            <code><i>CF</i>(std::move(out_rcvr2), args2...)</code> is called,
-            where `args2...` is a pack of xvalues referencing the subobjects of
-            `sh_state` that have been saved by the original call to
-            <code><i>CF</i>(rcvr, args...)</code>.
-
-        8. [*Note:* If sender `sndr2` is destroyed without being connected to a
-            receiver, or if it is connected but the operation state is destroyed
-            without having been started, then when `rcvr`
-            completes and it releases its shared ownership of `sh_state`,
-            `sh_state` will be destroyed and the results of the operation are
-            discarded. -- *end note*]
-
-    4. Given a subexpression `sndr`, let `sndr2` be the result of `ensure_started(sndr)`.
-        The result of `get_env(sndr2)` shall return an lvalue reference to the
-        object in `sh_state` that was initialized with the result of `get_env(sndr)`.
-
-  4. Let `sndr` be a sender expression, `rcvr` be an instance of the receiver type
-      described above, `sndr2` be a sender returned
-      from `ensure_started(sndr)` or a copy of such, `rcvr2` is the receiver
-      to which `sndr2` is connected, and `args` is the pack of subexpressions
-      passed to `rcvr`'s completion function <code><i>CSO</i></code>
-      when `sndr` completes. `sndr2` shall invoke <code><i>CSO</i>(rcvr2, args2...)</code> where
-      `args2` is a pack of xvalue references to objects decay-copied from
-      `args`, or by calling <code>set_error(rcvr2, err2)</code> for some subexpression
-      `err2`. The objects passed to `rcvr2`'s completion operation shall
-      be valid until after the completion of the invocation of `rcvr2`'s completion
-      operation.
 
 ### Sender consumers <b>[exec.consumers]</b> ### {#spec-execution.senders.consumers}
 
