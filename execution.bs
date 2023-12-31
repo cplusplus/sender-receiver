@@ -5252,7 +5252,7 @@ enum class forward_progress_guarantee {
                 Index, auto& state, Rcvr& rcvr, Tag, Args&&... args) noexcept
                   -> void requires <i>callable</i>&lt;Tag, Rcvr, Args...> {
                 <i>// Mandates: Index::value == 0</i>
-                Tag()(std::move(rcvr), std::forward&lt;Args>(args)...); 
+                Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
               }
               </pre>
 
@@ -5664,8 +5664,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 2. The name `connect` denotes a customization point object. For subexpressions
     `sndr` and `rcvr`, let `Sndr` be `decltype((sndr))` and `Rcvr` be `decltype((rcvr))`, and let
-    `DS` and `DR` be the decayed types of `Sndr` and `Rcvr`, respectively. 
-    
+    `DS` and `DR` be the decayed types of `Sndr` and `Rcvr`, respectively.
+
 3. Let <code><i>connect-awaitable-promise</i></code> be the following class:
 
     <pre highlight="c++">
@@ -5716,7 +5716,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 5. Let `V` name the type <code><i>await-result-type</i>&lt;DS,
     <i>connect-awaitable-promise</i>></code>, let `Sigs` name the type:
-    
+
     <pre highlight="c++">
     completion_signatures&lt;
       <i>SET-VALUE-SIG</i>(V), <i>// see [exec.snd.concepts]</i>
@@ -6087,7 +6087,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     subexpressions `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be
     `decltype((sndr))`. If `Sch` does not satisfy `scheduler`, or `Sndr` does not
     satisfy `sender`, `schedule_from` is ill-formed.
-    
+
 3. Otherwise, the expression `schedule_from(sch, sndr)` is expression-equivalent
     to:
 
@@ -6216,7 +6216,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     `decltype((sndr))` and let `F` be the decayed type of `f`. If `Sndr` does not
     satisfy `sender`, or `F` does not satisfy <code><i>movable-value</i></code>,
     <code><i>then-cpo</i>(sndr, f)</code> is ill-formed.
-    
+
 3. Otherwise, the expression <code><i>then-cpo</i>(sndr, f)</code> is
     expression-equivalent to:
 
@@ -6782,11 +6782,11 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
             - Atomically reads the value of `state.sh_state->head` into a
                 local variable `old_head` of type `void*`.
-                
+
             - If `old_head` is not equal to `state.sh_state`:
 
                 - Calls:
-                
+
                     <pre highlight="c++">
                     state.on_stop.emplace(
                       get_stop_token(get_env(rcvr)),
@@ -7099,7 +7099,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     <pre highlight="c++">
     apply_sender(<i>get-sender-domain</i>(sndr), start_detached, sndr)
     </pre>
-    
+
     * <i>Mandates:</i> The type of the expression above is `void`.
 
     If the expression above does not eagerly start the sender `sndr` after
