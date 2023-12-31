@@ -6553,8 +6553,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
             <pre highlight="c++">
             auto&& [tag, data, child] = std::forward&lt;Sndr>(sndr);
-            sh_state = data.sh_state;
-            sh_state->ref_count.fetch_add(1, memory_order_relaxed);
+            sh_state = data.sh_state.get();
+            sh_state-><i>add-ref</i>();
             this->rcvr = &rcvr;
             </pre>
 
@@ -6588,13 +6588,13 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
             </pre>
 
             where <i>`QUAL`</i> is `std::move` if `tag_of_t<Sndr>` is
-            <i>`ensure-started-tag`</i>, and `as_const` otherwise.
+            <i>`ensure-started-impl-tag`</i>, and `as_const` otherwise.
 
     5. <pre highlight="c++">
         void <i>detach</i>() noexcept override;</pre>
 
         1. *Effects:* Equivalent to <code>sh_state-><i>detach</i>()</code>
-            if `tag_of_t<Sndr>` is <i>`ensure-started-tag`</i>; otherwise,
+            if `tag_of_t<Sndr>` is <i>`ensure-started-impl-tag`</i>; otherwise,
             nothing.
 
 6. Let <i>`shared-receiver`</i> denote the following exposition-only class
@@ -6639,6 +6639,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
       void <i>notify</i>() noexcept;
       void <i>detach</i>() noexcept;
       void <i>dec-ref</i>() noexcept;
+      void <i>add-ref</i>() noexcept { ref_count.fetch_add(1, memory_order_relaxed); }
 
       in_place_stop_source stop_src{};
       <i>variant-type</i> result{};
@@ -6699,17 +6700,130 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           1. *Effects:* Atomically decrements `ref_count`. If the new value of
               `ref_count` is `0`, calls `delete this`.
 
-8. The exposition-only class template <code><i>impls-for</i></code>
-    ([exec.snd.general]) is specialized for <code><i>shared-cpo</i></code> as
-    follows:
+8. For each type `split_t` and `ensure_started_t`, there is a different,
+    associated exposition-only implementation tag type, <i>`split-impl-tag`</i>
+    and <i>`ensure-started-impl-tag`</i>, respectively. Let
+    <i>`shared-impl-tag`</i> be the associated implementation tag type of
+    <i>`shared-cpo`</i>. Given an expression `sndr`, let `Sndr` be
+    `decltype((sndr))`. The expression
+    <code><i>shared-cpo</i>.transform_sender(sndr)</code> is equivalent to:
+
+      <pre highlight="c++">
+      auto&& [tag, data, child] = sndr;
+      auto* sh_state = new <i>shared-state</i>{std::forward_like&lt;Sndr>(child)};
+      return <i>make-sender</i>(<i>shared-impl-tag</i>(), <i>shared-wrapper</i>{sh_state, tag});
+      </pre>
+
+    where <i>`shared-wrapper`</i> is the exposition-only class template:
+
+      <pre highlight="c++">
+      struct <i>dec-ref</i> { // exposition only
+        void operator()(auto* ptr) const noexcept { ptr-><i>dec-ref</i>(); }
+      };
+
+      template&lt;class Sndr, class Tag>
+      struct <i>shared-wrapper</i> { // exposition only
+        unique_ptr&lt;<i>shared-state</i>&lt;Sndr>, <i>dec-ref</i>> sh_state; // exposition only
+
+        <i>shared-wrapper</i>(<i>shared-state</i>&lt;Sndr>* ptr, Tag) noexcept : sh_state(ptr) {
+          if constexpr (same_as&lt;Tag, ensure_started_t>) sh_state-><i>start-op</i>();
+        }
+
+        <i>shared-wrapper</i>(<i>shared-wrapper</i>&&) noexcept = default;
+        <i>shared-wrapper</i>(const <i>shared-wrapper</i>& other) noexcept
+          requires same_as&lt;Tag, split_t> : sh_state(other.sh_state.get()) {
+          if (sh_state) sh_state-><i>add-ref</i>();
+        }
+
+        ~<i>shared-wrapper</i>() {
+          if constexpr (same_as&lt;Tag, ensure_started_t>)
+            if (sh_state) sh_state-><i>detach</i>();
+        }
+
+        <i>shared-wrapper</i>& operator=(<i>shared-wrapper</i> other) noexcept {
+          other.sh_state.swap(sh_state);
+          return *this;
+        }
+      };
+      </pre>
+
+9. The exposition-only class template <code><i>impls-for</i></code>
+    ([exec.snd.general]) is specialized for <code><i>shared-impl-tag</i></code>
+    as follows:
 
         <pre highlight="c++">
         template&lt;>
-        struct <i>impls-for</i>&lt;tag_t&lt;<i>shared-cpo</i>>> : <i>default-impls</i> {
+        struct <i>impls-for</i>&lt;<i>shared-impl-tag</i>> : <i>default-impls</i> {
           static constexpr auto <i>get-state</i> = <i>see below</i>;
           static constexpr auto <i>start</i> = <i>see below</i>;
         };
         </pre>
+
+    1. The member
+        <code><i>impls-for</i>&lt;<i>shared-impl-tag</i>>::<i>get-state</i></code>
+        is initialized with a callable object equal to the following lambda:
+
+          <pre highlight="c++">
+          []&lt;class Sndr>(Sndr&& sndr, auto& rcvr) noexcept {
+            return <i>local-state</i>{std::forward&lt;Sndr>(sndr), rcvr};
+          }
+          </pre>
+
+    2. The member
+        <code><i>impls-for</i>&lt;<i>shared-impl-tag</i>>::<i>start</i></code>
+        is initialized with a callable object that has a call operator
+        equivalent to the following:
+
+        <pre highlight="c++">
+        template &lt;class Sndr, class Rcvr>
+        void operator()(<i>local-state</i>&lt;Sndr, Rcvr>& state, Rcvr& rcvr) const noexcept;</pre>
+
+        1. *Effects:*
+
+            - Atomically reads the value of `state.sh_state->head` into a
+                local variable `old_head` of type `void*`.
+                
+            - If `old_head` is not equal to `state.sh_state`:
+
+                - Calls:
+                
+                    <pre highlight="c++">
+                    state.on_stop.emplace(
+                      get_stop_token(get_env(rcvr)),
+                      <i>on-stop-request</i>{state.sh_state->stop_src})
+                    </pre>
+
+                - If <i>`shared-impl-tag`</i> is
+                    <i>`ensure-started-impl-tag`</i>, and if
+                    `state.sh_state->stop_src.stop_requested()`
+                    is `true`, calls `set_stopped(std::move(rcvr))`
+                    and returns.
+
+                <span class="wg21note">`old_head` will be equal to `state.sh_state`
+                when the child asynchronous operation has already completed.</span>
+
+            - If `old_head` is equal to `state.sh_state`, calls
+                <code>state.<i>notify</i>()</code> and returns.
+
+            - Atomically does the following:
+                writes `old_head` into `state.next`, and
+                exchanges `state.sh_state->head` with `&state`.
+                <span class="wg21note">This is typically done by executing
+                this step and the previous in an atomic compare-and-exchange
+                loop until the exchange succeeds.</span>
+
+            - If <i>`shared-impl-tag`</i> is <i>`split-impl-tag`</i>, and
+                if `old_head` is equal to `nullptr`, calls
+                <code>state.sh_state-><i>start-op</i>()</code>.
+
+10. <span class="wg21note">If a sender returned from `ensure_started` is
+    destroyed without being connected to a receiver, or if it is connected but
+    the operation state is destroyed without having been started, or if stop has
+    been requested on the receiver's stop token prior to `start` having been
+    called, then when the child operation completes and it releases its shared
+    ownership of the <i>`shared-state`</i> object, the <i>`shared-state`</i>
+    object will be destroyed and the results of the child operation are
+    discarded.</span>
 
 #### `execution::when_all` <b>[exec.when.all]</b> #### {#spec-execution.senders.adaptor.when_all}
 
