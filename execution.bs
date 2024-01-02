@@ -6554,7 +6554,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
             <pre highlight="c++">
             auto&& [tag, data, child] = std::forward&lt;Sndr>(sndr);
             sh_state = data.sh_state.get();
-            sh_state-><i>add-ref</i>();
+            sh_state-><i>inc-ref</i>();
             this->rcvr = &rcvr;
             </pre>
 
@@ -6639,7 +6639,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
       void <i>notify</i>() noexcept;
       void <i>detach</i>() noexcept;
       void <i>dec-ref</i>() noexcept;
-      void <i>add-ref</i>() noexcept { ref_count.fetch_add(1, memory_order_relaxed); }
+      void <i>inc-ref</i>() noexcept { ref_count.fetch_add(1, memory_order_relaxed); }
 
       in_place_stop_source stop_src{};
       <i>variant-type</i> result{};
@@ -6669,7 +6669,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
       3. <pre highlight="c++">
           void <i>start-op</i>() noexcept;</pre>
 
-          1. *Effects:* Atomically increments `ref_count`. If
+          1. *Effects:* <code><i>inc-ref</i>()</code>. If
               `stop_src.stop_requested()` is `true`, calls
               <code><i>notify</i>()</code>; otherwise, calls
               `start(op_state2)`.
@@ -6732,7 +6732,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         <i>shared-wrapper</i>(<i>shared-wrapper</i>&&) noexcept = default;
         <i>shared-wrapper</i>(const <i>shared-wrapper</i>& other) noexcept
           requires same_as&lt;Tag, split_t> : sh_state(other.sh_state.get()) {
-          if (sh_state) sh_state-><i>add-ref</i>();
+          if (sh_state) sh_state-><i>inc-ref</i>();
         }
 
         ~<i>shared-wrapper</i>() {
