@@ -6017,60 +6017,60 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     associated execution resource of `sch`, or failing that, shall execute an
     error completion on `out_rcvr`.
 
-#### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
-
-1. `transfer` adapts a sender into a sender with a different associated
-    `set_value` completion scheduler. <span class="wg21note">It results in a
-    transition between different execution resources when executed.</span>
-
-2. The name `transfer` denotes a customization point object. For some
-    subexpressions `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be
-    `decltype((sndr))`. If `Sch` does not satisfy `scheduler`, or `Sndr` does not
-    satisfy `sender`, `transfer(sndr, sch)` is ill-formed. Otherwise, the
-    expression `transfer(sndr, sch)` is expression-equivalent to:
-
-        <pre highlight="c++">
-        transform_sender(
-          <i>get-domain-early</i>(sndr),
-          <i>make-sender</i>(transfer, sch, sndr));
-        </pre>
-
-3. The exposition-only class template <code><i>impls-for</i></code> is specialized
-    for `transform_t` as follows:
-
-        <pre highlight="c++">
-        template&lt;>
-        struct <i>impls-for</i>&lt;transform_t> : <i>default-impls</i> {
-          static constexpr auto get_attrs =
-            [](const auto& data, const auto& child) noexcept -> decltype(auto) {
-              return <i>JOIN-ENV</i>(<i>SCHED-ATTRS</i>(data), <i>FWD-ENV</i>(get_env(child)));
-            };
-        };
-        </pre>
-
-4. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If
-    <code><i>sender-for</i>&lt;Sndr, transfer_t></code> is `false`, then the expression
-    `transfer_t().transform_sender(sndr, env)` is ill-formed; otherwise, it
-    is equal to:
-
-        <pre highlight="c++">
-        auto [tag, data, child] = sndr;
-        return schedule_from(std::move(data), std::move(child));
-        </pre>
-
-    <span class="wg21note">This causes the `transfer(sndr, sch)` sender to become
-    `schedule_from(sch, sndr)` when it is connected with a receiver with an
-    execution domain that does not customize `transfer`.</span>
-
-4. Let `out_sndr` be a subexpression denoting a sender returned from `transfer(sndr, sch)`
-    or one equal to such, and let `OutSndr` be the type `decltype((out_sndr))`. Let
-    `out_rcvr` be a subexpression denoting a receiver that has an environment of
-    type `Env` such that `sender_in<OutSndr, Env>` is `true`. Let `op` be an lvalue
-    referring to the operation state that results from connecting `out_sndr` with
-    `out_rcvr`. Calling `start(op)` shall start `sndr` on the current execution agent
-    and execute completion operations on `out_rcvr` on an execution agent of the
-    associated execution resource of `sch`; or failing that, execute an error
-    completion on `out_rcvr`.
+#### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer} 
+ 
+1. `transfer` adapts a sender into a sender with a different associated 
+    `set_value` completion scheduler. <span class="wg21note">It results in a 
+    transition between different execution resources when executed.</span> 
+ 
+2. The name `transfer` denotes a customization point object. For some 
+    subexpressions `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be 
+    `decltype((sndr))`. If `Sch` does not satisfy `scheduler`, or `Sndr` does not 
+    satisfy `sender`, `transfer(sndr, sch)` is ill-formed. Otherwise, the 
+    expression `transfer(sndr, sch)` is expression-equivalent to: 
+ 
+        <pre highlight="c++"> 
+        transform_sender( 
+          <i>get-domain-early</i>(sndr), 
+          <i>make-sender</i>(transfer, sch, sndr)); 
+        </pre> 
+ 
+3. The exposition-only class template <code><i>impls-for</i></code> is specialized 
+    for `transform_t` as follows: 
+ 
+        <pre highlight="c++"> 
+        template&lt;> 
+        struct <i>impls-for</i>&lt;transform_t> : <i>default-impls</i> { 
+          static constexpr auto get_attrs = 
+            [](const auto& data, const auto& child) noexcept -> decltype(auto) { 
+              return <i>JOIN-ENV</i>(<i>SCHED-ATTRS</i>(data), <i>FWD-ENV</i>(get_env(child))); 
+            }; 
+        }; 
+        </pre> 
+ 
+4. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If 
+    <code><i>sender-for</i>&lt;Sndr, transfer_t></code> is `false`, then the expression 
+    `transfer_t().transform_sender(sndr, env)` is ill-formed; otherwise, it 
+    is equal to: 
+ 
+        <pre highlight="c++"> 
+        auto [tag, data, child] = sndr; 
+        return schedule_from(std::move(data), std::move(child)); 
+        </pre> 
+ 
+    <span class="wg21note">This causes the `transfer(sndr, sch)` sender to become 
+    `schedule_from(sch, sndr)` when it is connected with a receiver with an 
+    execution domain that does not customize `transfer`.</span> 
+ 
+4. Let `out_sndr` be a subexpression denoting a sender returned from `transfer(sndr, sch)` 
+    or one equal to such, and let `OutSndr` be the type `decltype((out_sndr))`. Let 
+    `out_rcvr` be a subexpression denoting a receiver that has an environment of 
+    type `Env` such that `sender_in<OutSndr, Env>` is `true`. Let `op` be an lvalue 
+    referring to the operation state that results from connecting `out_sndr` with 
+    `out_rcvr`. Calling `start(op)` shall start `sndr` on the current execution agent 
+    and execute completion operations on `out_rcvr` on an execution agent of the 
+    associated execution resource of `sch`; or failing that, execute an error 
+    completion on `out_rcvr`. 
 
 #### `execution::schedule_from` <b>[exec.schedule.from]</b> #### {#spec-execution.senders.adaptors.schedule_from}
 
