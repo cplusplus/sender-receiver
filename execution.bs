@@ -5829,27 +5829,27 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         };
         </pre>
 
-#### `execution::read` <b>[exec.read]</b> #### {#spec-execution.senders.read}
-
-1. `read` is a sender factory for a sender whose asynchronous operation
-    completes synchronously in its start operation with a value completion
-    result equal to a value read from the receiver's associated environment.
-
-2. `read` is a customization point object. For some query object `q` of type `Q`,
-    the expression `read(q)` is expression-equivalent to
-    <code><i>make-sender</i>(read, q)</code>.
-
-3. The exposition-only class template <code><i>impls-for</i></code> ([exec.snd.general])
-    is specialized for `read` as follows:
-
-    <pre highlight="c++">
-    template&lt;>
-    struct <i>impls-for</i>&lt;tag_t&lt;read>> : <i>default-impls</i> {
-      static constexpr auto start = [](auto query, auto& rcvr) noexcept -> void {
-        <i>TRY-SET-VALUE</i>(std::move(rcvr), query(get_env(rcvr)));
-      };
-    };
-    </pre>
+#### `execution::read` <b>[exec.read]</b> #### {#spec-execution.senders.read} 
+ 
+1. `read` is a sender factory for a sender whose asynchronous operation 
+    completes synchronously in its start operation with a value completion 
+    result equal to a value read from the receiver's associated environment. 
+ 
+2. `read` is a customization point object. For some query object `q` of type `Q`, 
+    the expression `read(q)` is expression-equivalent to 
+    <code><i>make-sender</i>(read, q)</code>. 
+ 
+3. The exposition-only class template <code><i>impls-for</i></code> ([exec.snd.general]) 
+    is specialized for `read` as follows: 
+ 
+    <pre highlight="c++"> 
+    template&lt;> 
+    struct <i>impls-for</i>&lt;tag_t&lt;read>> : <i>default-impls</i> { 
+      static constexpr auto start = [](auto query, auto& rcvr) noexcept -> void { 
+        <i>TRY-SET-VALUE</i>(std::move(rcvr), query(get_env(rcvr))); 
+      }; 
+    }; 
+    </pre> 
 
 ### Sender adaptors <b>[exec.adapt]</b> ### {#spec-execution.senders.adapt}
 
