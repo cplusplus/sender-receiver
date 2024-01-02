@@ -5968,54 +5968,54 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     The expression `adaptor(args...)` is well-formed if and only if the initializations of the bound argument entities of the result, as specified above,
      are all well-formed.
 
-#### `execution::on` <b>[exec.on]</b> #### {#spec-execution.senders.adapt.on}
-
-1. `on` adapts an input sender into a sender that will start on an execution
-    agent belonging to a particular scheduler's associated execution resource.
-
-2. The name `on` denotes a customization point object. For some subexpressions
-    `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be `decltype((sndr))`. If
-    `Sch` does not satisfy `scheduler`, or `Sndr` does not satisfy `sender`,
-    `on(sch, sndr)` is ill-formed. Otherwise, the expression `on(sch, sndr)` is
-    expression-equivalent to:
-
-        <pre highlight="c++">
-        transform_sender(
-          <i>query-or-default</i>(get_domain, sch, default_domain()),
-          <i>make-sender</i>(on, sch, sndr));
-        </pre>
-
-3. Let `out_sndr` and `env` be subexpressions such that `OutSndr` is `decltype((out_sndr))`. If
-    <code><i>sender-for</i>&lt;OutSndr, on_t></code> is `false`, then the expressions
-    `on_t().transform_env(out_sndr, env)` and `on_t().transform_sender(out_sndr, env)` are ill-formed;
-    otherwise:
-
-        - `on_t().transform_env(out_sndr, env)` is equivalent to:
-
-            <pre highlight="c++">
-            auto&& [ign1, sch, ign2] = out_sndr;
-            return <i>JOIN-ENV</i>(<i>SCHED-ENV</i>(sch), <i>FWD-ENV</i>(env));
-            </pre>
-
-        - `on_t().transform_sender(out_sndr, env)` is equivalent to:
-
-            <pre highlight="c++">
-            auto&& [ign, sch, sndr] = out_sndr;
-            return let_value(
-              schedule(sch),
-              [sndr = std::forward_like&lt;OutSndr>(sndr)]() mutable {
-                return std::move(sndr);
-              });
-            </pre>
-
-4. Let `out_sndr` be a subexpression denoting a sender returned from `on(sch, sndr)`
-    or one equal to such, and let `OutSndr` be the type `decltype((out_sndr))`. Let
-    `out_rcvr` be a subexpression denoting a receiver that has an environment of
-    type `Env` such that `sender_in<OutSndr, Env>` is `true`. Let `op` be an lvalue
-    referring to the operation state that results from connecting `out_sndr` with
-    `out_rcvr`. Calling `start(op)` shall start `sndr` on an execution agent of the
-    associated execution resource of `sch`, or failing that, shall execute an
-    error completion on `out_rcvr`.
+#### `execution::on` <b>[exec.on]</b> #### {#spec-execution.senders.adapt.on} 
+ 
+1. `on` adapts an input sender into a sender that will start on an execution 
+    agent belonging to a particular scheduler's associated execution resource. 
+ 
+2. The name `on` denotes a customization point object. For some subexpressions 
+    `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be `decltype((sndr))`. If 
+    `Sch` does not satisfy `scheduler`, or `Sndr` does not satisfy `sender`, 
+    `on(sch, sndr)` is ill-formed. Otherwise, the expression `on(sch, sndr)` is 
+    expression-equivalent to: 
+ 
+        <pre highlight="c++"> 
+        transform_sender( 
+          <i>query-or-default</i>(get_domain, sch, default_domain()), 
+          <i>make-sender</i>(on, sch, sndr)); 
+        </pre> 
+ 
+3. Let `out_sndr` and `env` be subexpressions such that `OutSndr` is `decltype((out_sndr))`. If 
+    <code><i>sender-for</i>&lt;OutSndr, on_t></code> is `false`, then the expressions 
+    `on_t().transform_env(out_sndr, env)` and `on_t().transform_sender(out_sndr, env)` are ill-formed; 
+    otherwise: 
+ 
+        - `on_t().transform_env(out_sndr, env)` is equivalent to: 
+ 
+            <pre highlight="c++"> 
+            auto&& [ign1, sch, ign2] = out_sndr; 
+            return <i>JOIN-ENV</i>(<i>SCHED-ENV</i>(sch), <i>FWD-ENV</i>(env)); 
+            </pre> 
+ 
+        - `on_t().transform_sender(out_sndr, env)` is equivalent to: 
+ 
+            <pre highlight="c++"> 
+            auto&& [ign, sch, sndr] = out_sndr; 
+            return let_value( 
+              schedule(sch), 
+              [sndr = std::forward_like&lt;OutSndr>(sndr)]() mutable { 
+                return std::move(sndr); 
+              }); 
+            </pre> 
+ 
+4. Let `out_sndr` be a subexpression denoting a sender returned from `on(sch, sndr)` 
+    or one equal to such, and let `OutSndr` be the type `decltype((out_sndr))`. Let 
+    `out_rcvr` be a subexpression denoting a receiver that has an environment of 
+    type `Env` such that `sender_in<OutSndr, Env>` is `true`. Let `op` be an lvalue 
+    referring to the operation state that results from connecting `out_sndr` with 
+    `out_rcvr`. Calling `start(op)` shall start `sndr` on an execution agent of the 
+    associated execution resource of `sch`, or failing that, shall execute an 
+    error completion on `out_rcvr`. 
 
 #### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
 
