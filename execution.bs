@@ -5007,6 +5007,25 @@ enum class forward_progress_guarantee {
             [*Note:* The `transfer` algorithm is unique in that it ignores the execution domain of
             its predecessor, using only its destination scheduler to select a customization. *--end note*]
 
+    11. <pre highlight="c++">
+        template&lt;<i>callable</i> Fun>
+          requires is_nothrow_move_constructible_v&lt;Fun>
+        struct <i>emplace-construct</i> { // exposition only
+          Fun <i>fun</i>; // exposition only
+          using type = <i>call-result-t</i>&lt;Fun>;
+
+          constexpr operator type() && noexcept(<i>nothrow-callable</i>&lt;Fun>) {
+            return std::move(<i>fun</i>)();
+          }
+
+          constexpr type operator()() && noexcept(<i>nothrow-callable</i>&lt;Fun>) {
+            return std::move(<i>fun</i>)();
+          }
+        };
+        </pre>
+
+        1. <span class="wg21note"><i>`emplace-construct`</i> is used to emplace
+            non-movable types into containers like `tuple`, `optional`, and `variant`.</span>
 
     11. <pre highlight="c++">
         template&lt;class... T>
