@@ -6145,9 +6145,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           }
           </pre>
 
-          1. The local class <i>`state-type`</i> is a structural type suitable
-              for use with structured bindings. Its data members are
-              exposition-only.
+          1. The local class <i>`state-type`</i> is a structural type.
 
           2. Let `Sigs` be a pack of the arguments to the
               `completion_signatures` specialization named by
