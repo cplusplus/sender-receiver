@@ -5795,7 +5795,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     with a value completion operation, an error completion operation, or a
     stopped completion operation respectively.
 
-2. The names `just`, `just_error`, and `just_stopped` denote a customization
+2. The names `just`, `just_error`, and `just_stopped` denote customization
     point objects. Let <code><i>just-cpo</i></code> be one of `just`,
     `just_error`, or `just_stopped`. For a pack of subexpressions `ts`, let `Ts`
     be the template parameter pack `decltype((ts))`. The expression
@@ -5835,7 +5835,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     completes synchronously in its start operation with a value completion
     result equal to a value read from the receiver's associated environment.
 
-2. `read` is a customization point object. For some query object `q` of type `Q`,
+2. `read` is a customization point object. For some query object `q`,
     the expression `read(q)` is expression-equivalent to
     <code><i>make-sender</i>(read, q)</code>.
 
@@ -5974,10 +5974,10 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     agent belonging to a particular scheduler's associated execution resource.
 
 2. The name `on` denotes a customization point object. For some subexpressions
-    `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be `decltype((sndr))`. If
-    `Sch` does not satisfy `scheduler`, or `Sndr` does not satisfy `sender`,
-    `on(sch, sndr)` is ill-formed. Otherwise, the expression `on(sch, sndr)` is
-    expression-equivalent to:
+    `sch` and `sndr`, if `decltype((sch))` does not satisfy `scheduler`, or
+    `decltype((sndr))` does not satisfy `sender`, `on(sch, sndr)` is ill-formed.
+
+3. Otherwise, the expression `on(sch, sndr)` is expression-equivalent to:
 
         <pre highlight="c++">
         transform_sender(
@@ -5985,19 +5985,19 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           <i>make-sender</i>(on, sch, sndr));
         </pre>
 
-3. Let `out_sndr` and `env` be subexpressions such that `OutSndr` is `decltype((out_sndr))`. If
+4. Let `out_sndr` and `env` be subexpressions such that `OutSndr` is `decltype((out_sndr))`. If
     <code><i>sender-for</i>&lt;OutSndr, on_t></code> is `false`, then the expressions
-    `on_t().transform_env(out_sndr, env)` and `on_t().transform_sender(out_sndr, env)` are ill-formed;
+    `on.transform_env(out_sndr, env)` and `on.transform_sender(out_sndr, env)` are ill-formed;
     otherwise:
 
-        - `on_t().transform_env(out_sndr, env)` is equivalent to:
+        - `on.transform_env(out_sndr, env)` is equivalent to:
 
             <pre highlight="c++">
             auto&& [ign1, sch, ign2] = out_sndr;
             return <i>JOIN-ENV</i>(<i>SCHED-ENV</i>(sch), <i>FWD-ENV</i>(env));
             </pre>
 
-        - `on_t().transform_sender(out_sndr, env)` is equivalent to:
+        - `on.transform_sender(out_sndr, env)` is equivalent to:
 
             <pre highlight="c++">
             auto&& [ign, sch, sndr] = out_sndr;
@@ -6008,7 +6008,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
               });
             </pre>
 
-4. Let `out_sndr` be a subexpression denoting a sender returned from `on(sch, sndr)`
+5. Let `out_sndr` be a subexpression denoting a sender returned from `on(sch, sndr)`
     or one equal to such, and let `OutSndr` be the type `decltype((out_sndr))`. Let
     `out_rcvr` be a subexpression denoting a receiver that has an environment of
     type `Env` such that `sender_in<OutSndr, Env>` is `true`. Let `op` be an lvalue
@@ -6019,15 +6019,16 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 #### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
 
-1. `transfer` adapts a sender into a sender with a different associated
-    `set_value` completion scheduler. <span class="wg21note">It results in a
-    transition between different execution resources when executed.</span>
+1. `transfer` adapts a sender into one with a different associated `set_value`
+    completion scheduler. <span class="wg21note">It results in a transition
+    between different execution resources when executed.</span>
 
 2. The name `transfer` denotes a customization point object. For some
-    subexpressions `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be
-    `decltype((sndr))`. If `Sch` does not satisfy `scheduler`, or `Sndr` does not
-    satisfy `sender`, `transfer(sndr, sch)` is ill-formed. Otherwise, the
-    expression `transfer(sndr, sch)` is expression-equivalent to:
+    subexpressions `sch` and `sndr`, if `decltype((sch))` does not satisfy
+    `scheduler`, or `decltype((sndr))` does not satisfy `sender`,
+    `transfer(sndr, sch)` is ill-formed.
+    
+3. Otherwise, the expression `transfer(sndr, sch)` is expression-equivalent to:
 
         <pre highlight="c++">
         transform_sender(
@@ -6035,12 +6036,12 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           <i>make-sender</i>(transfer, sch, sndr));
         </pre>
 
-3. The exposition-only class template <code><i>impls-for</i></code> is specialized
-    for `transform_t` as follows:
+4. The exposition-only class template <code><i>impls-for</i></code> is specialized
+    for `transfer_t` as follows:
 
         <pre highlight="c++">
         template&lt;>
-        struct <i>impls-for</i>&lt;transform_t> : <i>default-impls</i> {
+        struct <i>impls-for</i>&lt;transfer_t> : <i>default-impls</i> {
           static constexpr auto get_attrs =
             [](const auto& data, const auto& child) noexcept -> decltype(auto) {
               return <i>JOIN-ENV</i>(<i>SCHED-ATTRS</i>(data), <i>FWD-ENV</i>(get_env(child)));
@@ -6048,9 +6049,9 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         };
         </pre>
 
-4. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If
+5. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If
     <code><i>sender-for</i>&lt;Sndr, transfer_t></code> is `false`, then the expression
-    `transfer_t().transform_sender(sndr, env)` is ill-formed; otherwise, it
+    `transfer.transform_sender(sndr, env)` is ill-formed; otherwise, it
     is equal to:
 
         <pre highlight="c++">
@@ -6062,15 +6063,16 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     `schedule_from(sch, sndr)` when it is connected with a receiver with an
     execution domain that does not customize `transfer`.</span>
 
-4. Let `out_sndr` be a subexpression denoting a sender returned from `transfer(sndr, sch)`
-    or one equal to such, and let `OutSndr` be the type `decltype((out_sndr))`. Let
-    `out_rcvr` be a subexpression denoting a receiver that has an environment of
-    type `Env` such that `sender_in<OutSndr, Env>` is `true`. Let `op` be an lvalue
-    referring to the operation state that results from connecting `out_sndr` with
-    `out_rcvr`. Calling `start(op)` shall start `sndr` on the current execution agent
-    and execute completion operations on `out_rcvr` on an execution agent of the
-    associated execution resource of `sch`; or failing that, execute an error
-    completion on `out_rcvr`.
+6. Let `out_sndr` be a subexpression denoting a sender returned from
+    `transfer(sndr, sch)` or one equal to such, and let `OutSndr` be the type
+    `decltype((out_sndr))`. Let `out_rcvr` be a subexpression denoting a
+    receiver that has an environment of type `Env` such that `sender_in<OutSndr,
+    Env>` is `true`. Let `op` be an lvalue referring to the operation state that
+    results from connecting `out_sndr` with `out_rcvr`. Calling `start(op)`
+    shall start `sndr` on the current execution agent and execute completion
+    operations on `out_rcvr` on an execution agent of the execution resource
+    associated with `sch`. If scheduling onto `sch` fails, execute an error
+    completion on `out_rcvr` on an unspecified execution agent.
 
 #### `execution::schedule_from` <b>[exec.schedule.from]</b> #### {#spec-execution.senders.adaptors.schedule_from}
 
@@ -6126,48 +6128,53 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
               [&]&lt;class Sch, class Child>(auto, Sch sch, Child&& child) {
                 using <i>variant-type</i> = <i>see below</i>;
                 using <i>receiver-type</i> = <i>see below</i>;
+                using <i>operation-type</i> = connect_result_t&lt;schedule_result_t&lt;Sch>, <i>receiver-type</i>>;
 
                 struct <i>state-type</i> {
-                  Rcvr& rcvr;
-                  <i>variant-type</i> async_result;
-                  connect_result_t&lt;schedule_result_t&lt;Sch>, <i>receiver-type</i>> op_state2;
+                  Rcvr& <i>rcvr</i>;
+                  <i>variant-type</i> <i>async-result</i>;
+                  <i>operation-type</i> <i>op-state</i>;
 
                   explicit <i>state-type</i>(Sch sch, Rcvr& rcvr)
-                    : rcvr(rcvr), op_state2(connect(schedule(sch), <i>receiver-type</i>{<i></i>{}, this})) {}
+                    : <i>rcvr</i>(rcvr), <i>op-state</i>(connect(schedule(sch), <i>receiver-type</i>{<i></i>{}, this})) {}
                 };
+
                 return <i>state-type</i>{sch, rcvr};
               },
               std::forward&lt;Sndr>(sndr));
           }
           </pre>
 
-          1. Let `Sigs` be a pack of the arguments to the
+          1. The local class <i>`state-type`</i> is a structural type.
+
+          2. Let `Sigs` be a pack of the arguments to the
               `completion_signatures` specialization named by
               `completion_signatures_of_t<Child, env_of_t<Rcvr>>`. Let
               <i>`as-tuple`</i> be an alias template that transforms a
               completion signature `Tag(Args...)` into the `tuple`
               specialization <code><i>decayed-tuple</i>&lt;Tag, Args...></code>.
               Then <i>`variant-type`</i> denotes the type
-              <code>variant&lt;monostate, <i>as-tuple</i>&lt;Sigs>...></code>.
+              <code>variant&lt;monostate, <i>as-tuple</i>&lt;Sigs>...></code>,
+              except with duplicate types removed.
 
-          2. Let <i>`receiver-type`</i> denote the following class:
+          3. Let <i>`receiver-type`</i> denote the following class:
 
                 <pre highlight="c++">
                 struct <i>receiver-type</i> : receiver_adaptor&lt;<i>receiver-type</i>> {
-                  <i>state-type</i>* state;
+                  <i>state-type</i>* <i>state</i>; // exposition only
 
-                  Rcvr&& base() && noexcept { return std::move(state->rcvr); }
-                  const Rcvr& base() const & noexcept { return state->rcvr; }
+                  Rcvr&& base() && noexcept { return std::move(<i>state</i>-><i>rcvr</i>); }
+                  const Rcvr& base() const & noexcept { return <i>state</i>-><i>rcvr</i>; }
 
                   void set_value() && noexcept {
                     visit(
                       [this]&lt;class Tuple>(Tuple& result) noexcept -> void {
                         if constexpr (!same_as&lt;monostate, Tuple>) {
                           auto& [tag, ...args] = result;
-                          tag(std::move(state->rcvr), std::move(args)...);
+                          tag(std::move(<i>state</i>-><i>rcvr</i>), std::move(args)...);
                         }
                       },
-                      state->async_result);
+                      <i>state</i>-><i>async-result</i>);
                   }
                 };
                 </pre>
@@ -6179,10 +6186,17 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           []&lt;class Tag, class... Args>(auto, auto& state, auto& rcvr, Tag, Args&&... args) noexcept -> void {
             using result_t = <i>decayed-tuple</i>&lt;Tag, Args...>;
             constexpr bool nothrow = is_nothrow_constructible_v&lt;result_t, Tag, Args...>;
+
             <i>TRY-EVAL</i>(std::move(rcvr), [&]() noexcept(nothrow) {
-              state.async_result.template emplace&lt;result_t>(Tag(), std::forward<Args>(args)...); }());
-            if ((state.async_result.index() + 1) > 1) // not valueless and index != 0
-              start(state.op_state2);
+              state.<i>async-result</i>.template emplace&lt;result_t>(Tag(), std::forward&lt;Args>(args)...);
+            }());
+
+            if (state.<i>async-result</i>.valueless_by_exception())
+              return;
+            if (state.<i>async-result</i>.index() == 0)
+              return;
+
+            start(state.<i>op-state</i>);
           };
           </pre>
 
@@ -6503,7 +6517,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     1. Let `sndr` be a subexpression such that `Sndr` is `decltype((sndr))`, and let
         `env...` be a pack of subexpressions such that `sizeof...(env) <= 1` is
         `true`. If <code><i>sender-for</i>&lt;Sndr, split_t></code> is `false`,
-        then the expression `split_t().transform_sender(sndr, env...)` is ill-formed;
+        then the expression `split.transform_sender(sndr, env...)` is ill-formed;
         otherwise, it returns a sender `sndr2` that:
 
         1. Creates an object `sh_state` that contains a `stop_source`, a list of
@@ -6751,7 +6765,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 5. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If
     <code><i>sender-for</i>&lt;Sndr, when_all_with_variant_t></code> is `false`,
-    then the expression `when_all_with_variant_t().transform_sender(sndr, env)` is
+    then the expression `when_all_with_variant.transform_sender(sndr, env)` is
     ill-formed; otherwise, it is equal to:
 
       <pre highlight="c++">
@@ -6838,7 +6852,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 3. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))` and `Env` is `decltype((env))`.
     If either <code><i>sender-for</i>&lt;Sndr, stopped_as_optional_t></code> or <code><i>single-sender</i>&lt;Sndr, Env></code> is `false`
-    then the expression `stopped_as_optional_t().transform_sender(sndr, env)` is ill-formed; otherwise, it is equal to:
+    then the expression `stopped_as_optional.transform_sender(sndr, env)` is ill-formed; otherwise, it is equal to:
 
     <pre highlight="c++">
     auto [tag, data, child] = sndr;
@@ -6866,7 +6880,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 3. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))` and `Env` is `decltype((env))`.
     If <code><i>sender-for</i>&lt;Sndr, stopped_as_error_t></code> is `false`, then the expression
-    `stopped_as_error_t().transform_sender(sndr, env)` is ill-formed; otherwise, it is equal to:
+    `stopped_as_error.transform_sender(sndr, env)` is ill-formed; otherwise, it is equal to:
 
     <pre highlight="c++">
     auto [tag, data, child] = sndr;
@@ -6900,7 +6914,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     1. Let `sndr` be a subexpression such that `Sndr` is `decltype((sndr))`, and let `env...` be a pack of
         subexpressions such that <code>sizeof...(env) &lt;= 1</code> is `true`.
         If <code><i>sender-for</i>&lt;Sndr, ensure_started_t></code> is `false`, then the expression
-        `ensure_started_t().transform_sender(sndr, env...)` is ill-formed; otherwise, it returns
+        `ensure_started.transform_sender(sndr, env...)` is ill-formed; otherwise, it returns
         a sender `sndr2`, that:
 
         1. Creates an object `sh_state` that contains a `stop_source`, an
