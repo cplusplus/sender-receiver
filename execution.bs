@@ -6496,9 +6496,15 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 3. The names `split` and `ensure_started` denote customization point objects.
     Let the expression <i>`shared-cpo`</i> be one of `split` or
     `ensure_started`. For a subexpression `sndr`, let `Sndr` be
-    `decltype((sndr))`. If <code>sender_in&lt;Sndr, <i>shared-env</i>></code> or
-    `constructible_from<decay_t<env_of_t<Sndr>>, env_of_t<Sndr>>` is `false`,
+    `decltype((sndr))`. If <code>sender_in&lt;Sndr, <i>shared-env</i>></code> <del>or
+    `constructible_from<decay_t<env_of_t<Sndr>>, env_of_t<Sndr>>` is `false`</del>,
     <code><i>shared-cpo</i>(sndr)</code> is ill-formed.
+
+    <div class="ed-note"> Although it has not yet been approved by LEWG, there
+    is a bug in the current wording that makes it impossible to safely copy the
+    attributes of a sender; it may have reference semantics, leading to a
+    dangling reference. I am striking this part for now and will bring a fix to
+    LEWG.</div>
 
 4. Otherwise, the expression <code><i>shared-cpo</i>(sndr)</code> is
     expression-equivalent to:
@@ -6678,8 +6684,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           void <i>notify</i>() noexcept;</pre>
 
           1. *Effects:* Atomically exchanges the current value of `head` with
-            `this` and saves the previous value in a local `state` of type
-            <code><i>local-state-base</i>*</code>. While `state` is not
+            `this` and saves the previous value in a local variable `state` of
+            type <code><i>local-state-base</i>*</code>. While `state` is not
             `nullptr`, calls <code>state-><i>notify</i>()</code>, then sets
             `state` to `state->next`. Finally, calls
             <code><i>dec-ref</i>()</code>.
