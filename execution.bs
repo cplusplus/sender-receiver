@@ -5010,7 +5010,7 @@ enum class forward_progress_guarantee {
     11. <pre highlight="c++">
         template&lt;<i>callable</i> Fun>
           requires is_nothrow_move_constructible_v&lt;Fun>
-        struct <i>emplace-construct</i> { // exposition only
+        struct <i>emplace-from</i> { // exposition only
           Fun <i>fun</i>; // exposition only
           using type = <i>call-result-t</i>&lt;Fun>;
 
@@ -5024,7 +5024,7 @@ enum class forward_progress_guarantee {
         };
         </pre>
 
-        1. <span class="wg21note"><i>`emplace-construct`</i> is used to emplace
+        1. <span class="wg21note"><i>`emplace-from`</i> is used to emplace
             non-movable types into containers like `tuple`, `optional`, and `variant`.</span>
 
     11. <pre highlight="c++">
