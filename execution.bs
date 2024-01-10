@@ -5047,19 +5047,6 @@ enum class forward_progress_guarantee {
             structured binding declaration [dcl.struct.bind].</span>
 
     12. <pre highlight="c++">
-        template&lt;<i>callable</i> Fn>
-        struct <i>emplacer</i> { // exposition only
-          Fn fn;  // exposition only
-          operator <i>call-result-t</i>&lt;Fn> () && noexcept(<i>nothrow-callable</i>&lt;Fn>) {
-            return std::move(fn)();
-          }
-        };
-        </pre>
-
-        1. <span class="wg21note">The type `emplacer<Fn>` is used to emplace non-movable
-            types into containers like `tuple`, `optional`, and `variant`.</span>
-
-    13. <pre highlight="c++">
         template &lt;semiregular Tag, <i>movable-value</i> Data = <i>see below</i>, sender... Child>
         constexpr auto <i>make-sender</i>(Tag, Data&& data, Child&&... child);
         </pre>
@@ -6408,7 +6395,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
             auto sndr2 = apply(std::move(state.fn), args);
             auto rcvr2 = <i>receiver2</i>{std::move(rcvr), std::move(state.env)};
             auto mkop2 = [&] { return connect(std::move(sndr2), std::move(rcvr2)); };
-            auto& op2 = state.ops2.emplace&lt;decltype(mkop2())>(<i>emplacer</i>{mkop2});
+            auto& op2 = state.ops2.emplace&lt;decltype(mkop2())>(<i>emplace-from</i>{mkop2});
             start(op2);
             </pre>
 
