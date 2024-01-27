@@ -6853,8 +6853,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     a sender that completes when all input senders have completed. `when_all`
     only accepts senders with a single value completion signature and on success
     concatenates all the input senders' value result datums into its own value
-    completion operation. `when_all_with_variant(sndr...)` is semantically
-    equivalent to `when_all(into_variant(sndr)...)`, where `sndr` is a pack of
+    completion operation. `when_all_with_variant(sndrs...)` is semantically
+    equivalent to `when_all(into_variant(sndrs)...)`, where `sndrs` is a pack of
     subexpressions of sender types.
 
 2. The names `when_all` and `when_all_with_variant` denote customization point
@@ -6865,122 +6865,252 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     <code>when_all_with_variant(sndr<i><sub>i</sub></i>...)</code> are ill-formed if
     any of the following is true:
 
-      * If the number of subexpressions <code>sndr<i><sub>i</sub></i>...</code> is 0, or
+      * If the number of subexpressions in <code>sndr<i><sub>i</sub></i>...</code> is 0, or
 
       * If any type <code>Sndr<i><sub>i</sub></i></code> does not satisfy `sender`.
 
-      * If the expression <code><i>get-domain-early</i>(sndr<sub><i>i</i></sub>)</code> has a
-        different type for any other value of <code><i>i</i></code>.
+      * If the types of the expressions
+        <code><i>get-domain-early</i>(sndr<sub><i>i</i></sub>)</code> do not share
+        a common type ([meta.trans.other]) for all values of <code><i>i</i></code>.
 
-    Otherwise, those expressions have the semantics specified below.
+    Otherwise, let <i>`CD`</i> be the common type of the input senders' domains.
 
 3. The expression <code>when_all(sndr<i><sub>i</sub></i>...)</code> is
     expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
-        <i>get-domain-early</i>(sndr<sub><i>0</i></sub>),
-        <i>make-when-all-sender</i>(sndr<sub><i>0</i></sub>, ... sndr<sub><i>n-1</i></sub>));
+        <i>CD</i>(),
+        <i>make-sender</i>(when_all, {}, sndr<sub><i>0</i></sub>, ... sndr<sub><i>n-1</i></sub>));
       </pre>
 
-    where <code><i>make-when-all-sender</i>(sndr<sub><i>i</i></sub>...)</code> is
-    expression-equivalent to <code><i>make-sender</i>(when_all,
-    {}, sndr<sub><i>i</i></sub>...)</code> and returns a sender
-    object `w` of type `W` that behaves as follows:
+9. The exposition-only class template <code><i>impls-for</i></code>
+    ([exec.snd.general]) is specialized for `when_all_t` as follows:
 
-    1. When `w` is connected with some receiver `out_rcvr` of type `OutRcvr`, it
-        returns an operation state `op_state` specified as below:
+        <pre highlight="c++">
+        template&lt;>
+        struct <i>impls-for</i>&lt;when_all_t> : <i>default-impls</i> {
+          static constexpr auto <i>get-attrs</i> = <i>see below</i>;
+          static constexpr auto <i>get-env</i> = <i>see below</i>;
+          static constexpr auto <i>get-state</i> = <i>see below</i>;
+          static constexpr auto <i>start</i> = <i>see below</i>;
+          static constexpr auto <i>complete</i> = <i>see below</i>;
+        };
+        </pre>
 
-        1. For each sender <code>sndr<i><sub>i</sub></i></code>, constructs a
-            receiver <code>rcvr<i><sub>i</sub></i></code> such that:
+    1. The member <code><i>impls-for</i>&lt;when_all_t>::<i>get-attrs</i></code>
+        is initialized with a callable object equal to the following lambda
+        expression:
 
-            1. If <code>set_value(rcvr<i><sub>i</sub></i>,
-                t<i><sub>i</sub></i>...)</code> is called for every
-                <code>rcvr<i><sub>i</sub></i></code>, `op_state`'s associated stop
-                callback optional is reset and <code>set_value(out_rcvr,
-                t<i><sub>0</sub></i>..., t<i><sub>1</sub></i>..., ...,
-                t<i><sub>n-1</sub></i>...)</code> is called, where `n` the number
-                of subexpressions in <code>sndr<i><sub>i</sub></i>...</code>.
+          <pre highlight="c++">
+          [](auto&&, auto&&... child) noexcept {
+            auto domain_fn = []&lt;class... Ds>(Ds...) noexcept { return common_type_t&lt;Ds...>(); };
+            using domain_type = decltype(domain_fn(<i>get-domain-early</i>(child)...));
+            if constexpr (same_as&lt;domain_type, default_domain>) {
+              return empty_env();
+            } else {
+              return <i>MAKE-ENV</i>(get_domain, domain_type());
+            }
+          }
+          </pre>
 
-            2. Otherwise, `set_error` or `set_stopped` was called for at least
-                one receiver <code>rcvr<i><sub>i</sub></i></code>. If the first such
-                to complete did so with the call
-                <code>set_error(rcvr<i><sub>i</sub></i>, err)</code>, `request_stop`
-                is called on `op_state`'s associated stop source. When all child
-                operations have completed, `op_state`'s associated stop callback
-                optional is reset and `set_error(out_rcvr, err)` is called.
+    2. The member <code><i>impls-for</i>&lt;when_all_t>::<i>get-env</i></code>
+        is initialized with a callable object equal to the following lambda
+        expression:
 
-            3. Otherwise, `request_stop` is called on `op_state`'s associated
-                stop source. When all child operations have completed,
-                `op_state`'s associated stop callback optional is reset and
-                `set_stopped(out_rcvr)` is called.
+          <pre highlight="c++">
+          []&lt;class State, class Rcvr>(auto&&, State& state, const Receiver& rcvr) noexcept {
+            return <i>JOIN-ENV</i>(
+              <i>MAKE-ENV</i>(get_stop_token, state.stop_src.get_token()), get_env(rcvr));
+          }
+          </pre>
 
-            4. For each receiver <code>rcvr<i><sub>i</sub></i></code>,
-                <code>get_env(rcvr<i><sub>i</sub></i>)</code> is an expression
-                <code><i>env</i></code> such that
-                <code>get_stop_token(<i>env</i>)</code> is well-formed and returns
-                the results of calling `get_token()` on `op_state`'s associated
-                stop source, and for which <code>tag_invoke(tag, <i>env</i>,
-                args...)</code> is expression-equivalent to `tag(get_env(out_rcvr),
-                args...)` for all arguments `args...` and all `tag` whose type
-                satisfies <code><i>forwarding-query</i></code> and is not
-                `get_stop_token_t`.
+    3. The member <code><i>impls-for</i>&lt;when_all_t>::<i>get-state</i></code>
+        is initialized with a callable object equal to the following lambda
+        expression:
 
-        2. For each sender <code>sndr<i><sub>i</sub></i></code>, calls
-            <code>connect(sndr<i><sub>i</sub></i>, rcvr<i><sub>i</sub></i>)</code>,
-            resulting in operation states
-            <code>child_op<i><sub>i</sub></i></code>.
+          <pre highlight="c++">
+          <div class="ed-note">BUG: `apply` isn't constrained</div>
+          []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr)
+            -> decltype(apply(<i>make-state</i>&lt;Rcvr>{get_env(rcvr)}, std::forward&lt;Sndr>(sndr))) {
+            return apply(<i>make-state</i>&lt;Rcvr>{get_env(rcvr)}, std::forward&lt;Sndr>(sndr));
+          }
+          </pre>
 
-        3. Returns an operation state `op_state` that contains:
+        where <i>`make-state`</i> is the following exposition-only class type:
 
-            * Each operation state <code>child_op<i><sub>i</sub></i></code>,
+          <pre highlight="c++">
+          template&lt;class Sndr, class Env>
+          concept <i>max-1-sender-in</i> = sender_in&lt;Sndr, Env> &&
+            (tuple_size_v&lt;value_types_of_t&lt;Sndr, Env, tuple, tuple>> &lt;= 1);
 
-            * A stop source of type `in_place_stop_source`,
+          enum class <i>disposition</i> { <i>started</i>, <i>error</i>, <i>stopped</i> };
 
-            * A stop callback of type
-                <code>optional&lt;stop_token_of_t&lt;env_of_t&lt;OutRcvr>>::callback_type&lt;<i>stop-callback-fn</i>>></code>,
-                where <code><i>stop-callback-fn</i></code> is the unspecified
-                class type:
+          template &lt;class Rcvr>
+          struct <i>make-state</i> {
+            const env_of_t&lt;Rcvr>& env;
 
-                <pre highlight="c++">
-                struct <i>stop-callback-fn</i> {
-                  in_place_stop_source& <i>stop_src_</i>;
-                  void operator()() noexcept {
-                    <i>stop_src_</i>.request_stop();
+            template &lt;<i>max-1-sender-in</i>&lt;env_of_t&lt;Rcvr>>... Sndrs>
+            auto operator()(auto, auto, Sndrs&&... sndrs) const {
+              using values_tuple = <i>see below</i>;
+              using errors_variant = <i>see below</i>;
+              using stop_token = stop_token_of_t&lt;env_of_t&lt;Rcvr>>;
+              using stop_callback = stop_token::template callback_type&lt;<i>on-stop-request</i>>;
+
+              struct <i>state</i> {
+                void <i>arrive</i>(Rcvr& rcvr) noexcept {
+                  if (0 == --count) {
+                    <i>complete</i>(rcvr);
                   }
-                };
-                </pre>
+                }
 
-        4. When `start(op_state)` is called it:
+                void <i>complete</i>(Rcvr& rcvr) noexcept; // see below
 
-            * Emplace constructs the stop callback optional with the arguments
-                `get_stop_token(get_env(out_rcvr))` and
-                <code><i>stop-callback-fn</i>{<i>stop-src</i>}</code>, where
-                <code><i>stop-src</i></code> refers to the stop source of
-                `op_state`.
+                atomic&lt;size_t> count{sizeof...(sndrs)};
+                in_place_stop_source stop_src{};
+                atomic&lt;<i>disposition</i>> disp{<i>disposition</i>::<i>started</i>};
+                errors_variant errors{};
+                values_tuple values{};
+                optional&lt;stop_callback> on_stop{nullopt};
+              };
 
-            * Then, it checks to see if
-                <code><i>stop-src</i>.stop_requested()</code> is true. If so, it
-                calls `set_stopped(out_rcvr)`.
+              return <i>state</i>{};
+            }
+          };
+          </pre>
 
-            * Otherwise, calls <code>start(child_op<i><sub>i</sub></i>)</code>
-                for each <code>child_op<i><sub>i</sub></i></code>.
+          1. Let <i>copy-fail</i> be `exception_ptr` if decay-copying any of the
+              input senders' result datums can potentially throw; otherwise,
+              <i>`none-such`</i>, where <i>`none-such`</i> is an unspecified
+              empty class type.
 
-4. The expression <code>when_all_with_variant(sndr<sub><i>i</i></sub>...)</code> is
+          2. The alias `values_tuple` denotes the type
+              <code>tuple&lt;value_types_of_t&lt;Sndrs, env_of_t&lt;Rcvr>,
+              <i>decayed-tuple</i>, optional>...></code> if that type is well-formed;
+              otherwise, `tuple<>`.
+
+          3. Let `errors_variant` denotes the type
+              <code>variant&lt;<i>none-such</i>, <i>copy-fail</i>,
+              <i>Es</i>...></code> with duplicate types removed, where
+              <code><i>Es</i></code> is the pack of the decayed types of all the
+              input senders' possible error result datums.
+
+          4. The member <code>void <i>state</i>::<i>complete</i>(Rcvr& rcvr)
+              noexcept</code> behaves as follows:
+
+              1. If `disp` is equal to <code><i>disposition</i>::<i>started</i></code>,
+                  calls:
+
+                  <pre highlight="c++">
+                  auto tie = []&lt;class... T>(tuple&lt;T...>& t) noexcept { return tuple&lt;T&...>(t); };
+                  auto set = [&](auto&... t) noexcept { set_value(std::move(rcvr), std::move(t)...); };
+                  apply(
+                    [&](auto&... opts) noexcept {
+                      if constexpr (sizeof...(opts) != 0)
+                        apply(set, tuple_cat(tie(*opts)...));
+                    },
+                    values);
+                  </pre>
+
+              2. Otherwise, if `disp` is equal to
+                  <code><i>disposition</i>::<i>error</i></code>, calls:
+
+                  <pre highlight="c++">
+                  visit(
+                    [&]&lt;class Error>(Error& error) noexcept {
+                      if constexpr (!same_as&lt;Error, <i>none-such</i>>) {
+                        set_error(std::move(rcvr), std::move(error));
+                      }
+                    },
+                    errors);
+                  </pre>
+
+              3. Otherwise, calls `set_stopped(std::move(rcvr))`.
+
+    4. The member <code><i>impls-for</i>&lt;when_all_t>::<i>start</i></code>
+        is initialized with a callable object equal to the following lambda
+        expression:
+
+          <pre highlight="c++">
+          []&lt;class State, class Rcvr, class... Ops>(
+              State& state, Rcvr& rcvr, Ops&... ops) noexcept -> void {
+            state.on_stop.emplace(
+              get_stop_token(get_env(rcvr)),
+              <i>on-stop-request</i>{state.stop_src});
+            if (state.stop_src.stop_requested()) {
+              set_stopped(std::move(rcvr));
+            } else {
+              (start(ops), ...);
+            }
+          }
+          </pre>
+
+    4. The member <code><i>impls-for</i>&lt;when_all_t>::<i>complete</i></code>
+        is initialized with a callable object equal to the following lambda
+        expression:
+
+          <pre highlight="c++">
+          []&lt;class Index, class State, class Rcvr, class Set, class... Args>(
+              this auto& complete, Index, State& state, Rcvr& rcvr, Set, Args&&... args) noexcept -> void {
+            if constexpr (same_as&lt;Set, set_error_t>) {
+              if (<i>disposition</i>::<i>error</i> != state.disp.exchange(<i>disposition</i>::<i>error</i>)) {
+                state.stop_src.request_stop();
+                <i>TRY-EMPLACE-ERROR</i>(state.errors, std::forward&lt;Args>(args)...);
+              }
+            } else if constexpr (same_as&lt;Set, set_stopped_t>) {
+              auto expected = <i>disposition</i>::<i>started</i>;
+              if (state.disp.compare_exchange_strong(expected, <i>disposition</i>::<i>stopped</i>)) {
+                state.stop_src.request_stop();
+              }
+            } else if constexpr (!same_as&lt;decltype(State::values), tuple<>>) {
+              if (state.disp == <i>disposition</i>::<i>started</i>) {
+                auto& opt = get&lt;Index::value>(state.values);
+                <i>TRY-EMPLACE-VALUE</i>(complete, opt, std::forward&lt;Args>(args)...);
+              }
+            }
+
+            state.<i>arrive</i>(rcvr);
+          }
+          </pre>
+
+        where for subexpressions `v` and `e`, <code><i>TRY-EMPLACE-ERROR</i>(v,
+        e)</code> is equivalent to:
+
+          <pre highlight="c++">
+          try {
+            v.template emplace&lt;decltype(auto(e))>(e);
+          } catch (...) {
+            v.template emplace&lt;exception_ptr>(current_exception());
+          }
+          </pre>
+
+        if the expression `decltype(auto(e))(e)` is potentially throwing; otherwise,
+        `v.template emplace<decltype(auto(e))>(e)`; and where for subexpressions
+        `c`, `o`, and pack of subexpressions `as`, <code><i>TRY-EMPLACE-VALUE</i>(c,
+        o, as...)</code> is equivalent to:
+
+          <pre highlight="c++">
+          try {
+            o.emplace(as...);
+          } catch (...) {
+            c(Index(), state, rcvr, set_error, current_exception());
+            return;
+          }
+          </pre>
+
+        if the expression <code><i>decayed-tuple</i>&lt;decltype(as)...>{as...}</code>
+        is potentially throwing; otherwise, `o.emplace(as...)`.
+
+5. The expression <code>when_all_with_variant(sndr<sub><i>i</i></sub>...)</code> is
     expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
-        <i>get-domain-early</i>(sndr<sub><i>0</i></sub>),
+        <i>CD</i>(),
         <i>make-sender</i>(when_all_with_variant, {}, sndr<sub><i>0</i></sub>, ... sndr<sub><i>n-1</i></sub>));
       </pre>
 
-    where <code><i>make-when-all-sender</i>(sndr<sub><i>i</i></sub>...)</code> is
-    expression-equivalent to <code><i>make-sender</i>(when_all,
-    {}, sndr<sub><i>i</i></sub>...)</code> and returns a sender
-    object `w` of type `W` that behaves as follows:
-
-5. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If
+6. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If
     <code><i>sender-for</i>&lt;Sndr, when_all_with_variant_t></code> is `false`,
     then the expression `when_all_with_variant.transform_sender(sndr, env)` is
     ill-formed; otherwise, it is equal to:
@@ -6994,13 +7124,6 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     to become `when_all(into_variant(sndr)...)` when it is connected with a
     receiver with an execution domain that does not customize
     `when_all_with_variant`.</span>
-
-4. Given a pack of subexpressions `sndr...`, let `out_sndr` be an object returned from
-    `when_all(sndr...)` or `when_all_with_variant(sndr...)` or a copy of such, and let
-    `env` be the environment object returned from `get_env(out_sndr)`. Given a query
-    object `q`, `tag_invoke(q, env)` is expression-equivalent to
-    <code><i>get-domain-early</i>(sndr<sub><i>0</i></sub>)</code> when `q` is
-    `get_domain`; otherwise, it is ill-formed.
 
 #### `execution::into_variant` <b>[exec.into.variant]</b> #### {#spec-execution.senders.adapt.into_variant}
 
