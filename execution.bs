@@ -4973,13 +4973,15 @@ enum class forward_progress_guarantee {
         constexpr auto <i>get-domain-early</i>(const Sndr& sndr) noexcept;
         </pre>
 
-        1. <i>Effects:</i> Equivalent to the first of the following that is well-formed:
+        1. <i>Effects:</i> Equivalent to <code>return <i>Domain</i>();</code>
+            where <i>`Domain`</i> is the decayed type of the first of the following
+            expressions that is well-formed:
 
-            - `return get_domain(get_env(sndr));`
+            - `get_domain(get_env(sndr))`
 
-            - <code>return <i>completion-domain</i>(sndr);</code>
+            - <code><i>completion-domain</i>(sndr)</code>
 
-            - `return default_domain();`
+            - `default_domain()`
 
     10. <pre highlight="c++">
         template&lt;class Sndr, class Env>
@@ -4988,27 +4990,43 @@ enum class forward_progress_guarantee {
 
         1. <i>Effects:</i> Equivalent to:
 
-            - If <code><i>sender-for</i>&lt;Sndr, transfer_t></code> is `true`, then
-                <code>return <i>query-or-default</i>(get_domain, sch, default_domain())</code> where `sch`
-                is the scheduler that was used to construct `sndr`,
+            - If <code><i>sender-for</i>&lt;Sndr, transfer_t></code> is `true`,
+                then <code>return <i>Domain</i>();</code> where <i>`Domain`</i> is
+                the type of the following expression:
 
-            - Otherwise, `return get_domain(get_env(sndr));` if that expression is well-formed,
+                <pre highlight="c++">
+                [] {
+                  auto [<i>ignore1</i>, sch, <i>ignore2</i>] = sndr;
+                  return <i>query-or-default</i>(get_domain, sch, default_domain());
+                }();
+                </pre>
 
-            - Otherwise, <code>return <i>completion-domain</i>&lt;<i>X</i>>(sndr);</code>
-                if that expression is well-formed and its type is not <code>*X*</code> where
-                <code>*X*</code> is an unspecified type,
+            - Otherwise, <code>return <i>Domain</i>();</code> where <i>`Domain`</i> is
+                the first of the following expressions that is well-formed and has class
+                type:
 
-            - Otherwise, `return get_domain(env);` if that expression is well-formed,
+                - `get_domain(get_env(sndr))`
 
-            - Otherwise, `return get_domain(get_scheduler(env));` if that expression is well-formed,
+                - <code><i>completion-domain</i>&lt;void>(sndr)</code>
 
-            - Otherwise, `return default_domain();`.
+                - `get_domain(env)`
 
-            [*Note:* The `transfer` algorithm is unique in that it ignores the execution domain of
-            its predecessor, using only its destination scheduler to select a customization. *--end note*]
+                - `get_domain(get_scheduler(env))`
 
+                - `default_domain()`.
+
+            <span class="wg21note">The `transfer` algorithm is unique in that it ignores the
+            execution domain of its predecessor, using only the domain of its
+            destination scheduler to select a customization.</span>
 
     11. <pre highlight="c++">
+        struct <i>on-stop-request</i> {
+          in_place_stop_source& stop_src;
+          void operator()() noexcept { stop_src.request_stop(); }
+        };
+        </pre>
+
+    12. <pre highlight="c++">
         template&lt;class... T>
         struct <i>product-type</i> {
           using type<sub><i>0</i></sub> = T<sub><i>0</i></sub>;      // exposition only
@@ -5027,7 +5045,7 @@ enum class forward_progress_guarantee {
             <code><i>product-type</i></code> is usable as the initializer of a
             structured binding declaration [dcl.struct.bind].</span>
 
-    12. <pre highlight="c++">
+    13. <pre highlight="c++">
         template&lt;<i>callable</i> Fn>
         struct <i>emplacer</i> { // exposition only
           Fn fn;  // exposition only
@@ -5040,7 +5058,7 @@ enum class forward_progress_guarantee {
         1. <span class="wg21note">The type `emplacer<Fn>` is used to emplace non-movable
             types into containers like `tuple`, `optional`, and `variant`.</span>
 
-    13. <pre highlight="c++">
+    14. <pre highlight="c++">
         template &lt;semiregular Tag, <i>movable-value</i> Data = <i>see below</i>, sender... Child>
         constexpr auto <i>make-sender</i>(Tag, Data&& data, Child&&... child);
         </pre>
@@ -6511,7 +6529,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     Let the expression <i>`shared-cpo`</i> be one of `split` or
     `ensure_started`. For a subexpression `sndr`, let `Sndr` be
     `decltype((sndr))`. If <code>sender_in&lt;Sndr, <i>shared-env</i>></code> <del>or
-    `constructible_from<decay_t<env_of_t<Sndr>>, env_of_t<Sndr>>` is `false`</del>,
+    `constructible_from<decay_t<env_of_t<Sndr>>, env_of_t<Sndr>>`</del> is `false`,
     <code><i>shared-cpo</i>(sndr)</code> is ill-formed.
 
     <div class="ed-note"> Although it has not yet been approved by LEWG, there
@@ -6542,7 +6560,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     template&lt;class Sndr, class Rcvr>
     struct <i>local-state</i> : <i>local-state-base</i> {
       using <i>on-stop-request</i> = <i>see below</i>;
-      using <i>on-stop-callback</i> = typename stop_token_of_t&lt;env_of_t&lt;Rcvr>>::
+      using <i>on-stop-callback</i> = stop_token_of_t&lt;env_of_t&lt;Rcvr>>::
                                   template callback_type&lt;<i>on-stop-request</i>>;
 
       <i>local-state</i>(Sndr&& sndr, Rcvr& rcvr) noexcept;
@@ -6557,28 +6575,19 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     };
     </pre>
 
-    1. Let <i>`on-stop-request`</i> denote the following exposition-only class:
-
-        <pre highlight="c++">
-        struct <i>on-stop-request</i> {
-          in_place_stop_source& stop_src;
-          void operator()() noexcept { stop_src.request_stop(); }
-        };
-        </pre>
-
-    2. <pre highlight="c++">
+    1. <pre highlight="c++">
         <i>local-state</i>(Sndr&& sndr, Rcvr& rcvr) noexcept;</pre>
 
         1. *Effects:* Equivalent to:
 
             <pre highlight="c++">
             auto&& [tag, data, child] = std::forward&lt;Sndr>(sndr);
-            sh_state = data.sh_state.get();
-            sh_state-><i>inc-ref</i>();
+            this->sh_state = data.sh_state.get();
+            this->sh_state-><i>inc-ref</i>();
             this->rcvr = &rcvr;
             </pre>
 
-    3. <pre highlight="c++">
+    2. <pre highlight="c++">
         ~<i>local-state</i>();</pre>
 
         1. *Effects:* Equivalent to:
@@ -6588,7 +6597,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
             sh_state-><i>dec-ref</i>();
             </pre>
 
-    4. <pre highlight="c++">
+    3. <pre highlight="c++">
         void <i>notify</i>() noexcept override;</pre>
 
         1. *Effects:* Equivalent to:
@@ -6604,17 +6613,20 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                   tupl);
               },
               <i>QUAL</i>(sh_state->result));
-            )
+            );
             </pre>
 
-            where <i>`QUAL`</i> is `std::move` if `tag_of_t<Sndr>` is
-            <i>`ensure-started-impl-tag`</i>, and `as_const` otherwise.
+            where <i>`QUAL`</i> is `std::move` if
+            <code>same_as&lt;tag_of_t&lt;Sndr>,
+            <i>ensure-started-impl-tag</i>></code> is `true`, and `as_const`
+            otherwise.
 
-    5. <pre highlight="c++">
+    4. <pre highlight="c++">
         void <i>detach</i>() noexcept override;</pre>
 
-        1. *Effects:* Equivalent to <code>sh_state-><i>detach</i>()</code>
-            if `tag_of_t<Sndr>` is <i>`ensure-started-impl-tag`</i>; otherwise,
+        1. *Effects:* Equivalent to <code>sh_state-><i>detach</i>()</code> if
+            <code>same_as&lt;tag_of_t&lt;Sndr>,
+            <i>ensure-started-impl-tag</i>></code> is `true`; otherwise,
             nothing.
 
 6. Let <i>`shared-receiver`</i> denote the following exposition-only class
@@ -6658,14 +6670,14 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
       void <i>start-op</i>() noexcept;
       void <i>notify</i>() noexcept;
       void <i>detach</i>() noexcept;
+      void <i>inc-ref</i>() noexcept;
       void <i>dec-ref</i>() noexcept;
-      void <i>inc-ref</i>() noexcept { ref_count.fetch_add(1, memory_order_relaxed); }
 
       in_place_stop_source stop_src{};
       <i>variant-type</i> result{};
       atomic&lt;void*> head{nullptr};
       atomic&lt;size_t> ref_count{1};
-      connect_result_t&lt;Sndr, <i>shared-receiver</i>&lt;Sndr>> op_state2;
+      connect_result_t&lt;Sndr, <i>shared-receiver</i>&lt;Sndr>> op_state;
     };
     </pre>
 
@@ -6683,7 +6695,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
       2. <pre highlight="c++">
           explicit <i>shared-state</i>(Sndr&& sndr);</pre>
 
-          1. *Effects:* Initializes `op_state2` with the result of
+          1. *Effects:* Initializes `op_state` with the result of
               <code>connect(std::forward&lt;Sndr>(sndr), <i>shared-receiver</i>{this})</code>.
 
       3. <pre highlight="c++">
@@ -6692,7 +6704,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           1. *Effects:* <code><i>inc-ref</i>()</code>. If
               `stop_src.stop_requested()` is `true`, calls
               <code><i>notify</i>()</code>; otherwise, calls
-              `start(op_state2)`.
+              `start(op_state)`.
 
       4. <pre highlight="c++">
           void <i>notify</i>() noexcept;</pre>
@@ -6715,9 +6727,14 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
               </span>
 
       5. <pre highlight="c++">
+          void <i>inc-ref</i>() noexcept;</pre>
+
+          1. *Effects:* Increments `ref_count`.
+
+      6. <pre highlight="c++">
           void <i>dec-ref</i>() noexcept;</pre>
 
-          1. *Effects:* Atomically decrements `ref_count`. If the new value of
+          1. *Effects:* Decrements `ref_count`. If the new value of
               `ref_count` is `0`, calls `delete this`.
 
 8. For each type `split_t` and `ensure_started_t`, there is a different,
