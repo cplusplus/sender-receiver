@@ -1561,7 +1561,7 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version 82ce88815, updated Thu Sep 7 16:33:55 2023 -0700" name="generator">
+  <meta content="Bikeshed version d5d58a306, updated Fri Jan 26 16:12:28 2024 -0800" name="generator">
   <link href="https://wg21.link/P2300" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
 <style>
@@ -1737,7 +1737,6 @@ pre .property::before, pre .property::after {
 }
 </style>
 <style>/* Boilerplate: style-colors */
-
 /* Any --*-text not paired with a --*-bg is assumed to have a transparent bg */
 :root {
     color-scheme: light dark;
@@ -1991,11 +1990,15 @@ figcaption:not(.no-marker)::before {
 :root {
     --dfnpanel-bg: #ddd;
     --dfnpanel-text: var(--text);
+    --dfnpanel-target-bg: #ffc;
+    --dfnpanel-target-outline: orange;
 }
 @media (prefers-color-scheme: dark) {
     :root {
         --dfnpanel-bg: #222;
         --dfnpanel-text: var(--text);
+        --dfnpanel-target-bg: #333;
+        --dfnpanel-target-outline: silver;
     }
 }
 .dfn-panel {
@@ -2018,11 +2021,13 @@ figcaption:not(.no-marker)::before {
 .dfn-panel > b { display: block; }
 .dfn-panel a { color: var(--dfnpanel-text); }
 .dfn-panel a:not(:hover) { text-decoration: none !important; border-bottom: none !important; }
+.dfn-panel a:focus {
+    outline: 5px auto Highlight;
+    outline: 5px auto -webkit-focus-ring-color;
+}
 .dfn-panel > b + b { margin-top: 0.25em; }
 .dfn-panel ul { padding: 0 0 0 1em; list-style: none; }
 .dfn-panel li a {
-    white-space: pre;
-    display: inline-block;
     max-width: calc(300px - 1.5em - 1em);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2031,14 +2036,79 @@ figcaption:not(.no-marker)::before {
 .dfn-panel.activated {
     display: inline-block;
     position: fixed;
-    left: .5em;
+    left: 8px;
     bottom: 2em;
     margin: 0 auto;
     max-width: calc(100vw - 1.5em - .4em - .5em);
     max-height: 30vh;
+    transition: left 1s ease-out, bottom 1s ease-out;
 }
 
-.dfn-paneled[role="button"] { cursor: pointer; }
+.dfn-panel .link-item:hover {
+    text-decoration: underline;
+}
+.dfn-panel .link-item .copy-icon {
+    opacity: 0;
+}
+.dfn-panel .link-item:hover .copy-icon,
+.dfn-panel .link-item .copy-icon:focus {
+    opacity: 1;
+}
+
+.dfn-panel .copy-icon {
+    display: inline-block;
+    margin-right: 0.5em;
+    width: 0.85em;
+    height: 1em;
+    border-radius: 3px;
+    background-color: #ccc;
+    cursor: pointer;
+}
+
+.dfn-panel .copy-icon .icon {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.dfn-panel .copy-icon .icon::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 1px solid black;
+    background-color: #ccc;
+    opacity: 0.25;
+    transform: translate(3px, -3px);
+}
+
+.dfn-panel .copy-icon:active .icon::before {
+    opacity: 1;
+}
+
+.dfn-paneled[role="button"] { cursor: help; }
+
+.highlighted {
+    animation: target-fade 3s;
+}
+
+@keyframes target-fade {
+    from {
+        background-color: var(--dfnpanel-target-bg);
+        outline: 5px solid var(--dfnpanel-target-outline);
+    }
+    to {
+        color: var(--a-normal-text);
+        background-color: transparent;
+        outline: transparent;
+    }
+}
 </style>
 <style>/* Boilerplate: style-issues */
 a[href].issue-return {
@@ -2059,8 +2129,40 @@ a[href].issue-return {
     margin-bottom: 0;
 }
 </style>
-<style>/* Boilerplate: style-selflinks */
+<style>/* Boilerplate: style-ref-hints */
+:root {
+    --ref-hint-bg: #ddd;
+    --ref-hint-text: var(--text);
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ref-hint-bg: #222;
+        --ref-hint-text: var(--text);
+    }
+}
 
+.ref-hint {
+    display: inline-block;
+    position: absolute;
+    z-index: 35;
+    width: 20em;
+    width: 300px;
+    height: auto;
+    max-height: 500px;
+    overflow: auto;
+    padding: 0.5em 0.5em;
+    font: small Helvetica Neue, sans-serif, Droid Sans Fallback;
+    background: var(--ref-hint-bg);
+    color: var(--ref-hint-text);
+    border: outset 0.2em;
+    white-space: normal; /* in case it's moved into a pre */
+}
+
+.ref-hint * { margin: 0; padding: 0; text-indent: 0; }
+
+.ref-hint ul { padding: 0 0 0 1em; list-style: none; }
+</style>
+<style>/* Boilerplate: style-selflinks */
 :root {
     --selflink-text: white;
     --selflink-bg: gray;
@@ -2120,7 +2222,6 @@ a.self-link::before            { content: "¶"; }
 dfn > a.self-link::before      { content: "#"; }
 </style>
 <style>/* Boilerplate: style-syntax-highlighting */
-
 code.highlight { padding: .1em; border-radius: .3em; }
 pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em 0; overflow: auto; border-radius: 0; }
 
@@ -2177,7 +2278,6 @@ c-[vc] { color: #0077aa } /* Name.Variable.Class */
 c-[vg] { color: #0077aa } /* Name.Variable.Global */
 c-[vi] { color: #0077aa } /* Name.Variable.Instance */
 c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
-
 
 @media (prefers-color-scheme: dark) {
     .highlight:not(.idl) { background: rgba(255, 255, 255, .05); }
@@ -2246,7 +2346,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-01-09">2024-01-09</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-01-30">2024-01-30</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -3931,7 +4031,7 @@ design as well as some dependently-typed senders to confirm that it works.</p>
    <p><strong>Implementation experience</strong></p>
    <p>Although this change has not yet been made in libunifex, the most widely adopted sender/receiver implementation, a similar design can be found in Folly’s coroutine support library. In Folly.Coro, it is possible to await a special awaitable to obtain the current coroutine’s associated scheduler (called an executor in Folly).</p>
    <p>For instance, the following Folly code grabs the current executor, schedules a task for execution on that executor, and starts the resulting (scheduled) task by enqueueing it for execution.</p>
-<pre class="language-c++ highlight"><c- c1>// From Facebook’s Folly open source library:</c->
+<pre class="language-c++ highlight"><c- c1>// From Facebook's Folly open source library:</c->
 <c- n>template</c-> <c- o>&lt;</c-><c- n>class</c-> <c- n>T</c-><c- o>></c->
 <c- n>folly</c-><c- o>::</c-><c- n>coro</c-><c- o>::</c-><c- n>Task</c-><c- o>&lt;</c-><c- b>void</c-><c- o>></c-> <c- n>CancellableAsyncScope</c-><c- o>::</c-><c- n>co_schedule</c-><c- p>(</c-><c- n>folly</c-><c- o>::</c-><c- n>coro</c-><c- o>::</c-><c- n>Task</c-><c- o>&lt;</c-><c- n>T</c-><c- o>>&amp;&amp;</c-> <c- n>task</c-><c- p>)</c-> <c- p>{</c->
   <c- n>this</c-><c- o>-></c-><c- n>add</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>task</c-><c- p>).</c-><c- n>scheduleOn</c-><c- p>(</c-><c- n>co_await</c-> <c- n>co_current_executor</c-><c- p>));</c->
@@ -4267,11 +4367,11 @@ operation-state returned by a call to <code class="highlight"><c- n>execution</c
 this resource. In such a sender, calling <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> consumes the sender such that after
 the call the input sender is no longer valid. Such a sender will also typically be move-only so that
 it can maintain unique ownership of that resource.</p>
-   <p>A <dfn data-dfn-type="dfn" data-export id="single-shot-sender">single-shot sender<a class="self-link" href="#single-shot-sender"></a></dfn> can only be connected to a receiver
+   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="single-shot-sender">single-shot sender</dfn> can only be connected to a receiver
 at most once. Its implementation of <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> only has overloads for
 an rvalue-qualified sender. Callers must pass the sender as an rvalue to the
 call to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code>, indicating that the call consumes the sender.</p>
-   <p>A <dfn data-dfn-type="dfn" data-export id="multi-shot-sender">multi-shot sender<a class="self-link" href="#multi-shot-sender"></a></dfn> can be connected to multiple
+   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="multi-shot-sender">multi-shot sender</dfn> can be connected to multiple
 receivers and can be launched multiple times. Multi-shot senders customise <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> to accept an lvalue reference to the sender. Callers can
 indicate that they want the sender to remain valid after the call to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> by passing an lvalue reference to the sender to call these
 overloads. Multi-shot senders should also define overloads of <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> that accept rvalue-qualified senders to allow the sender to
@@ -4598,7 +4698,7 @@ forward progress guarantees:</p>
    <p>This paper introduces a scheduler query function, <code class="highlight"><c- n>get_forward_progress_guarantee</c-></code>, which returns one of the enumerators of a new <code class="highlight"><c- k>enum</c-></code> type, <code class="highlight"><c- n>forward_progress_guarantee</c-></code>. Each enumerator of <code class="highlight"><c- n>forward_progress_guarantee</c-></code> corresponds to one of the aforementioned
 guarantees.</p>
    <h3 class="heading settled" data-level="4.12" id="design-pipeable"><span class="secno">4.12. </span><span class="content">Most sender adaptors are pipeable</span><a class="self-link" href="#design-pipeable"></a></h3>
-   <p>To facilitate an intuitive syntax for composition, most sender adaptors are <dfn data-dfn-type="dfn" data-export id="pipeable">pipeable<a class="self-link" href="#pipeable"></a></dfn>; they can be composed (<dfn data-dfn-type="dfn" data-export id="piped">piped<a class="self-link" href="#piped"></a></dfn>) together with <code class="highlight"><c- k>operator</c-><c- o>|</c-></code>.
+   <p>To facilitate an intuitive syntax for composition, most sender adaptors are <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="pipeable">pipeable</dfn>; they can be composed (<dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="piped">piped</dfn>) together with <code class="highlight"><c- k>operator</c-><c- o>|</c-></code>.
 This mechanism is similar to the <code class="highlight"><c- k>operator</c-><c- o>|</c-></code> composition that C++ range adaptors support and draws inspiration from piping in *nix shells.
 Pipeable sender adaptors take a sender as their first parameter and have no other sender parameters.</p>
    <p><code class="highlight"><c- n>a</c-> <c- o>|</c-> <c- n>b</c-></code> will pass the sender <code class="highlight"><c- n>a</c-></code> as the first argument to the pipeable sender adaptor <code class="highlight"><c- n>b</c-></code>. Pipeable sender adaptors support partial application of the parameters after the first. For example, all of the following are equivalent:</p>
@@ -4617,7 +4717,8 @@ Consider the following example where we want to execute first on a CPU thread po
      <tr>
       <th>Function call <br> (nested) 
       <td>
-<pre class="highlight"><c- k>auto</c-> <c- n>snd</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c->
+<pre class="highlight">
+<c- k>auto</c-> <c- n>snd</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c->
              <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c->
                <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c->
                  <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c->
@@ -4634,7 +4735,8 @@ Consider the following example where we want to execute first on a CPU thread po
      <tr>
       <th>Function call <br> (named temporaries) 
       <td>
-<pre class="highlight"><c- k>auto</c-> <c- n>snd0</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>schedule</c-><c- p>(</c-><c- n>thread_pool</c-><c- p>.</c-><c- n>scheduler</c-><c- p>());</c->
+<pre class="highlight">
+<c- k>auto</c-> <c- n>snd0</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>schedule</c-><c- p>(</c-><c- n>thread_pool</c-><c- p>.</c-><c- n>scheduler</c-><c- p>());</c->
 <c- k>auto</c-> <c- n>snd1</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c-><c- n>snd0</c-><c- p>,</c-> <c- p>[]{</c-> <c- k>return</c-> <c- mi>123</c-><c- p>;</c-> <c- p>});</c->
 <c- k>auto</c-> <c- n>snd2</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c-><c- n>snd1</c-><c- p>,</c-> <c- n>cuda</c-><c- o>::</c-><c- n>new_stream_scheduler</c-><c- p>());</c->
 <c- k>auto</c-> <c- n>snd3</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c-><c- n>snd2</c-><c- p>,</c-> <c- p>[](</c-><c- b>int</c-> <c- n>i</c-><c- p>){</c-> <c- k>return</c-> <c- mi>123</c-> <c- o>*</c-> <c- mi>5</c-><c- p>;</c-> <c- p>})</c->
@@ -4646,7 +4748,8 @@ Consider the following example where we want to execute first on a CPU thread po
      <tr>
       <th>Pipe 
       <td>
-<pre class="highlight"><c- k>auto</c-> <c- n>snd</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>schedule</c-><c- p>(</c-><c- n>thread_pool</c-><c- p>.</c-><c- n>scheduler</c-><c- p>())</c->
+<pre class="highlight">
+<c- k>auto</c-> <c- n>snd</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>schedule</c-><c- p>(</c-><c- n>thread_pool</c-><c- p>.</c-><c- n>scheduler</c-><c- p>())</c->
          <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>([]{</c-> <c- k>return</c-> <c- mi>123</c-><c- p>;</c-> <c- p>})</c->
          <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c-><c- n>cuda</c-><c- o>::</c-><c- n>new_stream_scheduler</c-><c- p>())</c->
          <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>([](</c-><c- b>int</c-> <c- n>i</c-><c- p>){</c-> <c- k>return</c-> <c- mi>123</c-> <c- o>*</c-> <c- mi>5</c-><c- p>;</c-> <c- p>})</c->
@@ -5162,7 +5265,7 @@ equivalent to:</p>
    <h3 class="heading settled" data-level="5.5" id="design-laziness"><span class="secno">5.5. </span><span class="content">Sender adaptors are lazy</span><a class="self-link" href="#design-laziness"></a></h3>
    <p>Contrary to early revisions of this paper, we propose to make all sender adaptors perform strictly lazy submission, unless specified otherwise (the one notable exception in this paper is <a href="#design-sender-adaptor-ensure_started">§ 4.20.12 execution::ensure_started</a>, whose sole purpose is to start an
 input sender).</p>
-   <p><dfn data-dfn-type="dfn" data-export id="strictly-lazy-submission">Strictly lazy submission<a class="self-link" href="#strictly-lazy-submission"></a></dfn> means that there is a guarantee that no work is submitted to an execution resource before a receiver is connected to a sender, and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>start</c-></code> is called on the resulting operation state.</p>
+   <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="strictly-lazy-submission">Strictly lazy submission</dfn> means that there is a guarantee that no work is submitted to an execution resource before a receiver is connected to a sender, and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>start</c-></code> is called on the resulting operation state.</p>
    <h3 class="heading settled" data-level="5.6" id="design-fusion"><span class="secno">5.6. </span><span class="content">Lazy senders provide optimization opportunities</span><a class="self-link" href="#design-fusion"></a></h3>
    <p>Because lazy senders fundamentally <em>describe</em> work, instead of describing or representing the submission of said work to an execution resource, and thanks to the flexibility of the customization of most sender algorithms, they provide an opportunity for fusing
 multiple algorithms in a sender chain together, into a single function that can later be submitted for execution by an execution resource. There are two ways this can happen.</p>
@@ -5324,7 +5427,7 @@ headers [tab:headers.cpp]</div>
     <blockquote>
      <ol start="3">
       <li data-md>
-       <p>An object <code class="highlight"><c- n>dst</c-></code> is said to be <dfn data-dfn-type="dfn" data-export id="decay-copied-from">decay-copied from<a class="self-link" href="#decay-copied-from"></a></dfn> a
+       <p>An object <code class="highlight"><c- n>dst</c-></code> is said to be <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="decay-copied-from">decay-copied from</dfn> a
 subexpression <code class="highlight"><c- n>src</c-></code> if the type of <code class="highlight"><c- n>dst</c-></code> is <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>((</c-><c- n>src</c-><c- p>))</c-><c- o>></c-></code>,
 and <code class="highlight"><c- n>dst</c-></code> is copy-initialized from <code class="highlight"><c- n>src</c-></code>.</p>
      </ol>
@@ -5979,8 +6082,8 @@ library:</p>
    <h4 class="heading settled" data-level="11.2.1" id="spec-execution.queryable.general"><span class="secno">11.2.1. </span><span class="content">General <b>[exec.queryable.general]</b></span><a class="self-link" href="#spec-execution.queryable.general"></a></h4>
    <ol>
     <li data-md>
-     <p>A <dfn data-dfn-type="dfn" data-export id="queryable-object">queryable object<a class="self-link" href="#queryable-object"></a></dfn> is a read-only collection of
-key/value pairs where each key is a customization point object known as a <dfn data-dfn-type="dfn" data-export id="query-object">query object<a class="self-link" href="#query-object"></a></dfn>. A <dfn data-dfn-type="dfn" data-export id="query">query<a class="self-link" href="#query"></a></dfn> is an invocation of a query object with a queryable
+     <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="queryable-object">queryable object</dfn> is a read-only collection of
+key/value pairs where each key is a customization point object known as a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="query-object">query object</dfn>. A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="query">query</dfn> is an invocation of a query object with a queryable
 object as its first argument and a (possibly empty) set of additional
 arguments. The result of a query expression is valid as long as the
 queryable object is valid. <span class="wg21note">A query imposes syntactic
@@ -6025,7 +6128,7 @@ hardware accelerator are all examples of execution resources. -- <em>end
 example</em>] Execution resources execute asynchronous operations. An execution
 resource is either valid or invalid.</p>
     <li data-md>
-     <p>An <dfn data-dfn-type="dfn" data-export id="asynchronous-operation">asynchronous operation<a class="self-link" href="#asynchronous-operation"></a></dfn> is a distinct unit of
+     <p>An <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="asynchronous-operation">asynchronous operation</dfn> is a distinct unit of
 program execution that:</p>
      <ul>
       <li data-md>
@@ -6034,22 +6137,22 @@ program execution that:</p>
        <p>can be explicitly <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="start" id="start">started</dfn>; an
   asynchronous operation can be started once at most;</p>
       <li data-md>
-       <p>if started, eventually <dfn data-dfn-type="dfn" data-export data-lt="complete" id="complete">completes<a class="self-link" href="#complete"></a></dfn> with a (possibly empty) set of result datums, and in exactly one of
+       <p>if started, eventually <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="complete" id="complete">completes</dfn> with a (possibly empty) set of result datums, and in exactly one of
   three modes: success, failure, or cancellation, known as the
-  operation’s <dfn data-dfn-type="dfn" data-export id="disposition">disposition<a class="self-link" href="#disposition"></a></dfn>; an asychronous
+  operation’s <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="disposition">disposition</dfn>; an asychronous
   operation can only complete once; a successful completion, also known
-  as a <dfn data-dfn-type="dfn" data-export id="value-completion">value completion<a class="self-link" href="#value-completion"></a></dfn>, can have an arbitrary
-  number of result datums; a failure completion, also known as an <dfn data-dfn-type="dfn" data-export id="error-completion">error completion<a class="self-link" href="#error-completion"></a></dfn>, has a single result datum; a
-  cancellation completion, also known as a <dfn data-dfn-type="dfn" data-export data-lt="stopped completion" id="stopped-completion">stopped
-  completion<a class="self-link" href="#stopped-completion"></a></dfn>, has no result datum; an asynchronous operation’s <dfn data-dfn-type="dfn" data-export id="async-result">async result<a class="self-link" href="#async-result"></a></dfn> is its disposition and its
+  as a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="value-completion">value completion</dfn>, can have an arbitrary
+  number of result datums; a failure completion, also known as an <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="error-completion">error completion</dfn>, has a single result datum; a
+  cancellation completion, also known as a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="stopped completion" id="stopped-completion">stopped
+  completion</dfn>, has no result datum; an asynchronous operation’s <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="async-result">async result</dfn> is its disposition and its
   (possibly empty) set of result datums.</p>
       <li data-md>
        <p>can complete on a different execution resource than that on which it
   started; and</p>
       <li data-md>
-       <p>can create and start other asychronous operations called <dfn data-dfn-type="dfn" data-export id="child-operations">child operations<a class="self-link" href="#child-operations"></a></dfn>. A child operation is an
+       <p>can create and start other asychronous operations called <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="child-operations">child operations</dfn>. A child operation is an
   asynchronous operation that is created by the parent operation and, if
-  started, completes before the parent operation completes. A <dfn data-dfn-type="dfn" data-export id="parent-operation">parent operation<a class="self-link" href="#parent-operation"></a></dfn> is the asynchronous operation that
+  started, completes before the parent operation completes. A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="parent-operation">parent operation</dfn> is the asynchronous operation that
   created a particular child operation.</p>
      </ul>
      <p><span class="wg21note">An asynchronous operation can in fact execute
@@ -6058,8 +6161,8 @@ operation on the thread of execution that started it.</span></p>
     <li data-md>
      <p>An asynchronous operation has associated state known as its <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="operation-state">operation state</dfn>.</p>
     <li data-md>
-     <p>An asynchronous operation has an associated environment. An <dfn data-dfn-type="dfn" data-export id="environment">environment<a class="self-link" href="#environment"></a></dfn> is a queryable object ([exec.queryable])
-representing the execution-time properties of the operation’s caller. The <dfn data-dfn-type="dfn" data-export data-lt="caller" id="caller">caller of an asynchronous operation<a class="self-link" href="#caller"></a></dfn> is
+     <p>An asynchronous operation has an associated environment. An <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="environment">environment</dfn> is a queryable object ([exec.queryable])
+representing the execution-time properties of the operation’s caller. The <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="caller" id="caller">caller of an asynchronous operation</dfn> is
 its parent operation or the function that created it. An asynchronous
 operation’s operation state owns the operation’s environment.</p>
     <li data-md>
@@ -6071,18 +6174,18 @@ associated environment. An asynchronous operation’s operation state owns the
 operation’s receiver. The environment of an asynchronous operation is equal
 to its receiver’s environment.</p>
     <li data-md>
-     <p>For each completion disposition, there is a <dfn data-dfn-type="dfn" data-export data-lt="completion function" id="completion-function">completion
-function<a class="self-link" href="#completion-function"></a></dfn>. A completion function is a customization point object
+     <p>For each completion disposition, there is a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="completion function" id="completion-function">completion
+function</dfn>. A completion function is a customization point object
 ([customization.point.object]) that accepts an asynchronous operation’s
 receiver as the first argument and the result datums of the asynchronous
 operation as additional arguments. The value completion function invokes the
 receiver’s value completion handler with the value result datums; likewise
 for the error completion function and the stopped completion function. A
-completion function has an associated type known as its <dfn data-dfn-type="dfn" data-export id="completion-tag">completion tag<a class="self-link" href="#completion-tag"></a></dfn> that names the unqualified type of the
-completion function. A valid invocation of a completion function is called a <dfn data-dfn-type="dfn" data-export id="completion-operation">completion operation<a class="self-link" href="#completion-operation"></a></dfn>.</p>
+completion function has an associated type known as its <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="completion-tag">completion tag</dfn> that names the unqualified type of the
+completion function. A valid invocation of a completion function is called a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="completion-operation">completion operation</dfn>.</p>
     <li data-md>
-     <p>The <dfn data-dfn-type="dfn" data-export data-lt="asychronous operation lifetime" id="asychronous-operation-lifetime">lifetime of an
-asynchronous operation<a class="self-link" href="#asychronous-operation-lifetime"></a></dfn>, also known as the operation’s <dfn data-dfn-type="dfn" data-export id="async-lifetime">async lifetime<a class="self-link" href="#async-lifetime"></a></dfn>, begins when its start operation begins
+     <p>The <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="asychronous operation lifetime" id="asychronous-operation-lifetime">lifetime of an
+asynchronous operation</dfn>, also known as the operation’s <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="async-lifetime">async lifetime</dfn>, begins when its start operation begins
 executing and ends when its completion operation begins executing. If the
 lifetime of an asynchronous operation’s associated operation state ends
 before the lifetime of the asynchronous operation, the behavior is
@@ -6104,15 +6207,15 @@ associated environment is equal to the environment associated with the
 receiver used to create it. The lifetime of an asynchronous operation’s
 associated operation state does not depend on the lifetimes of either the
 sender or the receiver from which it was created. A sender <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="send" id="send">sends</dfn> its results by way of the asynchronous operation(s)
-it produces, and a receiver <dfn data-dfn-type="dfn" data-export data-lt="receive" id="receive">receives<a class="self-link" href="#receive"></a></dfn> those results. A sender is either valid or invalid; it becomes invalid
+it produces, and a receiver <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="receive" id="receive">receives</dfn> those results. A sender is either valid or invalid; it becomes invalid
 when its parent sender (see below) becomes invalid.</p>
     <li data-md>
      <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="scheduler">scheduler</dfn> is an abstraction of an execution
 resource with a uniform, generic interface for scheduling work onto that
 resource. It is a factory for senders whose asynchronous operations execute
 value completion operations on an execution agent belonging to the
-scheduler’s associated execution resource. A <dfn data-dfn-type="dfn" data-export id="schedule-expression">schedule-expression<a class="self-link" href="#schedule-expression"></a></dfn> obtains such a sender from a
-scheduler. A <dfn data-dfn-type="dfn" data-export id="schedule-sender">schedule sender<a class="self-link" href="#schedule-sender"></a></dfn> is the result of a
+scheduler’s associated execution resource. A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="schedule-expression">schedule-expression</dfn> obtains such a sender from a
+scheduler. A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="schedule-sender">schedule sender</dfn> is the result of a
 schedule expression. On success, an asynchronous operation produced by a
 schedule sender executes a value completion operation with an empty set of
 result datums. Multiple schedulers can refer to the same execution resource.
@@ -6129,7 +6232,7 @@ completion scheduler is a scheduler on which an asynchronous operation’s
 value completion operation can execute. Likewise for error completion
 schedulers and stopped completion schedulers.</p>
     <li data-md>
-     <p>A sender has an associated queryable object ([exec.queryable]) known as its <dfn data-dfn-type="dfn" data-export id="attributes">attributes<a class="self-link" href="#attributes"></a></dfn> that describes various characteristics of
+     <p>A sender has an associated queryable object ([exec.queryable]) known as its <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="attributes">attributes</dfn> that describes various characteristics of
 the sender and of the asynchronous operation(s) it produces. For each
 disposition, there is a query object for reading the associated completion
 scheduler from a sender’s attributes; <em>i.e.</em>, a value completion scheduler
@@ -6140,13 +6243,13 @@ creates. A schedule sender is required to have a value completion scheduler
 attribute whose value is equal to the scheduler that produced the schedule
 sender.</p>
     <li data-md>
-     <p>A <dfn data-dfn-type="dfn" data-export id="completion-signature">completion signature<a class="self-link" href="#completion-signature"></a></dfn> is a function type that
+     <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="completion-signature">completion signature</dfn> is a function type that
 describes a completion operation. An asychronous operation has a finite set
 of possible completion signatures corresponding to the completion operations
 that the asynchronous operation potentially evaluates ([basic.def.odr]). For
 a completion function <code class="highlight"><i><c- n>set</c-></i></code>, receiver <code class="highlight"><i><c- n>rcvr</c-></i></code>, and pack of arguments <code class="highlight"><i><c- n>args</c-></i></code>,
 let <code class="highlight"><c- n>c</c-></code> be the completion operation <code class="highlight"><i><c- n>set</c-></i><c- p>(</c-><i><c- n>rcvr</c-></i><c- p>,</c-> <i><c- n>args</c-></i><c- p>...)</c-></code>, and let <code class="highlight"><c- n>F</c-></code> be the function type <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>(</c-><i><c- n>set</c-></i><c- p>))(</c-><c- k>decltype</c-><c- p>((</c-><i><c- n>args</c-></i><c- p>))...)</c-></code>.
-A completion signature <code class="highlight"><c- n>Sndr</c-></code> is associated with <code class="highlight"><c- n>c</c-></code> if and only if <code class="highlight"><i><c- n>MATCHING</c-><c- o>-</c-><c- n>SIG</c-></i><c- p>(</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>F</c-><c- p>)</c-></code> is <code class="highlight">true</code> ([exec.general]). Together,
+A completion signature <code class="highlight"><c- n>Sig</c-></code> is associated with <code class="highlight"><c- n>c</c-></code> if and only if <code class="highlight"><i><c- n>MATCHING</c-><c- o>-</c-><c- n>SIG</c-></i><c- p>(</c-><c- n>Sig</c-><c- p>,</c-> <c- n>F</c-><c- p>)</c-></code> is <code class="highlight">true</code> ([exec.general]). Together,
 a sender type and an environment type <code class="highlight"><c- n>Env</c-></code> determine the set of completion
 signatures of an asynchronous operation that results from connecting the
 sender with a receiver that has an environment of type <code class="highlight"><c- n>Env</c-></code>. <span class="wg21note">The type of the receiver does not affect an asychronous
@@ -6163,9 +6266,9 @@ non-senders as arguments and that returns a sender.</p>
        <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="sender-adaptor">sender adaptor</dfn> is a function that constructs and
 returns a parent sender from a set of one or more child senders and a
 (possibly empty) set of additional arguments. An asynchronous operation
-created by a <dfn data-dfn-type="dfn" data-export id="parent-sender">parent sender<a class="self-link" href="#parent-sender"></a></dfn> is a parent to the
-child operations created by the <dfn data-dfn-type="dfn" data-export data-lt="child sender" id="child-sender">child
-senders<a class="self-link" href="#child-sender"></a></dfn>.</p>
+created by a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="parent-sender">parent sender</dfn> is a parent to the
+child operations created by the <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="child sender" id="child-sender">child
+senders</dfn>.</p>
       <li data-md>
        <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="sender-consumer">sender consumer</dfn> is a function that takes one or
 more senders and a (possibly empty) set of additional arguments, and
@@ -6324,18 +6427,18 @@ whose return type is not the type of a sender.</p>
     <c- k>using</c-> <i><c- n>decayed</c-><c- o>-</c-><c- n>tuple</c-></i> <c- o>=</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-><c- p>...</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>Ts</c-><c- o>></c->
-    <c- k>using</c-> <i><c- n>variant</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- n>empty</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- k>using</c-> <i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c->
            <c- k>class</c-> <c- nc>Env</c-> <c- o>=</c-> <c- n>empty_env</c-><c- p>,</c->
            <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-><c- o>></c-> <c- k>class</c-> <c- nc>Tuple</c-> <c- o>=</c-> <i><c- n>decayed</c-><c- o>-</c-><c- n>tuple</c-></i><c- p>,</c->
-           <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-><c- o>></c-> <c- k>class</c-> <c- nc>Variant</c-> <c- o>=</c-> <i><c- n>variant</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- n>empty</c-></i><c- o>></c->
+           <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-><c- o>></c-> <c- k>class</c-> <c- nc>Variant</c-> <c- o>=</c-> <i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-></i><c- o>></c->
       <c- k>requires</c-> <c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c->
     <c- k>using</c-> <c- n>value_types_of_t</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c->
            <c- k>class</c-> <c- nc>Env</c-> <c- o>=</c-> <c- n>empty_env</c-><c- p>,</c->
-           <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-><c- o>></c-> <c- k>class</c-> <c- nc>Variant</c-> <c- o>=</c-> <i><c- n>variant</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- n>empty</c-></i><c- o>></c->
+           <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-><c- o>></c-> <c- k>class</c-> <c- nc>Variant</c-> <c- o>=</c-> <i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-></i><c- o>></c->
       <c- k>requires</c-> <c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c->
     <c- k>using</c-> <c- n>error_types_of_t</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
@@ -6562,14 +6665,14 @@ whose return type is not the type of a sender.</p>
 </t></pre>
    <ol>
     <li data-md>
-     <p>The exposition-only type <code class="highlight"><i><c- n>variant</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- n>empty</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></i></code> is
+     <p>The exposition-only type <code class="highlight"><i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></i></code> is
  defined as follows:</p>
      <ol>
       <li data-md>
-       <p>If <code class="highlight"><c- k>sizeof</c-><c- p>...(</c-><c- n>Ts</c-><c- p>)</c-></code> is greater than zero, <code class="highlight"><i><c- n>variant</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- n>empty</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></i></code> names the type <code class="highlight"><c- n>variant</c-><c- o>&lt;</c-><c- n>Us</c-><c- p>...</c-><c- o>></c-></code> where <code class="highlight"><c- n>Us</c-><c- p>...</c-></code> is the pack <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-><c- p>...</c-></code> with
+       <p>If <code class="highlight"><c- k>sizeof</c-><c- p>...(</c-><c- n>Ts</c-><c- p>)</c-></code> is greater than zero, <code class="highlight"><i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></i></code> names the type <code class="highlight"><c- n>variant</c-><c- o>&lt;</c-><c- n>Us</c-><c- p>...</c-><c- o>></c-></code> where <code class="highlight"><c- n>Us</c-><c- p>...</c-></code> is the pack <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-><c- p>...</c-></code> with
 duplicate types removed.</p>
       <li data-md>
-       <p>Otherwise, <code class="highlight"><i><c- n>variant</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- n>empty</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></i></code> names the
+       <p>Otherwise, <code class="highlight"><i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></i></code> names the
 exposition-only class type:</p>
 <pre class="highlight"><c- k>struct</c-> <i><c- nc>empty</c-><c- o>-</c-><c- n>variant</c-></i> <c- p>{</c->
   <i><c- n>empty</c-><c- o>-</c-><c- n>variant</c-></i><c- p>()</c-> <c- o>=</c-> <c- k>delete</c-><c- p>;</c->
@@ -7046,7 +7149,7 @@ Otherwise, <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>dom
          <p><i>Effects:</i> Equivalent to:</p>
          <ul>
           <li data-md>
-           <p>If <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>transfer_t</c-><c- o>></c-></code> is <code class="highlight">true</code>, then <code class="highlight"><c- k>return</c-> <i><c- n>query</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>())</c-></code> where <code class="highlight"><c- n>sch</c-></code> is the scheduler that was used to construct <code class="highlight"><c- n>sndr</c-></code>,</p>
+           <p>If <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>transfer_t</c-><c- o>></c-></code> is <code class="highlight">true</code>, then <code class="highlight"><c- k>return</c-> <i><c- n>query</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>())</c-></code> where <code class="highlight"><c- n>sch</c-></code> is the scheduler that was used to construct <code class="highlight"><c- n>sndr</c-></code>,</p>
           <li data-md>
            <p>Otherwise, <code class="highlight"><c- k>return</c-> <c- n>get_domain</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>sndr</c-><c- p>));</c-></code> if that expression is well-formed,</p>
           <li data-md>
@@ -7360,7 +7463,7 @@ sender and a receiver to produce an operation state.</p>
     <li data-md>
      <p>Given a subexpression <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>, let <code class="highlight"><c- n>Env</c-></code> be
 the type of an environment, and let <code class="highlight"><c- n>rcvr</c-></code> be a receiver with an associated
-environment <code class="highlight"><c- n>Env</c-></code>. A completion operation is a <dfn data-dfn-type="dfn" data-export id="permissible-completion">permissible completion<a class="self-link" href="#permissible-completion"></a></dfn> for <code class="highlight"><c- n>Sndr</c-></code> and <code class="highlight"><c- n>Env</c-></code> if its
+environment <code class="highlight"><c- n>Env</c-></code>. A completion operation is a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="permissible-completion">permissible completion</dfn> for <code class="highlight"><c- n>Sndr</c-></code> and <code class="highlight"><c- n>Env</c-></code> if its
 completion signature appears in the argument list of the specialization of <code class="highlight"><c- n>completion_signatures</c-></code> denoted by <code class="highlight"><c- n>completion_signatures_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code>. <code class="highlight"><c- n>Sndr</c-></code> and <code class="highlight"><c- n>Env</c-></code> model <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> if all the completion
 operations that are potentially evaluated by connecting <code class="highlight"><c- n>sndr</c-></code> to <code class="highlight"><c- n>rcvr</c-></code> and
 starting the resulting operation state are permissible completions for <code class="highlight"><c- n>Sndr</c-></code> and <code class="highlight"><c- n>Env</c-></code>.</p>
@@ -7425,7 +7528,7 @@ been approved by EWG for C++26.</div>
    <ol>
     <li data-md>
      <p>The sender concepts recognize awaitables as senders. For this clause
-([exec]), an <dfn data-dfn-type="dfn" data-export id="awaitable">awaitable<a class="self-link" href="#awaitable"></a></dfn> is an expression that would be
+([exec]), an <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="awaitable">awaitable</dfn> is an expression that would be
 well-formed as the operand of a <code class="highlight"><c- k>co_await</c-></code> expression within a given
 context.</p>
     <li data-md>
@@ -7929,7 +8032,7 @@ agent belonging to a particular scheduler’s associated execution resource.</p>
     <li data-md>
      <p>Otherwise, the expression <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to:</p>
 <pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
-  <i><c- n>query</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>()),</c->
+  <i><c- n>query</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>()),</c->
   <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>on</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>));</c->
 </pre>
     <li data-md>
@@ -8013,7 +8116,7 @@ satisfy <code class="highlight"><c- n>sender</c-></code>, <code class="highlight
      <p>Otherwise, the expression <code class="highlight"><c- n>schedule_from</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent
 to:</p>
 <pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
-  <i><c- n>query</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>()),</c->
+  <i><c- n>query</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>()),</c->
   <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>schedule_from</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>));</c->
 </pre>
     <li data-md>
@@ -8987,7 +9090,7 @@ equal to:</p>
     <li data-md>
      <p>The name <code class="highlight"><c- n>execute</c-></code> denotes a customization point object. For some subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>Sch</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> and <code class="highlight"><c- n>F</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>f</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>Sch</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code> or <code class="highlight"><c- n>F</c-></code> does not satisfy <code class="highlight"><c- n>invocable</c-></code>, <code class="highlight"><c- n>execute</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is ill-formed. Otherwise, <code class="highlight"><c- n>execute</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is expression-equivalent to:</p>
 <pre class="highlight"><c- n>apply_sender</c-><c- p>(</c->
-  <i><c- n>query</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>()),</c->
+  <i><c- n>query</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>()),</c->
   <c- n>execute</c-><c- p>,</c-> <c- n>schedule</c-><c- p>(</c-><c- n>sch</c-><c- p>),</c-> <c- n>f</c-><c- p>)</c->
 </pre>
      <ul>
@@ -9266,14 +9369,14 @@ valid to use non-variadic templates as <code class="highlight"><i><c- n>Variant<
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c->
           <c- k>class</c-> <c- nc>Env</c-> <c- o>=</c-> <c- n>empty_env</c-><c- p>,</c->
           <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-><c- o>></c-> <c- k>class</c-> <c- nc>Tuple</c-> <c- o>=</c-> <i><c- n>decayed</c-><c- o>-</c-><c- n>tuple</c-></i><c- p>,</c->
-          <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-><c- o>></c-> <c- k>class</c-> <c- nc>Variant</c-> <c- o>=</c-> <i><c- n>variant</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- n>empty</c-></i><c- o>></c->
+          <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-><c- o>></c-> <c- k>class</c-> <c- nc>Variant</c-> <c- o>=</c-> <i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-></i><c- o>></c->
     <c- k>requires</c-> <c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c->
   <c- k>using</c-> <c- n>value_types_of_t</c-> <c- o>=</c->
       <i><c- n>gather</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>,</c-> <c- n>completion_signatures_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-><c- p>,</c-> <c- n>Tuple</c-><c- p>,</c-> <c- n>Variant</c-><c- o>></c-><c- p>;</c->
 
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c->
           <c- k>class</c-> <c- nc>Env</c-> <c- o>=</c-> <c- n>empty_env</c-><c- p>,</c->
-          <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-><c- o>></c-> <c- k>class</c-> <c- nc>Variant</c-> <c- o>=</c-> <i><c- n>variant</c-><c- o>-</c-><c- n>or</c-><c- o>-</c-><c- n>empty</c-></i><c- o>></c->
+          <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-><c- o>></c-> <c- k>class</c-> <c- nc>Variant</c-> <c- o>=</c-> <i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-></i><c- o>></c->
     <c- k>requires</c-> <c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c->
   <c- k>using</c-> <c- n>error_types_of_t</c-> <c- o>=</c->
       <i><c- n>gather</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>set_error_t</c-><c- p>,</c-> <c- n>completion_signatures_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-><c- p>,</c-> <c- n>type_identity_t</c-><c- p>,</c-> <c- n>Variant</c-><c- o>></c-><c- p>;</c->
@@ -9746,7 +9849,7 @@ expression in a coroutine with promise type <code class="highlight"><c- n>Promis
       on = !document.body.classList.contains('toc-sidebar');
     }
 
-    /* Don’t scroll to compensate for the ToC if we’re above it already. */
+    /* Don't scroll to compensate for the ToC if we're above it already. */
     var headY = 0;
     var head = document.querySelector('.head');
     if (head) {
@@ -9777,16 +9880,16 @@ expression in a coroutine with promise type <code class="highlight"><c- n>Promis
       }
       if (toggle.matches(':hover')) {
         /* Unfocus button when not using keyboard navigation,
-           because I don’t know where else to send the focus. */
+           because I don't know where else to send the focus. */
         toggle.blur();
       }
     }
   }
 
   function createSidebarToggle() {
-    /* Create the sidebar toggle in JS; it shouldn’t exist when JS is off. */
+    /* Create the sidebar toggle in JS; it shouldn't exist when JS is off. */
     var toggle = document.createElement('a');
-      /* This should probably be a button, but appearance isn’t standards-track.*/
+      /* This should probably be a button, but appearance isn't standards-track.*/
     toggle.id = 'toc-toggle';
     toggle.class = 'toc-toggle';
     toggle.href = '#toc';
@@ -9802,7 +9905,7 @@ expression in a coroutine with promise type <code class="highlight"><c- n>Promis
     toggle.addEventListener('click', toggler, false);
 
 
-    /* Get <nav id=toc-nav>, or make it if we don’t have one. */
+    /* Get <nav id=toc-nav>, or make it if we don't have one. */
     var tocNav = document.getElementById('toc-nav');
     if (!tocNav) {
       tocNav = document.createElement('p');
@@ -9810,7 +9913,7 @@ expression in a coroutine with promise type <code class="highlight"><c- n>Promis
       /* Prepend for better keyboard navigation */
       document.body.insertBefore(tocNav, document.body.firstChild);
     }
-    /* While we’re at it, make sure we have a Jump to Toc link. */
+    /* While we're at it, make sure we have a Jump to Toc link. */
     var tocJump = document.getElementById('toc-jump');
     if (!tocJump) {
       tocJump = document.createElement('a');
@@ -9838,7 +9941,7 @@ expression in a coroutine with promise type <code class="highlight"><c- n>Promis
     }, false);
   }
   else {
-    console.warn("Can’t find Table of Contents. Please use <nav id='toc'> around the ToC.");
+    console.warn("Can't find Table of Contents. Please use <nav id='toc'> around the ToC.");
   }
 
   /* Wrap tables in case they overflow */
@@ -9929,176 +10032,8 @@ expression in a coroutine with promise type <code class="highlight"><c- n>Promis
    <dt id="biblio-p2280r2">[P2280r2]
    <dd>Barry Revzin. <a href="https://wg21.link/p2280r2"><cite>Using unknown references in constant expressions</cite></a>. 15 May 2021. URL: <a href="https://wg21.link/p2280r2">https://wg21.link/p2280r2</a>
   </dl>
-<script>/* Boilerplate: script-dfn-panel */
-"use strict";
-{
-    const dfnsJson = window.dfnsJson || {};
-
-    function genDfnPanel({dfnID, url, dfnText, refSections, external}) {
-        return mk.aside({
-            class: "dfn-panel",
-            id: `infopanel-for-${dfnID}`,
-            "data-for": dfnID,
-            "aria-labelled-by":`infopaneltitle-for-${dfnID}`,
-            },
-            mk.span({id:`infopaneltitle-for-${dfnID}`, style:"display:none"},
-                `Info about the '${dfnText}' ${external?"external":""} reference.`),
-            mk.a({href:url}, url),
-            mk.b({}, "Referenced in:"),
-            mk.ul({},
-                ...refSections.map(section=>
-                    mk.li({},
-                        ...section.refs.map((ref, refI)=>
-                            [
-                                mk.a({
-                                    href: `#${ref.id}`
-                                    },
-                                    (refI == 0) ? section.title : `(${refI + 1})`
-                                ),
-                                " ",
-                            ]
-                        ),
-                    ),
-                ),
-            ),
-        );
-    }
-
-    function genAllDfnPanels() {
-        for(const panelData of Object.values(window.dfnpanelData)) {
-            const dfnID = panelData.dfnID;
-            const dfn = document.getElementById(dfnID);
-            if(!dfn) {
-                console.log(`Can't find dfn#${dfnID}.`, panelData);
-            } else {
-                const panel = genDfnPanel(panelData);
-                append(document.body, panel);
-                insertDfnPopupAction(dfn, panel)
-            }
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", ()=>{
-        genAllDfnPanels();
-
-        // Add popup behavior to all dfns to show the corresponding dfn-panel.
-        var dfns = queryAll('.dfn-paneled');
-        for(let dfn of dfns) { ; }
-
-        document.body.addEventListener("click", (e) => {
-            // If not handled already, just hide all dfn panels.
-            hideAllDfnPanels();
-        });
-    })
-
-
-    function hideAllDfnPanels() {
-        // Turn off any currently "on" or "activated" panels.
-        queryAll(".dfn-panel.on, .dfn-panel.activated").forEach(el=>hideDfnPanel(el));
-    }
-
-    function showDfnPanel(dfnPanel, dfn) {
-        hideAllDfnPanels(); // Only display one at this time.
-        dfn.setAttribute("aria-expanded", "true");
-        dfnPanel.classList.add("on");
-        dfnPanel.style.left = "5px";
-        dfnPanel.style.top = "0px";
-        const panelRect = dfnPanel.getBoundingClientRect();
-        const panelWidth = panelRect.right - panelRect.left;
-        if (panelRect.right > document.body.scrollWidth) {
-            // Panel's overflowing the screen.
-            // Just drop it below the dfn and flip it rightward instead.
-            // This still wont' fix things if the screen is *really* wide,
-            // but fixing that's a lot harder without 'anchor()'.
-            dfnPanel.style.top = "1.5em";
-            dfnPanel.style.left = "auto";
-            dfnPanel.style.right = "0px";
-        }
-    }
-
-    function pinDfnPanel(dfnPanel) {
-        // Switch it to "activated" state, which pins it.
-        dfnPanel.classList.add("activated");
-        dfnPanel.style.left = null;
-        dfnPanel.style.top = null;
-    }
-
-    function hideDfnPanel(dfnPanel, dfn) {
-        if(!dfn) {
-            dfn = document.getElementById(dfnPanel.getAttribute("data-for"));
-        }
-        dfn.setAttribute("aria-expanded", "false")
-        dfnPanel.classList.remove("on");
-        dfnPanel.classList.remove("activated");
-    }
-
-    function toggleDfnPanel(dfnPanel, dfn) {
-        if(dfnPanel.classList.contains("on")) {
-            hideDfnPanel(dfnPanel, dfn);
-        } else {
-            showDfnPanel(dfnPanel, dfn);
-        }
-    }
-
-    function insertDfnPopupAction(dfn, dfnPanel) {
-        // Find dfn panel
-        const panelWrapper = document.createElement('span');
-        panelWrapper.appendChild(dfnPanel);
-        panelWrapper.style.position = "relative";
-        panelWrapper.style.height = "0px";
-        dfn.insertAdjacentElement("afterend", panelWrapper);
-        dfn.setAttribute('role', 'button');
-        dfn.setAttribute('aria-expanded', 'false')
-        dfn.tabIndex = 0;
-        dfn.classList.add('has-dfn-panel');
-        dfn.addEventListener('click', (event) => {
-            showDfnPanel(dfnPanel, dfn);
-            event.stopPropagation();
-        });
-        dfn.addEventListener('keypress', (event) => {
-            const kc = event.keyCode;
-            // 32->Space, 13->Enter
-            if(kc == 32 || kc == 13) {
-                toggleDfnPanel(dfnPanel, dfn);
-                event.stopPropagation();
-                event.preventDefault();
-            }
-        });
-
-        dfnPanel.addEventListener('click', (event) => {
-            if (event.target.nodeName == 'A') {
-                pinDfnPanel(dfnPanel);
-            }
-            event.stopPropagation();
-        });
-
-        dfnPanel.addEventListener('keydown', (event) => {
-            if(event.keyCode == 27) { // Escape key
-                hideDfnPanel(dfnPanel, dfn);
-                event.stopPropagation();
-                event.preventDefault();
-            }
-        })
-    }
-}
-</script>
-<script>/* Boilerplate: script-dfn-panel-json */
-window.dfnpanelData = {};
-window.dfnpanelData['execution-resource'] = {"dfnID": "execution-resource", "url": "#execution-resource", "dfnText": "execution resource", "refSections": [{"refs": [{"id": "ref-for-execution-resource"}], "title": "4.1. Execution resources describe the place of execution"}], "external": false};
-window.dfnpanelData['start'] = {"dfnID": "start", "url": "#start", "dfnText": "started", "refSections": [{"refs": [{"id": "ref-for-start"}], "title": "4.20. User-facing sender adaptors"}], "external": false};
-window.dfnpanelData['operation-state'] = {"dfnID": "operation-state", "url": "#operation-state", "dfnText": "operation state", "refSections": [{"refs": [{"id": "ref-for-operation-state"}], "title": "5.2. Operation states represent work"}], "external": false};
-window.dfnpanelData['receiver'] = {"dfnID": "receiver", "url": "#receiver", "dfnText": "receiver", "refSections": [{"refs": [{"id": "ref-for-receiver"}], "title": "5.1. Receivers serve as glue between senders"}], "external": false};
-window.dfnpanelData['sender'] = {"dfnID": "sender", "url": "#sender", "dfnText": "sender", "refSections": [{"refs": [{"id": "ref-for-sender"}], "title": "4.3. Senders describe work"}], "external": false};
-window.dfnpanelData['connect'] = {"dfnID": "connect", "url": "#connect", "dfnText": "Connecting", "refSections": [{"refs": [{"id": "ref-for-connect"}], "title": "4.20.12. execution::ensure_started"}, {"refs": [{"id": "ref-for-connect\u2460"}], "title": "5.3. execution::connect"}], "external": false};
-window.dfnpanelData['send'] = {"dfnID": "send", "url": "#send", "dfnText": "sends", "refSections": [{"refs": [{"id": "ref-for-send"}], "title": "4.5.1. execution::get_completion_scheduler"}, {"refs": [{"id": "ref-for-send\u2460"}], "title": "4.19.2. execution::just"}, {"refs": [{"id": "ref-for-send\u2461"}], "title": "4.20.2. execution::then"}, {"refs": [{"id": "ref-for-send\u2462"}], "title": "4.20.4. execution::let_*"}, {"refs": [{"id": "ref-for-send\u2463"}], "title": "5.8. All senders are typed"}], "external": false};
-window.dfnpanelData['scheduler'] = {"dfnID": "scheduler", "url": "#scheduler", "dfnText": "scheduler", "refSections": [{"refs": [{"id": "ref-for-scheduler"}], "title": "4.2. Schedulers represent execution resources"}], "external": false};
-window.dfnpanelData['completion-scheduler'] = {"dfnID": "completion-scheduler", "url": "#completion-scheduler", "dfnText": "completion\nscheduler", "refSections": [{"refs": [{"id": "ref-for-completion-scheduler"}], "title": "4.5. Senders can propagate completion schedulers"}, {"refs": [{"id": "ref-for-completion-scheduler\u2460"}], "title": "4.6. Execution resource transitions are explicit"}, {"refs": [{"id": "ref-for-completion-scheduler\u2461"}], "title": "4.19.2. execution::just"}, {"refs": [{"id": "ref-for-completion-scheduler\u2462"}], "title": "4.19.3. execution::just_error"}, {"refs": [{"id": "ref-for-completion-scheduler\u2463"}], "title": "4.19.4. execution::just_stopped"}, {"refs": [{"id": "ref-for-completion-scheduler\u2464"}], "title": "4.20.5. execution::on"}, {"refs": [{"id": "ref-for-completion-scheduler\u2465"}], "title": "4.20.11. execution::when_all"}, {"refs": [{"id": "ref-for-completion-scheduler\u2466"}], "title": "5.4. Sender algorithms are customizable"}], "external": false};
-window.dfnpanelData['sender-algorithm'] = {"dfnID": "sender-algorithm", "url": "#sender-algorithm", "dfnText": "sender algorithm", "refSections": [{"refs": [{"id": "ref-for-sender-algorithm"}], "title": "4.3. Senders describe work"}, {"refs": [{"id": "ref-for-sender-algorithm\u2460"}], "title": "4.4. Senders are composable through sender algorithms"}], "external": false};
-window.dfnpanelData['sender-factory'] = {"dfnID": "sender-factory", "url": "#sender-factory", "dfnText": "sender factory", "refSections": [{"refs": [{"id": "ref-for-sender-factory"}], "title": "4.4. Senders are composable through sender algorithms"}, {"refs": [{"id": "ref-for-sender-factory\u2460"}], "title": "4.19. User-facing sender factories"}], "external": false};
-window.dfnpanelData['sender-adaptor'] = {"dfnID": "sender-adaptor", "url": "#sender-adaptor", "dfnText": "sender adaptor", "refSections": [{"refs": [{"id": "ref-for-sender-adaptor"}], "title": "4.4. Senders are composable through sender algorithms"}, {"refs": [{"id": "ref-for-sender-adaptor\u2460"}], "title": "4.20. User-facing sender adaptors"}, {"refs": [{"id": "ref-for-sender-adaptor\u2461"}], "title": "5.4. Sender algorithms are customizable"}], "external": false};
-window.dfnpanelData['sender-consumer'] = {"dfnID": "sender-consumer", "url": "#sender-consumer", "dfnText": "sender consumer", "refSections": [{"refs": [{"id": "ref-for-sender-consumer"}], "title": "4.4. Senders are composable through sender algorithms"}, {"refs": [{"id": "ref-for-sender-consumer\u2460"}], "title": "4.21. User-facing sender consumers"}, {"refs": [{"id": "ref-for-sender-consumer\u2461"}], "title": "5.4. Sender algorithms are customizable"}], "external": false};
-</script>
 <script>/* Boilerplate: script-dom-helper */
+"use strict";
 function query(sel) { return document.querySelector(sel); }
 
 function queryAll(sel) { return [...document.querySelectorAll(sel)]; }
@@ -10292,5 +10227,652 @@ function parseHTML(markup) {
 		el.innerHTML = markup;
 		return el.content;
 	}
+}</script>
+<script>/* Boilerplate: script-dfn-panel */
+"use strict";
+{
+let dfnPanelData = {
+"asychronous-operation-lifetime": {"dfnID":"asychronous-operation-lifetime","dfnText":"lifetime of an\nasynchronous operation","external":false,"refSections":[],"url":"#asychronous-operation-lifetime"},
+"async-lifetime": {"dfnID":"async-lifetime","dfnText":"async lifetime","external":false,"refSections":[],"url":"#async-lifetime"},
+"async-result": {"dfnID":"async-result","dfnText":"async result","external":false,"refSections":[],"url":"#async-result"},
+"asynchronous-operation": {"dfnID":"asynchronous-operation","dfnText":"asynchronous operation","external":false,"refSections":[],"url":"#asynchronous-operation"},
+"attributes": {"dfnID":"attributes","dfnText":"attributes","external":false,"refSections":[],"url":"#attributes"},
+"awaitable": {"dfnID":"awaitable","dfnText":"awaitable","external":false,"refSections":[],"url":"#awaitable"},
+"caller": {"dfnID":"caller","dfnText":"caller of an asynchronous operation","external":false,"refSections":[],"url":"#caller"},
+"child-operations": {"dfnID":"child-operations","dfnText":"child operations","external":false,"refSections":[],"url":"#child-operations"},
+"child-sender": {"dfnID":"child-sender","dfnText":"child\nsenders","external":false,"refSections":[],"url":"#child-sender"},
+"complete": {"dfnID":"complete","dfnText":"completes","external":false,"refSections":[],"url":"#complete"},
+"completion-function": {"dfnID":"completion-function","dfnText":"completion\nfunction","external":false,"refSections":[],"url":"#completion-function"},
+"completion-operation": {"dfnID":"completion-operation","dfnText":"completion operation","external":false,"refSections":[],"url":"#completion-operation"},
+"completion-scheduler": {"dfnID":"completion-scheduler","dfnText":"completion\nscheduler","external":false,"refSections":[{"refs":[{"id":"ref-for-completion-scheduler"}],"title":"4.5. Senders can propagate completion schedulers"},{"refs":[{"id":"ref-for-completion-scheduler\u2460"}],"title":"4.6. Execution resource transitions are explicit"},{"refs":[{"id":"ref-for-completion-scheduler\u2461"}],"title":"4.19.2. execution::just"},{"refs":[{"id":"ref-for-completion-scheduler\u2462"}],"title":"4.19.3. execution::just_error"},{"refs":[{"id":"ref-for-completion-scheduler\u2463"}],"title":"4.19.4. execution::just_stopped"},{"refs":[{"id":"ref-for-completion-scheduler\u2464"}],"title":"4.20.5. execution::on"},{"refs":[{"id":"ref-for-completion-scheduler\u2465"}],"title":"4.20.11. execution::when_all"},{"refs":[{"id":"ref-for-completion-scheduler\u2466"}],"title":"5.4. Sender algorithms are customizable"}],"url":"#completion-scheduler"},
+"completion-signature": {"dfnID":"completion-signature","dfnText":"completion signature","external":false,"refSections":[],"url":"#completion-signature"},
+"completion-tag": {"dfnID":"completion-tag","dfnText":"completion tag","external":false,"refSections":[],"url":"#completion-tag"},
+"connect": {"dfnID":"connect","dfnText":"Connecting","external":false,"refSections":[{"refs":[{"id":"ref-for-connect"}],"title":"4.20.12. execution::ensure_started"},{"refs":[{"id":"ref-for-connect\u2460"}],"title":"5.3. execution::connect"}],"url":"#connect"},
+"decay-copied-from": {"dfnID":"decay-copied-from","dfnText":"decay-copied from","external":false,"refSections":[],"url":"#decay-copied-from"},
+"disposition": {"dfnID":"disposition","dfnText":"disposition","external":false,"refSections":[],"url":"#disposition"},
+"environment": {"dfnID":"environment","dfnText":"environment","external":false,"refSections":[],"url":"#environment"},
+"error-completion": {"dfnID":"error-completion","dfnText":"error completion","external":false,"refSections":[],"url":"#error-completion"},
+"execution-resource": {"dfnID":"execution-resource","dfnText":"execution resource","external":false,"refSections":[{"refs":[{"id":"ref-for-execution-resource"}],"title":"4.1. Execution resources describe the place of execution"}],"url":"#execution-resource"},
+"multi-shot-sender": {"dfnID":"multi-shot-sender","dfnText":"multi-shot sender","external":false,"refSections":[],"url":"#multi-shot-sender"},
+"operation-state": {"dfnID":"operation-state","dfnText":"operation state","external":false,"refSections":[{"refs":[{"id":"ref-for-operation-state"}],"title":"5.2. Operation states represent work"}],"url":"#operation-state"},
+"parent-operation": {"dfnID":"parent-operation","dfnText":"parent operation","external":false,"refSections":[],"url":"#parent-operation"},
+"parent-sender": {"dfnID":"parent-sender","dfnText":"parent sender","external":false,"refSections":[],"url":"#parent-sender"},
+"permissible-completion": {"dfnID":"permissible-completion","dfnText":"permissible completion","external":false,"refSections":[],"url":"#permissible-completion"},
+"pipeable": {"dfnID":"pipeable","dfnText":"pipeable","external":false,"refSections":[],"url":"#pipeable"},
+"piped": {"dfnID":"piped","dfnText":"piped","external":false,"refSections":[],"url":"#piped"},
+"query": {"dfnID":"query","dfnText":"query","external":false,"refSections":[],"url":"#query"},
+"query-object": {"dfnID":"query-object","dfnText":"query object","external":false,"refSections":[],"url":"#query-object"},
+"queryable-object": {"dfnID":"queryable-object","dfnText":"queryable object","external":false,"refSections":[],"url":"#queryable-object"},
+"receive": {"dfnID":"receive","dfnText":"receives","external":false,"refSections":[],"url":"#receive"},
+"receiver": {"dfnID":"receiver","dfnText":"receiver","external":false,"refSections":[{"refs":[{"id":"ref-for-receiver"}],"title":"5.1. Receivers serve as glue between senders"}],"url":"#receiver"},
+"schedule-expression": {"dfnID":"schedule-expression","dfnText":"schedule-expression","external":false,"refSections":[],"url":"#schedule-expression"},
+"schedule-sender": {"dfnID":"schedule-sender","dfnText":"schedule sender","external":false,"refSections":[],"url":"#schedule-sender"},
+"scheduler": {"dfnID":"scheduler","dfnText":"scheduler","external":false,"refSections":[{"refs":[{"id":"ref-for-scheduler"}],"title":"4.2. Schedulers represent execution resources"}],"url":"#scheduler"},
+"send": {"dfnID":"send","dfnText":"sends","external":false,"refSections":[{"refs":[{"id":"ref-for-send"}],"title":"4.5.1. execution::get_completion_scheduler"},{"refs":[{"id":"ref-for-send\u2460"}],"title":"4.19.2. execution::just"},{"refs":[{"id":"ref-for-send\u2461"}],"title":"4.20.2. execution::then"},{"refs":[{"id":"ref-for-send\u2462"}],"title":"4.20.4. execution::let_*"},{"refs":[{"id":"ref-for-send\u2463"}],"title":"5.8. All senders are typed"}],"url":"#send"},
+"sender": {"dfnID":"sender","dfnText":"sender","external":false,"refSections":[{"refs":[{"id":"ref-for-sender"}],"title":"4.3. Senders describe work"}],"url":"#sender"},
+"sender-adaptor": {"dfnID":"sender-adaptor","dfnText":"sender adaptor","external":false,"refSections":[{"refs":[{"id":"ref-for-sender-adaptor"}],"title":"4.4. Senders are composable through sender algorithms"},{"refs":[{"id":"ref-for-sender-adaptor\u2460"}],"title":"4.20. User-facing sender adaptors"},{"refs":[{"id":"ref-for-sender-adaptor\u2461"}],"title":"5.4. Sender algorithms are customizable"}],"url":"#sender-adaptor"},
+"sender-algorithm": {"dfnID":"sender-algorithm","dfnText":"sender algorithm","external":false,"refSections":[{"refs":[{"id":"ref-for-sender-algorithm"}],"title":"4.3. Senders describe work"},{"refs":[{"id":"ref-for-sender-algorithm\u2460"}],"title":"4.4. Senders are composable through sender algorithms"}],"url":"#sender-algorithm"},
+"sender-consumer": {"dfnID":"sender-consumer","dfnText":"sender consumer","external":false,"refSections":[{"refs":[{"id":"ref-for-sender-consumer"}],"title":"4.4. Senders are composable through sender algorithms"},{"refs":[{"id":"ref-for-sender-consumer\u2460"}],"title":"4.21. User-facing sender consumers"},{"refs":[{"id":"ref-for-sender-consumer\u2461"}],"title":"5.4. Sender algorithms are customizable"}],"url":"#sender-consumer"},
+"sender-factory": {"dfnID":"sender-factory","dfnText":"sender factory","external":false,"refSections":[{"refs":[{"id":"ref-for-sender-factory"}],"title":"4.4. Senders are composable through sender algorithms"},{"refs":[{"id":"ref-for-sender-factory\u2460"}],"title":"4.19. User-facing sender factories"}],"url":"#sender-factory"},
+"single-shot-sender": {"dfnID":"single-shot-sender","dfnText":"single-shot sender","external":false,"refSections":[],"url":"#single-shot-sender"},
+"start": {"dfnID":"start","dfnText":"started","external":false,"refSections":[{"refs":[{"id":"ref-for-start"}],"title":"4.20. User-facing sender adaptors"}],"url":"#start"},
+"stopped-completion": {"dfnID":"stopped-completion","dfnText":"stopped\n  completion","external":false,"refSections":[],"url":"#stopped-completion"},
+"strictly-lazy-submission": {"dfnID":"strictly-lazy-submission","dfnText":"Strictly lazy submission","external":false,"refSections":[],"url":"#strictly-lazy-submission"},
+"value-completion": {"dfnID":"value-completion","dfnText":"value completion","external":false,"refSections":[],"url":"#value-completion"},
+};
+
+document.addEventListener("DOMContentLoaded", ()=>{
+    genAllDfnPanels();
+
+    document.body.addEventListener("click", (e) => {
+        // If not handled already, just hide all dfn panels.
+        hideAllDfnPanels();
+    });
+});
+
+window.addEventListener("resize", () => {
+    // Pin any visible dfn panel
+    queryAll(".dfn-panel.on, .dfn-panel.activated").forEach(el=>positionDfnPanel(el));
+});
+
+function genAllDfnPanels() {
+    for(const panelData of Object.values(dfnPanelData)) {
+        const dfnID = panelData.dfnID;
+        const dfn = document.getElementById(dfnID);
+        if(!dfn) {
+            console.log(`Can't find dfn#${dfnID}.`, panelData);
+            continue;
+        }
+        dfn.panelData = panelData;
+        insertDfnPopupAction(dfn);
+    }
+}
+
+function genDfnPanel(dfn, { dfnID, url, dfnText, refSections, external }) {
+    const dfnPanel = mk.aside({
+        class: "dfn-panel on",
+        id: `infopanel-for-${dfnID}`,
+        "data-for": dfnID,
+        "aria-labelled-by":`infopaneltitle-for-${dfnID}`,
+        },
+        mk.span({id:`infopaneltitle-for-${dfnID}`, style:"display:none"},
+            `Info about the '${dfnText}' ${external?"external":""} reference.`),
+        mk.a({href:url, class:"dfn-link"}, url),
+        refSections.length == 0 ? [] :
+            mk.b({}, "Referenced in:"),
+            mk.ul({},
+                ...refSections.map(section=>
+                    mk.li({},
+                        ...section.refs.map((ref, refI)=>
+                            [
+                                mk.a({ href: `#${ref.id}` },
+                                    (refI == 0) ? section.title : `(${refI + 1})`
+                                ),
+                                " ",
+                            ]
+                        ),
+                    ),
+                ),
+            ),
+        genLinkingSyntaxes(dfn),
+    );
+
+    dfnPanel.addEventListener('click', (event) => {
+        if (event.target.nodeName == 'A') {
+            scrollToTargetAndHighlight(event);
+            pinDfnPanel(dfnPanel);
+        }
+        event.stopPropagation();
+        refocusOnTarget(event);
+    });
+    dfnPanel.addEventListener('keydown', (event) => {
+        if(event.keyCode == 27) { // Escape key
+            hideDfnPanel({dfnPanel});
+            event.stopPropagation();
+            event.preventDefault();
+        }
+    });
+
+    dfnPanel.dfn = dfn;
+    dfn.dfnPanel = dfnPanel;
+    return dfnPanel;
+}
+
+
+
+function hideAllDfnPanels() {
+    // Delete the currently-active dfn panel.
+    queryAll(".dfn-panel").forEach(dfnPanel=>hideDfnPanel({dfnPanel}));
+}
+
+function showDfnPanel(dfn) {
+    hideAllDfnPanels(); // Only display one at a time.
+
+    dfn.setAttribute("aria-expanded", "true");
+
+    const dfnPanel = genDfnPanel(dfn, dfn.panelData);
+
+    // Give the dfn a unique tabindex, and then
+    // give all the tabbable panel bits successive indexes.
+    let tabIndex = 100;
+    dfn.tabIndex = tabIndex++;
+    const tabbable = dfnPanel.querySelectorAll(":is(a, button)");
+    for (const el of tabbable) {
+        el.tabIndex = tabIndex++;
+    }
+
+    append(document.body, dfnPanel);
+    positionDfnPanel(dfnPanel);
+}
+
+function positionDfnPanel(dfnPanel) {
+    const dfn = dfnPanel.dfn;
+    const dfnPos = getBounds(dfn);
+    dfnPanel.style.top = dfnPos.bottom + "px";
+    dfnPanel.style.left = dfnPos.left + "px";
+
+    const panelPos = dfnPanel.getBoundingClientRect();
+    const panelMargin = 8;
+    const maxRight = document.body.parentNode.clientWidth - panelMargin;
+    if (panelPos.right > maxRight) {
+        const overflowAmount = panelPos.right - maxRight;
+        const newLeft = Math.max(panelMargin, dfnPos.left - overflowAmount);
+        dfnPanel.style.left = newLeft + "px";
+    }
+}
+
+function pinDfnPanel(dfnPanel) {
+    // Switch it to "activated" state, which pins it.
+    dfnPanel.classList.add("activated");
+    dfnPanel.style.position = "fixed";
+    dfnPanel.style.left = null;
+    dfnPanel.style.top = null;
+}
+
+function hideDfnPanel({dfn, dfnPanel}) {
+    if(!dfnPanel) dfnPanel = dfn.dfnPanel;
+    if(!dfn) dfn = dfnPanel.dfn;
+    dfn.dfnPanel = undefined;
+    dfnPanel.dfn = undefined;
+    dfn.setAttribute("aria-expanded", "false");
+    dfn.tabIndex = undefined;
+    dfnPanel.remove()
+}
+
+function toggleDfnPanel(dfn) {
+    if(dfn.dfnPanel) {
+        hideDfnPanel(dfn);
+    } else {
+        showDfnPanel(dfn);
+    }
+}
+
+function insertDfnPopupAction(dfn) {
+    dfn.setAttribute('role', 'button');
+    dfn.setAttribute('aria-expanded', 'false')
+    dfn.tabIndex = 0;
+    dfn.classList.add('has-dfn-panel');
+    dfn.addEventListener('click', (event) => {
+        toggleDfnPanel(dfn);
+        event.stopPropagation();
+    });
+    dfn.addEventListener('keypress', (event) => {
+        const kc = event.keyCode;
+        // 32->Space, 13->Enter
+        if(kc == 32 || kc == 13) {
+            toggleDfnPanel(dfn);
+            event.stopPropagation();
+            event.preventDefault();
+        }
+    });
+}
+
+function refocusOnTarget(event) {
+    const target = event.target;
+    setTimeout(() => {
+        // Refocus on the event.target element.
+        // This is needed after browser scrolls to the destination.
+        target.focus();
+    });
+}
+
+// TODO: shared util
+// Returns the root-level absolute position {left and top} of element.
+function getBounds(el, relativeTo=document.body) {
+    const relativeRect = relativeTo.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const top = elRect.top - relativeRect.top;
+    const left = elRect.left - relativeRect.left;
+    return {
+        top,
+        left,
+        bottom: top + elRect.height,
+        right: left + elRect.width,
+    }
+}
+
+function scrollToTargetAndHighlight(event) {
+    let hash = event.target.hash;
+    if (hash) {
+        hash = decodeURIComponent(hash.substring(1));
+        const dest = document.getElementById(hash);
+        if (dest) {
+            dest.classList.add('highlighted');
+            setTimeout(() => dest.classList.remove('highlighted'), 1000);
+        }
+    }
+}
+
+// Functions, divided by link type, that wrap an autolink's
+// contents with the appropriate outer syntax.
+// Alternately, a string naming another type they format
+// the same as.
+function needsFor(type) {
+    switch(type) {
+        case "descriptor":
+        case "value":
+        case "element-attr":
+        case "attr-value":
+        case "element-state":
+        case "method":
+        case "constructor":
+        case "argument":
+        case "attribute":
+        case "const":
+        case "dict-member":
+        case "event":
+        case "enum-value":
+        case "stringifier":
+        case "serializer":
+        case "iterator":
+        case "maplike":
+        case "setlike":
+        case "state":
+        case "mode":
+        case "context":
+        case "facet": return true;
+
+        default: return false;
+    }
+}
+function refusesFor(type) {
+    switch(type) {
+        case "property":
+        case "element":
+        case "interface":
+        case "namespace":
+        case "callback":
+        case "dictionary":
+        case "enum":
+        case "exception":
+        case "typedef":
+        case "http-header":
+        case "permission": return true;
+
+        default: return false;
+    }
+}
+function linkFormatterFromType(type) {
+    switch(type) {
+        case 'scheme':
+        case 'permission':
+        case 'dfn': return (text) => `[=${text}=]`;
+
+        case 'abstract-op': return (text) => `[\$${text}\$]`;
+
+        case 'function':
+        case 'at-rule':
+        case 'selector':
+        case 'value': return (text) => `''${text}''`;
+
+        case 'http-header': return (text) => `[:${text}:]`;
+
+        case 'interface':
+        case 'constructor':
+        case 'method':
+        case 'argument':
+        case 'attribute':
+        case 'callback':
+        case 'dictionary':
+        case 'dict-member':
+        case 'enum':
+        case 'enum-value':
+        case 'exception':
+        case 'const':
+        case 'typedef':
+        case 'stringifier':
+        case 'serializer':
+        case 'iterator':
+        case 'maplike':
+        case 'setlike':
+        case 'extended-attribute':
+        case 'event':
+        case 'idl': return (text) => `{{${text}}}`;
+
+        case 'element-state':
+        case 'element-attr':
+        case 'attr-value':
+        case 'element': return (element) => `<{${element}}>`;
+
+        case 'grammar': return (text) => `${text} (within a <pre class=prod>)`;
+
+        case 'type': return (text)=> `<<${text}>>`;
+
+        case 'descriptor':
+        case 'property': return (text) => `'${text}'`;
+
+        default: return;
+    };
+};
+
+function genLinkingSyntaxes(dfn) {
+    if(dfn.tagName != "DFN") return;
+
+    const type = dfn.getAttribute('data-dfn-type');
+    if(!type) {
+        console.log(`<dfn> doesn't have a data-dfn-type:`, dfn);
+        return [];
+    }
+
+    // Return a function that wraps link text based on the type
+    const linkFormatter = linkFormatterFromType(type);
+    if(!linkFormatter) {
+        console.log(`<dfn> has an unknown data-dfn-type:`, dfn);
+        return [];
+    }
+
+    let ltAlts;
+    if(dfn.hasAttribute('data-lt')) {
+        ltAlts = dfn.getAttribute('data-lt')
+            .split("|")
+            .map(x=>x.trim());
+    } else {
+        ltAlts = [dfn.textContent.trim()];
+    }
+    if(type == "type") {
+        // lt of "<foo>", but "foo" is the interior;
+        // <<foo/bar>> is how you write it with a for,
+        // not <foo/<bar>> or whatever.
+        for(var i = 0; i < ltAlts.length; i++) {
+            const lt = ltAlts[i];
+            const match = /<(.*)>/.exec(lt);
+            if(match) { ltAlts[i] = match[1]; }
+        }
+    }
+
+    let forAlts;
+    if(dfn.hasAttribute('data-dfn-for')) {
+        forAlts = dfn.getAttribute('data-dfn-for')
+            .split(",")
+            .map(x=>x.trim());
+    } else {
+        forAlts = [''];
+    }
+
+    let linkingSyntaxes = [];
+    if(!needsFor(type)) {
+        for(const lt of ltAlts) {
+            linkingSyntaxes.push(linkFormatter(lt));
+        }
+    }
+    if(!refusesFor(type)) {
+        for(const f of forAlts) {
+            linkingSyntaxes.push(linkFormatter(`${f}/${ltAlts[0]}`))
+        }
+    }
+    return [
+        mk.b({}, 'Possible linking syntaxes:'),
+        mk.ul({},
+            ...linkingSyntaxes.map(link => {
+                const copyLink = async () =>
+                    await navigator.clipboard.writeText(link);
+                return mk.li({},
+                    mk.div({ class: 'link-item' },
+                        mk.button({
+                            class: 'copy-icon', title: 'Copy',
+                            type: 'button',
+                            _onclick: copyLink,
+                            tabindex: 0,
+                        }, mk.span({ class: 'icon' }) ),
+                        mk.span({}, link)
+                    )
+                );
+            })
+        )
+    ];
+}
+}
+</script>
+<script>/* Boilerplate: script-ref-hints */
+"use strict";
+{
+let refsData = {
+"#completion-scheduler": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"completion scheduler","type":"dfn","url":"#completion-scheduler"},
+"#connect": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"connect","type":"dfn","url":"#connect"},
+"#execution-resource": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"execution resource","type":"dfn","url":"#execution-resource"},
+"#operation-state": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"operation state","type":"dfn","url":"#operation-state"},
+"#receiver": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"receiver","type":"dfn","url":"#receiver"},
+"#scheduler": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"scheduler","type":"dfn","url":"#scheduler"},
+"#send": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"send","type":"dfn","url":"#send"},
+"#sender": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"sender","type":"dfn","url":"#sender"},
+"#sender-adaptor": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"sender adaptor","type":"dfn","url":"#sender-adaptor"},
+"#sender-algorithm": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"sender algorithm","type":"dfn","url":"#sender-algorithm"},
+"#sender-consumer": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"sender consumer","type":"dfn","url":"#sender-consumer"},
+"#sender-factory": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"sender factory","type":"dfn","url":"#sender-factory"},
+"#start": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"start","type":"dfn","url":"#start"},
+};
+
+function mkRefHint(link, ref) {
+    const linkText = link.textContent;
+    let dfnTextElements = '';
+    if (ref.text != linkText) {
+        dfnTextElements =
+            mk.li({},
+                mk.b({}, "Term: "),
+                mk.span({}, ref.text)
+            );
+    }
+    const forList = ref.for_;
+    let forListElements;
+    if(forList.length == 0) {
+        forListElements = [];
+    } else if(forList.length == 1) {
+        forListElements = mk.li({},
+            mk.b({}, "For: "),
+            mk.span({}, forList[0]),
+        );
+    } else {
+        forListElements = mk.li({},
+            mk.b({}, "For: "),
+            mk.ul({},
+                ...forList.map(forItem =>
+                    mk.li({},
+                        mk.span({}, forItem)
+                    ),
+                ),
+            ),
+        );
+    }
+    const url = ref.url;
+    const safeUrl = encodeURIComponent(url);
+    const hintPanel = mk.aside({
+        class: "ref-hint",
+        id: `ref-hint-for-${safeUrl}`,
+        "data-for": url,
+        "aria-labelled-by": `ref-hint-for-${safeUrl}`,
+    },
+        mk.ul({},
+            dfnTextElements,
+            mk.li({},
+                mk.b({}, "URL: "),
+                mk.a({ href: url, class: "ref" }, url),
+            ),
+            mk.li({},
+                mk.b({}, "Type: "),
+                mk.span({}, `${ref.type}`),
+            ),
+            mk.li({},
+                mk.b({}, "Spec: "),
+                mk.span({}, `${ref.spec ? ref.spec : ''}`),
+            ),
+            forListElements
+        ),
+    );
+    hintPanel.forLink = link;
+    setupRefHintEventListeners(link, hintPanel);
+    return hintPanel;
+}
+
+function hideAllRefHints() {
+    queryAll(".ref-hint").forEach(el=>hideRefHint(el));
+}
+
+function hideRefHint(refHint) {
+    const link = refHint.forLink;
+    link.setAttribute("aria-expanded", "false");
+    if(refHint.teardownEventListeners) {
+        refHint.teardownEventListeners();
+    }
+    refHint.remove();
+}
+
+function showRefHint(link) {
+    if(link.classList.contains("dfn-link")) return;
+    const url = link.getAttribute("href");
+    const ref = refsData[url];
+    if(!ref) return;
+
+    hideAllRefHints(); // Only display one at this time.
+
+    const refHint = mkRefHint(link, ref);
+    append(document.body, refHint);
+    link.setAttribute("aria-expanded", "true");
+    positionRefHint(refHint);
+}
+
+function setupRefHintEventListeners(link, refHint) {
+    if (refHint.teardownEventListeners) return;
+    // Add event handlers to hide the refHint after the user moves away
+    // from both the link and refHint, if not hovering either within one second.
+    let timeout = null;
+    const startHidingRefHint = (event) => {
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+        timeout = setTimeout(() => {
+            hideRefHint(refHint);
+        }, 1000);
+    }
+    const resetHidingRefHint = (event) => {
+        if (timeout) clearTimeout(timeout);
+        timeout = null;
+    };
+    link.addEventListener("mouseleave", startHidingRefHint);
+    link.addEventListener("mouseenter", resetHidingRefHint);
+    link.addEventListener("blur", startHidingRefHint);
+    link.addEventListener("focus", resetHidingRefHint);
+    refHint.addEventListener("mouseleave", startHidingRefHint);
+    refHint.addEventListener("mouseenter", resetHidingRefHint);
+    refHint.addEventListener("blur", startHidingRefHint);
+    refHint.addEventListener("focus", resetHidingRefHint);
+
+    refHint.teardownEventListeners = () => {
+        // remove event listeners
+        resetHidingRefHint();
+        link.removeEventListener("mouseleave", startHidingRefHint);
+        link.removeEventListener("mouseenter", resetHidingRefHint);
+        link.removeEventListener("blur", startHidingRefHint);
+        link.removeEventListener("focus", resetHidingRefHint);
+        refHint.removeEventListener("mouseleave", startHidingRefHint);
+        refHint.removeEventListener("mouseenter", resetHidingRefHint);
+        refHint.removeEventListener("blur", startHidingRefHint);
+        refHint.removeEventListener("focus", resetHidingRefHint);
+    };
+}
+
+function positionRefHint(refHint) {
+    const link = refHint.forLink;
+    const linkPos = getBounds(link);
+    refHint.style.top = linkPos.bottom + "px";
+    refHint.style.left = linkPos.left + "px";
+
+    const panelPos = refHint.getBoundingClientRect();
+    const panelMargin = 8;
+    const maxRight = document.body.parentNode.clientWidth - panelMargin;
+    if (panelPos.right > maxRight) {
+        const overflowAmount = panelPos.right - maxRight;
+        const newLeft = Math.max(panelMargin, linkPos.left - overflowAmount);
+        refHint.style.left = newLeft + "px";
+    }
+}
+
+// TODO: shared util
+// Returns the root-level absolute position {left and top} of element.
+function getBounds(el, relativeTo=document.body) {
+    const relativeRect = relativeTo.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const top = elRect.top - relativeRect.top;
+    const left = elRect.left - relativeRect.left;
+    return {
+        top,
+        left,
+        bottom: top + elRect.height,
+        right: left + elRect.width,
+    }
+}
+
+function showRefHintListener(e) {
+    // If the target isn't in a link (or is a link),
+    // just ignore it.
+    let link = e.target.closest("a");
+    if(!link) return;
+
+    // If the target is in a ref-hint panel
+    // (aka a link in the already-open one),
+    // also just ignore it.
+    if(link.closest(".ref-hint")) return;
+
+    // Otherwise, show the panel for the link.
+    showRefHint(link);
+}
+
+function hideAllHintsListener(e) {
+    // If the click is inside a ref-hint panel, ignore it.
+    if(e.target.closest(".ref-hint")) return;
+    // Otherwise, close all the current panels.
+    hideAllRefHints();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.body.addEventListener("mousedown", showRefHintListener);
+    document.body.addEventListener("focus", showRefHintListener);
+
+    document.body.addEventListener("click", hideAllHintsListener);
+});
+
+window.addEventListener("resize", () => {
+    // Hide any open ref hint.
+    hideAllRefHints();
+});
 }
 </script>
