@@ -4050,8 +4050,8 @@ template&lt;class C>
     let `c` be the completion operation <code><i>set</i>(<i>rcvr</i>,
     <i>args</i>...)</code>, and let `F` be the function type
     <code>decltype(auto(<i>set</i>))(decltype((<i>args</i>))...)</code>.
-    A completion signature `Sndr` is associated with `c` if and only if
-    <code><i>MATCHING-SIG</i>(Sndr, F)</code> is `true` ([exec.general]). Together,
+    A completion signature `Sig` is associated with `c` if and only if
+    <code><i>MATCHING-SIG</i>(Sig, F)</code> is `true` ([exec.general]). Together,
     a sender type and an environment type `Env` determine the set of completion
     signatures of an asynchronous operation that results from connecting the
     sender with a receiver that has an environment of type `Env`. <span
