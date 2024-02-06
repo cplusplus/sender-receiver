@@ -2346,7 +2346,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-01-30">2024-01-30</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-02-06">2024-02-06</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -9672,7 +9672,7 @@ of all the <code class="highlight"><c- n>completion_signatures</c-></code> speci
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Promise</c-><c- o>></c-> <c- c1>// arguments are not associated entities ([lib.tmpl-heads])</c->
 <c- k>class</c-> <i><c- nc>sender</c-><c- o>-</c-><c- n>awaitable</c-></i> <c- p>{</c->
   <c- k>struct</c-> <c- nc>unit</c-> <c- p>{};</c->
-  <c- k>using</c-> <c- n>value_t</c-> <c- o>=</c-> <i><c- n>single</c-><c- o>-</c-><c- n>sender</c-><c- o>-</c-><c- n>value</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>env_of_t</c-><promise><c- o>></c-><c- p>;</c->
+  <c- k>using</c-> <c- n>value_t</c-> <c- o>=</c-> <i><c- n>single</c-><c- o>-</c-><c- n>sender</c-><c- o>-</c-><c- n>value</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>env_of_t</c-><c- o>&lt;</c-><c- n>Promise</c-><c- o>>></c-><c- p>;</c->
   <c- k>using</c-> <c- n>result_t</c-> <c- o>=</c-> <c- n>conditional_t</c-><c- o>&lt;</c-><c- n>is_void_v</c-><c- o>&lt;</c-><c- n>value_t</c-><c- o>></c-><c- p>,</c-> <c- n>unit</c-><c- p>,</c-> <c- n>value_t</c-><c- o>></c-><c- p>;</c->
   <c- k>struct</c-> <i><c- nc>awaitable</c-><c- o>-</c-><c- n>receiver</c-></i><c- p>;</c->
 
@@ -9685,7 +9685,7 @@ of all the <code class="highlight"><c- n>completion_signatures</c-></code> speci
   <c- b>void</c-> <c- nf>await_suspend</c-><c- p>(</c-><c- n>coroutine_handle</c-><c- o>&lt;</c-><c- n>Promise</c-><c- o>></c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- n>start</c-><c- p>(</c-><i><c- n>state_</c-></i><c- p>);</c-> <c- p>}</c->
   <c- n>value_t</c-> <c- nf>await_resume</c-><c- p>();</c->
 <c- p>};</c->
-</promise></pre>
+</pre>
        <ol>
         <li data-md>
          <p><code class="highlight"><i><c- n>awaitable</c-><c- o>-</c-><c- n>receiver</c-></i></code> is equivalent to the following:</p>
