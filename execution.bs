@@ -7849,7 +7849,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         template&lt;class Sndr, class Promise> // arguments are not associated entities ([lib.tmpl-heads])
         class <i>sender-awaitable</i> {
           struct unit {};
-          using value_t = <i>single-sender-value-type</i>&lt;Sndr, env_of_t<Promise>>;
+          using value_t = <i>single-sender-value-type</i>&lt;Sndr, env_of_t&lt;Promise>>;
           using result_t = conditional_t&lt;is_void_v&lt;value_t>, unit, value_t>;
           struct <i>awaitable-receiver</i>;
 
