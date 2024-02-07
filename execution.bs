@@ -6719,6 +6719,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
           1. *Effects:* Atomically decrements `ref_count`. If the new value of
               `ref_count` is `0`, calls `delete this`.
+          2. *Synchronization:* If `dec_ref()` does not decrement the `ref_count` to `0` then synchronizes with
+              the call to `dec_ref()` that decrements `ref_count` to `0`.
 
 8. For each type `split_t` and `ensure_started_t`, there is a different,
     associated exposition-only implementation tag type, <i>`split-impl-tag`</i>
