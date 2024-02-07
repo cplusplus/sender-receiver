@@ -2346,7 +2346,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-02-06">2024-02-06</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-02-07">2024-02-07</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -8652,6 +8652,9 @@ type <code class="highlight"><i><c- n>local</c-><c- o>-</c-><c- n>state</c-><c- 
        <ol>
         <li data-md>
          <p><em>Effects:</em> Atomically decrements <code class="highlight"><c- n>ref_count</c-></code>. If the new value of <code class="highlight"><c- n>ref_count</c-></code> is <code class="highlight"><c- mi>0</c-></code>, calls <code class="highlight"><c- k>delete</c-> <c- k>this</c-></code>.</p>
+        <li data-md>
+         <p><em>Synchronization:</em> If <code class="highlight"><c- n>dec_ref</c-><c- p>()</c-></code> does not decrement the <code class="highlight"><c- n>ref_count</c-></code> to <code class="highlight"><c- mi>0</c-></code> then synchronizes with
+  the call to <code class="highlight"><c- n>dec_ref</c-><c- p>()</c-></code> that decrements <code class="highlight"><c- n>ref_count</c-></code> to <code class="highlight"><c- mi>0</c-></code>.</p>
        </ol>
      </ol>
     <li data-md>
