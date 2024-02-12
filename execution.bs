@@ -3195,7 +3195,7 @@ add the following new subclause with suggested stable name [lib.tmpl-heads].</di
     };
 
     template&lt;class T>
-    using S = typename <i>s-impl</i>&lt;T>::type;
+    using S = <i>s-impl</i>&lt;T>::type;
     </pre>
 
     or as
@@ -3210,7 +3210,7 @@ add the following new subclause with suggested stable name [lib.tmpl-heads].</di
 
     template&lt;class HiddenT>
     struct <i>s-impl</i> {
-      using T = typename HiddenT::type;
+      using T = HiddenT::type;
     };
 
     template&lt;class T>
@@ -3359,7 +3359,7 @@ template&lt;class CB>
   class in_place_stop_callback;
 
 template&lt;class T, class CB>
-  using stop_callback_for_t = typename T::template callback_type&lt;CB>;
+  using stop_callback_for_t = T::template callback_type&lt;CB>;
 </pre>
 </blockquote>
 </ins>
@@ -6547,6 +6547,11 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         <i>make-sender</i>(<i>shared-cpo</i>, {}, sndr));
       </pre>
 
+    - <span class="wg21note">The default implementation of `transform_sender`
+        will have the effect of connecting the sender to a receiver and, in the
+        case of `ensure_started`, calling `start` on the resulting operation
+        state. It will return a sender with a different tag type.</span>
+
 5. Let <i>`local-state`</i> denote the following exposition-only class:
 
     <pre highlight="c++">
@@ -6741,13 +6746,12 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     associated exposition-only implementation tag type, <i>`split-impl-tag`</i>
     and <i>`ensure-started-impl-tag`</i>, respectively. Let
     <i>`shared-impl-tag`</i> be the associated implementation tag type of
-    <i>`shared-cpo`</i>. Given an expression `sndr`, let `Sndr` be
-    `decltype((sndr))`. The expression
+    <i>`shared-cpo`</i>. Given an expression `sndr`, the expression
     <code><i>shared-cpo</i>.transform_sender(sndr)</code> is equivalent to:
 
       <pre highlight="c++">
       auto&& [tag, data, child] = sndr;
-      auto* sh_state = new <i>shared-state</i>{std::forward_like&lt;Sndr>(child)};
+      auto* sh_state = new <i>shared-state</i>{std::forward_like&lt;decltype((sndr))>(child)};
       return <i>make-sender</i>(<i>shared-impl-tag</i>(), <i>shared-wrapper</i>{sh_state, tag});
       </pre>
 
@@ -6763,13 +6767,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         unique_ptr&lt;<i>shared-state</i>&lt;Sndr>, <i>dec-ref</i>> sh_state; // exposition only
 
         <i>shared-wrapper</i>(<i>shared-state</i>&lt;Sndr>* ptr, Tag) noexcept : sh_state(ptr) {
-          if constexpr (same_as&lt;Tag, ensure_started_t>) sh_state-><i>start-op</i>();
-        }
-
-        <i>shared-wrapper</i>(<i>shared-wrapper</i>&&) noexcept = default;
-        <i>shared-wrapper</i>(const <i>shared-wrapper</i>& other) noexcept
-          requires same_as&lt;Tag, split_t> : sh_state(other.sh_state.get()) {
-          if (sh_state) sh_state-><i>inc-ref</i>();
+          if constexpr (same_as&lt;Tag, ensure_started_t>)
+            sh_state-><i>start-op</i>();
         }
 
         ~<i>shared-wrapper</i>() {
@@ -6777,9 +6776,16 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
             if (sh_state) sh_state-><i>detach</i>();
         }
 
-        <i>shared-wrapper</i>& operator=(<i>shared-wrapper</i> other) noexcept {
-          other.sh_state.swap(sh_state);
-          return *this;
+        <i>shared-wrapper</i>(<i>shared-wrapper</i>&&) noexcept = default;
+        <i>shared-wrapper</i>(const <i>shared-wrapper</i>& other) noexcept requires same_as&lt;Tag, split_t>
+          : sh_state(other.sh_state.get()) {
+          if (sh_state) sh_state-><i>inc-ref</i>();
+        }
+
+        <i>shared-wrapper</i>& operator=(<i>shared-wrapper</i>&& other) noexcept = default;
+        <i>shared-wrapper</i>& operator=(const <i>shared-wrapper</i>& other) noexcept
+          requires same_as&lt;Tag, split_t> {
+          return *this = <i>shared-wrapper</i>{other};
         }
       };
       </pre>
@@ -6798,7 +6804,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     1. The member
         <code><i>impls-for</i>&lt;<i>shared-impl-tag</i>>::<i>get-state</i></code>
-        is initialized with a callable object equal to the following lambda:
+        is initialized with a callable object equal to the following lambda
+        expression:
 
           <pre highlight="c++">
           []&lt;class Sndr>(Sndr&& sndr, auto& rcvr) noexcept {
@@ -6839,28 +6846,34 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                 <span class="wg21note">`old_head` will be equal to `state.sh_state`
                 when the child asynchronous operation has already completed.</span>
 
-            - If `old_head` is equal to `state.sh_state`, calls
-                <code>state.<i>notify</i>()</code> and returns.
+            - Then, executes the following in a loop:
 
-            - Atomically does the following:
-                writes `old_head` into `state.next`, and
-                exchanges `state.sh_state->head` with `&state`.
-                <span class="wg21note">This is typically done by executing
-                this step and the previous in an atomic compare-and-exchange
-                loop until the exchange succeeds.</span>
+                - If `old_head` is equal to `state.sh_state`, calls
+                    <code>state.<i>notify</i>()</code> and returns.
+
+                - Otherwise, writes `old_head` into `state.next`,
+
+                - Atomically compares `state.sh_state->head` to `old_head`, and
+                    if they are equal, exchanges `state.sh_state->head`
+                    with `&state` and exits the loop. Otherwise, updates
+                    `old_head` with the new value of `state.sh_state->head`.
 
             - If <i>`shared-impl-tag`</i> is <i>`split-impl-tag`</i>, and
                 if `old_head` is equal to `nullptr`, calls
                 <code>state.sh_state-><i>start-op</i>()</code>.
 
-10. <span class="wg21note">If a sender returned from `ensure_started` is
-    destroyed without being connected to a receiver, or if it is connected but
-    the operation state is destroyed without having been started, or if stop has
-    been requested on the receiver's stop token prior to `start` having been
-    called, then when the child operation completes and it releases its shared
-    ownership of the <i>`shared-state`</i> object, the <i>`shared-state`</i>
-    object will be destroyed and the results of the child operation are
-    discarded.</span>
+10. <div class="wg21note">Under the following conditions, the results of the
+    child operation are discarded:
+
+    - When a sender returned from `ensure_started` is destroyed without being
+        connected to a receiver, or
+
+    - If the sender is connected to a receiver but the operation state
+        is destroyed without having been started, or
+
+    - If polling the receiver's stop token indicates that stop has been
+        requested when `start` is called, and the operation has not yet
+        completed.</div>
 
 #### `execution::when_all` <b>[exec.when.all]</b> #### {#spec-execution.senders.adaptor.when_all}
 
