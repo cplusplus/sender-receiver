@@ -7017,42 +7017,62 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
             value_types_of_t&lt;Sndr, Env>;
     </pre>
 
-3. `into_variant` is a customization point object. For some subexpression `sndr`,
-    let `Sndr` be `decltype((sndr))`. If `Sndr` does not satisfy `sender`,
-    `into_variant(sndr)` is ill-formed. Otherwise, `into_variant(sndr)` is
-    expression-equivalent to:
+3. The name `into_variant` denotes a customization point object. For a
+    subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If `Sndr` does not
+    satisfy `sender`, `into_variant(sndr)` is ill-formed.
+
+4. Otherwise, the expression `into_variant(sndr)` is expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
         <i>get-domain-early</i>(sndr),
-        <i>make-into-variant-sender</i>(sndr))
+        <i>make-sender</i>(into_variant, {}, sndr))
       </pre>
 
-    where <code><i>make-into-variant-sender</i>(sndr)</code> is
-    expression-equivalent to <code><i>make-sender</i>(into_variant,
-    {}, sndr)</code> and returns a sender object `sndr2` that behaves
-    as follows:
+5. The exposition-only class template <i>`impls-for`</i> ([exec.snd.general]) is
+    specialized for `into_variant` as follows:
 
-    1. When `sndr2` is connected with some receiver `out_rcvr`, it:
+    <pre highlight="c++">
+    template&lt;>
+    struct <i>impls-for</i>&lt;into_variant_t> : <i>default-impls</i> {
+      static constexpr auto <i>get-state</i> = <i>see below</i>;
+      static constexpr auto <i>complete</i> = <i>see below</i>;
+    };
+    </pre>
 
-        1. Constructs a receiver `rcvr` such that:
+    1. The member
+        <code><i>impls-for</i>&lt;into_variant_t>::<i>get-state</i></code> is
+        initialized with a callable object equal to the following lambda:
 
-            1. If `set_value(rcvr, ts...)` is called, calls <code>set_value(out_rcvr,
-                <i>into-variant-type</i>&lt;Sndr,
-                env_of_t&lt;decltype((rcvr))>>(<i>decayed-tuple</i>&lt;decltype(ts)...>(ts...)))</code>.
-                If this expression throws an exception, calls `set_error(out_rcvr,
-                current_exception())`.
+          <pre highlight="c++">
+          []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) noexcept
+            -> type_identity&lt;<i>into-variant-type</i>&lt;<i>child-type</i>&lt;Sndr>, env_of_t&lt;Rcvr>>> {
+            return {};
+          }
+          </pre>
 
-            2. `set_error(rcvr, err)` is expression-equivalent to `set_error(out_rcvr,
-                err)`.
+    2. The member <code><i>impls-for</i>&lt;into_variant_t>::<i>complete</i></code>
+        is initialized with a callable object equal to the following lambda:
 
-            3. `set_stopped(rcvr)` is expression-equivalent to
-                `set_stopped(out_rcvr)`.
+          <pre highlight="c++">
+          []&lt;class State, class Rcvr, class Tag, class... Args>(
+              auto, State, Rcvr& rcvr, Tag, Args&&... args) noexcept {
+            if constexpr (same_as&lt;Tag, set_value_t>) {
+              using variant_type = typename State::type;
+              using tuple_type = <i>decayed-tuple</i>&lt;Args...>;
+              try {
+                set_value(std::move(rcvr),
+                          variant_type(tuple_type(std::forward&lt;Args>(args)...)));
+              }
+              catch (...) {
+                set_error(std::move(rcvr), current_exception());
+              }
+            } else {
+              Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
+            }
+          }
+          </pre>
 
-        2. Calls `connect(sndr, rcvr)`, resulting in an operation state `op_state2`.
-
-        3. Returns an operation state `op_state` that contains `op_state2`. When
-            `start(op_state)` is called, calls `start(op_state2)`.
 
 #### `execution::stopped_as_optional` <b>[exec.stopped.as.optional]</b> #### {#spec-execution.senders.adapt.stopped_as_optional}
 
