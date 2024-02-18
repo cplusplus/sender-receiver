@@ -1148,6 +1148,10 @@ The changes since R7 are as follows:
 
   * The `sender_in<Sndr, Env>` concept requires that `E` satisfies `queryable`.
 
+  * Senders of more than one value are now `co_await`-able in coroutines, the
+    result of which is a `std::tuple` of the values (which is suitable as the
+    initializer of a structured binding).
+
 <b>Enhancements:</b>
 
   * The exposition-only class template <code><i>basic-sender</i></code> is greatly
