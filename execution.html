@@ -7180,6 +7180,27 @@ execution domain of its predecessor, using only the domain of its
 destination scheduler to select a customization.</span></p>
        </ol>
       <li data-md>
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><i><c- n>callable</c-></i> <c- n>Fun</c-><c- o>></c->
+  <c- k>requires</c-> <c- n>is_nothrow_move_constructible_v</c-><c- o>&lt;</c-><c- n>Fun</c-><c- o>></c->
+<c- k>struct</c-> <i><c- nc>emplace</c-><c- o>-</c-><c- n>from</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
+  <c- n>Fun</c-> <i><c- n>fun</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+  <c- k>using</c-> <c- n>type</c-> <c- o>=</c-> <i><c- n>call</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>Fun</c-><c- o>></c-><c- p>;</c->
+
+  <c- k>constexpr</c-> <c- k>operator</c-> <c- n>type</c-><c- p>()</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>nothrow</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><c- n>Fun</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+    <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><i><c- n>fun</c-></i><c- p>)();</c->
+  <c- p>}</c->
+
+  <c- k>constexpr</c-> <c- n>type</c-> <c- k>operator</c-><c- p>()()</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>nothrow</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><c- n>Fun</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+    <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><i><c- n>fun</c-></i><c- p>)();</c->
+  <c- p>}</c->
+<c- p>};</c->
+</pre>
+       <ol>
+        <li data-md>
+         <p><span class="wg21note"><i><code class="highlight"><c- n>emplace</c-><c- o>-</c-><c- n>from</c-></code></i> is used to emplace
+non-movable types into containers like <code class="highlight"><c- n>tuple</c-></code>, <code class="highlight"><c- n>optional</c-></code>, and <code class="highlight"><c- n>variant</c-></code>.</span></p>
+       </ol>
+      <li data-md>
 <pre class="highlight"><c- k>struct</c-> <i><c- nc>on</c-><c- o>-</c-><c- n>stop</c-><c- o>-</c-><c- n>request</c-></i> <c- p>{</c->
   <c- n>in_place_stop_source</c-><c- o>&amp;</c-> <c- n>stop_src</c-><c- p>;</c->
   <c- b>void</c-> <c- nf>operator</c-><c- p>()()</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- n>stop_src</c-><c- p>.</c-><c- n>request_stop</c-><c- p>();</c-> <c- p>}</c->
@@ -7203,20 +7224,6 @@ destination scheduler to select a customization.</span></p>
         <li data-md>
          <p><span class="wg21note">An expression of type <code class="highlight"><i><c- n>product</c-><c- o>-</c-><c- n>type</c-></i></code> is usable as the initializer of a
 structured binding declaration [dcl.struct.bind].</span></p>
-       </ol>
-      <li data-md>
-<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><i><c- n>callable</c-></i> <c- n>Fn</c-><c- o>></c->
-<c- k>struct</c-> <i><c- nc>emplacer</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
-  <c- n>Fn</c-> <c- n>fn</c-><c- p>;</c->  <c- c1>// exposition only</c->
-  <c- k>operator</c-> <i><c- n>call</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>Fn</c-><c- o>></c-> <c- p>()</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>nothrow</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><c- n>Fn</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
-    <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>fn</c-><c- p>)();</c->
-  <c- p>}</c->
-<c- p>};</c->
-</pre>
-       <ol>
-        <li data-md>
-         <p><span class="wg21note">The type <code class="highlight"><c- n>emplacer</c-><c- o>&lt;</c-><c- n>Fn</c-><c- o>></c-></code> is used to emplace non-movable
-types into containers like <code class="highlight"><c- n>tuple</c-></code>, <code class="highlight"><c- n>optional</c-></code>, and <code class="highlight"><c- n>variant</c-></code>.</span></p>
        </ol>
       <li data-md>
 <pre class="highlight"><c- k>template</c-> <c- o>&lt;</c-><c- n>semiregular</c-> <c- n>Tag</c-><c- p>,</c-> <i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i> <c- n>Data</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>,</c-> <c- n>sender</c-><c- p>...</c-> <c- n>Child</c-><c- o>></c->
@@ -8382,7 +8389,7 @@ satisfied if and only if the types <i><code class="highlight"><c- n>args</c-><c-
 <c- k>auto</c-> <c- n>sndr2</c-> <c- o>=</c-> <c- n>apply</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>state</c-><c- p>.</c-><c- n>fn</c-><c- p>),</c-> <c- n>args</c-><c- p>);</c->
 <c- k>auto</c-> <c- n>rcvr2</c-> <c- o>=</c-> <i><c- n>receiver2</c-></i><c- p>{</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>state</c-><c- p>.</c-><c- n>env</c-><c- p>)};</c->
 <c- k>auto</c-> <c- n>mkop2</c-> <c- o>=</c-> <c- p>[</c-><c- o>&amp;</c-><c- p>]</c-> <c- p>{</c-> <c- k>return</c-> <c- n>connect</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>sndr2</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr2</c-><c- p>));</c-> <c- p>};</c->
-<c- k>auto</c-><c- o>&amp;</c-> <c- n>op2</c-> <c- o>=</c-> <c- n>state</c-><c- p>.</c-><c- n>ops2</c-><c- p>.</c-><c- n>emplace</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>mkop2</c-><c- p>())</c-><c- o>></c-><c- p>(</c-><i><c- n>emplacer</c-></i><c- p>{</c-><c- n>mkop2</c-><c- p>});</c->
+<c- k>auto</c-><c- o>&amp;</c-> <c- n>op2</c-> <c- o>=</c-> <c- n>state</c-><c- p>.</c-><c- n>ops2</c-><c- p>.</c-><c- n>emplace</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>mkop2</c-><c- p>())</c-><c- o>></c-><c- p>(</c-><i><c- n>emplace</c-><c- o>-</c-><c- n>from</c-></i><c- p>{</c-><c- n>mkop2</c-><c- p>});</c->
 <c- n>start</c-><c- p>(</c-><c- n>op2</c-><c- p>);</c->
 </pre>
       <li data-md>
