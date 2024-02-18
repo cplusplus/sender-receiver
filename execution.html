@@ -3756,6 +3756,10 @@ expression-equivalent to it. This is necessary to properly specify how to
 join two environments in the presence of queries that have defaults.</p>
     <li data-md>
      <p>The <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> concept requires that <code class="highlight"><c- n>E</c-></code> satisfies <code class="highlight"><c- n>queryable</c-></code>.</p>
+    <li data-md>
+     <p>Senders of more than one value are now <code class="highlight"><c- k>co_await</c-></code>-able in coroutines, the
+result of which is a <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>tuple</c-></code> of the values (which is suitable as the
+initializer of a structured binding).</p>
    </ul>
    <p><b>Enhancements:</b></p>
    <ul>
