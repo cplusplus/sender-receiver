@@ -5020,13 +5020,33 @@ enum class forward_progress_guarantee {
             destination scheduler to select a customization.</span>
 
     11. <pre highlight="c++">
+        template&lt;<i>callable</i> Fun>
+          requires is_nothrow_move_constructible_v&lt;Fun>
+        struct <i>emplace-from</i> { // exposition only
+          Fun <i>fun</i>; // exposition only
+          using type = <i>call-result-t</i>&lt;Fun>;
+
+          constexpr operator type() && noexcept(<i>nothrow-callable</i>&lt;Fun>) {
+            return std::move(<i>fun</i>)();
+          }
+
+          constexpr type operator()() && noexcept(<i>nothrow-callable</i>&lt;Fun>) {
+            return std::move(<i>fun</i>)();
+          }
+        };
+        </pre>
+
+        1. <span class="wg21note"><i>`emplace-from`</i> is used to emplace
+            non-movable types into containers like `tuple`, `optional`, and `variant`.</span>
+
+    12. <pre highlight="c++">
         struct <i>on-stop-request</i> {
           in_place_stop_source& stop_src;
           void operator()() noexcept { stop_src.request_stop(); }
         };
         </pre>
 
-    12. <pre highlight="c++">
+    13. <pre highlight="c++">
         template&lt;class... T>
         struct <i>product-type</i> {
           using type<sub><i>0</i></sub> = T<sub><i>0</i></sub>;      // exposition only
@@ -5044,19 +5064,6 @@ enum class forward_progress_guarantee {
         1. <span class="wg21note">An expression of type
             <code><i>product-type</i></code> is usable as the initializer of a
             structured binding declaration [dcl.struct.bind].</span>
-
-    13. <pre highlight="c++">
-        template&lt;<i>callable</i> Fn>
-        struct <i>emplacer</i> { // exposition only
-          Fn fn;  // exposition only
-          operator <i>call-result-t</i>&lt;Fn> () && noexcept(<i>nothrow-callable</i>&lt;Fn>) {
-            return std::move(fn)();
-          }
-        };
-        </pre>
-
-        1. <span class="wg21note">The type `emplacer<Fn>` is used to emplace non-movable
-            types into containers like `tuple`, `optional`, and `variant`.</span>
 
     14. <pre highlight="c++">
         template &lt;semiregular Tag, <i>movable-value</i> Data = <i>see below</i>, sender... Child>
@@ -6407,7 +6414,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
             auto sndr2 = apply(std::move(state.fn), args);
             auto rcvr2 = <i>receiver2</i>{std::move(rcvr), std::move(state.env)};
             auto mkop2 = [&] { return connect(std::move(sndr2), std::move(rcvr2)); };
-            auto& op2 = state.ops2.emplace&lt;decltype(mkop2())>(<i>emplacer</i>{mkop2});
+            auto& op2 = state.ops2.emplace&lt;decltype(mkop2())>(<i>emplace-from</i>{mkop2});
             start(op2);
             </pre>
 
