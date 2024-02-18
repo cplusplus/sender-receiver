@@ -7853,7 +7853,9 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
         2. Otherwise, if `value_types_of_t<Sndr, Env, Tuple, Variant>` would have the form `Variant<Tuple<>>` or `Variant<>`, then <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is an alias for type `void`.
 
-        3. Otherwise, <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is ill-formed.
+        3. Otherwise, if `value_types_of_t<Sndr, Env, Tuple, Variant>` would have the form `Variant<Tuple<Ts...>>` where `Ts` is a parameter pack, then <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is an alias for type `std::tuple<decay_t<Ts>...>`.
+
+        4. Otherwise, <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is ill-formed.
 
     2. The type <code><i>sender-awaitable</i>&lt;Sndr, Promise></code> is equivalent to the following:
 
