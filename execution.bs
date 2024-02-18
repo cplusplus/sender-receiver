@@ -7010,7 +7010,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
               <i>decayed-tuple</i>, optional>...></code> if that type is well-formed;
               otherwise, `tuple<>`.
 
-          3. Let `errors_variant` denotes the type
+          3. The alias `errors_variant` denotes the type
               <code>variant&lt;<i>none-such</i>, <i>copy-fail</i>,
               <i>Es</i>...></code> with duplicate types removed, where
               <code><i>Es</i></code> is the pack of the decayed types of all the
