@@ -2346,7 +2346,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-02-18">2024-02-18</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-02-20">2024-02-20</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -2971,7 +2971,7 @@ of a cancellable <code class="highlight"><c- n>async_recv</c-><c- p>()</c-></cod
     <c- n>friend</c-> <c- b>void</c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>start_t</c-><c- p>,</c-> <c- n>recv_op</c-><c- o>&amp;</c-> <c- n>self</c-><c- p>)</c-> <c- n>noexcept</c-> <c- p>{</c->
         <c- c1>// Avoid even calling WSARecv() if operation already cancelled</c->
         <c- k>auto</c-> <c- n>st</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>get_stop_token</c-><c- p>(</c->
-          <c- n>std</c-><c- o>::</c-><c- n>get_env</c-><c- p>(</c-><c- n>self</c-><c- p>.</c-><c- n>receiver</c-><c- p>));</c->
+          <c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>get_env</c-><c- p>(</c-><c- n>self</c-><c- p>.</c-><c- n>receiver</c-><c- p>));</c->
         <c- k>if</c-> <c- p>(</c-><c- n>st</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>())</c-> <c- p>{</c->
             <c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>set_stopped</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>self</c-><c- p>.</c-><c- n>receiver</c-><c- p>));</c->
             <c- k>return</c-><c- p>;</c->
@@ -3747,6 +3747,8 @@ fit for broad use and for contribution to libc++.</p>
     <li data-md>
      <p><code class="highlight"><c- n>get_env</c-><c- p>(</c-><c- n>obj</c-><c- p>)</c-></code> is required to be nothrow.</p>
     <li data-md>
+     <p><code class="highlight"><c- n>get_env</c-></code> and the associated environment utilities are moved back into <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code> from <code class="highlight"><c- n>std</c-><c- o>::</c-></code>.</p>
+    <li data-md>
      <p><code class="highlight"><c- n>make_completion_signatures</c-></code> is renamed <code class="highlight"><c- n>transform_completion_signatures_of</c-></code> and is expressed in terms of the new <code class="highlight"><c- n>transform_completion_signatures</c-></code>,
 which takes an input set of completion signatures instead of a sender and an
 environment.</p>
@@ -4498,7 +4500,7 @@ cancellation.</p>
    <p>The key component that enables generic cancellation within sender-based operations is the <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_stop_token</c-><c- p>()</c-></code> CPO.
 This CPO takes a single parameter, which is the execution environment of the receiver passed to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code>, and returns a <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>stoppable_token</c-></code> that the operation can use to check for stop-requests for that operation.</p>
    <p>As the caller of <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> typically has control over the receiver
-type it passes, it is able to customise the <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>get_env</c-><c- p>()</c-></code> CPO for that
+type it passes, it is able to customise the <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>get_env</c-><c- p>()</c-></code> CPO for that
 receiver to return an execution environment that hooks the <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_stop_token</c-><c- p>()</c-></code> CPO to return a stop-token that the receiver has
 control over and that it can use to communicate a stop-request to the operation
 once it has started.</p>
@@ -5549,7 +5551,7 @@ themselves are templated classes.</p>
 <c- k>using</c-> <i><c- n>tag</c-><c- o>-</c-><c- n>invoke</c-></i><c- o>::</c-><c- n>tag_invoke_result</c-><c- p>;</c->
 
 <c- k>template</c-><c- o>&lt;</c-><c- k>auto</c-><c- o>&amp;</c-> <c- n>Tag</c-><c- o>></c->
-  <c- k>using</c-> <c- n>tag_t</c-> <c- o>=</c-> <c- n>decay_t</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>Tag</c-><c- p>)</c-><c- o>></c-><c- p>;</c->
+  <c- k>using</c-> <c- n>tag_t</c-> <c- o>=</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>(</c-><c- n>Tag</c-><c- p>));</c->
 </pre>
     </blockquote>
    </ins>
@@ -6315,17 +6317,6 @@ whose return type is not the type of a sender.</p>
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
     <c- k>concept</c-> <i><c- nc>forwarding</c-><c- o>-</c-><c- n>query</c-></i> <c- o>=</c-> <c- c1>// exposition only</c->
       <c- n>forwarding_query</c-><c- p>(</c-><c- n>T</c-><c- p>{});</c->
-
-  <c- k>namespace</c-> <i><c- nn>exec</c-><c- o>-</c-><c- nn>envs</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
-    <c- k>struct</c-> <c- nc>empty_env</c-> <c- p>{};</c->
-    <c- k>struct</c-> <c- nc>get_env_t</c-><c- p>;</c->
-  <c- p>}</c->
-  <c- k>using</c-> <i><c- n>envs</c-><c- o>-</c-><c- n>envs</c-></i><c- o>::</c-><c- n>empty_env</c-><c- p>;</c->
-  <c- k>using</c-> <i><c- n>envs</c-><c- o>-</c-><c- n>envs</c-></i><c- o>::</c-><c- n>get_env_t</c-><c- p>;</c->
-  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>get_env_t</c-> <c- n>get_env</c-> <c- p>{};</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
-    <c- k>using</c-> <c- n>env_of_t</c-> <c- o>=</c-> <c- k>decltype</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>declval</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>()));</c->
 <c- p>}</c->
 
 <c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
@@ -6351,11 +6342,22 @@ whose return type is not the type of a sender.</p>
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>CPO</c-><c- o>></c->
     <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>get_completion_scheduler_t</c-><c- o>&lt;</c-><c- n>CPO</c-><c- o>></c-> <c- n>get_completion_scheduler</c-><c- p>{};</c->
 
+  <c- k>namespace</c-> <i><c- nn>exec</c-><c- o>-</c-><c- nn>envs</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
+    <c- k>struct</c-> <c- nc>empty_env</c-> <c- p>{};</c->
+    <c- k>struct</c-> <c- nc>get_env_t</c-><c- p>;</c->
+  <c- p>}</c->
+  <c- k>using</c-> <i><c- n>envs</c-><c- o>-</c-><c- n>envs</c-></i><c- o>::</c-><c- n>empty_env</c-><c- p>;</c->
+  <c- k>using</c-> <i><c- n>envs</c-><c- o>-</c-><c- n>envs</c-></i><c- o>::</c-><c- n>get_env_t</c-><c- p>;</c->
+  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>get_env_t</c-> <c- n>get_env</c-> <c- p>{};</c->
+
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
+    <c- k>using</c-> <c- n>env_of_t</c-> <c- o>=</c-> <c- k>decltype</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>declval</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>()));</c->
+
   <c- c1>// [exec.domain.default], execution domains</c->
   <c- k>struct</c-> <c- nc>default_domain</c-><c- p>;</c->
 
   <c- c1>// [exec.sched], schedulers</c->
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sch</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>scheduler</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- c1>// [exec.recv], receivers</c->
@@ -6870,7 +6872,7 @@ attributes.</p>
      <p>The name <code class="highlight"><c- n>get_completion_scheduler</c-></code> denotes a query object template. For some
 subexpression <code class="highlight"><c- n>q</c-></code>, let <code class="highlight"><c- n>Q</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>q</c-><c- p>))</c-></code>. If the template argument <code class="highlight"><c- n>Tag</c-></code> in <code class="highlight"><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>Tag</c-><c- o>></c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is not one of <code class="highlight"><c- n>set_value_t</c-></code>, <code class="highlight"><c- n>set_error_t</c-></code>, or <code class="highlight"><c- n>set_stopped_t</c-></code>, <code class="highlight"><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>Tag</c-><c- o>></c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is
 ill-formed. Otherwise, <code class="highlight"><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>Tag</c-><c- o>></c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is
-expression-equivalent to <code class="highlight"><i><c- n>mandate</c-><c- o>-</c-><c- n>nothrow</c-><c- o>-</c-><c- n>call</c-></i><c- p>(</c-><c- n>tag_invoke</c-><c- p>,</c-> <c- n>get_completion_scheduler</c-><tag><c- p>,</c-> <c- n>as_const</c-><c- p>(</c-><c- n>q</c-><c- p>))</c-></tag></code> if this expression is
+expression-equivalent to <code class="highlight"><i><c- n>mandate</c-><c- o>-</c-><c- n>nothrow</c-><c- o>-</c-><c- n>call</c-></i><c- p>(</c-><c- n>tag_invoke</c-><c- p>,</c-> <c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>Tag</c-><c- o>></c-><c- p>,</c-> <c- n>as_const</c-><c- p>(</c-><c- n>q</c-><c- p>))</c-></code> if this expression is
 well-formed.</p>
      <ul>
       <li data-md>
@@ -7798,8 +7800,7 @@ that <code class="highlight"><i><c- n>MATCHING</c-><c- o>-</c-><c- n>SIG</c-></i
       <c- n>coroutine_handle</c-><c- o>&lt;</c-><i><c- n>connect</c-><c- o>-</c-><c- n>awaitable</c-><c- o>-</c-><c- n>promise</c-></i><c- o>>::</c-><c- n>from_promise</c-><c- p>(</c-><c- o>*</c-><c- k>this</c-><c- p>)};</c->
   <c- p>}</c->
 
-  <c- k>friend</c-> <c- k>auto</c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>get_env_t</c-><c- p>,</c-> <i><c- n>connect</c-><c- o>-</c-><c- n>awaitable</c-><c- o>-</c-><c- n>promise</c-></i><c- o>&amp;</c-> <c- n>self</c-><c- p>)</c->
-    <c- k>noexcept</c-><c- p>(</c-><i><c- n>nothrow</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><c- n>get_env_t</c-><c- p>,</c-> <c- k>const</c-> <c- n>DR</c-><c- o>&amp;></c-><c- p>)</c-> <c- o>-></c-> <c- n>env_of_t</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>DR</c-><c- o>&amp;></c-> <c- p>{</c->
+  <c- k>friend</c-> <c- n>env_of_t</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>DR</c-><c- o>&amp;></c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>get_env_t</c-><c- p>,</c-> <c- k>const</c-> <i><c- n>connect</c-><c- o>-</c-><c- n>awaitable</c-><c- o>-</c-><c- n>promise</c-></i><c- o>&amp;</c-> <c- n>self</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
     <c- k>return</c-> <c- n>get_env</c-><c- p>(</c-><c- n>self</c-><c- p>.</c-><i><c- n>rcvr</c-></i><c- p>);</c->
   <c- p>}</c->
 <c- p>};</c->
