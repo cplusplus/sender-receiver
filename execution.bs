@@ -336,7 +336,7 @@ struct recv_op : operation_base {
     friend void tag_invoke(std::execution::start_t, recv_op& self) noexcept {
         // Avoid even calling WSARecv() if operation already cancelled
         auto st = std::execution::get_stop_token(
-          std::get_env(self.receiver));
+          std::execution::get_env(self.receiver));
         if (st.stop_requested()) {
             std::execution::set_stopped(std::move(self.receiver));
             return;
@@ -1136,6 +1136,9 @@ The changes since R7 are as follows:
 
   * `get_env(obj)` is required to be nothrow.
 
+  * `get_env` and the associated environment utilities are moved back into
+    `std::execution` from `std::`.
+
   * `make_completion_signatures` is renamed `transform_completion_signatures_of`
     and is expressed in terms of the new `transform_completion_signatures`,
     which takes an input set of completion signatures instead of a sender and an
@@ -1931,7 +1934,7 @@ This CPO takes a single parameter, which is the execution environment of the rec
 that the operation can use to check for stop-requests for that operation.
 
 As the caller of `execution::connect` typically has control over the receiver
-type it passes, it is able to customise the `std::get_env()` CPO for that
+type it passes, it is able to customise the `std::execution::get_env()` CPO for that
 receiver to return an execution environment that hooks the
 `execution::get_stop_token()` CPO to return a stop-token that the receiver has
 control over and that it can use to communicate a stop-request to the operation
@@ -3287,7 +3290,7 @@ using <i>tag-invoke</i>::tag_invoke_result_t;
 using <i>tag-invoke</i>::tag_invoke_result;
 
 template&lt;auto& Tag>
-  using tag_t = decay_t&lt;decltype(Tag)>;
+  using tag_t = decltype(auto(Tag));
 </pre>
 </blockquote>
 </ins>
@@ -4118,17 +4121,6 @@ namespace std {
   template&lt;class T>
     concept <i>forwarding-query</i> = // exposition only
       forwarding_query(T{});
-
-  namespace <i>exec-envs</i> { // exposition only
-    struct empty_env {};
-    struct get_env_t;
-  }
-  using <i>envs-envs</i>::empty_env;
-  using <i>envs-envs</i>::get_env_t;
-  inline constexpr get_env_t get_env {};
-
-  template&lt;class T>
-    using env_of_t = decltype(get_env(declval&lt;T>()));
 }
 
 namespace std::execution {
@@ -4154,11 +4146,22 @@ namespace std::execution {
   template&lt;class CPO>
     inline constexpr get_completion_scheduler_t&lt;CPO> get_completion_scheduler{};
 
+  namespace <i>exec-envs</i> { // exposition only
+    struct empty_env {};
+    struct get_env_t;
+  }
+  using <i>envs-envs</i>::empty_env;
+  using <i>envs-envs</i>::get_env_t;
+  inline constexpr get_env_t get_env {};
+
+  template&lt;class T>
+    using env_of_t = decltype(get_env(declval&lt;T>()));
+
   // [exec.domain.default], execution domains
   struct default_domain;
 
   // [exec.sched], schedulers
-  template&lt;class Sndr>
+  template&lt;class Sch>
     concept scheduler = <i>see below</i>;
 
   // [exec.recv], receivers
@@ -4663,7 +4666,7 @@ enum class forward_progress_guarantee {
     `set_error_t`, or `set_stopped_t`, `get_completion_scheduler<Tag>(q)` is
     ill-formed. Otherwise, `get_completion_scheduler<Tag>(q)` is
     expression-equivalent to <code><i>mandate-nothrow-call</i>(tag_invoke,
-    get_completion_scheduler<Tag>, as_const(q))</code> if this expression is
+    get_completion_scheduler&lt;Tag>, as_const(q))</code> if this expression is
     well-formed.
 
         * <i>Mandates:</i> The type of the expression above satisfies
@@ -5718,8 +5721,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           coroutine_handle&lt;<i>connect-awaitable-promise</i>>::from_promise(*this)};
       }
 
-      friend auto tag_invoke(get_env_t, <i>connect-awaitable-promise</i>& self)
-        noexcept(<i>nothrow-callable</i>&lt;get_env_t, const DR&>) -> env_of_t&lt;const DR&> {
+      friend env_of_t&lt;const DR&> tag_invoke(get_env_t, const <i>connect-awaitable-promise</i>& self) noexcept {
         return get_env(self.<i>rcvr</i>);
       }
     };
