@@ -7027,6 +7027,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                   <pre highlight="c++">
                   auto tie = []&lt;class... T>(tuple&lt;T...>& t) noexcept { return tuple&lt;T&...>(t); };
                   auto set = [&](auto&... t) noexcept { set_value(std::move(rcvr), std::move(t)...); };
+
+                  on_stop.reset();
                   apply(
                     [&](auto&... opts) noexcept {
                       apply(set, tuple_cat(tie(*opts)...));
@@ -7038,6 +7040,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                   <code><i>disposition</i>::<i>error</i></code>, evaluates:
 
                   <pre highlight="c++">
+                  on_stop.reset();
                   visit(
                     [&]&lt;class Error>(Error& error) noexcept {
                       if constexpr (!same_as&lt;Error, <i>none-such</i>>) {
@@ -7047,7 +7050,12 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                     errors);
                   </pre>
 
-              3. Otherwise, evaluates `set_stopped(std::move(rcvr))`.
+              3. Otherwise, evaluates:
+              
+                <pre highlight="c++">
+                on_stop.reset();
+                set_stopped(std::move(rcvr));
+                </pre>
 
     4. The member <code><i>impls-for</i>&lt;when_all_t>::<i>start</i></code>
         is initialized with a callable object equivalent to the following lambda
@@ -7060,6 +7068,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
               get_stop_token(get_env(rcvr)),
               <i>on-stop-request</i>{state.stop_src});
             if (state.stop_src.stop_requested()) {
+              state.on_stop.reset();
               set_stopped(std::move(rcvr));
             } else {
               (start(ops), ...);
