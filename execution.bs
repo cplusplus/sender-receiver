@@ -7104,8 +7104,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           }
           </pre>
 
-        where for subexpressions `v` and `e`, <code><i>TRY-EMPLACE-ERROR</i>(v,
-        e)</code> is equivalent to:
+        where <code><i>TRY-EMPLACE-ERROR</i>(v, e)</code>, for subexpressions `v` and `e`, is equivalent to:
 
           <pre highlight="c++">
           try {
@@ -7116,9 +7115,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           </pre>
 
         if the expression `decltype(auto(e))(e)` is potentially throwing; otherwise,
-        `v.template emplace<decltype(auto(e))>(e)`; and where for subexpressions
-        `c`, `o`, and pack of subexpressions `as`, <code><i>TRY-EMPLACE-VALUE</i>(c,
-        o, as...)</code> is equivalent to:
+        `v.template emplace<decltype(auto(e))>(e)`; and where <code><i>TRY-EMPLACE-VALUE</i>(c,
+        o, as...)</code>, for subexpressions `c`, `o`, and pack of subexpressions `as`, is equivalent to:
 
           <pre highlight="c++">
           try {
