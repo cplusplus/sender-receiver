@@ -5237,7 +5237,7 @@ enum class forward_progress_guarantee {
             [dcl.struct.bind].</span>
 
         5. The member <code><i>default-impls</i>::<i>get-attrs</i></code> is initialized
-            with a callable object equal to the following lambda:
+            with a callable object equivalent to the following lambda:
 
               <pre highlight="c++">
               [](const auto& data, const auto&... child) noexcept -> decltype(auto) {
@@ -5249,7 +5249,7 @@ enum class forward_progress_guarantee {
               </pre>
 
         6. The member <code><i>default-impls</i>::<i>get-env</i></code> is initialized
-            with a callable object equal to the following lambda:
+            with a callable object equivalent to the following lambda:
 
               <pre highlight="c++">
               []&lt;class Rcvr>(auto index, auto& state, const Rcvr& rcvr) noexcept
@@ -5259,7 +5259,7 @@ enum class forward_progress_guarantee {
               </pre>
 
         7. The member <code><i>default-impls</i>::<i>get-state</i></code> is initialized
-            with a callable object equal to the following lambda:
+            with a callable object equivalent to the following lambda:
 
               <pre highlight="c++">
               []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) noexcept -> decltype(auto) {
@@ -5268,7 +5268,7 @@ enum class forward_progress_guarantee {
               </pre>
 
         8. The member <code><i>default-impls</i>::<i>start</i></code> is initialized
-            with a callable object equal to the following lambda:
+            with a callable object equivalent to the following lambda:
 
               <pre highlight="c++">
               [](auto& state, auto& rcvr, auto&... ops) noexcept -> void {
@@ -5277,7 +5277,7 @@ enum class forward_progress_guarantee {
               </pre>
 
         9. The member <code><i>default-impls</i>::<i>complete</i></code> is initialized
-            with a callable object equal to the following lambda:
+            with a callable object equivalent to the following lambda:
 
               <pre highlight="c++">
               []&lt;class Index, class Rcvr, class Tag, class... Args>(
@@ -6145,7 +6145,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         </pre>
 
     1. The member <code><i>impls-for</i>&lt;schedule_from_t>::<i>get-attrs</i></code> is initialized
-        with a callable object equal to the following lambda:
+        with a callable object equivalent to the following lambda:
 
           <pre highlight="c++">
           [](const auto& data, const auto& child) noexcept -> decltype(auto) {
@@ -6154,7 +6154,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           </pre>
 
     2. The member <code><i>impls-for</i>&lt;schedule_from_t>::<i>get-state</i></code> is initialized
-        with a callable object equal to the following lambda:
+        with a callable object equivalent to the following lambda:
 
           <pre highlight="c++">
           []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr)
@@ -6215,7 +6215,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                 </pre>
 
     3. The member <code><i>impls-for</i>&lt;schedule_from_t>::<i>complete</i></code>
-        is initialized with a callable object equal to the following lambda:
+        is initialized with a callable object equivalent to the following lambda:
 
           <pre highlight="c++">
           []&lt;class Tag, class... Args>(auto, auto& state, auto& rcvr, Tag, Args&&... args) noexcept -> void {
@@ -6370,7 +6370,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
             </pre>
 
         2. <code><i>impls-for</i>&lt;tag_t&lt;<i>let-cpo</i>>>::<i>get-state</i></code> is
-            is initialized with a callable object equal to the following:
+            is initialized with a callable object equivalent to the following:
 
             <pre highlight="c++">
             []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) requires <i>see below</i> {
@@ -6425,7 +6425,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
             </pre>
 
         4. <code><i>impls-for</i>&lt;tag_t&lt;<i>let-cpo</i>>>::<i>complete</i></code> is
-            is initialized with a callable object equal to the following:
+            is initialized with a callable object equivalent to the following:
 
             <pre highlight="c++">
             []&lt;class Tag, class... Args>
@@ -6490,7 +6490,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         </pre>
 
     1. The member <code><i>impls-for</i>&lt;bulk_t>::complete</code> is
-        initialized with a callable object equal to the following lambda:
+        initialized with a callable object equivalent to the following lambda:
 
           <pre highlight="c++">
           []&lt;class Index, class State, class Rcvr, class Tag, class... Args>
@@ -6806,7 +6806,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     1. The member
         <code><i>impls-for</i>&lt;<i>shared-impl-tag</i>>::<i>get-state</i></code>
-        is initialized with a callable object equal to the following lambda
+        is initialized with a callable object equivalent to the following lambda
         expression:
 
           <pre highlight="c++">
@@ -6922,7 +6922,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         </pre>
 
     1. The member <code><i>impls-for</i>&lt;when_all_t>::<i>get-attrs</i></code>
-        is initialized with a callable object equal to the following lambda
+        is initialized with a callable object equivalent to the following lambda
         expression:
 
           <pre highlight="c++">
@@ -6938,7 +6938,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           </pre>
 
     2. The member <code><i>impls-for</i>&lt;when_all_t>::<i>get-env</i></code>
-        is initialized with a callable object equal to the following lambda
+        is initialized with a callable object equivalent to the following lambda
         expression:
 
           <pre highlight="c++">
@@ -6949,7 +6949,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           </pre>
 
     3. The member <code><i>impls-for</i>&lt;when_all_t>::<i>get-state</i></code>
-        is initialized with a callable object equal to the following lambda
+        is initialized with a callable object equivalent to the following lambda
         expression:
 
           <pre highlight="c++">
@@ -7051,7 +7051,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
               3. Otherwise, calls `set_stopped(std::move(rcvr))`.
 
     4. The member <code><i>impls-for</i>&lt;when_all_t>::<i>start</i></code>
-        is initialized with a callable object equal to the following lambda
+        is initialized with a callable object equivalent to the following lambda
         expression:
 
           <pre highlight="c++">
@@ -7069,7 +7069,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           </pre>
 
     4. The member <code><i>impls-for</i>&lt;when_all_t>::<i>complete</i></code>
-        is initialized with a callable object equal to the following lambda
+        is initialized with a callable object equivalent to the following lambda
         expression:
 
           <pre highlight="c++">
@@ -7188,7 +7188,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     1. The member
         <code><i>impls-for</i>&lt;into_variant_t>::<i>get-state</i></code> is
-        initialized with a callable object equal to the following lambda:
+        initialized with a callable object equivalent to the following lambda:
 
           <pre highlight="c++">
           []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) noexcept
@@ -7198,7 +7198,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           </pre>
 
     2. The member <code><i>impls-for</i>&lt;into_variant_t>::<i>complete</i></code>
-        is initialized with a callable object equal to the following lambda:
+        is initialized with a callable object equivalent to the following lambda:
 
           <pre highlight="c++">
           []&lt;class State, class Rcvr, class Tag, class... Args>(
