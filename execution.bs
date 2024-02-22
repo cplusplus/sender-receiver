@@ -7029,8 +7029,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                   auto set = [&](auto&... t) noexcept { set_value(std::move(rcvr), std::move(t)...); };
                   apply(
                     [&](auto&... opts) noexcept {
-                      if constexpr (sizeof...(opts) != 0)
-                        apply(set, tuple_cat(tie(*opts)...));
+                      apply(set, tuple_cat(tie(*opts)...));
                     },
                     values);
                   </pre>
