@@ -2346,7 +2346,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-02-20">2024-02-20</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-02-22">2024-02-22</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -7392,7 +7392,7 @@ initializer of a structured binding declaration
 [dcl.struct.bind].</span></p>
         <li data-md>
          <p>The member <code class="highlight"><i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i><c- o>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>attrs</c-></i></code> is initialized
-with a callable object equal to the following lambda:</p>
+with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[](</c-><c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>data</c-><c- p>,</c-> <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>child</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- p>{</c->
   <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- k>sizeof</c-><c- p>...(</c-><c- n>child</c-><c- p>)</c-> <c- o>==</c-> <c- mi>1</c-><c- p>)</c->
     <c- k>return</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>child</c-><c- p>...));</c-> <c- c1>//</c->
@@ -7402,7 +7402,7 @@ with a callable object equal to the following lambda:</p>
 </pre>
         <li data-md>
          <p>The member <code class="highlight"><i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i><c- o>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>env</c-></i></code> is initialized
-with a callable object equal to the following lambda:</p>
+with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-><c- p>(</c-><c- k>auto</c-> <c- n>index</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- k>const</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c->
   <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)))</c-> <c- p>{</c->
   <c- k>return</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>));</c->
@@ -7410,21 +7410,21 @@ with a callable object equal to the following lambda:</p>
 </pre>
         <li data-md>
          <p>The member <code class="highlight"><i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i><c- o>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i></code> is initialized
-with a callable object equal to the following lambda:</p>
+with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- p>{</c->
   <c- k>return</c-> <c- n>get</c-><c- o>&lt;</c-><c- mi>1</c-><c- o>></c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>));</c->
 <c- p>}</c->
 </pre>
         <li data-md>
          <p>The member <code class="highlight"><i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i><c- o>::</c-><i><c- n>start</c-></i></code> is initialized
-with a callable object equal to the following lambda:</p>
+with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[](</c-><c- k>auto</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>ops</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
   <c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>start</c-><c- p>(</c-><c- n>ops</c-><c- p>),</c-> <c- p>...);</c->
 <c- p>}</c->
 </pre>
         <li data-md>
          <p>The member <code class="highlight"><i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i><c- o>::</c-><i><c- n>complete</c-></i></code> is initialized
-with a callable object equal to the following lambda:</p>
+with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Index</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c-><c- p>(</c->
   <c- n>Index</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c->
     <c- o>-></c-> <c- b>void</c-> <c- k>requires</c-> <i><c- n>callable</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Rcvr</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-> <c- p>{</c->
@@ -8165,14 +8165,14 @@ follows:</p>
      <ol>
       <li data-md>
        <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>schedule_from_t</c-><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>attrs</c-></i></code> is initialized
-with a callable object equal to the following lambda:</p>
+with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[](</c-><c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>data</c-><c- p>,</c-> <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>child</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- p>{</c->
   <c- k>return</c-> <i><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><i><c- n>SCHED</c-><c- o>-</c-><c- n>ATTRS</c-></i><c- p>(</c-><c- n>data</c-><c- p>),</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>child</c-><c- p>)));</c->
 <c- p>}</c->
 </pre>
       <li data-md>
        <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>schedule_from_t</c-><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i></code> is initialized
-with a callable object equal to the following lambda:</p>
+with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c->
     <c- k>requires</c-> <c- n>sender_in</c-><c- o>&lt;</c-><i><c- n>child</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>,</c-> <c- n>env_of_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>></c-> <c- p>{</c->
   <c- k>return</c-> <c- n>apply</c-><c- p>(</c->
@@ -8225,7 +8225,7 @@ with a callable object equal to the following lambda:</p>
 </pre>
        </ol>
       <li data-md>
-       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>schedule_from_t</c-><c- o>>::</c-><i><c- n>complete</c-></i></code> is initialized with a callable object equal to the following lambda:</p>
+       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>schedule_from_t</c-><c- o>>::</c-><i><c- n>complete</c-></i></code> is initialized with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c-><c- p>(</c-><c- k>auto</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
   <c- k>using</c-> <c- n>result_t</c-> <c- o>=</c-> <i><c- n>decayed</c-><c- o>-</c-><c- n>tuple</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-><c- p>;</c->
   <c- k>constexpr</c-> <c- b>bool</c-> <c- n>nothrow</c-> <c- o>=</c-> <c- n>is_nothrow_constructible_v</c-><c- o>&lt;</c-><c- n>result_t</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-><c- p>;</c->
@@ -8361,7 +8361,7 @@ follows:</p>
 </pre>
       <li data-md>
        <p><code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_t</c-><c- o>&lt;</c-><i><c- n>let</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i></code> is
-is initialized with a callable object equal to the following:</p>
+is initialized with a callable object equivalent to the following:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>requires</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>{</c->
   <c- k>auto</c-><c- o>&amp;&amp;</c-> <c- p>[</c-><c- n>tag</c-><c- p>,</c-> <c- n>data</c-><c- p>,</c-> <c- n>child</c-><c- p>]</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>);</c->
   <c- k>return</c-> <c- p>[</c-><c- o>&amp;</c-><c- p>]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Fn</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Env</c-><c- o>></c-><c- p>(</c-><c- n>Fn</c-> <c- n>fn</c-><c- p>,</c-> <c- n>Env</c-> <c- n>env</c-><c- p>)</c-> <c- p>{</c->
@@ -8399,7 +8399,7 @@ satisfied if and only if the types <i><code class="highlight"><c- n>args</c-><c-
 </pre>
       <li data-md>
        <p><code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_t</c-><c- o>&lt;</c-><i><c- n>let</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>>>::</c-><i><c- n>complete</c-></i></code> is
-is initialized with a callable object equal to the following:</p>
+is initialized with a callable object equivalent to the following:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
   <c- p>(</c-><c- k>auto</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
     <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>same_as</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>tag_t</c-><c- o>&lt;</c-><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>>></c-><c- p>)</c-> <c- p>{</c->
@@ -8453,7 +8453,7 @@ expression-equivalent to:</p>
      <ol>
       <li data-md>
        <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>bulk_t</c-><c- o>>::</c-><c- n>complete</c-></code> is
-initialized with a callable object equal to the following lambda:</p>
+initialized with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Index</c-><c- p>,</c-> <c- k>class</c-> <c- nc>State</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
   <c- p>(</c-><c- n>Index</c-><c- p>,</c-> <c- n>State</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- k>requires</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>{</c->
     <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>same_as</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>set_value_t</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
@@ -8733,7 +8733,7 @@ and finally, it decrements the reference count by calling <code class="highlight
 </pre>
      <ol>
       <li data-md>
-       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i></code> is initialized with a callable object equal to the following lambda
+       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i></code> is initialized with a callable object equivalent to the following lambda
 expression:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
   <c- k>return</c-> <i><c- n>local</c-><c- o>-</c-><c- n>state</c-></i><c- p>{</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>rcvr</c-><c- p>};</c->
@@ -8833,7 +8833,7 @@ expression-equivalent to:</p>
 </pre>
      <ol>
       <li data-md>
-       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>when_all_t</c-><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>attrs</c-></i></code> is initialized with a callable object equal to the following lambda
+       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>when_all_t</c-><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>attrs</c-></i></code> is initialized with a callable object equivalent to the following lambda
 expression:</p>
 <pre class="highlight"><c- p>[](</c-><c- k>auto</c-><c- o>&amp;&amp;</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>child</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
   <c- k>auto</c-> <c- n>domain_fn</c-> <c- o>=</c-> <c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>Ds</c-><c- o>></c-><c- p>(</c-><c- n>Ds</c-><c- p>...)</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>return</c-> <c- n>common_type_t</c-><c- o>&lt;</c-><c- n>Ds</c-><c- p>...</c-><c- o>></c-><c- p>();</c-> <c- p>};</c->
@@ -8846,7 +8846,7 @@ expression:</p>
 <c- p>}</c->
 </pre>
       <li data-md>
-       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>when_all_t</c-><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>env</c-></i></code> is initialized with a callable object equal to the following lambda
+       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>when_all_t</c-><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>env</c-></i></code> is initialized with a callable object equivalent to the following lambda
 expression:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>State</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-><c- p>(</c-><c- k>auto</c-><c- o>&amp;&amp;</c-><c- p>,</c-> <c- n>State</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- k>const</c-> <c- n>Receiver</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
   <c- k>return</c-> <i><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c->
@@ -8854,7 +8854,7 @@ expression:</p>
 <c- p>}</c->
 </pre>
       <li data-md>
-       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>when_all_t</c-><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i></code> is initialized with a callable object equal to the following lambda
+       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>when_all_t</c-><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i></code> is initialized with a callable object equivalent to the following lambda
 expression:</p>
 <pre class="highlight"><div class="ed-note"><c- nl>BUG</c-><c- p>:</c-> <code class="highlight"><c- n><c- n>apply</c-></c-></code> <c- n>isn</c->’<c- n>t</c-> <c- n>constrained</c-></div>
 <c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c->
@@ -8917,19 +8917,21 @@ expression:</p>
          <ol>
           <li data-md>
            <p>If <code class="highlight"><c- n>disp</c-></code> is equal to <code class="highlight"><i><c- n>disposition</c-></i><c- o>::</c-><i><c- n>started</c-></i></code>,
-  calls:</p>
+  evaluates:</p>
 <pre class="highlight"><c- k>auto</c-> <c- n>tie</c-> <c- o>=</c-> <c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>T</c-><c- o>></c-><c- p>(</c-><c- n>tuple</c-><c- o>&lt;</c-><c- n>T</c-><c- p>...</c-><c- o>>&amp;</c-> <c- n>t</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>return</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>T</c-><c- o>&amp;</c-><c- p>...</c-><c- o>></c-><c- p>(</c-><c- n>t</c-><c- p>);</c-> <c- p>};</c->
 <c- k>auto</c-> <c- n>set</c-> <c- o>=</c-> <c- p>[</c-><c- o>&amp;</c-><c- p>](</c-><c- k>auto</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>t</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- n>set_value</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>t</c-><c- p>)...);</c-> <c- p>};</c->
+
+<c- n>on_stop</c-><c- p>.</c-><c- n>reset</c-><c- p>();</c->
 <c- n>apply</c-><c- p>(</c->
   <c- p>[</c-><c- o>&amp;</c-><c- p>](</c-><c- k>auto</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>opts</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
-    <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- k>sizeof</c-><c- p>...(</c-><c- n>opts</c-><c- p>)</c-> <c- o>!=</c-> <c- mi>0</c-><c- p>)</c->
-      <c- n>apply</c-><c- p>(</c-><c- n>set</c-><c- p>,</c-> <c- n>tuple_cat</c-><c- p>(</c-><c- n>tie</c-><c- p>(</c-><c- o>*</c-><c- n>opts</c-><c- p>)...));</c->
+    <c- n>apply</c-><c- p>(</c-><c- n>set</c-><c- p>,</c-> <c- n>tuple_cat</c-><c- p>(</c-><c- n>tie</c-><c- p>(</c-><c- o>*</c-><c- n>opts</c-><c- p>)...));</c->
   <c- p>},</c->
   <c- n>values</c-><c- p>);</c->
 </pre>
           <li data-md>
-           <p>Otherwise, if <code class="highlight"><c- n>disp</c-></code> is equal to <code class="highlight"><i><c- n>disposition</c-></i><c- o>::</c-><i><c- n>error</c-></i></code>, calls:</p>
-<pre class="highlight"><c- n>visit</c-><c- p>(</c->
+           <p>Otherwise, if <code class="highlight"><c- n>disp</c-></code> is equal to <code class="highlight"><i><c- n>disposition</c-></i><c- o>::</c-><i><c- n>error</c-></i></code>, evaluates:</p>
+<pre class="highlight"><c- n>on_stop</c-><c- p>.</c-><c- n>reset</c-><c- p>();</c->
+<c- n>visit</c-><c- p>(</c->
   <c- p>[</c-><c- o>&amp;</c-><c- p>]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Error</c-><c- o>></c-><c- p>(</c-><c- n>Error</c-><c- o>&amp;</c-> <c- n>error</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
     <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- o>!</c-><c- n>same_as</c-><c- o>&lt;</c-><c- n>Error</c-><c- p>,</c-> <i><c- n>none</c-><c- o>-</c-><c- n>such</c-></i><c- o>></c-><c- p>)</c-> <c- p>{</c->
       <c- n>set_error</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>error</c-><c- p>));</c->
@@ -8938,11 +8940,14 @@ expression:</p>
   <c- n>errors</c-><c- p>);</c->
 </pre>
           <li data-md>
-           <p>Otherwise, calls <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))</c-></code>.</p>
+           <p>Otherwise, evaluates:</p>
+<pre class="highlight"><c- n>on_stop</c-><c- p>.</c-><c- n>reset</c-><c- p>();</c->
+<c- n>set_stopped</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>));</c->
+</pre>
          </ol>
        </ol>
       <li data-md>
-       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>when_all_t</c-><c- o>>::</c-><i><c- n>start</c-></i></code> is initialized with a callable object equal to the following lambda
+       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>when_all_t</c-><c- o>>::</c-><i><c- n>start</c-></i></code> is initialized with a callable object equivalent to the following lambda
 expression:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>State</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Ops</c-><c- o>></c-><c- p>(</c->
     <c- n>State</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Ops</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>ops</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
@@ -8950,6 +8955,7 @@ expression:</p>
     <c- n>get_stop_token</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)),</c->
     <i><c- n>on</c-><c- o>-</c-><c- n>stop</c-><c- o>-</c-><c- n>request</c-></i><c- p>{</c-><c- n>state</c-><c- p>.</c-><c- n>stop_src</c-><c- p>});</c->
   <c- k>if</c-> <c- p>(</c-><c- n>state</c-><c- p>.</c-><c- n>stop_src</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>())</c-> <c- p>{</c->
+    <c- n>state</c-><c- p>.</c-><c- n>on_stop</c-><c- p>.</c-><c- n>reset</c-><c- p>();</c->
     <c- n>set_stopped</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>));</c->
   <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
     <c- p>(</c-><c- n>start</c-><c- p>(</c-><c- n>ops</c-><c- p>),</c-> <c- p>...);</c->
@@ -8957,7 +8963,7 @@ expression:</p>
 <c- p>}</c->
 </pre>
       <li data-md>
-       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>when_all_t</c-><c- o>>::</c-><i><c- n>complete</c-></i></code> is initialized with a callable object equal to the following lambda
+       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>when_all_t</c-><c- o>>::</c-><i><c- n>complete</c-></i></code> is initialized with a callable object equivalent to the following lambda
 expression:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Index</c-><c- p>,</c-> <c- k>class</c-> <c- nc>State</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Set</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c-><c- p>(</c->
     <c- k>this</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>complete</c-><c- p>,</c-> <c- n>Index</c-><c- p>,</c-> <c- n>State</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Set</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
@@ -8981,14 +8987,14 @@ expression:</p>
   <c- n>state</c-><c- p>.</c-><i><c- n>arrive</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>);</c->
 <c- p>}</c->
 </pre>
-       <p>where for subexpressions <code class="highlight"><c- n>v</c-></code> and <code class="highlight"><c- n>e</c-></code>, <code class="highlight"><i><c- n>TRY</c-><c- o>-</c-><c- n>EMPLACE</c-><c- o>-</c-><c- n>ERROR</c-></i><c- p>(</c-><c- n>v</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code> is equivalent to:</p>
+       <p>where <code class="highlight"><i><c- n>TRY</c-><c- o>-</c-><c- n>EMPLACE</c-><c- o>-</c-><c- n>ERROR</c-></i><c- p>(</c-><c- n>v</c-><c- p>,</c-> <c- n>e</c-><c- p>)</c-></code>, for subexpressions <code class="highlight"><c- n>v</c-></code> and <code class="highlight"><c- n>e</c-></code>, is equivalent to:</p>
 <pre class="highlight"><c- k>try</c-> <c- p>{</c->
   <c- n>v</c-><c- p>.</c-><c- k>template</c-> <c- n>emplace</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>(</c-><c- n>e</c-><c- p>))</c-><c- o>></c-><c- p>(</c-><c- n>e</c-><c- p>);</c->
 <c- p>}</c-> <c- k>catch</c-> <c- p>(...)</c-> <c- p>{</c->
   <c- n>v</c-><c- p>.</c-><c- k>template</c-> <c- n>emplace</c-><c- o>&lt;</c-><c- n>exception_ptr</c-><c- o>></c-><c- p>(</c-><c- n>current_exception</c-><c- p>());</c->
 <c- p>}</c->
 </pre>
-       <p>if the expression <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>(</c-><c- n>e</c-><c- p>))(</c-><c- n>e</c-><c- p>)</c-></code> is potentially throwing; otherwise, <code class="highlight"><c- n>v</c-><c- p>.</c-><c- k>template</c-> <c- n>emplace</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>(</c-><c- n>e</c-><c- p>))</c-><c- o>></c-><c- p>(</c-><c- n>e</c-><c- p>)</c-></code>; and where for subexpressions <code class="highlight"><c- n>c</c-></code>, <code class="highlight"><c- n>o</c-></code>, and pack of subexpressions <code class="highlight"><c- n>as</c-></code>, <code class="highlight"><i><c- n>TRY</c-><c- o>-</c-><c- n>EMPLACE</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>c</c-><c- p>,</c-> <c- n>o</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> is equivalent to:</p>
+       <p>if the expression <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>(</c-><c- n>e</c-><c- p>))(</c-><c- n>e</c-><c- p>)</c-></code> is potentially throwing; otherwise, <code class="highlight"><c- n>v</c-><c- p>.</c-><c- k>template</c-> <c- n>emplace</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>(</c-><c- n>e</c-><c- p>))</c-><c- o>></c-><c- p>(</c-><c- n>e</c-><c- p>)</c-></code>; and where <code class="highlight"><i><c- n>TRY</c-><c- o>-</c-><c- n>EMPLACE</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>c</c-><c- p>,</c-> <c- n>o</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code>, for subexpressions <code class="highlight"><c- n>c</c-></code>, <code class="highlight"><c- n>o</c-></code>, and pack of subexpressions <code class="highlight"><c- n>as</c-></code>, is equivalent to:</p>
 <pre class="highlight"><c- k>try</c-> <c- p>{</c->
   <c- n>o</c-><c- p>.</c-><c- n>emplace</c-><c- p>(</c-><c- n>as</c-><c- p>...);</c->
 <c- p>}</c-> <c- k>catch</c-> <c- p>(...)</c-> <c- p>{</c->
@@ -9006,9 +9012,9 @@ expression-equivalent to:</p>
   <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>when_all_with_variant</c-><c- p>,</c-> <c- p>{},</c-> <c- n>sndr</c-><sub><i><c- n>0</c-></i></sub><c- p>,</c-> <c- p>...</c-> <c- n>sndr</c-><sub><i><c- n>n</c-><c- mi>-1</c-></i></sub><c- p>));</c->
 </pre>
     <li data-md>
-     <p>Let <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>env</c-></code> be subexpressions such that <code class="highlight"><c- n>Sndr</c-></code> is <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. If <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>when_all_with_variant_t</c-><c- o>></c-></code> is <code class="highlight">false</code>,
+     <p>Given subexpressions <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>env</c-></code>, if <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>)),</c-> <c- n>when_all_with_variant_t</c-><c- o>></c-></code> is <code class="highlight">false</code>,
 then the expression <code class="highlight"><c- n>when_all_with_variant</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is
-ill-formed; otherwise, it is equal to:</p>
+ill-formed; otherwise, the body of the <code class="highlight"><c- n>transform_sender</c-></code> member-function is equivalent to:</p>
 <pre class="highlight"><c- k>auto</c-> <c- p>[</c-><c- n>tag</c-><c- p>,</c-> <c- n>data</c-><c- p>,</c-> <c- p>...</c-><c- n>child</c-><c- p>]</c-> <c- o>=</c-> <c- n>sndr</c-><c- p>;</c->
 <c- k>return</c-> <c- n>when_all</c-><c- p>(</c-><c- n>into_variant</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>child</c-><c- p>))...);</c->
 </pre>
@@ -9051,14 +9057,14 @@ specialized for <code class="highlight"><c- n>into_variant</c-></code> as follow
      <ol>
       <li data-md>
        <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>into_variant_t</c-><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i></code> is
-initialized with a callable object equal to the following lambda:</p>
+initialized with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c->
   <c- o>-></c-> <c- n>type_identity</c-><c- o>&lt;</c-><i><c- n>into</c-><c- o>-</c-><c- n>variant</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><i><c- n>child</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>,</c-> <c- n>env_of_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>>></c-> <c- p>{</c->
   <c- k>return</c-> <c- p>{};</c->
 <c- p>}</c->
 </pre>
       <li data-md>
-       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>into_variant_t</c-><c- o>>::</c-><i><c- n>complete</c-></i></code> is initialized with a callable object equal to the following lambda:</p>
+       <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>into_variant_t</c-><c- o>>::</c-><i><c- n>complete</c-></i></code> is initialized with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>State</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c-><c- p>(</c->
     <c- k>auto</c-><c- p>,</c-> <c- n>State</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
   <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>same_as</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>set_value_t</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
