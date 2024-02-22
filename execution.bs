@@ -7076,7 +7076,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           }
           </pre>
 
-    4. The member <code><i>impls-for</i>&lt;when_all_t>::<i>complete</i></code>
+    5. The member <code><i>impls-for</i>&lt;when_all_t>::<i>complete</i></code>
         is initialized with a callable object equivalent to the following lambda
         expression:
 
