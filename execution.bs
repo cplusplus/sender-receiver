@@ -7022,7 +7022,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
               noexcept</code> behaves as follows:
 
               1. If `disp` is equal to <code><i>disposition</i>::<i>started</i></code>,
-                  calls:
+                  evaluates:
 
                   <pre highlight="c++">
                   auto tie = []&lt;class... T>(tuple&lt;T...>& t) noexcept { return tuple&lt;T&...>(t); };
@@ -7036,7 +7036,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                   </pre>
 
               2. Otherwise, if `disp` is equal to
-                  <code><i>disposition</i>::<i>error</i></code>, calls:
+                  <code><i>disposition</i>::<i>error</i></code>, evaluates:
 
                   <pre highlight="c++">
                   visit(
@@ -7048,7 +7048,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                     errors);
                   </pre>
 
-              3. Otherwise, calls `set_stopped(std::move(rcvr))`.
+              3. Otherwise, evaluates `set_stopped(std::move(rcvr))`.
 
     4. The member <code><i>impls-for</i>&lt;when_all_t>::<i>start</i></code>
         is initialized with a callable object equivalent to the following lambda
