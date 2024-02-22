@@ -7139,14 +7139,14 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         <i>make-sender</i>(when_all_with_variant, {}, sndr<sub><i>0</i></sub>, ... sndr<sub><i>n-1</i></sub>));
       </pre>
 
-6. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If
-    <code><i>sender-for</i>&lt;Sndr, when_all_with_variant_t></code> is `false`,
+6. Given subexpressions `sndr` and `env`, if
+    <code><i>sender-for</i>&lt;decltype((sndr)), when_all_with_variant_t></code> is `false`,
     then the expression `when_all_with_variant.transform_sender(sndr, env)` is
-    ill-formed; otherwise, it is equal to:
+    ill-formed; otherwise, the body of the `transform_sender` member-function is equivalent to:
 
       <pre highlight="c++">
-      auto [tag, data, ...child] = sndr;
-      return when_all(into_variant(std::move(child))...);
+        auto [tag, data, ...child] = sndr;
+        return when_all(into_variant(std::move(child))...);
       </pre>
 
     <span class="wg21note">This causes the `when_all_with_variant(sndr...)` sender
