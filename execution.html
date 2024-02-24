@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>D2300R8: `std::execution`</title>
+  <title>D2300R9: `std::execution`</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -2345,8 +2345,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">D2300R8<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-02-22">2024-02-22</time></span></h2>
+   <h1 class="p-name no-ref" id="title">D2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-02-23">2024-02-23</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -9611,7 +9611,7 @@ or else <code class="highlight"><i><c- n>valid</c-><c- o>-</c-><c- n>completion<
      <ul>
       <li data-md>
        <p>Let <code class="highlight"><c- n>Vs</c-><c- p>...</c-></code> be a pack of the types in the <code class="highlight"><i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i></code> named
-by <code class="highlight"><i><c- n>gether</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>,</c-> <c- n>InputSignatures</c-><c- p>,</c-> <c- n>SetValue</c-><c- p>,</c-> <i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- o>></c-></code>.</p>
+by <code class="highlight"><i><c- n>gather</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>,</c-> <c- n>InputSignatures</c-><c- p>,</c-> <c- n>SetValue</c-><c- p>,</c-> <i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- o>></c-></code>.</p>
       <li data-md>
        <p>Let <code class="highlight"><c- n>Es</c-><c- p>...</c-></code> be a pack of the types in the <code class="highlight"><i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i></code> named by <code class="highlight"><i><c- n>gather</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>set_error_t</c-><c- p>,</c-> <c- n>InputSignatures</c-><c- p>,</c-> <c- n>type_identity_t</c-><c- p>,</c-> <i><c- n>error</c-><c- o>-</c-><c- n>list</c-></i><c- o>></c-></code>, where <code class="highlight"><i><c- n>error</c-><c- o>-</c-><c- n>list</c-></i></code> is an
 alias template such that <code class="highlight"><i><c- n>error</c-><c- o>-</c-><c- n>list</c-></i><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></code> names <code class="highlight"><i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- o>&lt;</c-><c- n>SetError</c-><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-><c- p>...</c-><c- o>></c-></code>.</p>
@@ -10833,19 +10833,19 @@ function genLinkingSyntaxes(dfn) {
 "use strict";
 {
 let refsData = {
-"#completion-scheduler": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"completion scheduler","type":"dfn","url":"#completion-scheduler"},
-"#connect": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"connect","type":"dfn","url":"#connect"},
-"#execution-resource": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"execution resource","type":"dfn","url":"#execution-resource"},
-"#operation-state": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"operation state","type":"dfn","url":"#operation-state"},
-"#receiver": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"receiver","type":"dfn","url":"#receiver"},
-"#scheduler": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"scheduler","type":"dfn","url":"#scheduler"},
-"#send": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"send","type":"dfn","url":"#send"},
-"#sender": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"sender","type":"dfn","url":"#sender"},
-"#sender-adaptor": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"sender adaptor","type":"dfn","url":"#sender-adaptor"},
-"#sender-algorithm": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"sender algorithm","type":"dfn","url":"#sender-algorithm"},
-"#sender-consumer": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"sender consumer","type":"dfn","url":"#sender-consumer"},
-"#sender-factory": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"sender factory","type":"dfn","url":"#sender-factory"},
-"#start": {"export":true,"for_":[],"level":"8","normative":true,"shortname":"d2300","spec":"d2300-8","status":"local","text":"start","type":"dfn","url":"#start"},
+"#completion-scheduler": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"completion scheduler","type":"dfn","url":"#completion-scheduler"},
+"#connect": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"connect","type":"dfn","url":"#connect"},
+"#execution-resource": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"execution resource","type":"dfn","url":"#execution-resource"},
+"#operation-state": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"operation state","type":"dfn","url":"#operation-state"},
+"#receiver": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"receiver","type":"dfn","url":"#receiver"},
+"#scheduler": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"scheduler","type":"dfn","url":"#scheduler"},
+"#send": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"send","type":"dfn","url":"#send"},
+"#sender": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"sender","type":"dfn","url":"#sender"},
+"#sender-adaptor": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"sender adaptor","type":"dfn","url":"#sender-adaptor"},
+"#sender-algorithm": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"sender algorithm","type":"dfn","url":"#sender-algorithm"},
+"#sender-consumer": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"sender consumer","type":"dfn","url":"#sender-consumer"},
+"#sender-factory": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"sender factory","type":"dfn","url":"#sender-factory"},
+"#start": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"d2300","spec":"d2300-9","status":"local","text":"start","type":"dfn","url":"#start"},
 };
 
 function mkRefHint(link, ref) {
