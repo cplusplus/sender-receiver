@@ -2,7 +2,7 @@
 Title: `std::execution`
 H1: <code>std::execution</code>
 Shortname: D2300
-Revision: 8
+Revision: 9
 Status: D
 Group: WG21
 Audience: SG1, LEWG
@@ -7783,7 +7783,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     Then:
 
         * Let `Vs...` be a pack of the types in the <code><i>type-list</i></code> named
-            by <code><i>gether-signatures</i>&lt;set_value_t, InputSignatures, SetValue, <i>type-list</i>></code>.
+            by <code><i>gather-signatures</i>&lt;set_value_t, InputSignatures, SetValue, <i>type-list</i>></code>.
 
         *  Let `Es...` be a pack of the types in the
             <code><i>type-list</i></code> named by <code><i>gather-signatures</i>&lt;set_error_t, InputSignatures,
