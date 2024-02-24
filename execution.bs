@@ -16,8 +16,8 @@ Editor: Michael Garland, mgarland@nvidia.com
 Editor: Eric Niebler, eric.niebler@gmail.com
 Editor: Bryce Adelstein Lelbach, brycelelbach@gmail.com
 URL: https://wg21.link/P2300
-!Source: <a href="https://github.com/brycelelbach/wg21_p2300_execution/blob/main/execution.bs">GitHub</a>
-Issue Tracking: GitHub https://github.com/brycelelbach/wg21_p2300_execution/issues
+!Source: <a href="https://github.com/cplusplus/sender-receiver/blob/main/execution.bs">GitHub</a>
+Issue Tracking: GitHub https://github.com/cplusplus/sender-receiver/issues
 Metadata Order: Editor, This Version, Source, Issue Tracking, Project, Audience
 Markup Shorthands: markdown yes
 Toggle Diffs: no
