@@ -7512,8 +7512,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
       friend void tag_invoke(set_stopped_t, Derived&& self) noexcept;
 
-      friend decltype(auto) tag_invoke(get_env_t, const Derived& self)
-          noexcept(<i>see below</i>);
+      friend decltype(auto) tag_invoke(get_env_t, const Derived& self) noexcept;
 
       [[no_unique_address]] Base base_; // present if and only if <i>HAS-BASE</i> is true
     };
@@ -7593,23 +7592,18 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         * Otherwise, <code>set_stopped(<i>GET-BASE</i>(std::move(self)))</code>.
 
     <pre highlight="c++">
-    friend decltype(auto) tag_invoke(get_env_t, const Derived& self)
-      noexcept(<i>see below</i>);
+    friend decltype(auto) tag_invoke(get_env_t, const Derived& self) noexcept;
     </pre>
 
     1. <i>Constraints:</i> Either `self.get_env()` is a valid expression or `typename Derived::get_env` denotes a type and <code><i>callable</i>&lt;get_env_t, <i>BASE-TYPE</i>(const Derived&)></code> is `true`.
 
-    2. <i>Effects:</i> Equivalent to:
+    2. <i>Mandates:</i> `noexcept(self.get_env())` is `true` if it is a valid expression.
+
+    3. <i>Effects:</i> Equivalent to:
 
         * If `self.get_env()` is a valid expression, `self.get_env()`;
 
         * Otherwise, <code>get_env(<i>GET-BASE</i>(self))</code>.
-
-    3. <i>Remarks:</i> The expression in the `noexcept` clause is:
-
-        * If `self.get_env()` is a valid expression, `noexcept(self.get_env())`;
-
-        * Otherwise, <code>noexcept(get_env(<i>GET-BASE</i>(self)))</code>.
 
 ### `execution::completion_signatures` <b>[exec.utils.cmplsigs]</b> ### {#spec-execution.snd_rec_utils.completion_sigs}
 
