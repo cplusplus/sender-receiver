@@ -2346,7 +2346,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-02-23">2024-02-23</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-02-28">2024-02-28</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -9347,8 +9347,7 @@ expression-equivalent to <code class="highlight"><c- n>start_detached</c-><c- p>
 
   <c- k>friend</c-> <c- b>void</c-> <c- nf>tag_invoke</c-><c- p>(</c-><c- n>set_stopped_t</c-><c- p>,</c-> <c- n>Derived</c-><c- o>&amp;&amp;</c-> <c- n>self</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
 
-  <c- k>friend</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>get_env_t</c-><c- p>,</c-> <c- k>const</c-> <c- n>Derived</c-><c- o>&amp;</c-> <c- n>self</c-><c- p>)</c->
-      <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>);</c->
+  <c- k>friend</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>get_env_t</c-><c- p>,</c-> <c- k>const</c-> <c- n>Derived</c-><c- o>&amp;</c-> <c- n>self</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
 
   <c- p>[[</c-><c- n>no_unique_address</c-><c- p>]]</c-> <c- n>Base</c-> <c- n>base_</c-><c- p>;</c-> <c- c1>// present if and only if </c-><i><c- c1>HAS-BASE</c-></i><c- c1> is true</c->
 <c- p>};</c->
@@ -9431,12 +9430,13 @@ instantiated.]</p>
        <p>Otherwise, <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><i><c- n>GET</c-><c- o>-</c-><c- n>BASE</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>self</c-><c- p>)))</c-></code>.</p>
      </ul>
    </ol>
-<pre class="highlight"><c- k>friend</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>get_env_t</c-><c- p>,</c-> <c- k>const</c-> <c- n>Derived</c-><c- o>&amp;</c-> <c- n>self</c-><c- p>)</c->
-  <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>);</c->
+<pre class="highlight"><c- k>friend</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>tag_invoke</c-><c- p>(</c-><c- n>get_env_t</c-><c- p>,</c-> <c- k>const</c-> <c- n>Derived</c-><c- o>&amp;</c-> <c- n>self</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
 </pre>
    <ol>
     <li data-md>
      <p><i>Constraints:</i> Either <code class="highlight"><c- n>self</c-><c- p>.</c-><c- n>get_env</c-><c- p>()</c-></code> is a valid expression or <code class="highlight"><c- k>typename</c-> <c- nc>Derived</c-><c- o>::</c-><c- n>get_env</c-></code> denotes a type and <code class="highlight"><i><c- n>callable</c-></i><c- o>&lt;</c-><c- n>get_env_t</c-><c- p>,</c-> <i><c- n>BASE</c-><c- o>-</c-><c- n>TYPE</c-></i><c- p>(</c-><c- k>const</c-> <c- n>Derived</c-><c- o>&amp;</c-><c- p>)</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
+    <li data-md>
+     <p><i>Mandates:</i> <code class="highlight"><c- k>noexcept</c-><c- p>(</c-><c- n>self</c-><c- p>.</c-><c- n>get_env</c-><c- p>())</c-></code> is <code class="highlight">true</code> if it is a valid expression.</p>
     <li data-md>
      <p><i>Effects:</i> Equivalent to:</p>
      <ul>
@@ -9444,14 +9444,6 @@ instantiated.]</p>
        <p>If <code class="highlight"><c- n>self</c-><c- p>.</c-><c- n>get_env</c-><c- p>()</c-></code> is a valid expression, <code class="highlight"><c- n>self</c-><c- p>.</c-><c- n>get_env</c-><c- p>()</c-></code>;</p>
       <li data-md>
        <p>Otherwise, <code class="highlight"><c- n>get_env</c-><c- p>(</c-><i><c- n>GET</c-><c- o>-</c-><c- n>BASE</c-></i><c- p>(</c-><c- n>self</c-><c- p>))</c-></code>.</p>
-     </ul>
-    <li data-md>
-     <p><i>Remarks:</i> The expression in the <code class="highlight"><c- k>noexcept</c-></code> clause is:</p>
-     <ul>
-      <li data-md>
-       <p>If <code class="highlight"><c- n>self</c-><c- p>.</c-><c- n>get_env</c-><c- p>()</c-></code> is a valid expression, <code class="highlight"><c- k>noexcept</c-><c- p>(</c-><c- n>self</c-><c- p>.</c-><c- n>get_env</c-><c- p>())</c-></code>;</p>
-      <li data-md>
-       <p>Otherwise, <code class="highlight"><c- k>noexcept</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><i><c- n>GET</c-><c- o>-</c-><c- n>BASE</c-></i><c- p>(</c-><c- n>self</c-><c- p>)))</c-></code>.</p>
      </ul>
    </ol>
    <h4 class="heading settled" data-level="11.11.2" id="spec-execution.snd_rec_utils.completion_sigs"><span class="secno">11.11.2. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>completion_signatures</c-></code> <b>[exec.utils.cmplsigs]</b></span><a class="self-link" href="#spec-execution.snd_rec_utils.completion_sigs"></a></h4>
