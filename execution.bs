@@ -5627,9 +5627,9 @@ template&lt;class Domain, sender Sndr, queryable Env>
   constexpr decltype(auto) transform_env(Domain dom, Sndr&& sndr, Env&& env) noexcept;
 </pre>
 
-3. <i>Returns:</i> `dom.transform_sender(std::forward<Sndr>(sndr), std::forward<Env>(env))` if that
+2. <i>Returns:</i> `dom.transform_env(std::forward<Sndr>(sndr), std::forward<Env>(env))` if that
       expression is well-formed; otherwise,
-      `default_domain().transform_sender(std::forward<Sndr>(sndr), std::forward<Env>(env))`.
+      `default_domain().transform_env(std::forward<Sndr>(sndr), std::forward<Env>(env))`.
 
 ### `execution::apply_sender` <b>[exec.snd.apply]</b> ### {#spec-execution.apply_sender}
 
