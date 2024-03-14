@@ -5880,9 +5880,10 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     <pre highlight="c++">
     template&lt;>
     struct <i>impls-for</i>&lt;tag_t&lt;read>> : <i>default-impls</i> {
-      static constexpr auto start = [](auto query, auto& rcvr) noexcept -> void {
-        <i>TRY-SET-VALUE</i>(std::move(rcvr), query(get_env(rcvr)));
-      };
+      static constexpr auto <em>start</em> =
+        [](auto query, auto& rcvr) noexcept -> void {
+          <i>TRY-SET-VALUE</i>(std::move(rcvr), query(get_env(rcvr)));
+        };
     };
     </pre>
 
@@ -6129,7 +6130,6 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           <i>query-or-default</i>(get_domain, sch, default_domain()),
           <i>make-sender</i>(schedule_from, sch, sndr));
         </pre>
-
 
 4. The exposition-only class template <code><i>impls-for</i></code>
     ([exec.snd.general]) is specialized for `schedule_from_t` as
