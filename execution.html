@@ -9242,7 +9242,7 @@ once:</p>
     <li data-md>
      <p>Let <code class="highlight"><i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>receiver</c-></i></code> be the following exposition-only class template:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
-<c- k>struct</c-> <i><c- nc>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>state</c-></i> <c- p>{</c->
+<c- k>struct</c-> <i><c- nc>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>state</c-></i> <c- p>{</c-> <i><c- c1>// exposition only</c-></i>
   <c- n>run_loop</c-> <c- n>loop</c-><c- p>;</c->
   <c- n>exception_ptr</c-> <c- n>error</c-><c- p>;</c->
   <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-> <c- n>result</c-><c- p>;</c->
@@ -9288,7 +9288,7 @@ once:</p>
        </ol>
      </ol>
     <li data-md>
-     <p>For a subexpression <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>env</c-></i><c- o>></c-></code> is <code class="highlight">false</code>, the
+     <p>For a subexpression <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>></c-></code> is <code class="highlight">false</code>, the
 expression <code class="highlight"><c- n>sync_wait</c-><c- p>.</c-><c- n>apply_sender</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is ill-formed; otherwise, it is
 equivalent to:</p>
 <pre class="highlight"><i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-> <c- n>state</c-><c- p>;</c->
@@ -9336,7 +9336,7 @@ well-formed.</p>
 where <code class="highlight"><i><c- n>e</c-></i></code> is the expression above.</p>
      </ul>
     <li data-md>
-     <p>If <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>env</c-></i><c- o>></c-></code> is <code class="highlight">false</code>, the
+     <p>If <code class="highlight"><i><c- n>callable</c-></i><c- o>&lt;</c-><c- n>sync_wait_t</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>></c-></code> is <code class="highlight">false</code>, the
 expression <code class="highlight"><c- n>sync_wait_with_variant</c-><c- p>.</c-><c- n>apply_sender</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is ill-formed.
 Otherwise, it is equivalent to:</p>
 <pre class="highlight"><c- k>using</c-> <c- n>result_type</c-> <c- o>=</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>with</c-><c- o>-</c-><c- n>variant</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>;</c->
