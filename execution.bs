@@ -1173,7 +1173,7 @@ The changes since R6 are as follows:
   * Make it valid to pass non-variadic templates to the exposition-only alias
     template <code><i>gather-signatures</i></code>, fixing the definitions of
     `value_types_of_t`, `error_types_of_t`, and the exposition-only alias
-    template <code><i>sync-wait-type</i></code>.
+    template <code><i>sync-wait-result-type</i></code>.
   * Removed the query forwarding from `receiver_adaptor` that was
     inadvertantly left over from a previous edit.
   * When adapting a sender to an awaitable with `as_awaitable`, the sender's
@@ -3855,6 +3855,18 @@ template&lt;class C>
         respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is `true` if and only if
         `same_as<R1(Args&&...), R2(Args2&&...)>` is `true`.
 
+    4. For a subexpression `err`, let `Err` be `decltype((err))` and let
+        <code><i>AS-EXCEPT-PTR</i>(err)</code> be:
+
+        1. `err` if `decay_t<Err>` denotes the type `exception_ptr`.
+
+            - *Mandates:* `err != exception_ptr()` is `true`
+
+        2. Otherwise, `make_exception_ptr(system_error(err))` if `decay_t<Err>` denotes the type `error_code`,
+
+        3. Otherwise, `make_exception_ptr(err)`.
+
+
 ## Queries and queryables <b>[exec.queryable]</b> ## {#spec-execution.queryable}
 
 ### General <b>[exec.queryable.general]</b> ### {#spec-execution.queryable.general}
@@ -4440,9 +4452,9 @@ namespace std::this_thread {
     struct <i>sync-wait-env</i>; <i>// exposition only</i>
     template&lt;class Sndr>
         requires sender_in&lt;Sndr, <i>sync-wait-env</i>>
-      using <i>sync-wait-type</i> = <i>see below</i>; <i>// exposition only</i>
+      using <i>sync-wait-result-type</i> = <i>see below</i>; <i>// exposition only</i>
     template&lt;class Sndr>
-      using <i>sync-wait-with-variant-type</i> = <i>see below</i>; <i>// exposition only</i>
+      using <i>sync-wait-with-variant-result-type</i> = <i>see below</i>; <i>// exposition only</i>
 
     struct sync_wait_t;
     struct sync_wait_with_variant_t;
@@ -6063,7 +6075,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     subexpressions `sch` and `sndr`, if `decltype((sch))` does not satisfy
     `scheduler`, or `decltype((sndr))` does not satisfy `sender`,
     `transfer(sndr, sch)` is ill-formed.
-    
+
 3. Otherwise, the expression `transfer(sndr, sch)` is expression-equivalent to:
 
         <pre highlight="c++">
@@ -7051,7 +7063,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                   </pre>
 
               3. Otherwise, evaluates:
-              
+
                 <pre highlight="c++">
                 on_stop.reset();
                 set_stopped(std::move(rcvr));
@@ -7336,87 +7348,189 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 #### `this_thread::sync_wait` <b>[exec.sync.wait]</b> #### {#spec-execution.senders.consumers.sync_wait}
 
 1. `this_thread::sync_wait` and `this_thread::sync_wait_with_variant` are used
-    to block a current thread until a sender passed into it as an argument has
-    completed, and to obtain the values (if any) it completed with. `sync_wait`
-    requires that the input sender has exactly one value completion signature.
+    to block the current thread of execution until the specified sender
+    completes and to return its async result. `sync_wait` mandates that the
+    input sender has exactly one value completion signature.
 
-2. For any receiver `rcvr` created by an implementation of `sync_wait` and
-    `sync_wait_with_variant`, the expressions `get_scheduler(get_env(rcvr))` and
-    `get_delegatee_scheduler(get_env(rcvr))` shall be well-formed. For a receiver
-    created by the default implementation of `this_thread::sync_wait`, these
-    expressions shall return a scheduler to the same thread-safe,
-    first-in-first-out queue of work such that tasks scheduled to the queue
-    execute on the thread of the caller of `sync_wait`. [<i>Note:</i> The
-    scheduler for an instance of `run_loop` that is a local variable
-    within `sync_wait` is one valid implementation. -- <i>end note</i>]
+2. Let <code><i>sync-wait-env</i></code> be the following exposition-only class
+    type:
 
-3. The templates <code><i>sync-wait-type</i></code> and
-    <code><i>sync-wait-with-variant-type</i></code> are used to determine the
-    return types of `this_thread::sync_wait` and
-    `this_thread::sync_wait_with_variant`. Let <code><i>sync-wait-env</i></code>
-    be the type of the expression `get_env(rcvr)` where `rcvr` is an instance of the
-    receiver created by the default implementation of `sync_wait`.
+    <pre highlight="c++">
+    template&lt;class Tag>
+    concept <em>get-sched-query</em> = <em>// exposition only</em>
+      <em>one-of</em>&lt;Tag, execution::get_scheduler_t, execution::get_delegatee_scheduler_t>;
+
+    struct <em>sync-wait-env</em> {
+      execution::run_loop* <em>loop</em>; // <i>exposition only</i>
+
+      friend auto tag_invoke(<em>get-sched-query</em> auto, <em>sync-wait-env</em> self) noexcept {
+        return self.<em>loop</em>->get_scheduler();
+      }
+    };
+    </pre>
+
+3. Let <code><i>sync-wait-result-type</i></code> and
+    <code><i>sync-wait-with-variant-result-type</i></code> be exposition-only
+    template aliases that are defined as follows:
 
     <pre highlight="c++">
     template&lt;sender_in&lt;<i>sync-wait-env</i>> Sndr>
-      using <i>sync-wait-type</i> =
+      using <i>sync-wait-result-type</i> =
         optional&lt;value_types_of_t&lt;Sndr, <i>sync-wait-env</i>, <i>decayed-tuple</i>, type_identity_t>>;
 
     template&lt;sender_in&lt;<i>sync-wait-env</i>> Sndr>
-      using <i>sync-wait-with-variant-type</i> = optional&lt;<i>into-variant-type</i>&lt;Sndr, <i>sync-wait-env</i>>>;
+      using <i>sync-wait-with-variant-result-type</i> =
+        optional&lt;<i>into-variant-type</i>&lt;Sndr, <i>sync-wait-env</i>>>; <i>// see [exec.into.variant]</i>
     </pre>
 
-4. The name `this_thread::sync_wait` denotes a customization point object. For
-    some subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
-    <code>sender_in&lt;Sndr, <i>sync-wait-env</i>></code> is `false`,
-    or if the type <code>completion_signatures_of_t&lt;Sndr, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t></code> is ill-formed,
-    `this_thread::sync_wait(sndr)` is ill-formed.
-    Otherwise, `this_thread::sync_wait(sndr)` is expression-equivalent to:
+
+4. The name `this_thread::sync_wait` denotes a customization point object. For a
+    subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
+    <code>sender_in&lt;Sndr, <i>sync-wait-env</i>></code> is `false`, the
+    expression `this_thread::sync_wait(sndr)` is ill-formed. Otherwise, it is
+    expression-equivalent to the following, except that `sndr` is evaluated only
+    once:
+
+      <pre highlight="c++">
+      apply_sender(<i>get-domain-early</i>(sndr), sync_wait, sndr)
+      </pre>
+
+    <i>Mandates:</i>
+
+        * The type <code><i>sync-wait-result-type</i>&lt;Sndr></code> is well-formed.
+
+        * <code>same_as&lt;decltype(<i>e</i>),
+            sync-wait-result-type</i>&lt;Sndr>></code> is `true`, where
+            <code><i>e</i></code> is the expression above.
+
+5. Let <code><i>sync-wait-receiver</i></code> be the following exposition-only class template:
 
     <pre highlight="c++">
-    apply_sender(<i>get-domain-early</i>(sndr), sync_wait, sndr)
+    template&lt;class Sndr>
+    struct <i>sync-wait-state</i> {
+      run_loop loop;
+      exception_ptr error;
+      <i>sync-wait-result-type</i>&lt;Sndr> result;
+    };
+
+    template&lt;class Sndr>
+    struct <i>sync-wait-receiver</i> {
+      using receiver_concept = receiver_t;
+      <i>sync-wait-state</i>&lt;Sndr>* <i>state</i>; <i>// exposition only</i>
+
+      template&lt;class Tag, class... Ts>
+      void <i>complete</i>(Tag, Ts&&... ts) noexcept; <i>// exposition only</i>
+
+      template&lt;<i>completion-tag</i> Tag, class... Ts>
+      friend void tag_invoke(Tag, <i>sync-wait-receiver</i>&& self, Ts&&... ts) noexcept {
+        self.<i>complete</i>(Tag(), std::forward&lt;Ts>(ts)...);
+        self.<i>state</i>->loop.finish();
+      }
+
+      friend <i>sync-wait-env</i> tag_invoke(get_env_t, const <i>sync-wait-receiver</i>& self) noexcept {
+        return {&self.<i>state</i>->loop};
+      }
+    };
     </pre>
 
-    * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-type</i>&lt;Sndr, <i>sync-wait-env</i>></code>.
+    1. The member <code><i>sync-wait-receiver</i>::<i>complete</i></code> behaves as follows:
 
-5. Let <code><i>sync-wait-receiver</i></code> be a class type that satisfies `receiver`, let `rcvr` be an xvalue of that type,
-    and let `crcvr` be a const lvalue referring to `rcvr` such that `get_env(crcvr)` has type <code><i>sync-wait-env</i></code>.
-    If <code>sender_in&lt;Sndr, <i>sync-wait-env</i>></code> is `false`, or if the type
-    <code>completion_signatures_of_t&lt;Sndr, <i>sync-wait-env</i>, <i>type-list</i>, type_identity_t></code> is ill-formed,
-    the expression `sync_wait_t().apply_sender(sndr)` is ill-formed; otherwise it has the following effects:
+        1. If `Tag` is `set_value_t`, evaluates:
 
-        1. Calls `connect(sndr, rcvr)`, resulting in an operation state `op_state`, then calls `start(op_state)`.
+            <pre highlight="c++">
+            try {
+              <i>state</i>->result.emplace(std::forward&lt;Ts>(ts)...);
+            } catch (...) {
+              <i>state</i>->error = current_exception();
+            }
+            </pre>
 
-        2. Blocks the current thread until a completion operation of `rcvr` is executed. When it is:
+        2. Otherwise, if `Tag` is `set_error_t`, evaluates:
 
-            1. If `set_value(rcvr, ts...)` has been called, returns <code><i>sync-wait-type</i>&lt;Sndr, <i>sync-wait-env</i>>{<i>decayed-tuple</i>&lt;decltype(ts)...>{ts...}}</code>. If that expression exits exceptionally, the exception is propagated to the caller of `sync_wait`.
+            <pre highlight="c++">
+            <i>state</i>->error = <i>AS-EXCEPT-PTR</i>(std::forward<Ts>(ts)...); <i>// see [exec.general]</i>
+            </pre>
 
-            2. If `set_error(rcvr, err)` has been called, let `Err` be the decayed type of `err`. If `Err` is `exception_ptr`, calls `rethrow_exception(err)`. Otherwise, if the `Err` is `error_code`, throws `system_error(err)`. Otherwise, throws `err`.
+        3. Otherwise, does nothing.
 
-            3. If `set_stopped(rcvr)` has been called, returns <code><i>sync-wait-type</i>&lt;Sndr, <i>sync-wait-env</i>>{}</code>.
+6. For a subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
+    <code>sender_in&lt;Sndr, <i>sync-wait-env</i>></code> is `false`, the
+    expression `sync_wait.apply_sender(sndr)` is ill-formed; otherwise, it is
+    equivalent to:
 
-6. The name `this_thread::sync_wait_with_variant` denotes a customization point
-    object. For some subexpression `sndr`, let `Sndr` be the type of
+        <pre highlight="c++">
+        <i>sync-wait-state</i>&lt;Sndr> state;
+        auto op = connect(sndr, <i>sync-wait-receiver</i>&lt;Sndr>{&state});
+        start(op);
+
+        state.loop.run();
+        if (state.error) {
+          rethrow_exception(std::move(state.error));
+        }
+        return std::move(state.result);
+        </pre>
+
+7. The behavior of `this_thread::sync_wait(sndr)` is undefined unless:
+
+    1. It blocks the current thread of execution with forward progress guarantee
+        delegation ([intro.progress]) until the specified sender completes, and
+
+    2. It returns the specified sender's async results as follows:
+
+        1. For a value completion, the result datums are returned
+            in a `tuple` in an engaged `optional` object.
+
+        2. For an error completion, the result datum is rethrown.
+
+        3. For a stopped completion, a disengaged `optional` object is returned.
+
+8. The name `this_thread::sync_wait_with_variant` denotes a customization point
+    object. For a subexpression `sndr`, let `Sndr` be the type of
     `into_variant(sndr)`. If <code>sender_in&lt;Sndr,
     <i>sync-wait-env</i>></code> is `false`,
-    `this_thread::sync_wait_with_variant(sndr)` is ill-formed. Otherwise,
-    `this_thread::sync_wait_with_variant(sndr)` is expression-equivalent to:
+    `this_thread::sync_wait_with_variant(sndr)` is ill-formed. Otherwise, it is
+    expression-equivalent to the following, except `sndr` is evaluated only
+    once:
 
     <pre highlight="c++">
     apply_sender(<i>get-domain-early</i>(sndr), sync_wait_with_variant, sndr)
     </pre>
 
-    * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-with-variant-type</i>&lt;Sndr, <i>sync-wait-env</i>></code>.
+    <i>Mandates:</i>
 
-7. The expression `sync_wait_with_variant_t().apply_sender(sndr)` is
-    equal to:
+      - The type <code><i>sync-wait-with-variant-result-type</i>&lt;Sndr></code> is
+        well-formed.
+
+      - <code>same_as&lt;decltype(<i>e</i>),
+        <i>sync-wait-with-variant-result-type</i>&lt;Sndr>></code> is `true`,
+        where <code><i>e</i></code> is the expression above.
+
+9. If <code>sender_in&lt;Sndr, <i>sync-wait-env</i>></code> is `false`, the
+    expression `sync_wait_with_variant.apply_sender(sndr)` is ill-formed.
+    Otherwise, it is equivalent to:
 
         <pre highlight="c++">
+        using result_type = <i>sync-wait-with-variant-result-type</i>&lt;Sndr>;
         if (auto opt_value = sync_wait(into_variant(sndr))) {
-          return std::move(get&lt;0>(*opt_value));
+          return result_type(std::move(get&lt;0>(*opt_value)));
         }
-        return nullopt;
+        return result_type(nullopt);
         </pre>
+
+10. The behavior of `this_thread::sync_wait_with_variant(sndr)` is undefined unless:
+
+    1. It blocks the current thread of execution with forward progress guarantee
+        delegation ([intro.progress]) until the specified sender completes, and
+
+    2. It returns the specified sender's async results as follows:
+
+        1. For a value completion, the result datums are returned
+            in a `variant` of `tuple`s in an engaged `optional` object.
+
+        2. For an error completion, the result datum is rethrown.
+
+        3. For a stopped completion, a disengaged `optional` object is returned.
+
 
 ## `execution::execute` <b>[exec.execute]</b> ## {#spec-execution.execute}
 
@@ -8065,17 +8179,9 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
               2. The expression `set_error(rcvr, err)` is equivalent to:
 
                   <pre highlight="c++">
-                  rcvr.<i>result_ptr_</i>->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err));
+                  rcvr.<i>result_ptr_</i>->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err)); <i>// see [exec.general]</i>
                   rcvr.<i>continuation_</i>.resume();
                   </pre>
-
-                  where <code><i>AS-EXCEPT-PTR</i>(err)</code> is:
-
-                  1. `err` if `decay_t<Err>` names the same type as `exception_ptr`,
-
-                  2. Otherwise, `make_exception_ptr(system_error(err))` if `decay_t<Err>` names the same type as `error_code`,
-
-                  3. Otherwise, `make_exception_ptr(err)`.
 
               3. The expression `set_stopped(rcvr)` is equivalent to
                 <code>static_cast&lt;coroutine_handle&lt;>>(rcvr.<i>continuation_</i>.promise().unhandled_stopped()).resume()</code>.
