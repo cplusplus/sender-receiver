@@ -7407,7 +7407,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     <pre highlight="c++">
     template&lt;class Sndr>
-    struct <i>sync-wait-state</i> {
+    struct <i>sync-wait-state</i> { <i>// exposition only</i>
       run_loop loop;
       exception_ptr error;
       <i>sync-wait-result-type</i>&lt;Sndr> result;
@@ -7454,7 +7454,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         3. Otherwise, does nothing.
 
 6. For a subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
-    <code>sender_in&lt;Sndr, <i>sync-wait-env</i>></code> is `false`, the
+    <code>sender_to&lt;Sndr, <i>sync-wait-receiver</i>&lt;Sndr>></code> is `false`, the
     expression `sync_wait.apply_sender(sndr)` is ill-formed; otherwise, it is
     equivalent to:
 
@@ -7505,7 +7505,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         <i>sync-wait-with-variant-result-type</i>&lt;Sndr>></code> is `true`,
         where <code><i>e</i></code> is the expression above.
 
-9. If <code>sender_in&lt;Sndr, <i>sync-wait-env</i>></code> is `false`, the
+9. If <code><i>callable</i>&lt;sync_wait_t, Sndr></code> is `false`, the
     expression `sync_wait_with_variant.apply_sender(sndr)` is ill-formed.
     Otherwise, it is equivalent to:
 
