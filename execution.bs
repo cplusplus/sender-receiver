@@ -7235,7 +7235,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     <pre highlight="c++">
     transform_sender(
-      <i>get-sender-domain</i>(sndr),
+      <i>get-domain-early</i>(sndr),
       <i>make-sender</i>(stopped_as_optional, {}, sndr))
     </pre>
 
@@ -7263,7 +7263,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     <pre highlight="c++">
     transform_sender(
-      <i>get-sender-domain</i>(sndr),
+      <i>get-domain-early</i>(sndr),
       <i>make-sender</i>(stopped_as_error, err, sndr))
     </pre>
 
@@ -7288,13 +7288,15 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 2. The name `start_detached` denotes a customization point object. For some
     subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
     `sender_in<Sndr, empty_env>` is `false`, `start_detached` is ill-formed.
-    Otherwise, the expression `start_detached(sndr)` is expression-equivalent to:
+    Otherwise, the expression `start_detached(sndr)` is expression-equivalent to
+    the following except that `sndr` is evaluated only once:
 
     <pre highlight="c++">
-    apply_sender(<i>get-sender-domain</i>(sndr), start_detached, sndr)
+    apply_sender(<i>get-domain-early</i>(sndr), start_detached, sndr)
     </pre>
 
-    * <i>Mandates:</i> The type of the expression above is `void`.
+    * <i>Mandates:</i> <code>same_as&lt;decltype(<em>e</em>), void></code> is
+        `true` where <code><em>e</em></code> is the expression above.
 
     If the expression above does not eagerly start the sender `sndr` after
     connecting it with a receiver that ignores value and stopped completion
@@ -7314,7 +7316,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
       friend void tag_invoke(set_value_t, <i>detached-receiver</i>&& self) noexcept { delete self.op; }
       friend void tag_invoke(set_error_t, <i>detached-receiver</i>&&, auto&&) noexcept { terminate(); }
       friend void tag_invoke(set_stopped_t, <i>detached-receiver</i>&& self) noexcept { delete self.op; }
-      friend empty_env tag_invoke(get_env_t, const <i>detached-receiver</i>&) { return {}; }
+      friend empty_env tag_invoke(get_env_t, const <i>detached-receiver</i>&) noexcept { return {}; }
     };
 
     struct <i>detached-operation</i> {
@@ -7328,8 +7330,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 4. If <code>sender_to&lt;Sndr, <i>detached-receiver</i>></code> is `false`, the
     expression `start_detached.apply_sender(sndr)` is ill-formed; otherwise, it is
-    expression-equivalent to <code>start(*new
-    <i>detached-operation</i>(sndr))</code>.
+    expression-equivalent to <code>start((new
+    <i>detached-operation</i>(sndr))->op)</code>.
 
 #### `this_thread::sync_wait` <b>[exec.sync.wait]</b> #### {#spec-execution.senders.consumers.sync_wait}
 
@@ -7401,7 +7403,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     `this_thread::sync_wait_with_variant(sndr)` is expression-equivalent to:
 
     <pre highlight="c++">
-    apply_sender(<i>get-sender-domain</i>(sndr), sync_wait_with_variant, sndr)
+    apply_sender(<i>get-domain-early</i>(sndr), sync_wait_with_variant, sndr)
     </pre>
 
     * <i>Mandates:</i> The type of the expression above is <code><i>sync-wait-with-variant-type</i>&lt;Sndr, <i>sync-wait-env</i>></code>.
