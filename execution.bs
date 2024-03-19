@@ -7371,7 +7371,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
 3. Let <code><i>sync-wait-result-type</i></code> and
     <code><i>sync-wait-with-variant-result-type</i></code> be exposition-only
-    template aliases that are defined as follows:
+    template aliases defined as follows:
 
     <pre highlight="c++">
     template&lt;sender_in&lt;<i>sync-wait-env</i>> Sndr>
@@ -7401,9 +7401,11 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
         * <code>same_as&lt;decltype(<i>e</i>),
             sync-wait-result-type</i>&lt;Sndr>></code> is `true`, where
-            <code><i>e</i></code> is the expression above.
+            <code><i>e</i></code> is `apply_sender` the expression above.
 
-5. Let <code><i>sync-wait-receiver</i></code> be the following exposition-only class template:
+5. Let <code><i>sync-wait-state</i></code> and
+    <code><i>sync-wait-receiver</i></code> be the following exposition-only class
+    templates:
 
     <pre highlight="c++">
     template&lt;class Sndr>
@@ -7473,7 +7475,12 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 7. The behavior of `this_thread::sync_wait(sndr)` is undefined unless:
 
     1. It blocks the current thread of execution with forward progress guarantee
-        delegation ([intro.progress]) until the specified sender completes, and
+        delegation ([intro.progress]) until the specified sender completes.
+        <span class="wg21note">The default implementation of `sync_wait`
+        achieves forward progress guarantee delegation by providing a `run_loop`
+        scheduler via the `get_delegatee_scheduler` query on the
+        <code><i>sync-wait-receiver</i></code>'s environment. The `run_loop`
+        is driven by the current thread of execution.</span>
 
     2. It returns the specified sender's async results as follows:
 
@@ -7520,7 +7527,10 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 10. The behavior of `this_thread::sync_wait_with_variant(sndr)` is undefined unless:
 
     1. It blocks the current thread of execution with forward progress guarantee
-        delegation ([intro.progress]) until the specified sender completes, and
+        delegation ([intro.progress]) until the specified sender completes.
+        <span class="wg21note">The default implementation of `sync_wait_with_variant`
+        achieves forward progress guarantee delegation by relying on the
+        forward progress guarantee delegation provided by `sync_wait`.</span>
 
     2. It returns the specified sender's async results as follows:
 
@@ -7531,13 +7541,15 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
         3. For a stopped completion, a disengaged `optional` object is returned.
 
-
 ## `execution::execute` <b>[exec.execute]</b> ## {#spec-execution.execute}
 
-1. `execute` creates fire-and-forget tasks on a specified scheduler.
+1. `execute` executes a specified callable object on a specified scheduler.
 
-2. The name `execute` denotes a customization point object. For some subexpressions `sch` and `f`, let `Sch` be `decltype((sch))` and `F` be `decltype((f))`. If `Sch` does not satisfy `scheduler` or `F` does not satisfy `invocable`,
-    `execute(sch, f)` is ill-formed. Otherwise, `execute(sch, f)` is expression-equivalent to:
+2. The name `execute` denotes a customization point object. For some
+    subexpressions `sch` and `f`, let `Sch` be `decltype((sch))` and `F` be the
+    decayed type of `f`. If `Sch` does not satisfy `scheduler` or `F` does not
+    satisfy `invocable`, `execute(sch, f)` is ill-formed. Otherwise,
+    `execute(sch, f)` is expression-equivalent to:
 
     <pre highlight="c++">
     apply_sender(
@@ -7546,9 +7558,9 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     </pre>
     * <i>Mandates:</i> The type of the expression above is `void`.
 
-3. For some subexpressions `sndr` and `f` where `F` is `decltype((f))`,
+3. For some subexpressions `sndr` and `f` where `F` is the decayed type of `f`,
     if `F` does not satisfy `invocable`, the expression
-    `execute_t().apply_sender(sndr, f)` is ill-formed; otherwise it is
+    `execute.apply_sender(sndr, f)` is ill-formed; otherwise it is
     expression-equivalent to `start_detached(then(sndr, f))`.
 
 ## Sender/receiver utilities <b>[exec.utils]</b> ## {#spec-execution.snd_rec_utils}
