@@ -5541,14 +5541,12 @@ enum class forward_progress_guarantee {
 
 <pre highlight="c++">
 struct default_domain {
-  template &lt;sender Sndr>
-    static constexpr sender decltype(auto) transform_sender(Sndr&& sndr) noexcept(<i>see below</i>);
+  template &lt;sender Sndr, queryable... Env>
+      requires (sizeof...(Env) <= 1)
+    static constexpr sender decltype(auto) transform_sender(Sndr&& sndr, const Env&... env) noexcept(<i>see below</i>);
 
   template &lt;sender Sndr, queryable Env>
-    static constexpr sender decltype(auto) transform_sender(Sndr&& sndr, const Env& env) noexcept(<i>see below</i>);
-
-  template &lt;sender Sndr, queryable Env>
-    static constexpr decltype(auto) transform_env(Sndr&& sndr, Env&& env) noexcept;
+    static constexpr queryable decltype(auto) transform_env(Sndr&& sndr, Env&& env) noexcept;
 
   template&lt;class Tag, sender Sndr, class... Args>
     static constexpr decltype(auto) apply_sender(Tag, Sndr&& sndr, Args&&... args) noexcept(<i>see below</i>);
@@ -5558,90 +5556,86 @@ struct default_domain {
 #### Static members <b>[exec.domain.default.statics]</b> #### {#spec-execution.default_domain.statics}
 
 <pre highlight="c++">
-template &lt;sender Sndr>
-  constexpr sender decltype(auto) default_domain::transform_sender(Sndr&& sndr) noexcept(<i>see below</i>);
+template &lt;sender Sndr, queryable... Env>
+    requires (sizeof...(Env) <= 1)
+  constexpr sender decltype(auto) default_domain::transform_sender(Sndr&& sndr, const Env&... env) noexcept(<i>see below</i>);
 </pre>
 
-1. <i>Returns:</i> `tag_of_t<Sndr>().transform_sender(std::forward<Sndr>(sndr))`
-    if that expression is well-formed; otherwise, `std::forward<Sndr>(sndr)`.
+1. Let <code><i>e</i></code> be the expression
+    `tag_of_t<Sndr>().transform_sender(std::forward<Sndr>(sndr), env...)` if that
+    expression is well-formed; otherwise, `std::forward<Sndr>(sndr)`.
 
-2. <i>Remarks:</i> The exception specification is equivalent to:
+2. <i>Returns:</i> <code><i>e</i></code>.
 
-    <pre highlight="c++">
-    noexcept(tag_of_t&lt;Sndr>().transform_sender(std::forward&lt;Sndr>(sndr)))
-    </pre>
-
-    if that expression is well-formed; otherwise, `true`;
+3. <i>Remarks:</i> The exception specification is equivalent to <code>noexcept(<i>e</i>)</code>.
 
 <pre highlight="c++">
 template &lt;sender Sndr, queryable Env>
-  constexpr sender decltype(auto) default_domain::transform_sender(Sndr&& sndr, const Env& env) noexcept(<i>see below</i>);
+  constexpr queryable decltype(auto) default_domain::transform_env(Sndr&& sndr, Env&& env) noexcept;
 </pre>
 
-1. <i>Returns:</i> `tag_of_t<Sndr>().transform_sender(std::forward<Sndr>(sndr), env)`
-    if that expression is well-formed; otherwise, `std::forward<Sndr>(sndr)`.
+4. Let <code><i>e</i></code> be the expression
+    `tag_of_t<Sndr>().transform_env(std::forward<Sndr>(sndr),
+    std::forward<Env>(env))` if that expression is well-formed; otherwise,
+    `static_cast<Env>(std::forward<Env>(env))`.
 
-2. <i>Remarks:</i> The exception specification is equivalent to:
+5. <i>Mandates:</i> <code>noexcept(<i>e</i>)</code> is `true`.
 
-    <pre highlight="c++">
-    noexcept(tag_of_t&lt;Sndr>().transform_sender(std::forward&lt;Sndr>(sndr), env))
-    </pre>
-
-    if that expression is well-formed; otherwise, `true`;
-
-<pre highlight="c++">
-template &lt;sender Sndr, queryable Env>
-  constexpr decltype(auto) default_domain::transform_env(Sndr&& sndr, Env&& env) noexcept;
-</pre>
-
-3. <i>Returns:</i> `tag_of_t<Sndr>().transform_env(std::forward<Sndr>(sndr), std::forward<Env>(env))`
-    if that expression is well-formed; otherwise, `static_cast<Env>(std::forward<Env>(env))`.
-
-4. <i>Mandates:</i> The selected expression in <i>Returns:</i> is not potentially throwing.
+6. <i>Returns:</i> <code><i>e</i></code>.
 
 <pre highlight="c++">
 template&lt;class Tag, sender Sndr, class... Args>
-  static constexpr decltype(auto) default_domain::apply_sender(Tag, Sndr&& sndr, Args&&... args) noexcept(<i>see below</i>);
+  constexpr decltype(auto) default_domain::apply_sender(Tag, Sndr&& sndr, Args&&... args) noexcept(<i>see below</i>);
 </pre>
 
-5. <i>Returns:</i> `Tag().apply_sender(std::forward<Sndr>(sndr), std::forward<Args>(args)...)`
-    if that expression is well-formed; otherwise, this function shall not participate
-    in overload resolution.
+7. Let <code><i>e</i></code> be the expression
+    `Tag().apply_sender(std::forward<Sndr>(sndr), std::forward<Args>(args)...)`
+    if that expression is well-formed; otherwise, this function shall not
+    participate in overload resolution.
 
-6. <i>Remarks:</i> The exception specification is equivalent to:
+8. <i>Constraints:</i> <code><i>e</i></code> is a well-formed expression.
 
-    <pre highlight="c++">
-    noexcept(Tag().apply_sender(std::forward&lt;Sndr>(sndr), std::forward&lt;Args>(args)...))
-    </pre>
+9. <i>Returns:</i> <code><i>e</i></code>.
+
+10. <i>Remarks:</i> The exception specification is equivalent to <code>noexcept(<i>e</i>)</code>.
 
 ### `execution::transform_sender` <b>[exec.snd.transform]</b> ### {#spec-execution.sender_transform}
 
 <pre highlight="c++">
-template&lt;class Domain, sender Sndr>
-  constexpr sender decltype(auto) transform_sender(Domain dom, Sndr&& sndr);
-
-template&lt;class Domain, sender Sndr, queryable Env>
-  constexpr sender decltype(auto) transform_sender(Domain dom, Sndr&& sndr, const Env& env);
+template&lt;class Domain, sender Sndr, queryable... Env>
+    requires (sizeof...(Env) <= 1)
+  constexpr sender decltype(auto) transform_sender(Domain dom, Sndr&& sndr, const Env&... env) noexcept(<i>see below</i>);
 </pre>
 
-1. <i>Returns:</i> Let <code><i>ENV</i></code> be a parameter pack consisting of
-      the single expression `env` for the second overload and an empty pack for
-      the first. Let `sndr2` be the expression
-      <code>dom.transform_sender(std::forward&lt;Sndr>(sndr),
-      <i>ENV</i>...)</code> if that expression is well-formed; otherwise,
-      <code>default_domain().transform_sender(std::forward&lt;Sndr>(sndr),
-      <i>ENV</i>...)</code>. If `sndr2` and `sndr` have the same type ignoring *cv*
-      qualifiers, returns `sndr2`; otherwise, <code>transform_sender(dom, sndr2,
-      <i>ENV</i>...)</code>.
+1. Let <code><i>sndr2</i></code> be the expression
+    `dom.transform_sender(std::forward<Sndr>(sndr), env...)` if that expression
+    is well-formed; otherwise,
+    `default_domain().transform_sender(std::forward<Sndr>(sndr), env...)`. Let
+    <code><i>sndr3</i></code> be <code><i>sndr2</i></code> if
+    <code><i>sndr2</i></code> and `sndr` have the same type ignoring *cv*
+    qualifiers; otherwise, <code>transform_sender(dom, <i>sndr2</i>, env...)</code>.
+
+2. <i>Returns:</i> <code><i>sndr3</i></code>.
+
+3. <i>Remarks:</i> The exception specification is equivalent to
+    <code>noexcept(<i>sndr3</i>)</code>.
+
+### `execution::transform_env` <b>[exec.snd.transform.env]</b> ### {#spec-execution.env_transform}
 
 <pre highlight="c++">
 template&lt;class Domain, sender Sndr, queryable Env>
-  constexpr decltype(auto) transform_env(Domain dom, Sndr&& sndr, Env&& env) noexcept;
+  constexpr queryable decltype(auto) transform_env(Domain dom, Sndr&& sndr, Env&& env) noexcept;
 </pre>
 
-2. <i>Returns:</i> `dom.transform_env(std::forward<Sndr>(sndr), std::forward<Env>(env))` if that
-      expression is well-formed; otherwise,
-      `default_domain().transform_env(std::forward<Sndr>(sndr), std::forward<Env>(env))`.
+1. Let <code><i>e</i></code> be the expression
+    `dom.transform_env(std::forward<Sndr>(sndr), std::forward<Env>(env))` if
+    that expression is well-formed; otherwise,
+    `default_domain().transform_env(std::forward<Sndr>(sndr),
+    std::forward<Env>(env))`.
+
+2. <i>Mandates:</i> <code>noexcept(<i>e</i>)</code> is `true`.
+
+2. <i>Returns:</i> <code><i>e</i></code>.
 
 ### `execution::apply_sender` <b>[exec.snd.apply]</b> ### {#spec-execution.apply_sender}
 
@@ -5650,23 +5644,17 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
   constexpr decltype(auto) apply_sender(Domain dom, Tag, Sndr&& sndr, Args&&... args) noexcept(<i>see below</i>);
 </pre>
 
-1. <i>Returns:</i> `dom.apply_sender(Tag(), std::forward<Sndr>(sndr), std::forward<Args>(args)...)` if that
-      expression is well-formed; otherwise,
-      `default_domain().apply_sender(Tag(), std::forward<Sndr>(sndr), std::forward<Args>(args)...)`
-      if that expression is well-formed; otherwise, this function shall not participate in
-      overload resolution.
+1. Let <code><i>e</i></code> be the expression `dom.apply_sender(Tag(),
+      std::forward<Sndr>(sndr), std::forward<Args>(args)...)` if that expression
+      is well-formed; otherwise, `default_domain().apply_sender(Tag(),
+      std::forward<Sndr>(sndr), std::forward<Args>(args)...)`.
 
-2. <i>Remarks:</i> The exception specification is equivalent to:
+2. <i>Constraints:</i> The expression <code><i>e</i></code> is well-formed.
 
-      <pre highlight="c++">
-      noexcept(dom.apply_sender(Tag(), std::forward&lt;Sndr>(sndr), std::forward&lt;Args>(args)...))
-      </pre>
+1. <i>Returns:</i> <code><i>e</i></code>.
 
-      if that expression is well-formed; otherwise,
-
-      <pre highlight="c++">
-      noexcept(default_domain().apply_sender(Tag(), std::forward&lt;Sndr>(sndr), std::forward&lt;Args>(args)...))
-      </pre>
+2. <i>Remarks:</i> The exception specification is equivalent to
+    <code>noexcept(<i>e</i>)</code>.
 
 ### `execution::get_completion_signatures` <b>[exec.getcomplsigs]</b> ### {#spec-execution.getcomplsigs}
 
