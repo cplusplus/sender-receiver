@@ -4085,11 +4085,11 @@ template&lt;class C>
         non-senders as arguments and that returns a sender.
 
     * A <dfn export=true>sender adaptor</dfn> is a function that constructs and
-        returns a parent sender from a set of one or more child senders and a
-        (possibly empty) set of additional arguments. An asynchronous operation
-        created by a <dfn export=true>parent sender</dfn> is a parent to the
-        child operations created by the <dfn export=true lt="child sender">child
-        senders</dfn>.
+        returns a <dfn export=true>parent sender</dfn> from a set of one or more
+        <dfn export=true lt="child sender">child senders</dfn> and a (possibly
+        empty) set of additional arguments. An asynchronous operation created by
+        a parent sender is a parent operation to the child operations created by
+        the child senders.
 
     * A <dfn export=true>sender consumer</dfn> is a function that takes one or
         more senders and a (possibly empty) set of additional arguments, and
@@ -5558,7 +5558,7 @@ struct default_domain {
 <pre highlight="c++">
 template &lt;sender Sndr, queryable... Env>
     requires (sizeof...(Env) <= 1)
-  constexpr sender decltype(auto) default_domain::transform_sender(Sndr&& sndr, const Env&... env) noexcept(<i>see below</i>);
+  constexpr sender decltype(auto) transform_sender(Sndr&& sndr, const Env&... env) noexcept(<i>see below</i>);
 </pre>
 
 1. Let <code><i>e</i></code> be the expression
@@ -5571,7 +5571,7 @@ template &lt;sender Sndr, queryable... Env>
 
 <pre highlight="c++">
 template &lt;sender Sndr, queryable Env>
-  constexpr queryable decltype(auto) default_domain::transform_env(Sndr&& sndr, Env&& env) noexcept;
+  constexpr queryable decltype(auto) transform_env(Sndr&& sndr, Env&& env) noexcept;
 </pre>
 
 4. Let <code><i>e</i></code> be the expression
@@ -5585,13 +5585,11 @@ template &lt;sender Sndr, queryable Env>
 
 <pre highlight="c++">
 template&lt;class Tag, sender Sndr, class... Args>
-  constexpr decltype(auto) default_domain::apply_sender(Tag, Sndr&& sndr, Args&&... args) noexcept(<i>see below</i>);
+  constexpr decltype(auto) apply_sender(Tag, Sndr&& sndr, Args&&... args) noexcept(<i>see below</i>);
 </pre>
 
 7. Let <code><i>e</i></code> be the expression
-    `Tag().apply_sender(std::forward<Sndr>(sndr), std::forward<Args>(args)...)`
-    if that expression is well-formed; otherwise, this function shall not
-    participate in overload resolution.
+    `Tag().apply_sender(std::forward<Sndr>(sndr), std::forward<Args>(args)...)`.
 
 8. <i>Constraints:</i> <code><i>e</i></code> is a well-formed expression.
 
@@ -5607,18 +5605,20 @@ template&lt;class Domain, sender Sndr, queryable... Env>
   constexpr sender decltype(auto) transform_sender(Domain dom, Sndr&& sndr, const Env&... env) noexcept(<i>see below</i>);
 </pre>
 
-1. Let <code><i>sndr2</i></code> be the expression
+1. Let <code><i>transformed-sndr</i></code> be the expression
     `dom.transform_sender(std::forward<Sndr>(sndr), env...)` if that expression
     is well-formed; otherwise,
     `default_domain().transform_sender(std::forward<Sndr>(sndr), env...)`. Let
-    <code><i>sndr3</i></code> be <code><i>sndr2</i></code> if
-    <code><i>sndr2</i></code> and `sndr` have the same type ignoring *cv*
-    qualifiers; otherwise, <code>transform_sender(dom, <i>sndr2</i>, env...)</code>.
+    <code><i>final-sndr</i></code> be the expression
+    <code><i>transformed-sndr</i></code> if <code><i>transformed-sndr</i></code>
+    and `sndr` have the same type ignoring *cv* qualifiers; otherwise, it is the
+    expression <code>transform_sender(dom, <i>transformed-sndr</i>,
+    env...)</code>.
 
-2. <i>Returns:</i> <code><i>sndr3</i></code>.
+2. <i>Returns:</i> <code><i>final-sndr</i></code>.
 
 3. <i>Remarks:</i> The exception specification is equivalent to
-    <code>noexcept(<i>sndr3</i>)</code>.
+    <code>noexcept(<i>final-sndr</i>)</code>.
 
 ### `execution::transform_env` <b>[exec.snd.transform.env]</b> ### {#spec-execution.env_transform}
 
@@ -5897,12 +5897,11 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     chains. The adaptors also support function call syntax with equivalent
     semantics.
 
-3. Unless otherwise specified, a sender adaptor is required to not begin
-    executing any functions that would observe or modify any of the arguments
-    of the adaptor before the returned sender is connected with a receiver using
-    `connect`, and `start` is called on the resulting operation state. This
-    requirement applies to any function that is selected by the implementation
-    of the sender adaptor.
+3. Unless otherwise specified, a sender adaptor is prohibited from causing
+    observable effects, apart from moving and copying its arguments, before the
+    returned sender is connected with a receiver using `connect`, and `start` is
+    called on the resulting operation state. This requirement applies to any
+    function that is selected by the implementation of the sender adaptor.
 
 4. Unless otherwise specified, a parent sender ([async.ops]) with a single child
     sender `sndr` has an associated attribute object equal to
@@ -5915,7 +5914,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 5. Unless otherwise specified, when a parent sender is connected to a receiver
     `rcvr`, any receiver used to connect a child sender has an associated
     environment equal to <code><i>FWD-ENV</i>(get_env(rcvr))</code>. This
-    requirements applies to any sender returned from a function that is selected
+    requirement applies to any sender returned from a function that is selected
     by the implementation of such sender adaptor.
 
 6. For any sender type, receiver type, operation state type, queryable type, or
