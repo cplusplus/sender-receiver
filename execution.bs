@@ -481,7 +481,7 @@ struct recv_op : operation_base {
         // May be completing concurrently on another thread already.
         if (stopPossible) {
             // Register the stop callback
-            stopCallback.emplace(std::move(st), cancel_cb{self});
+            stopCallback.emplace(std::move(st), cancel_cb{*this});
 
             // Mark as 'completed'
             if (ready.load(std::memory_order_acquire) ||
@@ -489,7 +489,7 @@ struct recv_op : operation_base {
                 // Already completed on another thread
                 stopCallback.reset();
 
-                BOOL ok = WSAGetOverlappedResult(sock, (WSAOVERLAPPED*)&self, &bytesTransferred, FALSE, &flags);
+                BOOL ok = WSAGetOverlappedResult(sock, (WSAOVERLAPPED*)this, &bytesTransferred, FALSE, &flags);
                 if (ok) {
                     std::execution::set_value(std::move(receiver), bytesTransferred);
                 } else {
@@ -695,7 +695,7 @@ struct _then_sender {
   }
 
   decltype(auto) get_env() const noexcept {
-    return get_env(self.s_);
+    return get_env(s_);
   }
 };
 
