@@ -3793,20 +3793,19 @@ std::tuple<Us...>>`.
 ## Customization points ## {#design-dispatch}
 
 Earlier versions of this paper used a dispatching technique known as
-[`tag_invoke`](https://wg21.link/P1895) to allow for customization of basis
-operations and sender algorithms. This technique used private friend functions
-named "`tag_invoke`" that are found by argument-dependent look-up. The
-`tag_invoke` overloads are distinguished from each other by their first
-argument, which is the type of the customization point object being customized.
-For instance, to customize the `execution::set_value` operation, a receiver type
-might do the following:
+`tag_invoke` (see [[P1895R0]]) to allow for customization of basis operations
+and sender algorithms. This technique used private friend functions named
+"`tag_invoke`" that are found by argument-dependent look-up. The `tag_invoke`
+overloads are distinguished from each other by their first argument, which is
+the type of the customization point object being customized. For instance, to
+customize the `execution::set_value` operation, a receiver type might do the
+following:
 
 <pre highlight="c++">
 struct my_receiver {
   friend void tag_invoke(execution::set_value_t, my_receiver&& self, int value) noexcept {
     std::cout << "received value: " << value;
   }
-
   //...
 };
 </pre>
@@ -3826,7 +3825,6 @@ struct my_receiver {
   void set_value(int value) && noexcept {
     std::cout << "received value: " << value;
   }
-
   //...
 };
 </pre>
@@ -3874,8 +3872,7 @@ more information.
 Much of this wording follows the wording of [[P0443R14]].
 
 [[#spec-utilities]] is meant to be a diff relative to the wording of the
-<b>[utilities]</b> clause of [[N4885]]. This diff applies changes from
-[[P1895R0]].
+<b>[utilities]</b> clause of [[N4885]].
 
 [[#spec-thread]] is meant to be a diff relative to the wording of the
 <b>[thread]</b> clause of [[N4885]]. This diff applies changes from [[P2175R0]].
