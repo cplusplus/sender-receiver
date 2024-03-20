@@ -8319,7 +8319,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     <pre highlight="c++">
     template&lt;class... Args>
-      void receiver_adaptor&lt;Derived, Base>::set_value(Args&&... args) && noexcept;
+      void set_value(Args&&... args) && noexcept;
     </pre>
 
     1. Let <i>`e`</i> be the expression
@@ -8331,7 +8331,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     <pre highlight="c++">
     template&lt;class Error>
-      void receiver_adaptor&lt;Derived, Base>::set_error(Error&& err) && noexcept;
+      void set_error(Error&& err) && noexcept;
     </pre>
 
     1. Let <i>`e`</i> be the expression
@@ -8342,7 +8342,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     3. <i>Effects:</i> Equivalent to <i>`e`</i>.
 
     <pre highlight="c++">
-    void receiver_adaptor&lt;Derived, Base>::set_stopped() && noexcept;
+    void set_stopped() && noexcept;
     </pre>
 
     1. Let <i>`e`</i> be the expression
@@ -8354,7 +8354,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     <pre highlight="c++">
     template&lt;class Self>
-      decltype(auto) receiver_adaptor&lt;Derived, Base>::<i>get-base</i>(this Self&& self) noexcept;
+      decltype(auto) <i>get-base</i>(this Self&& self) noexcept;
     </pre>
 
     1. Let <i>`e`</i> be the expression
@@ -8370,7 +8370,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     <pre highlight="c++">
     template&lt;class Self>
-      decltype(auto) receiver_adaptor&lt;Derived, Base>::base(this Self&& self) noexcept requires <i>HAS-BASE</i>;
+      decltype(auto) base(this Self&& self) noexcept requires <i>HAS-BASE</i>;
     </pre>
 
     1. Let <i>`e`</i> be the expression
