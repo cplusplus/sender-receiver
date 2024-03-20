@@ -427,6 +427,8 @@ struct operation_base : WSAOVERALAPPED {
 
 template<typename Receiver>
 struct recv_op : operation_base {
+    using operation_state_concept = std::execution::operation_state_t;
+
     recv_op(SOCKET s, void* data, size_t len, Receiver r)
     : receiver(std::move(r))
     , sock(s) {
@@ -772,6 +774,7 @@ struct _retry_receiver
 // re-construct and re-start it if the operation fails.
 template<class S, class R>
 struct _retry_op {
+  using operation_state_concept = stdexec::operation_state_t;
   using _child_op_t =
     stdexec::connect_result_t<S&, _retry_receiver<S, R>>;
 
@@ -899,7 +902,9 @@ namespace stdexec = std::execution;
 class inline_scheduler {
   template <class R>
   struct _op {
+    using operation_state_concept = operation_state_t;
     R rec_;
+
     void start() & noexcept {
       stdexec::set_value(std::move(rec_));
     }
@@ -4871,6 +4876,8 @@ namespace std::execution {
   inline constexpr set_stopped_t set_stopped{};
 
   // [exec.opstate], operation states
+  struct operation_state_t {};
+
   template&lt;class O>
     concept operation_state = <i>see below</i>;
 
@@ -5456,8 +5463,15 @@ enum class forward_progress_guarantee {
     type ([async.ops]).
 
     <pre highlight="c++">
+    template&lt;class Rcvr>
+      concept <i>enable-opstate</i> = // exposition only
+        requires {
+          requires derived_from&lt;typename Rcvr::operation_state_concept, operation_state_t>;
+        };
+
     template&lt;class O>
       concept operation_state =
+        <i>enable-opstate</i>&lt;remove_cvref_t&lt;O>> &&
         queryable&lt;O> &&
         is_object_v&lt;O> &&
         requires (O& o) {
@@ -5815,6 +5829,7 @@ enum class forward_progress_guarantee {
                 requires <i>well-formed</i>&lt;<i>state-type</i>, Sndr, Rcvr> &&
                   <i>well-formed</i>&lt;<i>inner-ops-tuple</i>, Sndr, Rcvr>
               struct <i>basic-operation</i> {  // exposition only
+                using operation_state_concept = operation_state_t;
                 using <i>tag-type</i> = tag_of_t&lt;Sndr>; // exposition only
 
                 Rcvr rcvr_; // exposition only
@@ -6378,6 +6393,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     <pre highlight="c++">
     struct <i>operation-state-task</i> {
+      using operation_state_concept = operation_state_t;
       using promise_type = <i>connect-awaitable-promise</i>;
       coroutine_handle<> <i>coro</i>; <i>// exposition only</i>
 
