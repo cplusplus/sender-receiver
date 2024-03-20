@@ -5521,7 +5521,9 @@ template&lt;class C>
     sender with a receiver that has an environment of type `Env`. <span
     class="wg21note">The type of the receiver does not affect an asychronous
     operation's completion signatures, only the type of the receiver's
-    environment.</span>
+    environment.</span> A sender type whose completion signatures are knowable
+    independent of an execution environment is known as a <dfn
+    export=true>non-dependent sender</dfn>.
 
 14. A <dfn export=true>sender algorithm</dfn> is a function that takes and/or
     returns a sender. There are three categories of sender algorithms:
@@ -5641,7 +5643,7 @@ namespace std::execution {
   template&lt;class Sndr>
     concept sender = <i>see below</i>;
 
-  template&lt;class Sndr, class Env = empty_env>
+  template&lt;class Sndr, class... Env>
     concept sender_in = <i>see below</i>;
 
   template&lt;class Sndr, class Rcvr>
@@ -5660,9 +5662,9 @@ namespace std::execution {
   struct get_completion_signatures_t;
   inline constexpr get_completion_signatures_t get_completion_signatures {};
 
-  template&lt;class Sndr, class Env = empty_env>
-      requires sender_in&lt;Sndr, Env>
-    using completion_signatures_of_t = <i>call-result-t</i>&lt;get_completion_signatures_t, Sndr, Env>;
+  template&lt;class Sndr, class... Env>
+      requires sender_in&lt;Sndr, Env...>
+    using completion_signatures_of_t = <i>call-result-t</i>&lt;get_completion_signatures_t, Sndr, Env...>;
 
   template&lt;class... Ts>
     using <i>decayed-tuple</i> = tuple&lt;decay_t&lt;Ts>...>; // exposition only
@@ -6762,12 +6764,13 @@ namespace std::execution {
           move_constructible&lt;remove_cvref_t&lt;Sndr>> &&  <i>// rvalues are movable, and</i>
           constructible_from&lt;remove_cvref_t&lt;Sndr>, Sndr>; <i>// lvalues are copyable</i>
 
-      template&lt;class Sndr, class Env = empty_env>
+      template&lt;class Sndr, class... Env>
         concept sender_in =
           sender&lt;Sndr> &&
-          queryable&lt;Env> &&
-          requires (Sndr&& sndr, Env&& env) {
-            { get_completion_signatures(std::forward&lt;Sndr>(sndr), std::forward&lt;Env>(env)) }
+          (sizeof...(Env) <= 1)
+          (queryable&lt;Env> &&...) &&
+          requires (Sndr&& sndr, Env&&... env) {
+            { get_completion_signatures(std::forward&lt;Sndr>(sndr), std::forward&lt;Env>(env)...) }
               -> <i>valid-completion-signatures</i>;
           };
 
@@ -6871,8 +6874,13 @@ namespace std::execution {
     is an lvalue referring to the coroutine's promise type, `Promise`. <span
     class="wg21note">This includes the invocation of the promise type's
     `await_transform` member if any, the invocation of the `operator co_await`
-    picked by overload resolution if any, and any necessary implicit
-    conversions and materializations.</span>
+    picked by overload resolution if any, and any necessary implicit conversions
+    and materializations.</span> Let <code><i>GET-AWAITER</i>(c)</code> be
+    expression-equivalent to <code><i>GET-AWAITER</i>(c, q)</code> where `q` is
+    an lvalue of an unspecified empty class type <i>`none-such`</i> that lacks
+    an `await_transform` member, and where
+    <code>coroutine_handle&lt;<i>none-such</i>></code> behaves as
+    `coroutine_handle<void>`.
 
     <span class="ed-note">I have opened
     [cwg#250](https://github.com/cplusplus/CWG/issues/250) to give these
@@ -6886,18 +6894,18 @@ namespace std::execution {
       template&lt;class T>
       concept <i>await-suspend-result</i> = <i>see below</i>;
 
-      template&lt;class A, class Promise>
+      template&lt;class A, class... Promise>
       concept <i>is-awaiter</i> = <i>// exposition only</i>
-        requires (A& a, coroutine_handle&lt;Promise> h) {
+        requires (A& a, coroutine_handle&lt;Promise...> h) {
           a.await_ready() ? 1 : 0;
           { a.await_suspend(h) } -> <i>await-suspend-result</i>;
           a.await_resume();
         };
 
-      template&lt;class C, class Promise>
+      template&lt;class C, class... Promise>
       concept <i>is-awaitable</i> =
-        requires (C (*fc)() noexcept, Promise& p) {
-          { <i>GET-AWAITER</i>(fc(), p) } -> <i>is-awaiter</i>&lt;Promise>;
+        requires (C (*fc)() noexcept, Promise&... p) {
+          { <i>GET-AWAITER</i>(fc(), p...) } -> <i>is-awaiter</i>&lt;Promise...>;
         };
     }
     </pre>
@@ -6911,7 +6919,9 @@ namespace std::execution {
 
 4. For a subexpression `c` such that `decltype((c))` is type `C`, and
     an lvalue `p` of type `Promise`, <code><i>await-result-type</i>&lt;C, Promise></code>
-    denotes the type <code>decltype(<i>GET-AWAITER</i>(c, p).await_resume())</code>.
+    denotes the type <code>decltype(<i>GET-AWAITER</i>(c, p).await_resume())</code>,
+    and <code><i>await-result-type</i>&lt;C></code> denotes the type
+    <code>decltype(<i>GET-AWAITER</i>(c).await_resume())</code>.
 
 5. Let <i>`with-await-transform`</i> be the exposition-only class template:
 
@@ -7098,30 +7108,64 @@ namespace std::execution {
 
 ### `execution::get_completion_signatures` <b>[exec.getcomplsigs]</b> ### {#spec-execution.getcomplsigs}
 
-1. `get_completion_signatures` is a customization point object. Let `sndr` be an
-    expression such that `decltype((sndr))` is `Sndr`, and let `env` be an
-    expression such that `decltype((env))` is `Env`. Then
-    `get_completion_signatures(sndr, env)` is expression-equivalent to:
+1. `get_completion_signatures` is a customization point object. For a
+    subexpression `sndr`, let `Sndr` be `decltype((sndr))`. Then
+    `get_completion_signatures(sndr)` is expression-equivalent to:
 
-    1. `decltype(sndr.get_completion_signatures(env)){}` if that
+    1. `remove_cvref_t<Sndr>::completion_signatures()` if that expression is
+        well-formed,
+
+    2. Otherwise, `decltype(sndr.get_completion_signatures())()` if that
         expression is well-formed,
 
-    2. Otherwise, `remove_cvref_t<Sndr>::completion_signatures{}` if that expression is well-formed,
-
-    3. Otherwise, if <code><i>is-awaitable</i>&lt;Sndr, <i>env-promise</i>&lt;Env>></code>
+    3. Otherwise, if <code><i>is-awaitable</i>&lt;Sndr></code>
         is `true`, then:
 
-            <pre highlight="c++">
-            completion_signatures<
-              <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;Sndr,
-                            <i>env-promise</i>&lt;Env>>), <i>// see [exec.snd.concepts]</i>
-              set_error_t(exception_ptr),
-              set_stopped_t()>{}
-            </pre>
+        <pre highlight="c++">
+        completion_signatures<
+          <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;Sndr>), <i>// see [exec.snd.concepts]</i>
+          set_error_t(exception_ptr),
+          set_stopped_t()>()
+        </pre>
+
+    4. Otherwise, `get_completion_signatures(sndr)` is ill-formed.
+
+2. For a subexpression `env`, let `Env` be `decltype((env))`. Then
+    `get_completion_signatures(sndr, env)` is expression-equivalent to:
+
+    1. `remove_cvref_t<Sndr>::completion_signatures()` if that expression is
+        well-formed,
+
+    2. Otherwise, `decltype(sndr.get_completion_signatures(env))()` if that
+        expression is well-formed,
+
+    3. Otherwise, if <code><i>is-awaitable</i>&lt;Sndr,
+        <i>env-promise</i>&lt;Env>></code> is `true`, then:
+
+        <pre highlight="c++">
+        completion_signatures<
+          <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;Sndr,
+                        <i>env-promise</i>&lt;Env>>), <i>// see [exec.snd.concepts]</i>
+          set_error_t(exception_ptr),
+          set_stopped_t()>()
+        </pre>
 
     4. Otherwise, `get_completion_signatures(sndr, env)` is ill-formed.
 
-2. Let `rcvr` be an rvalue receiver of type `Rcvr`, and let `Sndr` be the type of a
+3. If `get_completion_signatures(sndr)` is well-formed and its type denotes a
+    specialization of the `completion_signatures` class template, then `Sndr` is
+    a non-dependent sender type ([async.ops]).
+
+4. Given a pack of subexpressions `se`, the expression
+    `get_completion_signatures(se...)` is ill-formed if `sizeof...(se)` is less
+    than `1` or greater than `2`.
+
+5. If `completion_signatures_of_t<Sndr>` and `completion_signatures_of_t<Sndr,
+    Env>` are both well-formed, they shall denote the same set of completion
+    signatures, disregarding the order of signatures and rvalue reference
+    qualification of arguments.
+
+6. Let `rcvr` be an rvalue receiver of type `Rcvr`, and let `Sndr` be the type of a
     sender such that `sender_in<Sndr, env_of_t<Rcvr>>` is `true`. Let `Sigs...` be the
     template arguments of the `completion_signatures` specialization named by
     `completion_signatures_of_t<Sndr, env_of_t<Rcvr>>`. Let <i>`CSO`</i> be
@@ -7157,7 +7201,7 @@ namespace std::execution {
         [[noreturn]] void return_void() noexcept { terminate(); }
 
         coroutine_handle<> unhandled_stopped() noexcept {
-          set_stopped((DR&&) <i>rcvr</i>);
+          set_stopped(std::move(<i>rcvr</i>));
           return noop_coroutine();
         }
 
@@ -7375,6 +7419,10 @@ namespace std::execution {
     does not potentially evaluate an error completion operation with an
     `exception_ptr` argument, the implementation is allowed to omit the
     `exception_ptr` error completion signature from the set.
+
+7. Unless otherwise specified, an adaptor whose child senders are all
+    non-dependent ([async.ops]) is itself non-dependent. This requirement applies
+    to any function that is selected by the implementation of the sender adaptor.
 
 #### Sender adaptor closure objects <b>[exec.adapt.objects]</b> #### {#spec-execution.senders.adaptor.objects}
 
@@ -7722,13 +7770,22 @@ namespace std::execution {
     of the invocable as a value completion.
 
 2. The names `then`, `upon_error`, and `upon_stopped` denote customization point
-    objects. Let the expression <i>`then-cpo`</i> be one of `then`,
-    `upon_error`, or `upon_stopped`. For subexpressions `sndr` and `f`, let `Sndr` be
-    `decltype((sndr))` and let `F` be the decayed type of `f`. If `Sndr` does not
-    satisfy `sender`, or `F` does not satisfy <i>`movable-value`</i>,
+    objects. For `then`, `upon_error`, and `upon_stopped`, let <i>`set-cpo`</i>
+    be `set_value`, `set_error`, and `set_stopped` respectively. Let the
+    expression <i>`then-cpo`</i> be one of `then`, `upon_error`, or
+    `upon_stopped`. For subexpressions `sndr` and `f`, let `Sndr` be
+    `decltype((sndr))` and let `F` be the decayed type of `f`. If `Sndr` does
+    not satisfy `sender`, or `F` does not satisfy <i>`movable-value`</i>,
     <code><i>then-cpo</i>(sndr, f)</code> is ill-formed.
 
-3. Otherwise, the expression <code><i>then-cpo</i>(sndr, f)</code> is
+3. Let <i>`invoke-result`</i> be an alias template such that
+    <code><i>invoke-result</i>&lt;Ts...></code> denotes the type
+    `invoke_result_t<F, Ts...>`. If `sender_in<Sndr>` is `true` and
+    <code><i>gather-signatures</i>&lt;tag_t&lt;<i>set-cpo</i>>,
+    completion_signatures_of_t&lt;Sndr>, <i>invoke-result</i>,
+    <i>type-list</i>></code> is ill-formed, the program is ill-formed.
+
+4. Otherwise, the expression <code><i>then-cpo</i>(sndr, f)</code> is
     expression-equivalent to:
 
         <pre highlight="c++">
@@ -7737,10 +7794,8 @@ namespace std::execution {
           <i>make-sender</i>(<i>then-cpo</i>, f, sndr));
         </pre>
 
-4. For `then`, `upon_error`, and `upon_stopped`, let <i>`set-cpo`</i>
-    be `set_value`, `set_error`, and `set_stopped` respectively. The
-    exposition-only class template <i>`impls-for`</i>
-    ([exec.snd.general]) is specialized for <i>`then-cpo`</i> as follows:
+5. The exposition-only class template <i>`impls-for`</i> ([exec.snd.general]) is
+    specialized for <i>`then-cpo`</i> as follows:
 
         <pre highlight="c++">
         namespace std::execution {
@@ -7806,9 +7861,15 @@ namespace std::execution {
         <i>make-sender</i>(<i>let-cpo</i>, f, sndr));
       </pre>
 
-5. The exposition-only class template <i>`impls-for`</i>
-    ([exec.snd.general]) is specialized for <i>`let-cpo`</i> as
-    follows:
+5. Let <i>`invoke-result`</i> be an alias template such that
+    <code><i>invoke-result</i>&lt;Ts...></code> denotes the type
+    `invoke_result_t<F, Ts...>`. If `sender_in<Sndr>` is `true` and
+    <code><i>gather-signatures</i>&lt;tag_t&lt;set-cpo>,
+    completion_signatures_of_t&lt;Sndr>, <i>invoke-result</i>,
+    <i>type-list</i>></code> is ill-formed, the program is ill-formed.
+
+6. The exposition-only class template <i>`impls-for`</i> ([exec.snd.general]) is
+    specialized for <i>`let-cpo`</i> as follows:
 
         <pre highlight="c++">
         namespace std::execution {
@@ -7917,7 +7978,7 @@ namespace std::execution {
     env)</code> is ill-formed. Otherwise, it is equal to
     <code><i>JOIN-ENV</i>(<i>let-env</i>(sndr), <i>FWD-ENV</i>(env))</code>.
 
-7. Let the subexpression `out_sndr` denote the result of the invocation
+8. Let the subexpression `out_sndr` denote the result of the invocation
     <code><i>let-cpo</i>(sndr, f)</code> or an object copied or moved from such,
     and let the subexpression `rcvr` denote a receiver such that the expression
     `connect(out_sndr, rcvr)` is well-formed. The expression `connect(out_sndr,
@@ -7952,8 +8013,15 @@ namespace std::execution {
           <i>make-sender</i>(bulk, <i>product-type</i>{shape, f}, sndr));
         </pre>
 
-4. The exposition-only class template <i>`impls-for`</i>
-    ([exec.snd.general]) is specialized for `bulk_t` as follows:
+4. Let <i>`invoke-result`</i> be an alias template such that
+    <code><i>invoke-result</i>&lt;Ts...></code> denotes the type
+    `invoke_result_t<F, Shape, Ts...>`. If `sender_in<Sndr>` is `true` and
+    <code><i>gather-signatures</i>&lt;tag_t&lt;set-cpo>,
+    completion_signatures_of_t&lt;Sndr>, <i>invoke-result</i>,
+    <i>type-list</i>></code> is ill-formed, the program is ill-formed.
+
+5. The exposition-only class template <i>`impls-for`</i> ([exec.snd.general]) is
+    specialized for `bulk_t` as follows:
 
         <pre highlight="c++">
         namespace std::execution {
@@ -7989,7 +8057,7 @@ namespace std::execution {
               `true` if and only if `Tag` denotes a type other than `set_value_t`
               or if the expression `f(auto(shape), args...)` is well-formed.
 
-5. Let the subexpression `out_sndr` denote the result of the invocation
+6. Let the subexpression `out_sndr` denote the result of the invocation
     <code>bulk(sndr, shape, f)</code> or an object copied or moved from such,
     and let the subexpression `rcvr` denote a receiver such that the expression
     `connect(out_sndr, rcvr)` is well-formed. The expression `connect(out_sndr,
