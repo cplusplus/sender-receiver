@@ -2347,7 +2347,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-03-18">2024-03-18</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-03-20">2024-03-20</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -6286,11 +6286,10 @@ returns a sender. There are three categories of sender algorithms:</p>
 non-senders as arguments and that returns a sender.</p>
       <li data-md>
        <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="sender-adaptor">sender adaptor</dfn> is a function that constructs and
-returns a parent sender from a set of one or more child senders and a
-(possibly empty) set of additional arguments. An asynchronous operation
-created by a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="parent-sender">parent sender</dfn> is a parent to the
-child operations created by the <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="child sender" id="child-sender">child
-senders</dfn>.</p>
+returns a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="parent-sender">parent sender</dfn> from a set of one or more <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="child sender" id="child-sender">child senders</dfn> and a (possibly
+empty) set of additional arguments. An asynchronous operation created by
+a parent sender is a parent operation to the child operations created by
+the child senders.</p>
       <li data-md>
        <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="sender-consumer">sender consumer</dfn> is a function that takes one or
 more senders and a (possibly empty) set of additional arguments, and
@@ -7673,7 +7672,7 @@ an lvalue <code class="highlight"><c- n>p</c-></code> of type <code class="highl
    <h5 class="heading settled" data-level="11.9.4.1" id="spec-execution.default_domain.statics"><span class="secno">11.9.4.1. </span><span class="content">Static members <b>[exec.domain.default.statics]</b></span><a class="self-link" href="#spec-execution.default_domain.statics"></a></h5>
 <pre class="highlight"><c- k>template</c-> <c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-><c- p>...</c-> <c- n>Env</c-><c- o>></c->
     <c- k>requires</c-> <c- p>(</c-><c- k>sizeof</c-><c- p>...(</c-><c- n>Env</c-><c- p>)</c-> <c- o>&lt;=</c-> <c- mi>1</c-><c- p>)</c->
-  <c- k>constexpr</c-> <c- n>sender</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>default_domain</c-><c- o>::</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- k>const</c-> <c- n>Env</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>);</c->
+  <c- k>constexpr</c-> <c- n>sender</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_sender</c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- k>const</c-> <c- n>Env</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>);</c->
 </pre>
    <ol>
     <li data-md>
@@ -7685,7 +7684,7 @@ expression is well-formed; otherwise, <code class="highlight"><c- n>std</c-><c- 
      <p><i>Remarks:</i> The exception specification is equivalent to <code class="highlight"><c- k>noexcept</c-><c- p>(</c-><i><c- n>e</c-></i><c- p>)</c-></code>.</p>
    </ol>
 <pre class="highlight"><c- k>template</c-> <c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-> <c- n>Env</c-><c- o>></c->
-  <c- k>constexpr</c-> <c- n>queryable</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>default_domain</c-><c- o>::</c-><c- n>transform_env</c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>&amp;&amp;</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
+  <c- k>constexpr</c-> <c- n>queryable</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_env</c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>&amp;&amp;</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
 </pre>
    <ol start="4">
     <li data-md>
@@ -7696,12 +7695,11 @@ expression is well-formed; otherwise, <code class="highlight"><c- n>std</c-><c- 
      <p><i>Returns:</i> <code class="highlight"><i><c- n>e</c-></i></code>.</p>
    </ol>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
-  <c- k>constexpr</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>default_domain</c-><c- o>::</c-><c- n>apply_sender</c-><c- p>(</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>);</c->
+  <c- k>constexpr</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>apply_sender</c-><c- p>(</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>);</c->
 </pre>
    <ol start="7">
     <li data-md>
-     <p>Let <code class="highlight"><i><c- n>e</c-></i></code> be the expression <code class="highlight"><c- n>Tag</c-><c- p>().</c-><c- n>apply_sender</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...)</c-></code> if that expression is well-formed; otherwise, this function shall not
-participate in overload resolution.</p>
+     <p>Let <code class="highlight"><i><c- n>e</c-></i></code> be the expression <code class="highlight"><c- n>Tag</c-><c- p>().</c-><c- n>apply_sender</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...)</c-></code>.</p>
     <li data-md>
      <p><i>Constraints:</i> <code class="highlight"><i><c- n>e</c-></i></code> is a well-formed expression.</p>
     <li data-md>
@@ -7716,12 +7714,13 @@ participate in overload resolution.</p>
 </pre>
    <ol>
     <li data-md>
-     <p>Let <code class="highlight"><i><c- n>sndr2</c-></i></code> be the expression <code class="highlight"><c- n>dom</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>env</c-><c- p>...)</c-></code> if that expression
-is well-formed; otherwise, <code class="highlight"><c- n>default_domain</c-><c- p>().</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>env</c-><c- p>...)</c-></code>. Let <code class="highlight"><i><c- n>sndr3</c-></i></code> be <code class="highlight"><i><c- n>sndr2</c-></i></code> if <code class="highlight"><i><c- n>sndr2</c-></i></code> and <code class="highlight"><c- n>sndr</c-></code> have the same type ignoring <em>cv</em> qualifiers; otherwise, <code class="highlight"><c- n>transform_sender</c-><c- p>(</c-><c- n>dom</c-><c- p>,</c-> <i><c- n>sndr2</c-></i><c- p>,</c-> <c- n>env</c-><c- p>...)</c-></code>.</p>
+     <p>Let <code class="highlight"><i><c- n>transformed</c-><c- o>-</c-><c- n>sndr</c-></i></code> be the expression <code class="highlight"><c- n>dom</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>env</c-><c- p>...)</c-></code> if that expression
+is well-formed; otherwise, <code class="highlight"><c- n>default_domain</c-><c- p>().</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>env</c-><c- p>...)</c-></code>. Let <code class="highlight"><i><c- k>final</c-><c- o>-</c-><c- n>sndr</c-></i></code> be the expression <code class="highlight"><i><c- n>transformed</c-><c- o>-</c-><c- n>sndr</c-></i></code> if <code class="highlight"><i><c- n>transformed</c-><c- o>-</c-><c- n>sndr</c-></i></code> and <code class="highlight"><c- n>sndr</c-></code> have the same type ignoring <em>cv</em> qualifiers; otherwise, it is the
+expression <code class="highlight"><c- n>transform_sender</c-><c- p>(</c-><c- n>dom</c-><c- p>,</c-> <i><c- n>transformed</c-><c- o>-</c-><c- n>sndr</c-></i><c- p>,</c-> <c- n>env</c-><c- p>...)</c-></code>.</p>
     <li data-md>
-     <p><i>Returns:</i> <code class="highlight"><i><c- n>sndr3</c-></i></code>.</p>
+     <p><i>Returns:</i> <code class="highlight"><i><c- k>final</c-><c- o>-</c-><c- n>sndr</c-></i></code>.</p>
     <li data-md>
-     <p><i>Remarks:</i> The exception specification is equivalent to <code class="highlight"><c- k>noexcept</c-><c- p>(</c-><i><c- n>sndr3</c-></i><c- p>)</c-></code>.</p>
+     <p><i>Remarks:</i> The exception specification is equivalent to <code class="highlight"><c- k>noexcept</c-><c- p>(</c-><i><c- k>final</c-><c- o>-</c-><c- n>sndr</c-></i><c- p>)</c-></code>.</p>
    </ol>
    <h4 class="heading settled" data-level="11.9.6" id="spec-execution.env_transform"><span class="secno">11.9.6. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transform_env</c-></code> <b>[exec.snd.transform.env]</b></span><a class="self-link" href="#spec-execution.env_transform"></a></h4>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Domain</c-><c- p>,</c-> <c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-> <c- n>Env</c-><c- o>></c->
@@ -7973,11 +7972,11 @@ is specialized for <code class="highlight"><c- n>read</c-></code> as follows:</p
 chains. The adaptors also support function call syntax with equivalent
 semantics.</p>
     <li data-md>
-     <p>Unless otherwise specified, a sender adaptor is required to not begin
-executing any functions that would observe or modify any of the arguments
-of the adaptor before the returned sender is connected with a receiver using <code class="highlight"><c- n>connect</c-></code>, and <code class="highlight"><c- n>start</c-></code> is called on the resulting operation state. This
-requirement applies to any function that is selected by the implementation
-of the sender adaptor.</p>
+     <p>Unless otherwise specified, a sender adaptor is prohibited from causing
+observable effects, apart from moving and copying its arguments, before the
+returned sender is connected with a receiver using <code class="highlight"><c- n>connect</c-></code>, and <code class="highlight"><c- n>start</c-></code> is
+called on the resulting operation state. This requirement applies to any
+function that is selected by the implementation of the sender adaptor.</p>
     <li data-md>
      <p>Unless otherwise specified, a parent sender ([async.ops]) with a single child
 sender <code class="highlight"><c- n>sndr</c-></code> has an associated attribute object equal to <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>sndr</c-><c- p>))</c-></code> ([exec.fwd.env]). Unless
@@ -7988,7 +7987,7 @@ the sender adaptor.</p>
     <li data-md>
      <p>Unless otherwise specified, when a parent sender is connected to a receiver <code class="highlight"><c- n>rcvr</c-></code>, any receiver used to connect a child sender has an associated
 environment equal to <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))</c-></code>. This
-requirements applies to any sender returned from a function that is selected
+requirement applies to any sender returned from a function that is selected
 by the implementation of such sender adaptor.</p>
     <li data-md>
      <p>For any sender type, receiver type, operation state type, queryable type, or
@@ -10507,7 +10506,7 @@ let dfnPanelData = {
 "awaitable": {"dfnID":"awaitable","dfnText":"awaitable","external":false,"refSections":[],"url":"#awaitable"},
 "caller": {"dfnID":"caller","dfnText":"caller of an asynchronous operation","external":false,"refSections":[],"url":"#caller"},
 "child-operations": {"dfnID":"child-operations","dfnText":"child operations","external":false,"refSections":[],"url":"#child-operations"},
-"child-sender": {"dfnID":"child-sender","dfnText":"child\nsenders","external":false,"refSections":[],"url":"#child-sender"},
+"child-sender": {"dfnID":"child-sender","dfnText":"child senders","external":false,"refSections":[],"url":"#child-sender"},
 "complete": {"dfnID":"complete","dfnText":"completes","external":false,"refSections":[],"url":"#complete"},
 "completion-function": {"dfnID":"completion-function","dfnText":"completion\nfunction","external":false,"refSections":[],"url":"#completion-function"},
 "completion-operation": {"dfnID":"completion-operation","dfnText":"completion operation","external":false,"refSections":[],"url":"#completion-operation"},
