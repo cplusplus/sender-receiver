@@ -648,18 +648,16 @@ implementations.
 ```c++
 namespace stdexec = std::execution;
 
-template<class R, class F>
-class _then_receiver
-    : public stdexec::receiver_adaptor<_then_receiver<R, F>, R> {
+template <class R, class F>
+class _then_receiver : public R {
   F f_;
 
  public:
-  _then_receiver(R r, F f)
-   : stdexec::receiver_adaptor<_then_receiver, R>{std::move(r)}
-   , f_(std::move(f)) {}
+  _then_receiver(R r, F f) : R(std::move(r)), f_(std::move(f)) {}
 
-  // Customize set_value by invoking the callable and passing the result to the inner receiver
-  template<class... As>
+  // Customize set_value by invoking the callable and passing the result to
+  // the inner receiver
+  template <class... As>
     requires std::invocable<F, As...>
   void set_value(As&&... as) && noexcept {
     try {
@@ -670,7 +668,7 @@ class _then_receiver
   }
 };
 
-template<stdexec::sender S, class F>
+template <stdexec::sender S, class F>
 struct _then_sender {
   using sender_concept = stdexec::sender_t;
   S s_;
@@ -680,20 +678,22 @@ struct _then_sender {
     using _set_value_t = stdexec::completion_signatures<
       stdexec::set_value_t(std::invoke_result_t<F, Args...>)>;
 
+  using _except_ptr_sig =
+    stdexec::completion_signatures<stdexec::set_error_t(std::exception_ptr)>;
+
   // Compute the completion signatures
-  template<class Env>
+  template <class Env>
   auto get_completion_signatures(Env&& env) && noexcept
-    -> stdexec::transform_completion_signatures_of<S, Env,
-        stdexec::completion_signatures<stdexec::set_error_t(std::exception_ptr)>,
-        _set_value_t> {
+    -> stdexec::transform_completion_signatures_of<
+        S, Env, _except_ptr_sig, _set_value_t> {
     return {};
   }
 
   // Connect:
-  template<stdexec::receiver R>
+  template <stdexec::receiver R>
   auto connect(R r) && -> stdexec::connect_result_t<S, _then_receiver<R, F>> {
-      return stdexec::connect(
-        (S&&) s_, _then_receiver<R, F>{(R&&) r, (F&&) f_});
+    return stdexec::connect(
+      (S&&) s_, _then_receiver{(R&&) r, (F&&) f_});
   }
 
   decltype(auto) get_env() const noexcept {
@@ -701,7 +701,7 @@ struct _then_sender {
   }
 };
 
-template<stdexec::sender S, class F>
+template <stdexec::sender S, class F>
 stdexec::sender auto then(S s, F f) {
   return _then_sender<S, F>{(S&&) s, (F&&) f};
 }
@@ -714,14 +714,10 @@ well as all receiver queries, are passed through unchanged.
 
 In detail, it does the following:
 
-1. Defines a receiver in terms of `execution::receiver_adaptor` that aggregates
-    another receiver and an invocable that:
+1. Defines a receiver in terms of receiver and an invocable that:
     * Defines a constrained `set_value` member function for transforming the
         value channel.
     * Delegates `set_error` and `set_stopped` to the inner receiver.
-
-    The `set_error` and `set_stopped` member functions are provided by
-    `receiver_adaptor`.
 
 2. Defines a sender that aggregates another sender and the invocable, which
     defines a `connect` member function that wraps the incoming receiver in the
@@ -742,10 +738,12 @@ concept _decays_to = same_as<decay_t<From>, To>;
 // _conv needed so we can emplace construct non-movable types into
 // a std::optional.
 template<invocable F>
-  requires is_nothrow_move_constructible_v<F>
 struct _conv {
   F f_;
+
+  static_assert(is_nothrow_move_constructible_v<F>);
   explicit _conv(F f) noexcept : f_((F&&) f) {}
+
   operator invoke_result_t<F>() && {
     return ((F&&) f_)();
   }
@@ -754,19 +752,26 @@ struct _conv {
 template<class S, class R>
 struct _retry_op;
 
-// pass through all customizations except set_error, which retries the operation.
+// pass through all customizations except set_error, which retries
+// the operation.
 template<class S, class R>
-struct _retry_receiver
-  : stdexec::receiver_adaptor<_retry_receiver<S, R>> {
+struct _retry_receiver {
   _retry_op<S, R>* o_;
 
-  R&& base() && noexcept { return std::move(o_->r_); }
-  const R& base() const & noexcept { return o_->r_; }
-
-  explicit _retry_receiver(_retry_op<S, R>* o) : o_(o) {}
+  void set_value(auto&&... as) && noexcept {
+    stdexec::set_value(std::move(o_->r_), (decltype(as)&&) as...);
+  }
 
   void set_error(auto&&) && noexcept {
     o_->_retry(); // This causes the op to be retried
+  }
+
+  void set_stopped() && noexcept {
+    stdexec::set_stopped(std::move(o_->r_));
+  }
+
+  decltype(auto) get_env() const noexcept {
+    return get_env(o_->r_);
   }
 };
 
@@ -1213,8 +1218,6 @@ that the completion-signal of will be transferred to the given context.
 10. Some additional utilities are added:
     * <b>`run_loop`</b>: An execution resource that provides a multi-producer,
         single-consumer, first-in-first-out work queue.
-    * <b>`receiver_adaptor`</b>: A utility for algorithm authors for defining one
-        receiver type in terms of another.
     * <b>`completion_signatures`</b> and <b>`transform_completion_signatures`</b>:
         Utilities for describing the ways in which a sender can complete in a
         declarative syntax.
@@ -1461,8 +1464,11 @@ The changes since R8 are as follows:
   * The `tag_invoke` mechanism has been replace with member functions
       for customizations as per \[P2855](https://wg21.link/p2855).
 
-  * The removal of `tag_invoke` necessitated a respecification of the
-      `receiver_adaptor` utility.
+  * Per guidance from LWG and LEWG, `receiver_adaptor` has been removed.
+
+  * The `receiver` concept is tweaked to requires that receiver types are not
+      `final`. Without `receiver_adaptor` and `tag_invoke`, receiver adaptors
+      are easily written using implementation inheritance.
 
 <b>Enhancements:</b>
 
@@ -5023,10 +5029,6 @@ namespace std::execution {
   inline constexpr start_detached_t start_detached{};
 
   // [exec.utils], sender and receiver utilities
-  // [exec.utils.rcvr.adptr]
-  template&lt;<i>class-type</i> Derived, receiver Base = <i>unspecified</i>>
-    class receiver_adaptor;
-
   // [exec.utils.cmplsigs]
   template&lt;class Fn>
     concept <i>completion-signature</i> = <i>// exposition only</i>
@@ -5424,6 +5426,8 @@ enum class forward_progress_guarantee {
       concept receiver_of =
         receiver&lt;Rcvr> && <i>has-completions</i>&lt;Rcvr, Completions>;
     </pre>
+
+2. Class types that are `final` do not model the `receiver` concept.
 
 3. Let `rcvr` be a receiver and let `op_state` be an operation state associated
     with an asynchronous operation created by connecting `rcvr` with a sender. Let
@@ -6848,7 +6852,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
           3. Let <i>`receiver-type`</i> denote the following class:
 
                 <pre highlight="c++">
-                struct <i>receiver-type</i> : receiver_adaptor&lt;<i>receiver-type</i>> {
+                struct <i>receiver-type</i> {
+                  using receiver_concept = receiver_t;
                   <i>state-type</i>* <i>state</i>; // exposition only
 
                   Rcvr&& base() && noexcept { return std::move(<i>state</i>-><i>rcvr</i>); }
@@ -6863,6 +6868,19 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
                         }
                       },
                       <i>state</i>-><i>async-result</i>);
+                  }
+
+                  template&lt;class Error>
+                  void set_error(Error&& err) && noexcept {
+                    execution::set_error(std::move(<i>state</i>-><i>rcvr</i>), std::forward&lt;Error>(err));
+                  }
+
+                  void set_stopped() && noexcept {
+                    execution::set_stopped(std::move(<i>state</i>-><i>rcvr</i>));
+                  }
+
+                  decltype(auto) get_env() const noexcept {
+                    return <i>FWD-ENV</i>(execution::get_env(<i>state</i>-><i>rcvr</i>));
                   }
                 };
                 </pre>
@@ -7010,12 +7028,13 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
             <pre highlight="c++">
             template&lt;class Rcvr, class Env>
-            struct <i>receiver2</i> : receiver_adaptor&lt;<i>receiver2</i>&lt;Rcvr, Env>, Rcvr> {
+            struct <i>receiver2</i> : Rcvr {
               explicit <i>receiver2</i>(Rcvr rcvr, Env env)
-                : <i>receiver2</i>::receiver_adaptor{std::move(rcvr)}, env(std::move(env)) {}
+                : Rcvr(std::move(rcvr)), env(std::move(env)) {}
 
               auto get_env() const noexcept {
-                return <i>JOIN-ENV</i>(env, <i>FWD-ENV</i>(execution::get_env(this->base())));
+                const Rcvr& rcvr = *this;
+                return <i>JOIN-ENV</i>(env, <i>FWD-ENV</i>(execution::get_env(rcvr)));
               }
 
               Env env; // exposition only
@@ -8237,147 +8256,6 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     expression-equivalent to `start_detached(then(sndr, f))`.
 
 ## Sender/receiver utilities <b>[exec.utils]</b> ## {#spec-execution.snd_rec_utils}
-
-### `execution::receiver_adaptor` <b>[exec.utils.rcvr.adptr]</b> ### {#spec-execution.snd_rec_utils.rcvr_adptr}
-
-    <pre highlight="c++">
-    template&lt;<i>class-type</i> Derived, receiver Base = <i>unspecified</i>>
-      class receiver_adaptor;
-    </pre>
-
-1. `receiver_adaptor` simplifies the implementation of one receiver type in
-    terms of another. It defines named member functions that forward to
-    identically named members in the derived type if they exist, and to the
-    adapted receiver otherwise.
-
-2. Let <code><i>HAS-BASE</i></code> be `false` if `Base` is an alias for the
-    unspecified default template argument; otherwise, it is `true`.
-
-3. `receiver_adaptor<Derived, Base>` is as follows:
-
-    <pre highlight="c++">
-    template&lt;<i>class-type</i> Derived, receiver Base = <i>unspecified</i>>
-    class receiver_adaptor {
-     public:
-      using receiver_concept = receiver_t;
-
-      // Constructors
-      receiver_adaptor() = default;
-      template&lt;class B>
-          requires <i>HAS-BASE</i> && constructible_from&lt;Base, B>
-        explicit receiver_adaptor(B&& b) : <i>base-rcvr</i>(std::forward&lt;B>(b)) {}
-
-      // Member functions
-      template&lt;class... Args>
-        void set_value(Args&&... args) && noexcept;
-
-      template&lt;class Error>
-        void set_error(Error&& err) && noexcept;
-
-      void set_stopped() && noexcept;
-
-      decltype(auto) get_env() const noexcept {
-        return execution::get_env(<i>get-base</i>());
-      }
-
-     private:
-      friend Derived;
-
-      // Private member functions
-      template&lt;class Self>
-        decltype(auto) <i>get-base</i>(this Self&& self) noexcept; <i>// exposition only</i>
-
-      template&lt;class Self>
-        decltype(auto) base(this Self&& self) noexcept requires <i>HAS-BASE</i>;
-
-      Base <i>base-rcvr</i>; // exposition only, present if and only if <i>HAS-BASE</i> is true
-    };
-    </pre>
-
-4. [<i>Note:</i> The `Derived` template parameter denotes a class type that is
-    incomplete when `receiver_adaptor` is instantiated.]
-
-5. [<i>Example:</i>
-     <pre highlight="c++">
-     using _int_completion =
-       completion_signatures&lt;set_value_t(int)>;
-
-     template&lt;receiver_of&lt;_int_completion> Rcvr>
-       struct my_receiver
-         : receiver_adaptor&lt;my_receiver&lt;Rcvr>, Rcvr> {
-         explicit my_receiver(Rcvr r)
-           : receiver_adaptor&lt;my_receiver, Rcvr>(std::move(r)) {}
-
-         void set_value() && noexcept {
-           std::execution::set_value(std::move(*this).base(), 42);
-         }
-       };
-     </pre>
-     -- <i>end example</i>]
-
-#### Member functions <b>[exec.utils.rcvr.adptr.members]</b> #### {#spec-execution.snd_rec_utils.receiver_adaptor.members}
-
-    <pre highlight="c++">
-    template&lt;class... Args>
-      void set_value(Args&&... args) && noexcept;
-    </pre>
-
-    1. Let <i>`e`</i> be the expression
-        <code>execution::set_value(std::move(<i>get-base</i>()), std::forward&lt;Args>(args)...)</code>.
-
-    2. <i>Constraints:</i> <i>`e`</i> is a well-formed expression.
-
-    3. <i>Effects:</i> Equivalent to <i>`e`</i>.
-
-    <pre highlight="c++">
-    template&lt;class Error>
-      void set_error(Error&& err) && noexcept;
-    </pre>
-
-    1. Let <i>`e`</i> be the expression
-        <code>execution::set_error(std::move(<i>get-base</i>()), std::forward&lt;Error>(err))</code>.
-
-    2. <i>Constraints:</i> <i>`e`</i> is a well-formed expression.
-
-    3. <i>Effects:</i> Equivalent to <i>`e`</i>.
-
-    <pre highlight="c++">
-    void set_stopped() && noexcept;
-    </pre>
-
-    1. Let <i>`e`</i> be the expression
-        <code>execution::set_stopped(std::move(<i>get-base</i>()))</code>.
-
-    2. <i>Constraints:</i> <i>`e`</i> is a well-formed expression.
-
-    3. <i>Effects:</i> Equivalent to <i>`e`</i>.
-
-    <pre highlight="c++">
-    template&lt;class Self>
-      decltype(auto) <i>get-base</i>(this Self&& self) noexcept;
-    </pre>
-
-    1. Let <i>`e`</i> be the expression
-        <code>std::forward_like&lt;Self>((Derived&) self).base()</code> if that expression
-        is well-formed; otherwise, it is
-        <code>std::forward_like&lt;Self>((receiver_adaptor&) self).base()</code>.
-        <span class="wg21note">The C-style casts are to disable accessibility checks.</span>
-
-    2. <i>Mandates:</i> `is_base_of_v<receiver_adaptor, Derived>` is `true` and <i>`e`</i>
-        is a well-formed expression.
-
-    3. <i>Returns:</i> <i>`e`</i>.
-
-    <pre highlight="c++">
-    template&lt;class Self>
-      decltype(auto) base(this Self&& self) noexcept requires <i>HAS-BASE</i>;
-    </pre>
-
-    1. Let <i>`e`</i> be the expression
-        <code>std::forward_like&lt;Self>((receiver_adaptor&) self).<i>base-rcvr</i></code>.
-        <span class="wg21note">The C-style cast is to disable accessibility checks.</span>
-
-    3. <i>Returns:</i> <code>(<i>e</i>)</code>.
 
 ### `execution::completion_signatures` <b>[exec.utils.cmplsigs]</b> ### {#spec-execution.snd_rec_utils.completion_sigs}
 
