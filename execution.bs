@@ -27,6 +27,9 @@ Default Highlight: c++
 </pre>
 
 <style>
+body {
+  max-width: 60em;
+}
 pre {
   margin-top: 0px;
   margin-bottom: 0px;
@@ -40,13 +43,14 @@ table, th, tr, td {
   }
 }
 .ins, ins, ins *, span.ins, span.ins * {
-  background-color: rgb(200, 250, 200);
-  color: rgb(0, 136, 0);
-  text-decoration: none;
+  background-color: #f1fff1;
+  // color: rgb(0, 136, 0);
+  text-decoration: underline;
+  text-decoration-color: rgb(0, 255, 0);
 }
 .del, del, del *, span.del, span.del * {
-  background-color: rgb(250, 200, 200);
-  color: rgb(255, 0, 0);
+  background-color: #fff1f1;
+  // color: rgb(255, 0, 0);
   text-decoration: line-through;
   text-decoration-color: rgb(255, 0, 0);
 }
@@ -70,16 +74,16 @@ div.numbered:before, div.newnumbered:before {
   margin-left: -2em;
   display-style: block;
 }
-div.numbered:before {
-  content: counter(paragraph);
-  counter-increment: paragraph;
-}
+// div.numbered:before {
+//   content: counter(paragraph);
+//   counter-increment: paragraph;
+// }
 div.newnumbered:before {
   content: "�";
 }
-div.numbered ul, div.newnumbered ul {
-  counter-reset: list_item;
-}
+// div.numbered ul, div.newnumbered ul {
+//   counter-reset: list_item;
+// }
 div.numbered li, div.newnumbered li {
   margin-left: 3em;
 }
@@ -96,19 +100,20 @@ div.newnumbered li:before {
   content: "(�." counter(list_item) ")";
   counter-increment: list_item;
 }
-div.ed-note {
+div.ed-note, span.ed-note {
   color: blue !important;
-  margin-left: 2em;
+  font: initial;
+  font-family: sans-serif;
 }
-div.ed-note:before {
+div.ed-note:before, span.ed-note:before {
   content: "[Editorial note: ";
   font-style: italic;
 }
-div.ed-note:after {
-  content: " -- end note]";
+div.ed-note:after, span.ed-note:after {
+  content: " — end note]";
   font-style: italic;
 }
-div.ed-note * {
+div.ed-note *, span.ed-note * {
   color: blue !important;
   margin-top: 0em;
   margin-bottom: 0em;
@@ -121,17 +126,53 @@ div.wg21note:before, span.wg21note:before {
   font-style: italic;
 }
 div.wg21note:after, span.wg21note:after {
-  content: " -- end note]";
+  content: " — end note]";
   font-style: italic;
 }
 h5 {
   font-style: normal; /* turn off italics of h5 headers */
 }
+div.standardeze {
+  border-left: 0.1em solid #c0c0c0;
+  padding-left: 2em;
+}
+div.block-insert, div.block-insert {
+  background-color: #f1fff1;
+  padding-left: 0;
+  padding-right: 1.6em;
+}
+div.block-insert pre.highlight {
+  background-color: transparent;
+}
+div.hidden,
+div.hidden *,
+div.hidden span.secno,
+div.hidden span.content,
+div.hidden a,
+div.hidden h1,
+div.hidden h2,
+div.hidden h3,
+div.hidden h4,
+div.hidden h5,
+div.hidden h6 {
+  visibility: hidden;
+  display: none;
+  white-space: nowrap;
+  height: 0;
+  overflow: hidden;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  margin-block: 0;
+  line-height: 0;
+}
 </style>
 
 # Introduction # {#intro}
 
-This paper proposes a self-contained design for a Standard C++ framework for managing asynchronous execution on generic execution resources. It is based on the ideas in [[P0443R14]] and its companion papers.
+This paper proposes a self-contained design for a Standard C++ framework for
+managing asynchronous execution on generic execution resources. It is based on
+the ideas in [[P0443R14]] and its companion papers.
 
 ## Motivation ## {#motivation}
 
@@ -425,7 +466,7 @@ struct operation_base : WSAOVERALAPPED {
     completion_fn* completed;
 };
 
-template<typename Receiver>
+template<class Receiver>
 struct recv_op : operation_base {
     using operation_state_concept = std::execution::operation_state_t;
 
@@ -529,11 +570,12 @@ struct recv_op : operation_base {
         }
     }
 
+    using stop_callback_t = stop_callback_of_t<stop_token_of_t<env_of_t<Receiver>>, cancel_cb>;
+
     Receiver receiver;
     SOCKET sock;
     WSABUF buffer;
-    std::optional<typename stop_callback_type_t<Receiver>
-        ::template callback_type<cancel_cb>> stopCallback;
+    std::optional<stop_callback_t> stopCallback;
     std::atomic<bool> ready{false};
 };
 
@@ -543,7 +585,7 @@ struct recv_sender {
     void* data;
     size_t len;
 
-    template<typename Receiver>
+    template<class Receiver>
     recv_op<Receiver> connect(Receiver r) const {
         return recv_op<Receiver>{sock, data, len, std::move(r)};
     }
@@ -2760,7 +2802,7 @@ function call syntax.
 ## A range of senders represents an async sequence of data ## {#design-range-of-senders}
 
 Senders represent a single unit of asynchronous work. In many cases though, what
-is being modelled is a sequence of data arriving asynchronously, and you want
+is being modeled is a sequence of data arriving asynchronously, and you want
 computation to happen on demand, when each element arrives. This requires
 nothing more than what is in this paper and the range support in C++20. A range
 of senders would allow you to model such input as keystrikes, mouse movements,
@@ -3891,427 +3933,999 @@ Much of this wording follows the wording of [[P0443R14]].
 [[#spec-execution]] is meant to be added as a new library clause to the working
 draft of C++.
 
-# Exception handling [except]   # {#spec-except}
+<div style="visibility: hidden; height: 0; overflow: hidden;">
+<h2 class="heading no-toc" id="hidden.a.7"> </h2>
+<h2 class="heading no-toc" id="hidden.a.8"> </h2>
+<h2 class="heading no-toc" id="hidden.a.9"> </h2>
+<h2 class="heading no-toc" id="hidden.a.10"> </h2>
+<h2 class="heading no-toc" id="hidden.a.11"> </h2>
+<h2 class="heading no-toc" id="hidden.a.12"> </h2>
+<h2 class="heading no-toc" id="hidden.a.13"> </h2>
+</div>
 
-## Special functions [except.special]  ## {#spec-except.special}
+<div class="standardeze">
+# Exception handling <b>[except]</b>   # {#spec-except}
+<div class="hidden">
+<h3 class="heading no-toc" id="hidden.b.1"></h3>
+<h3 class="heading no-toc" id="hidden.b.2"></h3>
+<h3 class="heading no-toc" id="hidden.b.3"></h3>
+<h3 class="heading no-toc" id="hidden.b.4"></h3>
+<h3 class="heading no-toc" id="hidden.b.5"></h3>
+</div>
+## Special functions <b>[except.special]</b>  ## {#spec-except.special}
 
-### General [except.special.general]   ### {#spec-except.special.general}
+<div class="hidden">
+<h4 class="heading no-toc" id="hidden.c.1"> </h3>
+</div>
+### The `std::terminate` function <b>[except.terminate]</b>   ### {#spec-except.terminate}
 
-#### The `std::terminate` function [except.terminate]   #### {#spec-except.terminate}
+<span class="ed-note">At the end of the bulleted list in the Note in paragraph 1, add
+a new bullet as follows:</span>
 
-<div class="ed-note">At the end of the bulleted list in the Note in paragraph 1, add
-a new bullet as follows:</div>
+<div class="numbered" style="counter-set: list_item 12 paragraph 1">
+* when a call to a `wait()`, `wait_until()`, or `wait_for()` function on a
+    condition variable (33.7.4, 33.7.5) fails to meet a postcondition.
 
-<ins>
-<blockquote>
-
- - when a callback invocation exits via an exception when requesting stop on a
+<div class="block-insert">
+* when a callback invocation exits via an exception when requesting stop on a
     `std::stop_source` or a `std::in_place_stop_source` ([stopsource.mem],
     [stopsource.inplace.mem]), or in the constructor of `std::stop_callback` or
     `std::in_place_stop_callback` ([stopcallback.cons],
     [stopcallback.inplace.cons]) when a callback invocation exits via an
     exception.
 
-</blockquote>
-</ins>
+</div>
+</div>
+</div>
 
+<div class="hidden">
+<h2 class="heading no-toc" id="hidden.d.1"> </h2>
+</div>
+
+<div class="standardeze">
 # Library introduction <b>[library]</b> # {#spec-library}
 
-<div class="ed-note">Add the header `<execution>` to Table 23: C++ library
-headers [tab:headers.cpp]</div>
+<span class="ed-note">At the end of [expos.only.entity], add the following:</span>
 
-<div class="ed-note">At the end of [expos.only.entity], add the following:</div>
+2. The following are defined for exposition only to aid in the specification of
+    the library:
 
-<ins>
-<blockquote>
+    <pre highlight="c++">
+    namespace std {
+      <i>// ...as before...</i>
+    }
+    </pre>
 
+<div class="block-insert">
 3. An object `dst` is said to be <dfn export=true>decay-copied from</dfn> a
     subexpression `src` if the type of `dst` is `decay_t<decltype((src))>`,
     and `dst` is copy-initialized from `src`.
 
-</blockquote>
-</ins>
+</div>
+</div>
 
+<div class="hidden">
+<h2 class="heading no-toc" id="hidden.e.1"> </h2>
+<h2 class="heading no-toc" id="hidden.e.2"> </h2>
+<h2 class="heading no-toc" id="hidden.e.3"> </h2>
+<h2 class="heading no-toc" id="hidden.e.4"> </h2>
+<h2 class="heading no-toc" id="hidden.e.5"> </h2>
+</div>
+
+<div class="standardeze">
 # General utilities library <b>[utilities]</b> # {#spec-utilities}
+
+<div class="hidden">
+<h3 class="heading no-toc" id="hidden.f.1"> </h3>
+<h3 class="heading no-toc" id="hidden.f.2"> </h3>
+<h3 class="heading no-toc" id="hidden.f.3"> </h3>
+<h3 class="heading no-toc" id="hidden.f.4"> </h3>
+<h3 class="heading no-toc" id="hidden.f.5"> </h3>
+<h3 class="heading no-toc" id="hidden.f.6"> </h3>
+<h3 class="heading no-toc" id="hidden.f.7"> </h3>
+<h3 class="heading no-toc" id="hidden.f.8"> </h3>
+<h3 class="heading no-toc" id="hidden.f.9"> </h3>
+</div>
 
 ## Function objects <b>[function.objects]</b> ## {#spec-function.objects}
 
+<div class="hidden">
+<h4 class="heading no-toc" id="hidden.g.1"> </h4>
+</div>
+
 ### Header `<functional>` synopsis <b>[functional.syn]</b> ### {#spec-functional.syn}
 
-At the end of this subclause, insert the following declarations into the synopsis within `namespace std`:
+<span class="ed-note">At the end of this subclause, insert the following
+declarations into the synopsis within `namespace std`:</span>
 
-<ins>
-<blockquote>
 <pre highlight="c++">
-template&lt;class Fn, class... Args>
-  concept <i>callable</i> =  <i>// expositon only</i>
-    requires (Fn&& fn, Args&&... args) {
-      std::forward&lt;Fn>(fn)(std::forward&lt;Args>(args)...);
-    };
-template&lt;class Fn, class... Args>
-  concept <i>nothrow-callable</i> =   <i>// expositon only</i>
-    <i>callable</i>&lt;Fn, Args...> &amp;&amp;
-    requires (Fn&& fn, Args&&... args) {
-      { std::forward&lt;Fn>(fn)(std::forward&lt;Args>(args)...) } noexcept;
-    };
-<i>// expositon only:</i>
-template&lt;class Fn, class... Args>
-  using <i>call-result-t</i> = decltype(declval&lt;Fn>()(declval&lt;Args>()...));
+namespace std {
+  <i>// ...as before...</i>
 
-template&lt;auto& Tag>
-  using tag_t = decltype(auto(Tag));
+  namespace ranges {
+    <i>// 22.10.9, concept-constrained comparisons</i>
+    struct equal_to;                                    <i>// freestanding</i>
+    struct not_equal_to;                                <i>// freestanding</i>
+    struct greater;                                     <i>// freestanding</i>
+    struct less;                                        <i>// freestanding</i>
+    struct greater_equal;                               <i>// freestanding</i>
+    struct less_equal;                                  <i>// freestanding</i>
+  }
+
+<div class="block-insert">  template&lt;class Fn, class... Args>
+    concept <i>callable</i> =  <i>// exposition only</i>
+      requires (Fn&& fn, Args&&... args) {
+        std::forward&lt;Fn>(fn)(std::forward&lt;Args>(args)...);
+      };
+  template&lt;class Fn, class... Args>
+    concept <i>nothrow-callable</i> =   <i>// exposition only</i>
+      <i>callable</i>&lt;Fn, Args...> &amp;&amp;
+      requires (Fn&& fn, Args&&... args) {
+        { std::forward&lt;Fn>(fn)(std::forward&lt;Args>(args)...) } noexcept;
+      };
+  <i>// exposition only:</i>
+  template&lt;class Fn, class... Args>
+    using <i>call-result-t</i> = decltype(declval&lt;Fn>()(declval&lt;Args>()...));
+
+  template&lt;const auto& Tag>
+    using <i>decayed-typeof</i> = decltype(auto(Tag)); <i>// exposition only</i></div>
+}
 </pre>
-</blockquote>
-</ins>
+</div>
 
-# Thread support library <b>[thread]</b> # {#spec-thread}
+<div class="hidden">
+<h2 class="heading no-toc" id="hidden.h.1"> </h2>
+<h2 class="heading no-toc" id="hidden.h.2"> </h2>
+<h2 class="heading no-toc" id="hidden.h.3"> </h2>
+<h2 class="heading no-toc" id="hidden.h.4"> </h2>
+<h2 class="heading no-toc" id="hidden.h.5"> </h2>
+<h2 class="heading no-toc" id="hidden.h.6"> </h2>
+<h2 class="heading no-toc" id="hidden.h.7"> </h2>
+<h2 class="heading no-toc" id="hidden.h.8"> </h2>
+<h2 class="heading no-toc" id="hidden.h.9"> </h2>
+<h2 class="heading no-toc" id="hidden.h.10"> </h2>
+</div>
+
+<div class="standardeze">
+# Concurrency support library <b>[thread]</b> # {#spec-thread}
+
+<div class="hidden">
+<h3 class="heading no-toc" id="hidden.i.1"> </h3>
+<h3 class="heading no-toc" id="hidden.i.2"> </h3>
+</div>
 
 ## Stop tokens <b>[thread.stoptoken]</b> ## {#spec-thread.stoptoken}
 
+### Introduction <b>[thread.stoptoken.intro]</b> ### {#spec-thread.stoptoken.intro}
+
+1. Subclause [thread.stoptoken] describes components that can be used to
+    asynchronously request that an operation stops execution in a timely manner,
+    typically because the result is no longer required. Such a request is called
+    a <dfn export=true>stop request</dfn>.
+
+2. <code>stop<ins>pable</ins>_source</code>,
+    <code>stop<ins>pable</ins>_token</code>, and
+    <code>stop<ins>pable</ins>_callback</code> <del>implement</del><ins>are
+    concepts that specify the required syntax and</ins> semantics of
+    shared <del>ownership</del><ins>access</ins> of a <dfn export=true>stop
+    state</dfn>. Any <code>stop<ins>pable</ins>_source</code>,
+    <code>stop<ins>pable</ins>_token</code>, or
+    <code>stop<ins>pable</ins>_callback</code> that <del>shares ownership
+    of</del><ins>refers to</ins> the same stop state is an <dfn
+    export=true>associated</dfn> <code>stop<ins>pable</ins>_source</code>,
+    <code>stop<ins>pable</ins>_token</code>, or
+    <code>stop<ins>pable</ins>_callback</code>, respectively. <del>The last
+    remaining owner of the stop state automatically releases the resources
+    associated with the stop state.</del>
+
+3. A <code>stop<ins>pable</ins>_token</code> can be passed to an operation <del>
+    which</del><ins>that</ins> can either
+
+    <div class="numbered" style="counter-set: paragraph 3 list_item 0">
+
+    * actively poll the token to check if there has been a stop request, or
+
+    * register a callback <del>using the <code>stop_callback</code> class
+        template which</del><ins>that</ins> will be called in the event that a
+        stop request is made.</div>
+
+    A stop request made via a <code>stop<ins>pable</ins>_source</code> will be
+    visible to all associated <code>stop<ins>pable</ins>_token</code> and
+    <code>stop<ins>pable</ins>_source</code> objects. Once a stop request has
+    been made it cannot be withdrawn (a subsequent stop request has no effect).
+
+4. Callbacks registered via a <code>stop<ins>pable</ins>_callback</code> object
+    are called when a stop request is first made by any associated
+    <code>stop<ins>pable</ins>_source</code> object.
+
+<span class="ed-note">The following paragraph is moved to the specification of
+the new `stoppable_source` concept.</span>
+
+<div class="del">
+
+5. Calls to the functions `request_stop`, `stop_requested`, and `stop_possible`
+    do not introduce data races. A call to `request_stop` that returns `true`
+    synchronizes with a call to `stop_requested` on an associated
+    <code>stop<ins>pable</ins>_token</code> or
+    <code>stop<ins>pable</ins>_source</code> object that returns `true`.
+    Registration of a callback synchronizes with the invocation of that
+    callback.
+
+</div>
+
+<div class="block-insert">
+
+5. The types `stop_source` and `stop_token` and the class template
+    `stop_callback` implement the semantics of shared ownership of a stop state.
+    The last remaining owner of the stop state automatically releases the
+    resources associated with the stop state.
+
+6. The types `in_place_stop_source` and `in_place_stop_token` and the class
+    template `in_place_stop_callback` do no dynamic memory allocation or reference
+    counting of the stop state. They are for use when the lifetimes of the tokens
+    and the callbacks are known to nest within the lifetime of the source.
+
+</div>
+
 ### Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> ### {#spec-thread.stoptoken.syn}
 
-At the beginning of this subclause, insert the following declarations into the synopsis within `namespace std`:
+<span class="ed-note">In this subclause, insert the following
+declarations into the `<stop_token>` synopsis:</span>
 
-<ins>
-<blockquote>
 <pre highlight="c++">
-template&lt;template&lt;class> class>
-  struct <i>check-type-alias-exists</i>; // exposition-only
+namespace std {
+<div class="block-insert">  <i>// [thread.stoptoken.concepts], stop token concepts</i>
+  template&lt;class T>
+    concept stoppable_token = <i>see below</i>;
 
-template&lt;class T>
-  concept stoppable_token = <i>see below</i>;
+  template&lt;class T>
+    concept unstoppable_token = <i>see below</i>;
+  
+  template&lt;class T>
+    concept stoppable_source = <i>see below</i>;
+  
+  template&lt;class T>
+    concept stoppable_callback = <i>see below</i>;</div>
+  // 33.3.3, class stop_token
+  class stop_token;
 
-template&lt;class T, class CB, class Initializer = CB>
-  concept stoppable_token_for = <i>see below</i>;
+  // 33.3.4, class stop_source
+  class stop_source;
 
-template&lt;class T>
-  concept unstoppable_token = <i>see below</i>;
+  // no-shared-stop-state indicator
+  struct nostopstate_t {
+    explicit nostopstate_t() = default;
+  };
+  inline constexpr nostopstate_t nostopstate{};
+
+  // 33.3.5, class template stop_callback
+  template&lt;class Callback>
+    class stop_callback;
+
+<div class="block-insert">  <i>// [stoptoken.never], class never_stop_token</i>
+  class never_stop_token;
+
+  <i>// [stoptoken.inplace], class in_place_stop_token</i>
+  class in_place_stop_token;
+
+  <i>// [stopsource.inplace], class in_place_stop_source</i>
+  class in_place_stop_source;
+
+  <i>// [stopcallback.inplace], class template in_place_stop_callback</i>
+  template&lt;class Fun>
+    class in_place_stop_callback;
+
+  template&lt;class T, class Fun>
+    using stop_callback_for_t = T::template callback_type&lt;Fun>;</div>
+}
 </pre>
-</blockquote>
-</ins>
+</div>
 
-At the end of this subclause, insert the following declarations into the synopsis of within `namespace std`:
 
-<ins>
-<blockquote>
-<pre highlight="c++">
-// [stoptoken.never], class never_stop_token
-class never_stop_token;
-
-// [stoptoken.inplace], class in_place_stop_token
-class in_place_stop_token;
-
-// [stopsource.inplace], class in_place_stop_source
-class in_place_stop_source;
-
-// [stopcallback.inplace], class template in_place_stop_callback
-template&lt;class CB>
-  class in_place_stop_callback;
-
-template&lt;class T, class CB>
-  using stop_callback_for_t = T::template callback_type&lt;CB>;
-</pre>
-</blockquote>
-</ins>
+<span class="ed-note">Insert the following subclause as a new subclause between
+Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
+`stop_token` <b>[stoptoken]</b>.</span>
+<div class="standardeze">
+<div class="block-insert">
 
 ### Stop token concepts <b>[thread.stoptoken.concepts]</b> ### {#spec-thread.stoptoken.concepts}
 
-Insert this subclause as a new subclause between Header `<stop_token>` synopsis
-<b>[thread.stoptoken.syn]</b> and Class `stop_token` <b>[stoptoken]</b>.
-
-<ins>
-<blockquote>
 1. The `stoppable_token` concept checks for the basic interface of a stop token
     that is copyable and allows polling to see if stop has been requested and
-    also whether a stop request is possible. For a stop token type `T` and a type
-    `CB` that is callable with no arguments, the type `T::callback_type<CB>` is
-    valid and denotes the stop callback type to use to register a callback
-    to be executed if a stop request is ever made on a `stoppable_token` of type
-    `T`. The `stoppable_token_for` concept checks for a stop token type compatible
-    with a given callback type. The `unstoppable_token` concept checks for a stop
-    token type that does not allow stopping.
+    also whether a stop request is possible. For a stop token type `Token` and a
+    type `Fun` that is callable with no arguments, if the type
+    `stop_callback_for_t<Token, Fun>` is valid, it denotes the type of a stop
+    callback to use to register a callback to be executed if a stop request is
+    ever made on the `stoppable_token`'s associated stop source. The
+    exposition-only <i>`stoppable-token-for`</i> concept checks for a stop token
+    type compatible with a given callback type. The `unstoppable_token` concept
+    checks for a stop token type that does not allow stopping.
 
-<pre highlight="c++">
-template&lt;class T>
-  concept stoppable_token =
-    copyable&lt;T> &&
-    equality_comparable&lt;T> &&
-    requires (const T t) {
-      { T(t) } noexcept; // <i>see implicit expression variations ([concepts.equality])</i>
-      { t.stop_requested() } noexcept -> same_as&lt;bool>;
-      { t.stop_possible() } noexcept -> same_as&lt;bool>;
-      typename <i>check-type-alias-exists</i>&lt;T::template callback_type>;
-    };
+    <pre highlight="c++">
+    template&lt;template&lt;class> class>
+      struct <i>check-type-alias-exists</i>; <i>// exposition-only</i>
 
-template&lt;class T, class CB, class Initializer = CB>
-  concept stoppable_token_for =
-    stoppable_token&lt;T> &&
-    invocable&lt;CB> &&
-    constructible_from&lt;CB, Initializer> &&
-    requires { typename stop_callback_for_t&lt;T, CB>; } &&
-    constructible_from&lt;stop_callback_for_t&lt;T, CB>, const T&, Initializer>;
+    template&lt;class Token, class Fun, class Initializer = Fun>
+      concept <i>stoppable-token-for</i> = <i>// exposition only</i>
+        invocable&lt;Fun> &&
+        constructible_from&lt;Fun, Initializer> &&
+        requires { typename stop_callback_for_t&lt;Token, Fun>; } &&
+        constructible_from&lt;stop_callback_for_t&lt;Token, Fun>, const Token&, Initializer>;
 
-template&lt;class T>
-  concept unstoppable_token =
-    stoppable_token&lt;T> &&
-    requires {
-      { bool_constant&lt;T::stop_possible()>{} } -> same_as&lt;false_type>;
-    };
-</pre>
+    template&lt;class Token>
+      concept stoppable_token =
+        requires (const Token tok) {
+          typename <i>check-type-alias-exists</i>&lt;Token::template callback_type>;
+          { tok.stop_requested() } noexcept -> same_as&lt;bool>;
+          { tok.stop_possible() } noexcept -> same_as&lt;bool>;
+          { Token(tok) } noexcept; <i>// see implicit expression variations</i>
+                                   <i>// ([concepts.equality])</i>
+        } &&
+        copyable&lt;Token> &&
+        equality_comparable&lt;Token> &&
+        swappable<Token>;
 
-<div class="ed-note">LWG directed me to replace `T::stop_possible()` with
-`t.stop_possible()` because of the recent `constexpr` changes in
-[[P2280r2|P2280R2]]. However, even with those changes, a nested requirement like
-`requires (!t.stop_possible())`, where `t` is an argument in the
-requirement-parameter-list, is ill-formed according to <a
-href="http://eel.is/c++draft/expr.prim.req#nested-2.sentence-1">[expr.prim.req.nested/p2]</a>:
+    template&lt;class Token>
+      concept unstoppable_token =
+        stoppable_token&lt;Token> &&
+        requires (const Token tok) {
+          requires bool_constant&lt;(!tok.stop_possible())>::value;
+        };
+    </pre>
 
-> A local parameter shall only appear as an unevaluated operand within the
-> constraint-expression.
+2. Let `t` and `u` be distinct, valid objects of type `Token` that reference the
+    same logical shared stop state; let `init` be an object of type `Initializer`;
+    let `Fun` be a type such that <code>invocable&lt;Fun></code> is `true`; and
+    let `CB` denote the type `stop_callback_for_t<Token, Fun>`.
 
-This is the subject of core issue [[cwg2517|2517]].
-</div>
+3. The exposition-only concept <code><i>stoppable-token-for</i>&lt;Token, Fun,
+    Initializer></code> is modeled only if:
 
-2. Let `t` and `u` be distinct, valid objects of type `T`. The type `T` models
-    `stoppable_token` only if:
+    1. The following concepts are modeled:
 
-    1. If `t.stop_possible()` evaluates to `false` then, if `t` and `u`
-        reference the same logical shared stop state, `u.stop_possible()` shall
-        also subsequently evaluate to `false` and `u.stop_requested()` shall also
-        subsequently evaluate to `false`.
+        * `constructible_from<CB, Token, Initializer>`
+        * `constructible_from<CB, Token&, Initializer>`
+        * `constructible_from<CB, const Token, Initializer>`
 
-    2. If `t.stop_requested()` evaluates to `true` then, if `t` and `u`
-        reference the same logical shared stop state, `u.stop_requested()` shall
-        also subsequently evaluate to `true` and `u.stop_possible()` shall also
-        subsequently evaluate to `true`.
+    2. Direct-non-list-initializing an object `cb` of type `CB` from arguments
+        `t` and `init` behaves as follows:
 
-3. Let `t` and `u` be distinct, valid objects of type `T` and let `init` be an
-    object of type `Initializer`. Then for some type `CB`, the type `T` models
-    `stoppable_token_for<CB, Initializer>` only if:
+        1. If `t.stop_possible()` is `false`, it is unspecified whether the
+            initialization of `cb` causes the construction of an instance of
+            type `Fun`.
 
-    1. The type `T::callback_type<CB>` models:
+        2. Otherwise, if `t.stop_possible()` is `true`:
 
-        ```c++
-        constructible_from<T, Initializer> &&
-        constructible_from<T&, Initializer> &&
-        constructible_from<const T, Initializer>
-        ```
+            1. an instance `fun` of type `Fun` is direct-initialized with `init`,
+                and
 
-    2. Direct non-list initializing an object `cb` of type `T::callback_type<CB>`
-        from `t, init` shall, if `t.stop_possible()` is `true`, construct an
-        instance, `callback`, of type `CB`, direct-initialized with `init`,
-        and register callback with `t`'s shared stop state such that `callback`
-        will be invoked with an empty argument list if a stop request is made
-        on the shared stop state.
+            2. `fun` is registered with `t`'s shared stop state such that `fun`
+                will be invoked with an empty argument list if a stop request is
+                made on the shared stop state.
 
-        1. If `t.stop_requested()` evaluates to `true` at the time `callback` is
-            registered then `callback` can be invoked on the thread executing
-            `cb`'s constructor.
+            3. If `t.stop_requested()` evaluates to `true` at the time `fun` is
+                registered then `fun` can be invoked on the thread executing
+                `cb`'s constructor.
 
-        2. If `callback` is invoked then, if `t` and `u` reference the same
-            shared stop state, an evaluation of `u.stop_requested()` will be
-            `true` if the beginning of the invocation of `callback`
-            strongly-happens-before the evaluation of `u.stop_requested()`.
+            4. Construction of `cb` shall only throw exceptions thrown by the
+                initialization of `fun` from `init`.
 
-        3. <span class="wg21note">If `t.stop_possible()` evaluates to `false`
-            then the construction of `cb` is not required to construct and
-            initialize `callback`.</span>
+    3. An evaluation of `u.stop_requested()` that strongly happens after
+        ([intro.races]/10) the beginning of the invocation of `fun` will return
+        `true`.
 
-    3. Construction of a `T::callback_type<CB>` instance shall only throw
-        exceptions thrown by the initialization of the `CB` instance from the
-        value of type `Initializer`.
+    4. Destruction of `cb` removes `fun` from the shared stop state.
 
-    4. Destruction of the `T::callback_type<CB>` object, `cb`, removes
-        `callback` from the shared stop state such that `callback` will not be
-        invoked after the destructor returns.
-
-        1. If `callback` is currently being invoked on another thread then the
-            destructor of `cb` will block until the invocation of `callback`
-            returns such that the return from the invocation of `callback`
-            strongly-happens-before the destruction of `callback`.
+        1. If `fun` is currently being invoked on another thread then the
+            destructor of `cb` will block until the invocation of `fun` returns
+            such that the return from the invocation of `fun`
+            strongly-happens-before the destruction of `fun`.
 
         2. Destruction of a callback `cb` shall not block on the completion of
             the invocation of some other callback registered with the same shared
             stop state.
 
-</blockquote>
-</ins>
+4. The type `Token` models `stoppable_token` only if:
 
+    1. If an evaluation, `E`, of `t.stop_possible()` evaluates to `false`, then
+        evaluations of `u.stop_possible()` and `u.stop_requested()` that happen
+        after `E` shall evaluate to `false`.
+
+    2. If an evaluation, `E`, of `t.stop_requested()` evaluates to `true`, then
+        evaluations of `u.stop_possible()` and `u.stop_requested()` that happens
+        after `E` shall evaluate to `true`.
+
+    3. For any types `Fun` and `Initializer`, if `invocable<Fun> &&
+        constructible_from<Fun, Initializer>` is `true` and the type `CB` is
+        well-formed, then the concept <code><i>stoppable-token-for</i>&lt;Token,
+        Fun, Initializer></code> shall be modeled.
+
+    4. A `stoppable_token` object has at most one associated logical stop state.
+        A `stoppable_token` object with no associated stop state is said to be
+        <dfn export=true>disengaged</dfn>. For a disengaged `stoppable_token`
+        object, `stop_possible` and `stop_requested` shall return `false`. If
+        `t` and `u` reference the same stop state, or if both `t` and `u` are
+        disengaged, `t == u` shall be `true`; otherwise, it shall be `false`.
+
+5. A model of `stoppable_source` can be queried whether stop has been requested
+    (`stop_requested`) and whether stop is possible (`stop_possible`). It is a
+    factory for associated stop tokens (`get_token`) and can be explicitly
+    placed into the "stop requested" state (`request_stop`). It maintains a list
+    of registered stop callback invocations that it executes when a stop request
+    is first made.
+
+    <pre highlight="c++">
+    template&lt;class Source>
+      concept stoppable_source =
+        requires (Source& src, const Source csrc) { <i>// see implicit expression variations</i>
+                                                    <i>// ([concepts.equality])</i>
+          { csrc.get_token() } -> stoppable_token;
+          { csrc.stop_possible() } noexcept -> same_as&lt;bool>;
+          { csrc.stop_requested() } noexcept -> same_as&lt;bool>;
+          { src.request_stop() } -> same_as&lt;bool>;
+        };
+    </pre>
+
+    1. A `stoppable_source` object has at most one associated logical stop
+        state. A `stoppable_source` object with no associated stop state is said
+        to be disengaged. For a disengaged `stoppable_source` object,
+        `stop_possible` and `stop_requested` shall return `false`.
+
+    2. A stop token returned from `get_token()` is associated with the stop state
+        of the source.
+
+    3. The registration of a callback invocation either succeeds or fails. When
+        an invocation of a callback is registered, the following happens
+        atomically:
+
+        - The stop state is checked. If stop has not been requested, the
+            callback invocation is added to the list of registered callback
+            invocations, and registration has succeeded.
+
+        - Otherwise, registration has failed.
+
+    4. When an invocation of a callback is unregistered, the invocation is
+        atomically removed from the list of registered callback invocations. The
+        removal is not blocked by the concurrent execution of another callback
+        invocation in the list. If the callback invocation being unregistered is
+        currently executing, then:
+
+        - If the execution of the callback invocation is happening concurrently
+            on another thread, the completion of the execution strongly happens
+            before ([intro.races]) the end of the callback's lifetime.
+
+        - Otherwise, the execution is happening on the current thread. Removal
+            of the callback invocation does not block waiting for the execution to
+            complete.
+
+        <span class="ed-note">The following paragraph is moved from the introduction,
+        with minor modifications (underlined in green).</span>
+
+    5. Calls to the <ins>member</ins> functions `request_stop`,
+        `stop_requested`, and `stop_possible` <ins>and similarly named member
+        functions on associated `stoppable_token` objects</ins> do not introduce
+        data races. A call to `request_stop` that returns `true` synchronizes
+        with a call to `stop_requested` on an associated
+        <code>stop<ins>pable</ins>_token</code> or
+        <code>stop<ins>pable</ins>_source</code> object that returns `true`.
+        Registration of a callback synchronizes with the invocation of that
+        callback.
+
+</div>
+</div>
+
+<span class="ed-note">Modify subclause <b>[stoptoken]</b> as follows:</span>
+
+<div class="standardeze">
 ### Class `stop_token` <b>[stoptoken]</b> ### {#spec-stoptoken}
 
 #### General <b>[stoptoken.general]</b> #### {#spec-stoptoken.general}
 
-Modify the synopsis of class `stop_token` in subclause General
-<b>[stoptoken.general]</b> as follows:
+1. <del>The class `stop_token` provides an interface for querying whether a stop
+    request has been made (`stop_requested`) or can ever be made (`stop_possible`)
+    using an associated `stop_source` object ([stopsource]). A `stop_token` can also be
+    passed to a `stop_callback` ([stopcallback]) constructor to register a callback to be
+    called when a stop request has been made from an associated
+    `stop_source`.</del><ins>The class `stop_token` models the concept
+    `stoppable_token`. It shares ownership of its stop state, if any, with its
+    associated `stop_source` object ([stopsource]) and any `stop_token` objects
+    to which it compares equal.</ins>
 
 <pre highlight="c++">
 namespace std {
   class stop_token {
   public:
-<ins>    template&lt;class T>
-      using callback_type = stop_callback&lt;T>;</ins>
+<div class="block-insert">    template&lt;class T>
+      using callback_type = stop_callback&lt;T>;</div>
+    <del><i>// [stoptoken.cons], constructors, copy, and assignment</i></del>
+    stop_token() noexcept<ins> = default</ins>;
 
-    // [stoptoken.cons], constructors, copy, and assignment
-    stop_token() noexcept;
+<div class="del">    stop_token(const stop_token&) noexcept;
+    stop_token(stop_token&&) noexcept;
+    stop_token& operator=(const stop_token&) noexcept;
+    stop_token& operator=(stop_token&&) noexcept;
+    ~stop_token();</div>
 
-    // ...
-</pre>
+    <ins>// [stoptoken.mem], Member functions</ins>
+    void swap(stop_token&) noexcept;
 
-### Class `never_stop_token` <b>[stoptoken.never]</b> ### {#spec-stoptoken.never}
+    <del>// [stoptoken.mem], stop handling</del>
+    <del>[[nodiscard]]</del> bool stop_requested() const noexcept;
+    <del>[[nodiscard]]</del> bool stop_possible() const noexcept;
 
-Insert a new subclause, Class `never_stop_token` <b>[stoptoken.never]</b>, after
-subclause Class template `stop_callback` <b>[stopcallback]</b>, as a new
-subclause of Stop tokens <b>[thread.stoptoken]</b>.
-
-#### General <b>[stoptoken.never.general]</b> #### {#spec-stoptoken.never.general}
-
-1. The class `never_stop_token` provides an implementation of the
-    `unstoppable_token` concept. It provides a stop token interface, but also
-    provides static information that a stop is never possible nor requested.
-
-<pre highlight="c++">
-namespace std
-{
-  class never_stop_token {
-    <i>// exposition only</i>
-    struct <i>callback</i> {
-      explicit <i>callback</i>(never_stop_token, auto&&) noexcept {}
-    };
-  public:
-    template&lt;class>
-      using callback_type = <i>callback</i>;
-
-    [[nodiscard]] static constexpr bool stop_requested() noexcept { return false; }
-    [[nodiscard]] static constexpr bool stop_possible() noexcept { return false; }
-
-    [[nodiscard]] friend bool operator==(const never_stop_token&, const never_stop_token&) noexcept = default;
+    <ins>bool operator==(const stop_token& rhs) const noexcept = default;</ins>
+    <del>[[nodiscard]] friend bool operator==(const stop_token& lhs, const stop_token& rhs) noexcept;</del>
+    <del>friend void swap(stop_token& lhs, stop_token& rhs) noexcept;</del>
+  <ins>private:</ins>
+    <ins>shared_ptr&lt;<i>unspecified</i>> <i>stop-state</i>{}; <i>// exposition only</i></ins>
   };
 }
 </pre>
 
-### Class `in_place_stop_token` <b>[stoptoken.inplace]</b> ### {#spec-stoptoken.inplace}
+<div class="ins">
 
-Insert a new subclause, Class `in_place_stop_token` <b>[stoptoken.inplace]</b>,
-after the subclause added above, as a new subclause of Stop tokens
-<b>[thread.stoptoken]</b>.
+1. <i>`stop-state`</i> refers to the `stop_token`'s associated stop state. A
+    `stop_token` object is disengaged when <i>`stop-state`</i> is null.</div>
+        
+</div>
 
-#### General <b>[stoptoken.inplace.general]</b> #### {#spec-stoptoken.inplace.general}
-
-1. The class `in_place_stop_token` provides an interface for querying whether a
-    stop request has been made (`stop_requested`) or can ever be made
-    (`stop_possible`) using an associated `in_place_stop_source` object
-    ([stopsource.inplace]). An `in_place_stop_token` can also be passed to an
-    `in_place_stop_callback` ([stopcallback.inplace]) constructor to register a
-    callback to be called when a stop request has been made from an associated
-    `in_place_stop_source`.
+<div class="del">
+#### Constructors, copy, and assignment <b>[stoptoken.cons]</b> #### {#spec-stoptoken.cons}
 
 <pre highlight="c++">
-namespace std {
-  class in_place_stop_token {
-  public:
-    template&lt;class CB>
-      using callback_type = in_place_stop_callback&lt;CB>;
-
-    // [stoptoken.inplace.cons], constructors, copy, and assignment
-    in_place_stop_token() noexcept;
-    ~in_place_stop_token();
-    void swap(in_place_stop_token&) noexcept;
-
-    // [stoptoken.inplace.mem], stop handling
-    [[nodiscard]] bool stop_requested() const noexcept;
-    [[nodiscard]] bool stop_possible() const noexcept;
-
-    [[nodiscard]] friend bool operator==(const in_place_stop_token&, const in_place_stop_token&) noexcept = default;
-    friend void swap(in_place_stop_token& lhs, in_place_stop_token& rhs) noexcept;
-
-  private:
-    const in_place_stop_source* <i>source_</i>; // exposition only
-  };
-}
+stop_token() noexcept;
 </pre>
 
-#### Constructors, copy, and assignment <b>[stoptoken.inplace.cons]</b> #### {#spec-stoptoken.inplace.cons}
+1. *Postconditions:* <del>`stop_possible()` is `false` and `stop_requested()` is
+    `false`.</del> <span class="wg21note">Because the created `stop_token`
+    object can never receive a stop request, no resources are allocated for a
+    stop state.</span>
 
 <pre highlight="c++">
-in_place_stop_token() noexcept;
+stop_token(const stop_token& rhs) noexcept;
 </pre>
 
-1. *Effects*: initializes <code><i>source_</i></code> with `nullptr`.
+2. *Postconditions:* `*this == rhs` is `true`. <span class="wg21note">`*this`
+    and `rhs` share the ownership of the same stop state, if any.</span>
+
+<pre highlight="c++">
+stop_token(stop_token&& rhs) noexcept;
+</pre>
+
+3. *Postconditions:* `*this` contains the value of `rhs` prior to the start of
+    construction and `rhs.stop_possible()` is `false`.
+
+<pre highlight="c++">
+~stop_token();
+</pre>
+
+4. *Effects:* Releases ownership of the stop state, if any.
+
+<pre highlight="c++">
+stop_token& operator=(const stop_token& rhs) noexcept;
+</pre>
+
+5. *Effects:* Equivalent to: `stop_token(rhs).swap(*this)`.
+
+6. *Returns:* `*this`.
+
+<pre highlight="c++">
+stop_token& operator=(stop_token&& rhs) noexcept;
+</pre>
+
+7. *Effects:* Equivalent to: `stop_token(std::move(rhs)).swap(*this)`.
+
+8. *Returns:* `*this`.
+
+</div>
+
+<span class="ed-note">Move `swap` into [stoptoken.mem]:</span>
+
+#### Member<ins> function</ins>s <b>[stoptoken.mem]</b> #### {#spec-stoptoken.mem}
 
 <pre highlight="c++">
 void swap(stop_token& rhs) noexcept;
 </pre>
 
-2. *Effects*: Exchanges the values of <code><i>source_</i></code> and
-    <code>rhs.<i>source_</i></code>.
-
-#### Members <b>[stoptoken.inplace.mem]</b> #### {#spec-stoptoken.inplace.mem}
+1. *Effects:* <del>Exchanges the values of `*this` and `rhs`.</del> <ins>Equivalent to:
+    <code>std::swap(<i>stop-state</i>, rhs.<i>stop-state</i>)</code>.</ins>
 
 <pre highlight="c++">
-[[nodiscard]] bool stop_requested() const noexcept;
+<del>[[nodiscard]]</del> bool stop_requested() const noexcept;
 </pre>
 
-1. *Effects*: Equivalent to: <code>return <i>source_</i> != nullptr &&
-    <i>source_</i>->stop_requested();</code>
-
-2. <span class="wg21note">The behavior of `stop_requested()` is undefined unless
-    the call strongly happens before the start of the destructor of the
-    associated `in_place_stop_source`, if any ([basic.life]).</span>
+2. *Returns:* `true` if <del>`*this` has ownership
+    of</del><ins><i>`stop-state`</i> refers to</ins> a stop state that has
+    received a stop request; otherwise, `false`.
 
 <pre highlight="c++">
-[[nodiscard]] bool stop_possible() const noexcept;
+<del>[[nodiscard]]</del> bool stop_possible() const noexcept;
 </pre>
 
-3. *Effects*: Equivalent to: <code>return <i>source_</i> != nullptr;</code>
+3. *Returns:* `false` if:
 
-4. <span class="wg21note">The behavior of `stop_possible()` is
-    implementation-defined unless the call strongly happens before the end of
-    the storage duration of the associated `in_place_stop_source` object, if any
-    ([basic.stc.general]).</span>
+    <div class="numbered" style="counter-set: paragraph 2 list_item 0">
 
-#### Non-member functions <b>[stoptoken.inplace.nonmembers]</b> #### {#spec-stoptoken.inplace.nonmembers}
+    * `*this` <del>does not have ownership of a stop state</del><ins>is disengaged</ins>, or
+
+    * a stop request was not made and there are no associated `stop_source`
+        objects; otherwise, `true`.
+
+    </div>
+
+<span class="ed-note">The following are covered by the `equality_comparable` and
+`swappable` concepts.</span>
+
+<div class="del">
+#### Non-member functions <b>[stoptoken.nonmembers]</b> #### {#spec-stoptoken.nonmembers}
+
+<pre highlight="c++">
+[[nodiscard]] bool operator==(const stop_token& lhs, const stop_token& rhs) noexcept;
+</pre>
+
+1. *Returns:* `true` if `lhs` and `rhs` have ownership of the same stop state or
+    if both `lhs` and `rhs` do not have ownership of a stop state; otherwise
+    `false`.</del>
+
+<pre highlight="c++">
+friend void swap(stop_token& x, stop_token& y) noexcept;
+</pre>
+
+2. *Effects:* Equivalent to: `x.swap(y)`.
+
+</div>
+
+<div class="standardeze">
+### Class `stop_source` <b>[stopsource]</b> ### {#spec-stopsource}
+
+#### General <b>[stopsource.general]</b> #### {#spec-stopsource.general}
+
+1. The class `stop_source` <del>implements the semantics of making a stop
+    request. A stop request made on a `stop_source` object is visible to all
+    associated `stop_source` and `stop_token` ([thread.stoptoken]) objects. Once
+    a stop request has been made it cannot be withdrawn (a subsequent stop
+    request has no effect)</del><ins>models `stoppable_source`</ins>.
+
+<pre highlight="c++">
+namespace std {
+  <span class="ed-note">The following definitions are already specified in the `<stop_token>` synopsis:</span>
+<div class="del">  // no-shared-stop-state indicator
+  struct nostopstate_t {
+    explicit nostopstate_t() = default;
+  };
+  inline constexpr nostopstate_t nostopstate{};</div>
+
+  class stop_source {
+  public:
+    // 33.3.4.2, constructors, copy, and assignment
+    stop_source();
+    explicit stop_source(nostopstate_t) noexcept<del>;</del><ins> {}</ins>
+
+<div class="del">    stop_source(const stop_source&) noexcept;
+    stop_source(stop_source&&) noexcept;
+    stop_source& operator=(const stop_source&) noexcept;
+    stop_source& operator=(stop_source&&) noexcept;
+    ~stop_source();</div>
+
+    <ins>// [stopsource.mem], Member functions</ins>
+    void swap(stop_source&) noexcept;
+
+    <del>// 33.3.4.3, stop handling</del>
+    <del>[[nodiscard]]</del> stop_token get_token() const noexcept;
+    <del>[[nodiscard]]</del> bool stop_possible() const noexcept;
+    <del>[[nodiscard]]</del> bool stop_requested() const noexcept;
+    bool request_stop() noexcept;
+
+    <ins>bool operator==(const stop_source& rhs) const noexcept = default;</ins>
+<div class="del">        [[nodiscard]] friend bool
+      operator==(const stop_source& lhs, const stop_source& rhs) noexcept;
+    friend void swap(stop_source& lhs, stop_source& rhs) noexcept;</div>
+  <ins>private:</ins>
+    <ins>shared_ptr&lt;<i>unspecified</i>> <i>stop-state</i>{}; <i>// exposition only</i></ins>
+  };
+}
+</pre>
+
+<div class="ins">
+1. <i>`stop-state`</i> refers to the `stop_source`'s associated stop state. A
+    `stop_source` object is disengaged when <i>`stop-state`</i> is null.
+
+2. `stop_source` models `copyable`, `equality_comparable`, and `swappable`.
+
+</div>
+
+#### Constructors, copy, and assignment <b>[stopsource.cons]</b> #### {#spec-stopsource.cons}
+
+<pre highlight="c++">
+stop_source();
+</pre>
+
+1. *Effects:* Initialises <del>`*this` to have ownership
+    of</del><ins><i>`stop-state`</i> with a pointer to</ins> a new stop state.
+
+2. *Postconditions:* `stop_possible()` is `true` and `stop_requested()` is `false`.
+
+3. *Throws:* `bad_alloc` if memory cannot be allocated for the stop state.
+
+<div class="del">
+<pre highlight="c++">
+explicit stop_source(nostopstate_t) noexcept;
+</pre>
+
+4. *Postconditions:* `stop_possible()` is `false` and `stop_requested()` is `false`.
+    <span class="wg21note">No resources are allocated for the state.</span>
+
+<pre highlight="c++">
+stop_source(const stop_source& rhs) noexcept;
+</pre>
+
+5. *Postconditions:* `*this` == rhs is `true`.
+    <span class="wg21note">`*this` and `rhs` share the ownership of the same stop state, if any.</span>
+
+<pre highlight="c++">
+stop_source(stop_source&& rhs) noexcept;
+</pre>
+
+6. *Postconditions:* `*this` contains the value of `rhs` prior to the start of construction and
+    `rhs.stop_possible()` is `false`.
+
+<pre highlight="c++">
+~stop_source();
+</pre>
+
+7. *Effects:* Releases ownership of the stop state, if any.
+
+<pre highlight="c++">
+stop_source& operator=(const stop_source& rhs) noexcept;
+</pre>
+
+8. *Effects:* Equivalent to: `stop_source(rhs).swap(*this)`.
+
+9. *Returns:* `*this`.
+
+<pre highlight="c++">
+stop_source& operator=(stop_source&& rhs) noexcept;
+</pre>
+
+10. *Effects:* Equivalent to: `stop_source(std::move(rhs)).swap(*this)`.
+
+11. *Returns:* `*this`.
+
+</div>
+
+<span class="ed-note">Move `swap` into [stopsource.mem]:</span>
+
+#### Member<ins> function</ins>s <b>[stopsource.mem]</b> #### {#spec-stopsource.mem}
+
+<pre highlight="c++">
+void swap(stop_source& rhs) noexcept;
+</pre>
+
+12. *Effects:* <del>Exchanges the values of `*this` and `rhs`</del><ins>Equivalent to:
+    <code>std::swap(<i>stop-state</i>, rhs.<i>stop-state</i>)</code></ins>.
+
+<pre highlight="c++">
+<del>[[nodiscard]]</del> stop_token get_token() const noexcept;
+</pre>
+
+1. *Returns:* `stop_token()` if `stop_possible()` is `false`; otherwise a new
+    associated `stop_token` object<ins>; *i.e.*, its <i>`stop-state`</i> pointer
+    is equal to the <i>`stop-state`</i> pointer of `*this`</ins>.
+
+<pre highlight="c++">
+<del>[[nodiscard]]</del> bool stop_possible() const noexcept;
+</pre>
+
+2. *Returns:* <del>`true` if `*this` has ownership of a stop state; otherwise,
+    `false`</del><ins><code><i>stop-state</i> != nullptr</code></ins>.
+
+<pre highlight="c++">
+<del>[[nodiscard]]</del> bool stop_requested() const noexcept;
+</pre>
+
+3. *Returns:* `true` if <del>`*this` has ownership
+    of</del><ins><i>`stop-state`</i> refers to</ins> a stop state that has
+    received a stop request; otherwise, `false`.
+
+<pre highlight="c++">
+bool request_stop() noexcept;
+</pre>
+
+4. *Effects:* If <del>`*this` does not have ownership of a stop
+    state</del><ins><i>`stop-state`</i> is null</ins>, returns `false`.
+    Otherwise, atomically determines whether the owned stop state has received a
+    stop request, and if not, makes a stop request. The determination and making
+    of the stop request are an atomic read-modify-write operation
+    ([intro.races]). If the request was made, the callbacks registered by
+    associated `stop_callback` objects are synchronously called. If an
+    invocation of a callback exits via an exception then `terminate` is invoked
+    ([except.terminate]).
+    
+    <span class="wg21note">A stop request includes notifying all condition
+    variables of type `condition_variable_any` temporarily registered during an
+    interruptible wait ([thread.condvarany.intwait]).</span>
+
+5. *Postconditions:* `stop_possible()` is `false` or `stop_requested()` is
+    `true`.
+
+6. *Returns:* `true` if this call made a stop request; otherwise `false`.
+
+<div class="del">
+#### Non-member functions <b>[stopsource.nonmembers]</b> #### {#spec-stopsource.nonmembers}
+
+<pre highlight="c++">
+[[nodiscard]] friend bool
+  operator==(const stop_source& lhs, const stop_source& rhs) noexcept;
+</pre>
+
+1. *Returns:* `true` if `lhs` and `rhs` have ownership of the same stop state or if
+    both `lhs` and `rhs` do not have ownership of a stop state; otherwise `false`.
+
+<pre highlight="c++">
+friend void swap(stop_source& x, stop_source& y) noexcept;
+</pre>
+
+2. *Effects:* Equivalent to: `x.swap(y)`.
+
+</div>
+</div>
+
+<div class="hidden">
+<h4 class="heading no-toc" id="hidden.k.2"> </h4>
+</div>
+
+<span class="ed-note">Insert a new subclause, Class `never_stop_token`
+<b>[stoptoken.never]</b>, after subclause Class template `stop_callback`
+<b>[stopcallback]</b>, as a new subclause of Stop tokens
+<b>[thread.stoptoken]</b>.</span>
+<div class="standardeze">
+<div class="block-insert">
+### Class `never_stop_token` <b>[stoptoken.never]</b> ### {#spec-stoptoken.never}
+
+#### General <b>[stoptoken.never.general]</b> #### {#spec-stoptoken.never.general}
+
+1. The class `never_stop_token` models the `unstoppable_token` concept. It
+    provides a stop token interface, but also provides static information that a
+    stop is never possible nor requested.
+
+    <pre highlight="c++">
+    namespace std {
+      class never_stop_token {
+        struct <i>callback</i> { <i>// exposition only</i>
+          explicit <i>callback</i>(never_stop_token, auto&&) noexcept {}
+        };
+      public:
+        template&lt;class>
+          using callback_type = <i>callback</i>;
+
+        static constexpr bool stop_requested() noexcept { return false; }
+        static constexpr bool stop_possible() noexcept { return false; }
+
+        bool operator==(const never_stop_token&) const noexcept = default;
+      };
+    }
+    </pre>
+</div>
+</div>
+
+<span class="ed-note">Insert a new subclause, Class `in_place_stop_token`
+<b>[stoptoken.inplace]</b>, after the subclause added above, as a new subclause
+of Stop tokens <b>[thread.stoptoken]</b>.</span>
+<div class="standardeze">
+<div class="block-insert">
+### Class `in_place_stop_token` <b>[stoptoken.inplace]</b> ### {#spec-stoptoken.inplace}
+
+#### General <b>[stoptoken.inplace.general]</b> #### {#spec-stoptoken.inplace.general}
+
+1. The class `in_place_stop_token` models the concept `stoppable_token`. It
+    references the stop state of its associated `in_place_stop_source` object
+    ([stopsource.inplace]), if any.
+
+    <pre highlight="c++">
+    namespace std {
+      class in_place_stop_token {
+      public:
+        template&lt;class CB>
+          using callback_type = in_place_stop_callback&lt;CB>;
+
+        in_place_stop_token() noexcept = default;
+        bool operator==(const in_place_stop_token&) const noexcept = default;
+
+        // [stoptoken.inplace.mem], member functions
+        bool stop_requested() const noexcept;
+        bool stop_possible() const noexcept;
+        void swap(in_place_stop_token&) noexcept;
+
+        // [stoptoken.inplace.special], specialized algorithms
+        friend void swap(in_place_stop_token& lhs, in_place_stop_token& rhs) noexcept;
+
+      private:
+        const in_place_stop_source* <i>stop-source</i> = nullptr; // exposition only
+      };
+    }
+    </pre>
+
+#### Member functions <b>[stoptoken.inplace.members]</b> #### {#spec-stoptoken.inplace.members}
+
+<pre highlight="c++">
+void swap(in_place_stop_token& rhs) noexcept;
+</pre>
+
+1. *Effects*: Exchanges the values of <code><i>stop-source</i></code> and
+    <code>rhs.<i>stop-source</i></code>.
+
+<pre highlight="c++">
+bool stop_requested() const noexcept;
+</pre>
+
+1. *Effects*: Equivalent to: <code>return <i>stop-source</i> != nullptr &&
+    <i>stop-source</i>->stop_requested();</code>
+
+2. <span class="wg21note">As specified in [basic.life], the behavior of
+    `stop_requested()` is undefined unless the call strongly happens before the
+    start of the destructor of the associated `in_place_stop_source`, if
+    any.</span>
+
+<pre highlight="c++">
+bool stop_possible() const noexcept;
+</pre>
+
+3. *Returns*: <code><i>stop-source</i> != nullptr</code>.
+
+4. <span class="wg21note">As specified in [basic.stc.general], the behavior of
+    `stop_possible()` is implementation-defined unless the call strongly happens
+    before the end of the storage duration of the associated
+    `in_place_stop_source` object, if any.</span>
+
+#### Specialized algorithms <b>[stoptoken.inplace.special]</b> #### {#spec-stoptoken.inplace.special}
 
 <pre highlight="c++">
 friend void swap(in_place_stop_token& x, in_place_stop_token& y) noexcept;
 </pre>
 
-2. *Effects*: Equivalent to: `x.swap(y)`.
+2. *Effects*: Equivalent to: `x.swap(y);`
 
-### Class `in_place_stop_source` <b>[stopsource.inplace]</b> ### {#spec-stopsource.inplace}
+</div>
+</div>
 
-Insert a new subclause, Class `in_place_stop_source`
+<span class="ed-note">Insert a new subclause, Class `in_place_stop_source`
 <b>[stopsource.inplace]</b>, after the subclause added above, as a new subclause
-of Stop tokens <b>[thread.stoptoken]</b>.
+of Stop tokens <b>[thread.stoptoken]</b>.</span>
+<div class="standardeze">
+<div class="block-insert">
+### Class `in_place_stop_source` <b>[stopsource.inplace]</b> ### {#spec-stopsource.inplace}
 
 #### General <b>[stopsource.inplace.general]</b> #### {#spec-stopsource.inplace.general}
 
 1. The class `in_place_stop_source` implements the semantics of making a stop
     request, without the need for a dynamic allocation of a shared state. A stop
-    request made on a `in_place_stop_source` object is visible to all associated
-    `in_place_stop_token` ([stoptoken.inplace]) objects. Once a stop request has
-    been made it cannot be withdrawn (a subsequent stop request has no effect).
-    All uses of `in_place_stop_token` objects associated with a given
-    `in_place_stop_source` object must happen before the start of the destructor
-    of that `in_place_stop_source` object.
+    request made on an `in_place_stop_source` object is visible to all
+    associated `in_place_stop_token` ([stoptoken.inplace]) objects. Once a stop
+    request has been made it cannot be withdrawn, and a subsequent stop request
+    has no effect. All uses of `in_place_stop_token` objects associated with a
+    given `in_place_stop_source` object shall happen before the start of the
+    destructor of that `in_place_stop_source` object.
 
-<pre highlight="c++">
-namespace std {
-  class in_place_stop_source {
-  public:
-    // [stopsource.inplace.cons], constructors, copy, and assignment
-    in_place_stop_source() noexcept;
+    <pre highlight="c++">
+    namespace std {
+      class in_place_stop_source {
+      public:
+        // [stopsource.inplace.cons], constructors, copy, and assignment
+        in_place_stop_source() noexcept;
 
-    in_place_stop_source(in_place_stop_source&&) noexcept = delete;
-    ~in_place_stop_source();
+        in_place_stop_source(in_place_stop_source&&) noexcept = delete;
+        ~in_place_stop_source();
 
-    //[stopsource.inplace.mem], stop handling
-    [[nodiscard]] in_place_stop_token get_token() const noexcept;
-    [[nodiscard]] static constexpr bool stop_possible() noexcept { return true; }
-    [[nodiscard]] bool stop_requested() const noexcept;
-    bool request_stop() noexcept;
-  };
-}
-</pre>
+        //[stopsource.inplace.mem], stop handling
+        in_place_stop_token get_token() const noexcept;
+        static constexpr bool stop_possible() noexcept { return true; }
+        bool stop_requested() const noexcept;
+        bool request_stop() noexcept;
+      };
+    }
+    </pre>
+
+    NOTE: find a way to share this wording with `stop_source`. maybe as a StopSource concept?
 
 2. An instance of `in_place_stop_source` maintains a list of registered callback
     invocations. The registration of a callback invocation either succeeds or
@@ -4351,13 +4965,13 @@ in_place_stop_source() noexcept;
 #### Members <b>[stopsource.inplace.mem]</b> #### {#spec-stopsource.inplace.mem}
 
 <pre highlight="c++">
-[[nodiscard]] in_place_stop_token get_token() const noexcept;
+in_place_stop_token get_token() const noexcept;
 </pre>
 
 1. *Returns*: A new associated `in_place_stop_token` object.
 
 <pre highlight="c++">
-[[nodiscard]] bool stop_requested() const noexcept;
+bool stop_requested() const noexcept;
 </pre>
 
 3. *Returns*: `true` if the stop state inside `*this` has received a stop
@@ -4379,11 +4993,16 @@ bool request_stop() noexcept;
 
 6. *Returns*: `true` if this call made a stop request; otherwise `false`.
 
-### Class template `in_place_stop_callback` <b>[stopcallback.inplace]</b> ### {#spec-stopcallback.inplace}
+</div>
+</div>
 
-Insert a new subclause, Class template `in_place_stop_callback`
-<b>[stopcallback.inplace]</b>, after the subclause added above, as a new
-subclause of Stop tokens <b>[thread.stoptoken]</b>.
+<span class="ed-note">Insert a new subclause, Class template
+`in_place_stop_callback` <b>[stopcallback.inplace]</b>, after the subclause
+added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</span>
+<div class="standardeze">
+<div class="block-insert">
+
+### Class template `in_place_stop_callback` <b>[stopcallback.inplace]</b> ### {#spec-stopcallback.inplace}
 
 #### General <b>[stopcallback.inplace.general]</b> #### {#spec-stopcallback.inplace.general}
 
@@ -4405,7 +5024,7 @@ subclause of Stop tokens <b>[thread.stoptoken]</b>.
         in_place_stop_callback(in_place_stop_callback&&) = delete;
 
       private:
-        Callback <i>callback_</i>;      <i>// exposition only</i>
+        Callback <i>stop-callback</i>;      <i>// exposition only</i>
       };
 
       template&lt;class Callback>
@@ -4422,6 +5041,11 @@ subclause of Stop tokens <b>[thread.stoptoken]</b>.
     for the template parameter `Callback` that models both `invocable` and
     `destructible`.
 
+REWORD:
+
+*Remarks:* Implementations are not permitted to ....&lt;blah blah> (from optional) 
+
+
 4. *Recommended practice*: Implementations should use the storage of the
     `in_place_stop_callback` objects to store the state necessary for their
     association with an `in_place_stop_source` object.
@@ -4434,23 +5058,23 @@ template&lt;class C>
     noexcept(is_nothrow_constructible_v&lt;Callback, C>);
 </pre>
 
-1. *Constraints*: `Callback` and `C` satisfy `constructible_from<Callback, C>`.
+1. *Constraints*: `constructible_from<Callback, C>` is modeled.
 
-2. *Preconditions*: `Callback` and `C` model `constructible_from<Callback, C>`.
+SHARE THIS WORDING WITH STOP_TOKEN, MAYBE WITH A CONCEPT?
 
-3. *Effects*: Initializes <code><i>callback_</i></code> with
+2. *Effects*: Initializes <code><i>stop-callback</i></code> with
     `std::forward<C>(cb)`. Any `in_place_stop_source` associated with `st`
     becomes associated with `*this`. Registers ([stopsource.inplace.general])
     the callback invocation
-    <code>std::forward&lt;Callback>(<i>callback_</i>)()</code> with the
+    <code>std::forward&lt;Callback>(<i>stop-callback</i>)()</code> with the
     associated `in_place_stop_source`, if any. If the registration fails,
     evaluates the callback invocation.
 
-4. *Throws*: Any exception thrown by the initialization of
-    <code><i>callback_</i></code>.
+3. *Throws*: Any exception thrown by the initialization of
+    <code><i>stop-callback</i></code>.
 
-5. *Remarks*: If evaluating
-    <code>std::forward&lt;Callback>(<i>callback_</i>)()</code> exits via an
+4. *Remarks*: If evaluating
+    <code>std::forward&lt;Callback>(<i>stop-callback</i>)()</code> exits via an
     exception, then `terminate` is invoked ([except.terminate]).
 
 <pre highlight="c++">
@@ -4460,9 +5084,17 @@ template&lt;class C>
 6. *Effects*: Unregisters ([stopsource.inplace.general]) the callback invocation from
     the associated `in_place_stop_source` object, if any.
 
-7. *Remarks*: A program has undefined behavior if the start of this destructor does
+7. *Remarks*: A program has undefined behavior if the end of this destructor does
     not strongly happen before the start of the destructor of the associated
     `in_place_stop_source` object, if any.
+
+</div>
+</div>
+
+<span class="ed-note">Insert a new top-level clause</span>
+
+<div class="standardeze">
+<div class="block-insert">
 
 # Execution control library <b>[exec]</b> # {#spec-execution}
 
@@ -5785,7 +6417,7 @@ enum class forward_progress_guarantee {
                     Index, <i>state-type</i>&lt;Sndr, Rcvr>&, Rcvr&, set_value_t, Args...>
                 void set_value(Args&&... args) && noexcept {
                   (void) <i>impls-for</i>&lt;<i>tag-type</i>>::<i>complete</i>(
-                    Index(), op_->state_, op_->rcvr_, set_value_t(), std::forward&lt;Args>(args)...);
+                    Index(), <i>op</i>-><i>state</i>, <i>op</i>-><i>rcvr</i>, set_value_t(), std::forward&lt;Args>(args)...);
                 }
 
                 template&lt;class Error>
@@ -5793,22 +6425,22 @@ enum class forward_progress_guarantee {
                     Index, <i>state-type</i>&lt;Sndr, Rcvr>&, Rcvr&, set_error_t, Error>
                 void set_error(Error&& err) && noexcept {
                   (void) <i>impls-for</i>&lt;<i>tag-type</i>>::<i>complete</i>(
-                    Index(), op_->state_, op_->rcvr_, set_error_t(), std::forward&lt;Error>(err));
+                    Index(), <i>op</i>-><i>state</i>, <i>op</i>-><i>rcvr</i>, set_error_t(), std::forward&lt;Error>(err));
                 }
 
                 void set_stopped() && noexcept
                   requires <i>cpo-callable</i>&lt;<i>impls-for</i>&lt;<i>tag-type</i>>::<i>complete</i>,
                     Index, <i>state-type</i>&lt;Sndr, Rcvr>&, Rcvr&, set_stopped_t> {
                   (void) <i>impls-for</i>&lt;<i>tag-type</i>>::<i>complete</i>(
-                    Index(), op_->state_, op_->rcvr_, set_stopped_t());
+                    Index(), <i>op</i>-><i>state</i>, <i>op</i>-><i>rcvr</i>, set_stopped_t());
                 }
 
                 auto get_env() const noexcept -> <i>env-type</i>&lt;Index, Sndr, Rcvr> {
-                  const auto& rcvr = op_->rcvr_;
-                  return <i>impls-for</i>&lt;<i>tag-type</i>>::<i>get-env</i>(Index(), op_->state_, rcvr);
+                  const auto& rcvr = <i>op</i>-><i>rcvr</i>;
+                  return <i>impls-for</i>&lt;<i>tag-type</i>>::<i>get-env</i>(Index(), <i>op</i>-><i>state</i>, rcvr);
                 }
 
-                <i>basic-operation</i>&lt;Sndr, Rcvr>* op_; // exposition only
+                <i>basic-operation</i>&lt;Sndr, Rcvr>* <i>op</i>; // exposition only
               };
 
               constexpr auto <i>connect-all</i> =   // exposition only
@@ -5836,19 +6468,19 @@ enum class forward_progress_guarantee {
                 using operation_state_concept = operation_state_t;
                 using <i>tag-type</i> = tag_of_t&lt;Sndr>; // exposition only
 
-                Rcvr rcvr_; // exposition only
-                <i>state-type</i>&lt;Sndr, Rcvr> state_; // exposition only
-                <i>inner-ops-tuple</i>&lt;Sndr, Rcvr> inner_ops_; // exposition only
+                Rcvr <i>rcvr</i>; // exposition only
+                <i>state-type</i>&lt;Sndr, Rcvr> <i>state</i>; // exposition only
+                <i>inner-ops-tuple</i>&lt;Sndr, Rcvr> <i>inner-ops</i>; // exposition only
 
-                <i>basic-operation</i>(Sndr&& sndr, Rcvr rcvr)  // exposition only
-                  : rcvr_(std::move(rcvr))
-                  , state_(<i>impls-for</i>&lt;<i>tag-type</i>>::<i>get-state</i>(std::forward&lt;Sndr>(sndr), rcvr_))
-                  , inner_ops_(<i>connect-all</i>(this, std::forward&lt;Sndr>(sndr), <i>indices-for</i>&lt;Sndr>()))
+                <i>basic-operation</i>(Sndr&& sndr, Rcvr rcvr_init)  // exposition only
+                  : <i>rcvr</i>(std::move(rcvr_init))
+                  , <i>state</i>(<i>impls-for</i>&lt;<i>tag-type</i>>::<i>get-state</i>(std::forward&lt;Sndr>(sndr), <i>rcvr</i>))
+                  , <i>inner-ops</i>(<i>connect-all</i>(this, std::forward&lt;Sndr>(sndr), <i>indices-for</i>&lt;Sndr>()))
                 {}
 
                 void start() & noexcept {
-                  auto& [...ops] = inner_ops_;
-                  <i>impls-for</i>&lt;<i>tag-type</i>>::<i>start</i>(state_, rcvr_, ops...);
+                  auto& [...ops] = <i>inner-ops</i>;
+                  <i>impls-for</i>&lt;<i>tag-type</i>>::<i>start</i>(<i>state</i>, <i>rcvr</i>, ops...);
                 }
               };
 
@@ -5906,7 +6538,7 @@ enum class forward_progress_guarantee {
               <pre highlight="c++">
               [](const auto& data, const auto&... child) noexcept -> decltype(auto) {
                 if constexpr (sizeof...(child) == 1)
-                  return <i>FWD-ENV</i>(get_env(child...)); //
+                  return <i>FWD-ENV</i>(get_env(child...));
                 else
                   return empty_env();
               }
@@ -6064,12 +6696,12 @@ enum class forward_progress_guarantee {
 
       - Otherwise, `tag_of_t<Sndr>` is ill-formed.
 
-    <div class="ed-note">
+    <span class="ed-note">
     There is no way in standard C++ to determine whether the above declaration
     is well-formed without causing a hard error, so this presumes compiler
     magic. However, the author anticipates the adoption of [@P2141R1], which
     makes it possible to implement this purely in the library. P2141 has already
-    been approved by EWG for C++26.</div>
+    been approved by EWG for C++26.</span>
 
 6. Let <code><i>sender-for</i></code> be an exposition-only concept defined as follows:
 
@@ -6111,9 +6743,9 @@ enum class forward_progress_guarantee {
     picked by overload resolution if any, and any necessary implicit
     conversions and materializations.</span>
 
-    <div class="ed-note">I have opened
+    <span class="ed-note">I have opened
     [cwg#250](https://github.com/cplusplus/CWG/issues/250) to give these
-    transformations a term-of-art so we can more easily refer to it here.</div>
+    transformations a term-of-art so we can more easily refer to it here.</span>
 
 3. Let <code><i>is-awaitable</i></code> be the following exposition-only
     concept:
@@ -6351,7 +6983,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     a completion function. If sender `Sndr` or its operation state cause the
     expression <code><i>CSO</i>(rcvr, args...)</code> to be potentially evaluated
     ([basic.def.odr]) then there shall be a signature `Sig` in `Sigs...` such
-    that <code><i>MATCHING-SIG</i>(tag_t&lt;<i>CSO</i>>(decltype(args)...),
+    that
+    <code><i>MATCHING-SIG</i>(<i>decayed-typeof</i>&lt;<i>CSO</i>>(decltype(args)...),
     Sig)</code> is `true` ([exec.general]).
 
 ### `execution::connect` <b>[exec.connect]</b> ### {#spec-execution.senders.connect}
@@ -6431,10 +7064,10 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
       auto fn = [&, fun]() noexcept { fun(std::forward&lt;Ts>(as)...); };
 
       struct awaiter {
-        decltype(fn) <i>fn_</i>;
+        decltype(fn) <i>fn</i>;
 
         static bool await_ready() noexcept { return false; }
-        void await_suspend(coroutine_handle<>) noexcept { <i>fn_</i>(); }
+        void await_suspend(coroutine_handle<>) noexcept { <i>fn</i>(); }
         [[noreturn]] void await_resume() noexcept { unreachable(); }
       };
       return awaiter{fn};
@@ -6519,7 +7152,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
         <pre highlight="c++">
         template&lt;>
-        struct <i>impls-for</i>&lt;tag_t&lt;<i>just-cpo</i>>> : <i>default-impls</i> {
+        struct <i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;<i>just-cpo</i>>> : <i>default-impls</i> {
           static constexpr auto start =
             [](auto& state, auto& rcvr) noexcept -> void {
               auto& [...ts] = state;
@@ -6543,7 +7176,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
     <pre highlight="c++">
     template&lt;>
-    struct <i>impls-for</i>&lt;tag_t&lt;read>> : <i>default-impls</i> {
+    struct <i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;read>> : <i>default-impls</i> {
       static constexpr auto <em>start</em> =
         [](auto query, auto& rcvr) noexcept -> void {
           <i>TRY-SET-VALUE</i>(std::move(rcvr), query(get_env(rcvr)));
@@ -6949,11 +7582,11 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
 
         <pre highlight="c++">
         template&lt;>
-        struct <i>impls-for</i>&lt;tag_t&lt;<i>then-cpo</i>>> : <i>default-impls</i> {
+        struct <i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;<i>then-cpo</i>>> : <i>default-impls</i> {
           static constexpr auto complete =
             []&lt;class Tag, class... Args>
               (auto /*index*/, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
-                if constexpr (same_as&lt;Tag, tag_t&lt;<i>set-cpo</i>>>) {
+                if constexpr (same_as&lt;Tag, <i>decayed-typeof</i>&lt;<i>set-cpo</i>>>) {
                   <i>TRY-SET-VALUE</i>(std::move(rcvr),
                                 invoke(std::move(fn), std::forward&lt;Args>(args)...));
                 } else {
@@ -6987,7 +7620,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     <code><i>let-env</i>(sndr)</code> be expression-equivalent to the first
     well-formed expression below:
 
-      - <code><i>SCHED-ENV</i>(get_completion_scheduler&lt;tag_t&lt;<i>set-cpo</i>>>(get_env(sndr)))</code>
+      - <code><i>SCHED-ENV</i>(get_completion_scheduler&lt;<i>decayed-typeof</i>&lt;<i>set-cpo</i>>>(get_env(sndr)))</code>
 
       - <code><i>MAKE-ENV</i>(get_domain, get_domain(get_env(sndr)))</code>
 
@@ -7018,7 +7651,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         void <i>let-bind</i>(State& state, Rcvr& rcvr, Args&&... args); // exposition only
 
         template&lt;>
-        struct <i>impls-for</i>&lt;tag_t&lt;<i>let-cpo</i>>> : <i>default-impls</i> {
+        struct <i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;<i>let-cpo</i>>> : <i>default-impls</i> {
           static constexpr auto <i>get-state</i> = <i>see below</i>;
           static constexpr auto <i>complete</i> = <i>see below</i>;
         };
@@ -7217,11 +7850,11 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
     `constructible_from<decay_t<env_of_t<Sndr>>, env_of_t<Sndr>>`</del> is `false`,
     <code><i>shared-cpo</i>(sndr)</code> is ill-formed.
 
-    <div class="ed-note"> Although it has not yet been approved by LEWG, there
+    <span class="ed-note"> Although it has not yet been approved by LEWG, there
     is a bug in the current wording that makes it impossible to safely copy the
     attributes of a sender; it may have reference semantics, leading to a
     dangling reference. I am striking this part for now and will bring a fix to
-    LEWG.</div>
+    LEWG.</span>
 
 4. Otherwise, the expression <code><i>shared-cpo</i>(sndr)</code> is
     expression-equivalent to:
@@ -7647,7 +8280,7 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
         expression:
 
           <pre highlight="c++">
-          <div class="ed-note">BUG: `apply` isn't constrained</div>
+          <span class="ed-note">BUG: `apply` isn't constrained</span>
           []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr)
             -> decltype(apply(<i>make-state</i>&lt;Rcvr>{get_env(rcvr)}, std::forward&lt;Sndr>(sndr))) {
             return apply(<i>make-state</i>&lt;Rcvr>{get_env(rcvr)}, std::forward&lt;Sndr>(sndr));
@@ -8493,8 +9126,8 @@ template&lt;class Domain, class Tag, sender Sndr, class... Args>
       class <i>run-loop-sender</i>; // exposition only
       struct <i>run-loop-opstate-base</i> { // exposition only
         virtual void execute() = 0;
-        run_loop* <i>loop_</i>;
-        <i>run-loop-opstate-base</i>* <i>next_</i>;
+        run_loop* <i>loop</i>;
+        <i>run-loop-opstate-base</i>* <i>next</i>;
       };
       template&lt;receiver_of&lt;completion_signatures&lt;set_value_t()>> Rcvr>
         using <i>run-loop-opstate</i> = <i>unspecified</i>; // exposition only
@@ -8604,7 +9237,7 @@ template&lt;receiver_of&lt;completion_signatures&lt;set_value_t()>> Rcvr>
 
         <pre highlight="c++">
         try {
-          <i>o</i>.<i>loop_</i>->push_back(&<i>o</i>);
+          <i>o</i>.<i>loop</i>->push_back(&<i>o</i>);
         } catch(...) {
           set_error(std::move(<i>REC</i>(<i>o</i>)), current_exception());
         }
@@ -8747,13 +9380,13 @@ void run_loop::finish();
           using result_t = conditional_t&lt;is_void_v&lt;value_t>, unit, value_t>;
           struct <i>awaitable-receiver</i>;
 
-          variant&lt;monostate, result_t, exception_ptr> <i>result_</i>{};
-          connect_result_t&lt;Sndr, <i>awaitable-receiver</i>> <i>state_</i>;
+          variant&lt;monostate, result_t, exception_ptr> <i>result</i>{};
+          connect_result_t&lt;Sndr, <i>awaitable-receiver</i>> <i>state</i>;
 
          public:
           <i>sender-awaitable</i>(Sndr&& sndr, Promise& p);
           bool await_ready() const noexcept { return false; }
-          void await_suspend(coroutine_handle&lt;Promise>) noexcept { start(<i>state_</i>); }
+          void await_suspend(coroutine_handle&lt;Promise>) noexcept { start(<i>state</i>); }
           value_t await_resume();
         };
         </pre>
@@ -8763,8 +9396,8 @@ void run_loop::finish();
             <pre highlight="c++">
             struct <i>awaitable-receiver</i> {
               using receiver_concept = receiver_t;
-              variant&lt;monostate, result_t, exception_ptr>* <i>result_ptr_</i>;
-              coroutine_handle&lt;Promise> <i>continuation_</i>;
+              variant&lt;monostate, result_t, exception_ptr>* <i>result-ptr</i>;
+              coroutine_handle&lt;Promise> <i>continuation</i>;
               // ... <i>see below</i>
             };
             </pre>
@@ -8780,11 +9413,11 @@ void run_loop::finish();
 
                 <pre highlight="c++">
                 try {
-                  rcvr.<i>result_ptr_</i>->emplace&lt;1>(vs...);
+                  rcvr.<i>result-ptr</i>->emplace&lt;1>(vs...);
                 } catch(...) {
-                  rcvr.<i>result_ptr_</i>->emplace&lt;2>(current_exception());
+                  rcvr.<i>result-ptr</i>->emplace&lt;2>(current_exception());
                 }
-                rcvr.<i>continuation_</i>.resume();
+                rcvr.<i>continuation</i>.resume();
                 </pre>
 
                 Otherwise, `set_value(rcvr, vs...)` is ill-formed.
@@ -8792,26 +9425,26 @@ void run_loop::finish();
             2. The expression `set_error(rcvr, err)` is equivalent to:
 
                 <pre highlight="c++">
-                rcvr.<i>result_ptr_</i>->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err)); <i>// see [exec.general]</i>
-                rcvr.<i>continuation_</i>.resume();
+                rcvr.<i>result-ptr</i>->emplace&lt;2>(<i>AS-EXCEPT-PTR</i>(err)); <i>// see [exec.general]</i>
+                rcvr.<i>continuation</i>.resume();
                 </pre>
 
             3. The expression `set_stopped(rcvr)` is equivalent to
-                <code>static_cast&lt;coroutine_handle&lt;>>(rcvr.<i>continuation_</i>.promise().unhandled_stopped()).resume()</code>.
+                <code>static_cast&lt;coroutine_handle&lt;>>(rcvr.<i>continuation</i>.promise().unhandled_stopped()).resume()</code>.
 
             4. For any expression `tag` whose type satisfies
                 <code><i>forwarding-query</i></code> and for any pack of
                 subexpressions `as`, `get_env(crcvr).query(tag, as...)` is
                 expression-equivalent to
-                <code>tag(get_env(as_const(crcvr.<i>continuation_</i>.promise())),
+                <code>tag(get_env(as_const(crcvr.<i>continuation</i>.promise())),
                 as...)</code> when that expression is well-formed.
 
         2. <b><code><i>sender-awaitable</i>::<i>sender-awaitable</i>(Sndr&&
             sndr, Promise& p)</code></b>
 
-            - <i>Effects:</i> initializes <i>`state_`</i> with
+            - <i>Effects:</i> initializes <i>`state`</i> with
                 <code>connect(std::forward&lt;Sndr>(sndr),
-                <i>awaitable-receiver</i>{&<i>result_</i>,
+                <i>awaitable-receiver</i>{&<i>result</i>,
                 coroutine_handle&lt;Promise>::from_promise(p)})</code>.
 
         3. <b><code>value_t <i>sender-awaitable</i>::await_resume()</code></b>
@@ -8819,10 +9452,10 @@ void run_loop::finish();
             - <i>Effects:</i> equivalent to:
 
                 <pre highlight="c++">
-                if (<i>result_</i>.index() == 2)
-                  rethrow_exception(get&lt;2>(<i>result_</i>));
+                if (<i>result</i>.index() == 2)
+                  rethrow_exception(get&lt;2>(<i>result</i>));
                 if constexpr (!is_void_v&lt;value_t>)
-                  return std::forward&lt;value_t>(get&lt;1>(<i>result_</i>));
+                  return std::forward&lt;value_t>(get&lt;1>(<i>result</i>));
                 </pre>
 
 2. `as_awaitable` is a customization point object. For some subexpressions
@@ -8870,10 +9503,10 @@ void run_loop::finish();
           requires (!same_as&lt;OtherPromise, void>)
         void set_continuation(coroutine_handle&lt;OtherPromise> h) noexcept;
 
-        coroutine_handle&lt;> continuation() const noexcept { return <i>continuation_</i>; }
+        coroutine_handle&lt;> continuation() const noexcept { return <i>continuation</i>; }
 
         coroutine_handle&lt;> unhandled_stopped() noexcept {
-          return <i>stopped_handler_</i>(<i>continuation_</i>.address());
+          return <i>stopped-handler</i>(<i>continuation</i>.address());
         }
 
         template&lt;class Value>
@@ -8884,9 +9517,9 @@ void run_loop::finish();
         [[noreturn]] static coroutine_handle&lt;> default_unhandled_stopped(void*) noexcept {
           terminate();
         }
-        coroutine_handle&lt;> <i>continuation_</i>{}; // exposition only
+        coroutine_handle&lt;> <i>continuation</i>{}; // exposition only
         // exposition only
-        coroutine_handle&lt;> (*<i>stopped_handler_</i>)(void*) noexcept = &default_unhandled_stopped;
+        coroutine_handle&lt;> (*<i>stopped-handler</i>)(void*) noexcept = &default_unhandled_stopped;
       };
     </pre>
 
@@ -8895,14 +9528,14 @@ void run_loop::finish();
     - <i>Effects:</i> equivalent to:
 
       <pre highlight="c++">
-      <i>continuation_</i> = h;
+      <i>continuation</i> = h;
       if constexpr ( requires(OtherPromise& other) { other.unhandled_stopped(); } ) {
-        <i>stopped_handler_</i> = [](void* p) noexcept -> coroutine_handle&lt;> {
+        <i>stopped-handler</i> = [](void* p) noexcept -> coroutine_handle&lt;> {
           return coroutine_handle&lt;OtherPromise>::from_address(p)
             .promise().unhandled_stopped();
         };
       } else {
-        <i>stopped_handler_</i> = default_unhandled_stopped;
+        <i>stopped-handler</i> = default_unhandled_stopped;
       }
       </pre>
 
@@ -8913,6 +9546,10 @@ void run_loop::finish();
       <pre highlight="c++">
       return as_awaitable(std::forward&lt;Value>(value), static_cast&lt;Promise&>(*this));
       </pre>
+
+</div>
+</div>
+
 
 <pre class=biblio>
 {
