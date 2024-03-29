@@ -4266,7 +4266,7 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
     </pre>
 
 2. Let `t` and `u` be distinct, valid objects of type `Token` that reference the
-    same logical shared stop state; let `init` be an object of type
+    same logical stop state; let `init` be an object of type
     `Initializer`; and let `CB` denote the type `stop_callback_for_t<Token,
     Callback>`.
 
@@ -4328,7 +4328,7 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
             deregistration shall have no effect.
 
         2. Otherwise, the invocation of <i>`callback`</i> shall be removed from
-            the shared stop state.
+            the associated stop state.
 
         3. If <i>`callback`</i> is currently being invoked on another thread
             then the stoppable callback deregistration shall block
@@ -4343,7 +4343,7 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
 
         5. A stoppable callback deregistration shall not block on the completion
             of the invocation of some other callback registered with the same
-            shared stop state.
+            logical stop state.
 
         6. As a final step, the stoppable callback deregistration shall destroy
             the callback function.
