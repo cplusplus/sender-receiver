@@ -9188,7 +9188,7 @@ coroutine defined as follows:</p>
     <c- k>struct</c-> <c- nc>awaiter</c-> <c- p>{</c->
       <c- k>decltype</c-><c- p>(</c-><c- n>fn</c-><c- p>)</c-> <i><c- n>fn</c-></i><c- p>;</c->
 
-      <c- k>static</c-> <c- b>bool</c-> <c- nf>await_ready</c-><c- p>()</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>return</c-> false<c- p>;</c-> <c- p>}</c->
+      <c- k>static</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- nf>await_ready</c-><c- p>()</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>return</c-> false<c- p>;</c-> <c- p>}</c->
       <c- b>void</c-> <c- nf>await_suspend</c-><c- p>(</c-><c- n>coroutine_handle</c-><c- o>&lt;></c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c-> <i><c- n>fn</c-></i><c- p>();</c-> <c- p>}</c->
       <c- p>[[</c-><c- n>noreturn</c-><c- p>]]</c-> <c- b>void</c-> <c- n>await_resume</c-><c- p>()</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- n>unreachable</c-><c- p>();</c-> <c- p>}</c->
     <c- p>};</c->
@@ -11229,19 +11229,21 @@ equivalent to the following:</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Promise</c-><c- o>></c->
   <c- k>class</c-> <i><c- nc>sender</c-><c- o>-</c-><c- n>awaitable</c-></i> <c- p>{</c->
-    <c- k>struct</c-> <c- nc>unit</c-> <c- p>{};</c->
-    <c- k>using</c-> <c- n>value_t</c-> <c- o>=</c-> <i><c- n>single</c-><c- o>-</c-><c- n>sender</c-><c- o>-</c-><c- n>value</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>env_of_t</c-><c- o>&lt;</c-><c- n>Promise</c-><c- o>>></c-><c- p>;</c->
-    <c- k>using</c-> <c- n>result_t</c-> <c- o>=</c-> <c- n>conditional_t</c-><c- o>&lt;</c-><c- n>is_void_v</c-><c- o>&lt;</c-><c- n>value_t</c-><c- o>></c-><c- p>,</c-> <c- n>unit</c-><c- p>,</c-> <c- n>value_t</c-><c- o>></c-><c- p>;</c->
-    <c- k>struct</c-> <i><c- nc>awaitable</c-><c- o>-</c-><c- n>receiver</c-></i><c- p>;</c->
+    <c- k>struct</c-> <i><c- nc>unit</c-></i> <c- p>{};</c->                                          <i><c- c1>// exposition only</c-></i>
+    <c- k>using</c-> <i><c- n>value</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c->                                       <i><c- c1>// exposition only</c-></i>
+      <i><c- n>single</c-><c- o>-</c-><c- n>sender</c-><c- o>-</c-><c- n>value</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>env_of_t</c-><c- o>&lt;</c-><c- n>Promise</c-><c- o>>></c-><c- p>;</c->
+    <c- k>using</c-> <i><c- n>result</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c->                                      <i><c- c1>// exposition only</c-></i>
+      <c- n>conditional_t</c-><c- o>&lt;</c-><c- n>is_void_v</c-><c- o>&lt;</c-><i><c- n>value</c-><c- o>-</c-><c- n>type</c-></i><c- o>></c-><c- p>,</c-> <i><c- n>unit</c-></i><c- p>,</c-> <i><c- n>value</c-><c- o>-</c-><c- n>type</c-></i><c- o>></c-><c- p>;</c->
+    <c- k>struct</c-> <i><c- nc>awaitable</c-><c- o>-</c-><c- n>receiver</c-></i><c- p>;</c->                               <i><c- c1>// exposition only</c-></i>
 
-    <c- n>variant</c-><c- o>&lt;</c-><c- n>monostate</c-><c- p>,</c-> <c- n>result_t</c-><c- p>,</c-> <c- n>exception_ptr</c-><c- o>></c-> <i><c- n>result</c-></i><c- p>{};</c->
-    <c- n>connect_result_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>awaitable</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>></c-> <i><c- n>state</c-></i><c- p>;</c->
+    <c- n>variant</c-><c- o>&lt;</c-><c- n>monostate</c-><c- p>,</c-> <i><c- n>result</c-><c- o>-</c-><c- n>type</c-></i><c- p>,</c-> <c- n>exception_ptr</c-><c- o>></c-> <i><c- n>result</c-></i><c- p>{};</c-> <i><c- c1>// exposition only</c-></i>
+    <c- n>connect_result_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>awaitable</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>></c-> <i><c- n>state</c-></i><c- p>;</c->        <i><c- c1>// exposition only</c-></i>
 
   <c- k>public</c-><c- o>:</c->
     <i><c- n>sender</c-><c- o>-</c-><c- n>awaitable</c-></i><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Promise</c-><c- o>&amp;</c-> <c- n>p</c-><c- p>);</c->
-    <c- b>bool</c-> <c- nf>await_ready</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>return</c-> false<c- p>;</c-> <c- p>}</c->
+    <c- k>static</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- nf>await_ready</c-><c- p>()</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>return</c-> false<c- p>;</c-> <c- p>}</c->
     <c- b>void</c-> <c- nf>await_suspend</c-><c- p>(</c-><c- n>coroutine_handle</c-><c- o>&lt;</c-><c- n>Promise</c-><c- o>></c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- n>start</c-><c- p>(</c-><i><c- n>state</c-></i><c- p>);</c-> <c- p>}</c->
-    <c- n>value_t</c-> <c- nf>await_resume</c-><c- p>();</c->
+    <i><c- n>value</c-><c- o>-</c-><c- n>type</c-></i> <c- n>await_resume</c-><c- p>();</c->
   <c- p>};</c->
 <c- p>}</c->
 </pre>
@@ -11250,8 +11252,8 @@ equivalent to the following:</p>
            <p><i><code class="highlight"><c- n>awaitable</c-><c- o>-</c-><c- n>receiver</c-></code></i> is equivalent to the following:</p>
 <pre class="highlight"><c- k>struct</c-> <i><c- nc>awaitable</c-><c- o>-</c-><c- n>receiver</c-></i> <c- p>{</c->
   <c- k>using</c-> <c- n>receiver_concept</c-> <c- o>=</c-> <c- n>receiver_t</c-><c- p>;</c->
-  <c- n>variant</c-><c- o>&lt;</c-><c- n>monostate</c-><c- p>,</c-> <c- n>result_t</c-><c- p>,</c-> <c- n>exception_ptr</c-><c- o>>*</c-> <i><c- n>result</c-><c- o>-</c-><c- n>ptr</c-></i><c- p>;</c->
-  <c- n>coroutine_handle</c-><c- o>&lt;</c-><c- n>Promise</c-><c- o>></c-> <i><c- n>continuation</c-></i><c- p>;</c->
+  <c- n>variant</c-><c- o>&lt;</c-><c- n>monostate</c-><c- p>,</c-> <i><c- n>result</c-><c- o>-</c-><c- n>type</c-></i><c- p>,</c-> <c- n>exception_ptr</c-><c- o>>*</c-> <i><c- n>result</c-><c- o>-</c-><c- n>ptr</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
+  <c- n>coroutine_handle</c-><c- o>&lt;</c-><c- n>Promise</c-><c- o>></c-> <i><c- n>continuation</c-></i><c- p>;</c->                     <i><c- c1>// exposition only</c-></i>
   <c- c1>// ... </c-><i><c- c1>see below</c-></i>
 <c- p>};</c->
 </pre>
@@ -11259,8 +11261,8 @@ equivalent to the following:</p>
 Then:</p>
            <ol>
             <li data-md>
-             <p>If <code class="highlight"><c- n>constructible_from</c-><c- o>&lt;</c-><c- n>result_t</c-><c- p>,</c-> <c- n>Vs</c-><c- p>...</c-><c- o>></c-></code> is satisfied, the
-expression <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>vs</c-><c- p>...)</c-></code> is equivalent to:</p>
+             <p>If <code class="highlight"><c- n>constructible_from</c-><c- o>&lt;</c-><i><c- n>result</c-><c- o>-</c-><c- n>type</c-></i><c- p>,</c-> <c- n>Vs</c-><c- p>...</c-><c- o>></c-></code> is satisfied, the expression <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>vs</c-><c- p>...)</c-></code> is
+equivalent to:</p>
 <pre class="highlight"><c- k>try</c-> <c- p>{</c->
   <c- n>rcvr</c-><c- p>.</c-><i><c- n>result</c-><c- o>-</c-><c- n>ptr</c-></i><c- o>-></c-><c- n>emplace</c-><c- o>&lt;</c-><c- mi>1</c-><c- o>></c-><c- p>(</c-><c- n>vs</c-><c- p>...);</c->
 <c- p>}</c-> <c- k>catch</c-><c- p>(...)</c-> <c- p>{</c->
@@ -11282,20 +11284,20 @@ subexpressions <code class="highlight"><c- n>as</c-></code>, <code class="highli
 expression-equivalent to <code class="highlight"><c- n>tag</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>as_const</c-><c- p>(</c-><c- n>crcvr</c-><c- p>.</c-><i><c- n>continuation</c-></i><c- p>.</c-><c- n>promise</c-><c- p>())),</c-> <c- n>as</c-><c- p>...)</c-></code> when that expression is well-formed.</p>
            </ol>
           <li data-md>
-           <p><b><code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- n>awaitable</c-></i><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Promise</c-><c- o>&amp;</c-> <c- n>p</c-><c- p>)</c-></code></b></p>
+           <p><code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- n>awaitable</c-></i><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Promise</c-><c- o>&amp;</c-> <c- n>p</c-><c- p>)</c-></code></p>
            <ul>
             <li data-md>
              <p><i>Effects:</i> initializes <i><code class="highlight"><c- n>state</c-></code></i> with <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <i><c- n>awaitable</c-><c- o>-</c-><c- n>receiver</c-></i><c- p>{</c-><c- o>&amp;</c-><i><c- n>result</c-></i><c- p>,</c-> <c- n>coroutine_handle</c-><c- o>&lt;</c-><c- n>Promise</c-><c- o>>::</c-><c- n>from_promise</c-><c- p>(</c-><c- n>p</c-><c- p>)})</c-></code>.</p>
            </ul>
           <li data-md>
-           <p><b><code class="highlight"><c- n>value_t</c-> <c- n>await_resume</c-><c- p>()</c-></code></b></p>
+           <p><code class="highlight"><i><c- n>value</c-><c- o>-</c-><c- n>type</c-></i> <c- n>await_resume</c-><c- p>()</c-></code></p>
            <ul>
             <li data-md>
              <p><i>Effects:</i> equivalent to:</p>
 <pre class="highlight"><c- k>if</c-> <c- p>(</c-><i><c- n>result</c-></i><c- p>.</c-><c- n>index</c-><c- p>()</c-> <c- o>==</c-> <c- mi>2</c-><c- p>)</c->
   <c- n>rethrow_exception</c-><c- p>(</c-><c- n>get</c-><c- o>&lt;</c-><c- mi>2</c-><c- o>></c-><c- p>(</c-><i><c- n>result</c-></i><c- p>));</c->
-<c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- o>!</c-><c- n>is_void_v</c-><c- o>&lt;</c-><c- n>value_t</c-><c- o>></c-><c- p>)</c->
-  <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>value_t</c-><c- o>></c-><c- p>(</c-><c- n>get</c-><c- o>&lt;</c-><c- mi>1</c-><c- o>></c-><c- p>(</c-><i><c- n>result</c-></i><c- p>));</c->
+<c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- o>!</c-><c- n>is_void_v</c-><c- o>&lt;</c-><i><c- n>value</c-><c- o>-</c-><c- n>type</c-></i><c- o>></c-><c- p>)</c->
+  <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><i><c- n>value</c-><c- o>-</c-><c- n>type</c-></i><c- o>></c-><c- p>(</c-><c- n>get</c-><c- o>&lt;</c-><c- mi>1</c-><c- o>></c-><c- p>(</c-><i><c- n>result</c-></i><c- p>));</c->
 </pre>
            </ul>
          </ol>
