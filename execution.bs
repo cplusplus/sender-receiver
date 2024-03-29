@@ -7842,7 +7842,7 @@ namespace std::execution {
             }
             </pre>
 
-        2. <code><i>impls-for</i>&lt;tag_t&lt;<i>let-cpo</i>>>::<i>get-state</i></code> is
+        2. <code><i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;<i>let-cpo</i>>>::<i>get-state</i></code> is
             is initialized with a callable object equivalent to the following:
 
             <pre highlight="c++">
@@ -7867,7 +7867,7 @@ namespace std::execution {
                 specialization named by
                 <code>completion_signatures_of_t&lt;<i>child-type</i>&lt;Sndr>,
                 env_of_t&lt;Rcvr>></code>. Let `LetSigs` be a pack of those types in `Sigs`
-                with a return type of <code>tag_t&lt;<i>set-cpo</i>></code>. Let
+                with a return type of <code><i>decayed-typeof</i>&lt;<i>set-cpo</i>></code>. Let
                 <i>`as-tuple`</i> be an alias template such that
                 <code><i>as-tuple</i>&lt;Tag(Args...)></code> denotes the type
                 <code><i>decayed-tuple</i>&lt;Args...></code>. Then
@@ -7897,13 +7897,13 @@ namespace std::execution {
             start(op2);
             </pre>
 
-        4. <code><i>impls-for</i>&lt;tag_t&lt;<i>let-cpo</i>>>::<i>complete</i></code> is
+        4. <code><i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;<i>let-cpo</i>>>::<i>complete</i></code> is
             is initialized with a callable object equivalent to the following:
 
             <pre highlight="c++">
             []&lt;class Tag, class... Args>
               (auto, auto& state, auto& rcvr, Tag, Args&&... args) noexcept -> void {
-                if constexpr (same_as&lt;Tag, tag_t&lt;<i>set-cpo</i>>>) {
+                if constexpr (same_as&lt;Tag, <i>decayed-typeof</i>&lt;<i>set-cpo</i>>>) {
                   <i>TRY-EVAL</i>(std::move(rcvr), <i>let-bind</i>(state, rcvr, std::forward&lt;Args>(args)...));
                 } else {
                   Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
@@ -7912,7 +7912,7 @@ namespace std::execution {
             </pre>
 
 6. Let `sndr` and `env` be subexpressions, and let `Sndr` be `decltype((sndr))`.
-    If <code><i>sender-for</i>&lt;Sndr, tag_t&lt;<i>let-cpo</i>>></code> is
+    If <code><i>sender-for</i>&lt;Sndr, <i>decayed-typeof</i>&lt;<i>let-cpo</i>>></code> is
     `false`, then the expression <code><i>let-cpo</i>.transform_env(sndr,
     env)</code> is ill-formed. Otherwise, it is equal to
     <code><i>JOIN-ENV</i>(<i>let-env</i>(sndr), <i>FWD-ENV</i>(env))</code>.
