@@ -1503,19 +1503,36 @@ The changes since R8 are as follows:
 
 <b>Fixes:</b>
 
-  * The `tag_invoke` mechanism has been replace with member functions
+  * The `tag_invoke` mechanism has been replaced with member functions
       for customizations as per \[P2855](https://wg21.link/p2855).
 
   * Per guidance from LWG and LEWG, `receiver_adaptor` has been removed.
 
-  * The `receiver` concept is tweaked to requires that receiver types are not
+  * The `receiver` concept is tweaked to require that receiver types are not
       `final`. Without `receiver_adaptor` and `tag_invoke`, receiver adaptors
       are easily written using implementation inheritance.
+
+  * `std::tag_t` is made exposition-only.
+
+  * The types `in_place_stop_token`, `in_place_stop_source`, and
+      `in_place_stop_callback` are renamed to `inplace_stop_token`,
+      `inplace_stop_source`, and `inplace_stop_callback`, respectively.
 
 <b>Enhancements:</b>
 
   * The specification of the `sync_wait` algorithm has been updated
       for clarity.
+
+  * The specification of all the stop token, source, and callback types have
+      been re-expressed in terms of shared concepts.
+
+  * Declarations are shown in their proper namespaces.
+
+  * Editorial changes have been made to clarify what text is added,
+      what is removed, and what is an editorial note.
+
+  * The section numbers of the proposed wording now match the section
+      numbers in the working draft of the C++ standard.
 
 ## R8 ## {#r8}
 
@@ -2407,8 +2424,8 @@ cancellation include:
     different implementation strategies.
 * Add `std::unstoppable_token` concept for detecting whether a `stoppable_token`
     can never receive a stop-request.
-* Add `std::in_place_stop_token`, `std::in_place_stop_source` and
-    `std::in_place_stop_callback<CB>` types that provide a more efficient
+* Add `std::inplace_stop_token`, `std::inplace_stop_source` and
+    `std::inplace_stop_callback<CB>` types that provide a more efficient
     implementation of a stop-token for use in structured concurrency situations.
 * Add `std::never_stop_token` for use in places where you never want to issue a
     stop-request.
@@ -3968,9 +3985,9 @@ a new bullet as follows:</span>
 
 <div class="block-insert">
 * when a callback invocation exits via an exception when requesting stop on a
-    `std::stop_source` or a `std::in_place_stop_source` ([stopsource.mem],
+    `std::stop_source` or a `std::inplace_stop_source` ([stopsource.mem],
     [stopsource.inplace.mem]), or in the constructor of `std::stop_callback` or
-    `std::in_place_stop_callback` ([stopcallback.cons],
+    `std::inplace_stop_callback` ([stopcallback.cons],
     [stopcallback.inplace.cons]) when a callback invocation exits via an
     exception.
 
@@ -4162,8 +4179,8 @@ the new `stoppable_source` concept.</span>
     The last remaining owner of the stop state automatically releases the
     resources associated with the stop state.
 
-6. The types `in_place_stop_source` and `in_place_stop_token` and the class
-    template `in_place_stop_callback` do no dynamic memory allocation or reference
+6. The types `inplace_stop_source` and `inplace_stop_token` and the class
+    template `inplace_stop_callback` do no dynamic memory allocation or reference
     counting of the stop state. They are for use when the lifetimes of the tokens
     and the callbacks are known to nest within the lifetime of the source.
 
@@ -4207,15 +4224,15 @@ namespace std {
 <div class="block-insert">  <i>// [stoptoken.never], class never_stop_token</i>
   class never_stop_token;
 
-  <i>// [stoptoken.inplace], class in_place_stop_token</i>
-  class in_place_stop_token;
+  <i>// [stoptoken.inplace], class inplace_stop_token</i>
+  class inplace_stop_token;
 
-  <i>// [stopsource.inplace], class in_place_stop_source</i>
-  class in_place_stop_source;
+  <i>// [stopsource.inplace], class inplace_stop_source</i>
+  class inplace_stop_source;
 
-  <i>// [stopcallback.inplace], class template in_place_stop_callback</i>
+  <i>// [stopcallback.inplace], class template inplace_stop_callback</i>
   template&lt;class Callback>
-    class in_place_stop_callback;
+    class inplace_stop_callback;
 
   template&lt;class T, class Callback>
     using stop_callback_for_t = T::template callback_type&lt;Callback>;</div>
@@ -4961,36 +4978,36 @@ explicit stop_callback(stop_token&& st, C&& cb)
 </div>
 </div>
 
-<span class="ed-note">Insert a new subclause, Class `in_place_stop_token`
+<span class="ed-note">Insert a new subclause, Class `inplace_stop_token`
 <b>[stoptoken.inplace]</b>, after the subclause added above, as a new subclause
 of Stop tokens <b>[thread.stoptoken]</b>.</span>
 <div class="standardeze">
 <div class="block-insert">
-### Class `in_place_stop_token` <b>[stoptoken.inplace]</b> ### {#spec-stoptoken.inplace}
+### Class `inplace_stop_token` <b>[stoptoken.inplace]</b> ### {#spec-stoptoken.inplace}
 
 #### General <b>[stoptoken.inplace.general]</b> #### {#spec-stoptoken.inplace.general}
 
-1. The class `in_place_stop_token` models the concept `stoppable_token`. It
-    references the stop state of its associated `in_place_stop_source` object
+1. The class `inplace_stop_token` models the concept `stoppable_token`. It
+    references the stop state of its associated `inplace_stop_source` object
     ([stopsource.inplace]), if any.
 
     <pre highlight="c++">
     namespace std {
-      class in_place_stop_token {
+      class inplace_stop_token {
       public:
         template&lt;class CB>
-          using callback_type = in_place_stop_callback&lt;CB>;
+          using callback_type = inplace_stop_callback&lt;CB>;
 
-        in_place_stop_token() noexcept = default;
-        bool operator==(const in_place_stop_token&) const noexcept = default;
+        inplace_stop_token() noexcept = default;
+        bool operator==(const inplace_stop_token&) const noexcept = default;
 
         // [stoptoken.inplace.mem], member functions
         bool stop_requested() const noexcept;
         bool stop_possible() const noexcept;
-        void swap(in_place_stop_token&) noexcept;
+        void swap(inplace_stop_token&) noexcept;
 
       private:
-        const in_place_stop_source* <i>stop-source</i> = nullptr; <i>// exposition only</i>
+        const inplace_stop_source* <i>stop-source</i> = nullptr; <i>// exposition only</i>
       };
     }
     </pre>
@@ -4998,7 +5015,7 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span>
 #### Member functions <b>[stoptoken.inplace.members]</b> #### {#spec-stoptoken.inplace.members}
 
 <pre highlight="c++">
-void swap(in_place_stop_token& rhs) noexcept;
+void swap(inplace_stop_token& rhs) noexcept;
 </pre>
 
 1. *Effects*: Exchanges the values of <i>`stop-source`</i> and
@@ -5013,7 +5030,7 @@ bool stop_requested() const noexcept;
 
 2. <span class="wg21note">As specified in [basic.life], the behavior of
     `stop_requested()` is undefined unless the call strongly happens before the
-    start of the destructor of the associated `in_place_stop_source`, if
+    start of the destructor of the associated `inplace_stop_source`, if
     any.</span>
 
 <pre highlight="c++">
@@ -5025,41 +5042,41 @@ bool stop_possible() const noexcept;
 4. <span class="wg21note">As specified in [basic.stc.general], the behavior of
     `stop_possible()` is implementation-defined unless the call strongly happens
     before the end of the storage duration of the associated
-    `in_place_stop_source` object, if any.</span>
+    `inplace_stop_source` object, if any.</span>
 
 </div>
 </div>
 
-<span class="ed-note">Insert a new subclause, Class `in_place_stop_source`
+<span class="ed-note">Insert a new subclause, Class `inplace_stop_source`
 <b>[stopsource.inplace]</b>, after the subclause added above, as a new subclause
 of Stop tokens <b>[thread.stoptoken]</b>.</span>
 <div class="standardeze">
 <div class="block-insert">
-### Class `in_place_stop_source` <b>[stopsource.inplace]</b> ### {#spec-stopsource.inplace}
+### Class `inplace_stop_source` <b>[stopsource.inplace]</b> ### {#spec-stopsource.inplace}
 
 #### General <b>[stopsource.inplace.general]</b> #### {#spec-stopsource.inplace.general}
 
-1. The class `in_place_stop_source` models `stoppable_source`. Unlike
-    `stop_source`, `in_place_stop_source` does not require dynamic allocation or
+1. The class `inplace_stop_source` models `stoppable_source`. Unlike
+    `stop_source`, `inplace_stop_source` does not require dynamic allocation or
     reference counting of a shared stop state. Instead, it requires that all
-    uses of associated `in_place_stop_token` and `in_place_stop_callback`
-    objects happen before the `in_place_stop_source` is destroyed.
+    uses of associated `inplace_stop_token` and `inplace_stop_callback`
+    objects happen before the `inplace_stop_source` is destroyed.
 
     <pre highlight="c++">
     namespace std {
-      class in_place_stop_source {
+      class inplace_stop_source {
       public:
         // [stopsource.inplace.cons], constructors, copy, and assignment
-        in_place_stop_source() noexcept;
+        inplace_stop_source() noexcept;
 
-        in_place_stop_source(in_place_stop_source&&) = delete;
-        in_place_stop_source(const in_place_stop_source&) = delete;
-        in_place_stop_source& operator=(in_place_stop_source&&) = delete;
-        in_place_stop_source& operator=(const in_place_stop_source&) = delete;
-        ~in_place_stop_source();
+        inplace_stop_source(inplace_stop_source&&) = delete;
+        inplace_stop_source(const inplace_stop_source&) = delete;
+        inplace_stop_source& operator=(inplace_stop_source&&) = delete;
+        inplace_stop_source& operator=(const inplace_stop_source&) = delete;
+        ~inplace_stop_source();
 
         //[stopsource.inplace.mem], stop handling
-        in_place_stop_token get_token() const noexcept;
+        inplace_stop_token get_token() const noexcept;
         static constexpr bool stop_possible() noexcept { return true; }
         bool stop_requested() const noexcept;
         bool request_stop() noexcept;
@@ -5070,7 +5087,7 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span>
 #### Constructors, copy, and assignment <b>[stopsource.inplace.cons]</b> #### {#spec-stopsource.inplace.cons}
 
 <pre highlight="c++">
-in_place_stop_source() noexcept;
+inplace_stop_source() noexcept;
 </pre>
 
 1. *Effects*: Initializes a new stop state inside `*this`.
@@ -5080,10 +5097,10 @@ in_place_stop_source() noexcept;
 #### Members <b>[stopsource.inplace.mem]</b> #### {#spec-stopsource.inplace.mem}
 
 <pre highlight="c++">
-in_place_stop_token get_token() const noexcept;
+inplace_stop_token get_token() const noexcept;
 </pre>
 
-1. *Returns*: A new associated `in_place_stop_token` object.
+1. *Returns*: A new associated `inplace_stop_token` object.
 
 <pre highlight="c++">
 bool stop_requested() const noexcept;
@@ -5104,12 +5121,12 @@ bool request_stop() noexcept;
 </div>
 
 <span class="ed-note">Insert a new subclause, Class template
-`in_place_stop_callback` <b>[stopcallback.inplace]</b>, after the subclause
+`inplace_stop_callback` <b>[stopcallback.inplace]</b>, after the subclause
 added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</span>
 <div class="standardeze">
 <div class="block-insert">
 
-### Class template `in_place_stop_callback` <b>[stopcallback.inplace]</b> ### {#spec-stopcallback.inplace}
+### Class template `inplace_stop_callback` <b>[stopcallback.inplace]</b> ### {#spec-stopcallback.inplace}
 
 #### General <b>[stopcallback.inplace.general]</b> #### {#spec-stopcallback.inplace.general}
 
@@ -5118,52 +5135,52 @@ added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</span>
     <pre highlight="c++">
     namespace std {
       template&lt;class Callback>
-      class in_place_stop_callback {
+      class inplace_stop_callback {
       public:
         using callback_type = Callback;
 
         // [stopcallback.inplace.cons], constructors and destructor
         template&lt;class C>
-          explicit in_place_stop_callback(in_place_stop_token st, C&& cb)
+          explicit inplace_stop_callback(inplace_stop_token st, C&& cb)
             noexcept(is_nothrow_constructible_v&lt;Callback, C>);
-        ~in_place_stop_callback();
+        ~inplace_stop_callback();
 
-        in_place_stop_callback(in_place_stop_callback&&) = delete;
-        in_place_stop_callback(const in_place_stop_callback&) = delete;
-        in_place_stop_callback& operator=(in_place_stop_callback&&) = delete;
-        in_place_stop_callback& operator=(const in_place_stop_callback&) = delete;
+        inplace_stop_callback(inplace_stop_callback&&) = delete;
+        inplace_stop_callback(const inplace_stop_callback&) = delete;
+        inplace_stop_callback& operator=(inplace_stop_callback&&) = delete;
+        inplace_stop_callback& operator=(const inplace_stop_callback&) = delete;
 
       private:
         Callback <i>stop-callback</i>;      <i>// exposition only</i>
       };
 
       template&lt;class Callback>
-        in_place_stop_callback(in_place_stop_token, Callback)
-          -> in_place_stop_callback&lt;Callback>;
+        inplace_stop_callback(inplace_stop_token, Callback)
+          -> inplace_stop_callback&lt;Callback>;
     }
     </pre>
 
-1. *Mandates*: `in_place_stop_callback` is instantiated with an argument for the
+1. *Mandates*: `inplace_stop_callback` is instantiated with an argument for the
     template parameter `Callback` that satisfies both `invocable` and
     `destructible`.
 
-2. *Remarks:* For a type `C`, if `stoppable_callback_for<Callback, in_place_stop_token,
+2. *Remarks:* For a type `C`, if `stoppable_callback_for<Callback, inplace_stop_token,
     C>` is satisfied, then `stoppable_callback_for<Callback,
-    in_place_stop_token, C>` is modeled. The exposition-only
+    inplace_stop_token, C>` is modeled. The exposition-only
     <i>`stop-callback`</i> member is the associated callback function
-    ([stoptoken.concepts]) of `in_place_stop_callback<Callback>` objects.
+    ([stoptoken.concepts]) of `inplace_stop_callback<Callback>` objects.
 
     Implementations are not permitted to use additional storage, such
     as dynamic memory, to store the state necessary for an
-    `in_place_stop_callback`'s association with an `in_place_stop_source` object
+    `inplace_stop_callback`'s association with an `inplace_stop_source` object
     or to register the callback invocation with the associated
-    `in_place_stop_source` object.
+    `inplace_stop_source` object.
 
 #### Constructors and destructor <b>[stopcallback.inplace.cons]</b> #### {#spec-stopcallback.inplace.cons}
 
 <pre highlight="c++">
 template&lt;class C>
-  explicit in_place_stop_callback(in_place_stop_token st, C&& cb)
+  explicit inplace_stop_callback(inplace_stop_token st, C&& cb)
     noexcept(is_nothrow_constructible_v&lt;Callback, C>);
 </pre>
 
@@ -5174,7 +5191,7 @@ template&lt;class C>
     ([stoptoken.concepts]).
 
 <pre highlight="c++">
-~in_place_stop_callback();
+~inplace_stop_callback();
 </pre>
 
 6. *Effects*: Executes a stoppable callback deregistration
@@ -6437,7 +6454,7 @@ namespace std::execution {
 
     12. <pre highlight="c++">
         struct <i>on-stop-request</i> { <i>// exposition only</i>
-          in_place_stop_source& <i>stop-src</i>; <i>// exposition only</i>
+          inplace_stop_source& <i>stop-src</i>; <i>// exposition only</i>
           void operator()() noexcept { <i>stop-src</i>.request_stop(); }
         };
         </pre>
@@ -7994,7 +8011,7 @@ namespace std::execution {
 
 2. Let <i>`shared-env`</i> be the type of an environment such that,
     given an instance `env`, the expression `get_stop_token(env)` is well-formed
-    and has type `in_place_stop_token`.
+    and has type `inplace_stop_token`.
 
 3. The names `split` and `ensure_started` denote customization point objects.
     Let the expression <i>`shared-cpo`</i> be one of `split` or
@@ -8144,7 +8161,7 @@ namespace std::execution {
         struct <i>env</i> { <i>// exposition only</i>
           <i>shared-state</i>&lt;Sndr>* <i>sh-state</i>; <i>// exposition only</i>
 
-          in_place_stop_source query(get_stop_token_t) const noexcept {
+          inplace_stop_source query(get_stop_token_t) const noexcept {
             return <i>sh-state</i>->stop_src.get_token();
           }
         };
@@ -8177,7 +8194,7 @@ namespace std::execution {
         void <i>inc-ref</i>() noexcept;
         void <i>dec-ref</i>() noexcept;
 
-        in_place_stop_source stop_src{};
+        inplace_stop_source stop_src{};
         <i>variant-type</i> result{};
         <i>state-list-type</i> waiting_states;
         <i>state-flag-type</i> completed;
@@ -8481,7 +8498,7 @@ namespace std::execution {
                 void <i>complete</i>(Rcvr& rcvr) noexcept; // see below
 
                 atomic&lt;size_t> count{sizeof...(sndrs)};
-                in_place_stop_source stop_src{};
+                inplace_stop_source stop_src{};
                 atomic&lt;<i>disposition</i>> disp{<i>disposition</i>::<i>started</i>};
                 errors_variant errors{};
                 values_tuple values{};
