@@ -4105,18 +4105,19 @@ namespace std {
 
 2. <code>stop<ins>pable</ins>_source</code>,
     <code>stop<ins>pable</ins>_token</code>, and
-    <code>stop<ins>pable</ins>_callback</code> <del>implement</del><ins>are
-    concepts that specify the required syntax and</ins> semantics of
-    shared <del>ownership</del><ins>access</ins> of a <dfn export=true>stop
-    state</dfn>. Any <code>stop<ins>pable</ins>_source</code>,
+    <code>stop<ins>pable</ins>_callback<ins>_for</ins></code>
+    <del>implement</del><ins>are concepts that specify the required syntax
+    and</ins> semantics of shared <del>ownership</del><ins>access</ins> of a
+    <dfn export=true>stop state</dfn>. Any
+    <code>stop<ins>pable</ins>_source</code>,
     <code>stop<ins>pable</ins>_token</code>, or
-    <code>stop<ins>pable</ins>_callback</code> that <del>shares ownership
-    of</del><ins>refers to</ins> the same stop state is an <dfn
-    export=true>associated</dfn> <code>stop<ins>pable</ins>_source</code>,
+    <code>stop<ins>pable</ins>_callback<ins>_for</ins></code> object that
+    <del>shares ownership of</del><ins>refers to</ins> the same stop state is an
+    <dfn export=true>associated</dfn> <code>stop<ins>pable</ins>_source</code>,
     <code>stop<ins>pable</ins>_token</code>, or
-    <code>stop<ins>pable</ins>_callback</code>, respectively. <del>The last
-    remaining owner of the stop state automatically releases the resources
-    associated with the stop state.</del>
+    <code>stop<ins>pable</ins>_callback<ins>_for</ins></code>, respectively.
+    <del>The last remaining owner of the stop state automatically releases the
+    resources associated with the stop state.</del>
 
 3. A <code>stop<ins>pable</ins>_token</code> can be passed to an operation <del>
     which</del><ins>that</ins> can either
@@ -4134,8 +4135,9 @@ namespace std {
     <code>stop<ins>pable</ins>_source</code> objects. Once a stop request has
     been made it cannot be withdrawn (a subsequent stop request has no effect).
 
-4. Callbacks registered via a <code>stop<ins>pable</ins>_callback</code> object
-    are called when a stop request is first made by any associated
+4. Callbacks registered via a
+    <code>stop<ins>pable</ins>_callback<ins>_for</ins></code> object are called
+    when a stop request is first made by any associated
     <code>stop<ins>pable</ins>_source</code> object.
 
 <span class="ed-note">The following paragraph is moved to the specification of
@@ -4174,18 +4176,18 @@ declarations into the `<stop_token>` synopsis:</span>
 
 <pre highlight="c++">
 namespace std {
-<div class="block-insert">  <i>// [thread.stoptoken.concepts], stop token concepts</i>
-  template&lt;class T>
+<div class="block-insert">  <i>// [stoptoken.concepts], stop token concepts</i>
+  template&lt;class Callback, class Token, class Initializer = Callback>
+    concept stoppable_callback_for = <i>see below</i>;
+
+  template&lt;class Token>
     concept stoppable_token = <i>see below</i>;
 
-  template&lt;class T>
+  template&lt;class Token>
     concept unstoppable_token = <i>see below</i>;
   
-  template&lt;class T>
-    concept stoppable_source = <i>see below</i>;
-  
-  template&lt;class T>
-    concept stoppable_callback = <i>see below</i>;</div>
+  template&lt;class Source>
+    concept stoppable_source = <i>see below</i>;</div>
   // 33.3.3, class stop_token
   class stop_token;
 
@@ -4212,11 +4214,11 @@ namespace std {
   class in_place_stop_source;
 
   <i>// [stopcallback.inplace], class template in_place_stop_callback</i>
-  template&lt;class Fun>
+  template&lt;class Callback>
     class in_place_stop_callback;
 
-  template&lt;class T, class Fun>
-    using stop_callback_for_t = T::template callback_type&lt;Fun>;</div>
+  template&lt;class T, class Callback>
+    using stop_callback_for_t = T::template callback_type&lt;Callback>;</div>
 }
 </pre>
 </div>
@@ -4228,29 +4230,116 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
 <div class="standardeze">
 <div class="block-insert">
 
-### Stop token concepts <b>[thread.stoptoken.concepts]</b> ### {#spec-thread.stoptoken.concepts}
+### Stop token concepts <b>[stoptoken.concepts]</b> ### {#spec-stoptoken.concepts}
 
-1. The `stoppable_token` concept checks for the basic interface of a stop token
+1. For a stop token type `Token` and a type `Callback` that is callable with no
+    arguments, if the type `stop_callback_for_t<Token, Callback>` is valid, it
+    denotes the type of a stop callback to use to register a callback to be
+    executed if a stop request is ever made on the `stoppable_token`'s
+    associated stop source. The `stoppable_callback_for` concept checks for a
+    callback compatible with a given stop token type.
+
+    <pre highlight="c++">
+    template&lt;class Callback, class Token, class Initializer = Callback>
+      concept stoppable_callback_for =
+        invocable&lt;Callback> &&
+        constructible_from&lt;Callback, Initializer> &&
+        requires { typename stop_callback_for_t&lt;Token, Callback>; } &&
+        constructible_from&lt;stop_callback_for_t&lt;Token, Callback>, const Token&, Initializer>;
+    </pre>
+
+2. Let `t` and `u` be distinct, valid objects of type `Token` that reference the
+    same logical shared stop state; let `init` be an object of type
+    `Initializer`; and let `CB` denote the type `stop_callback_for_t<Token,
+    Callback>`.
+
+3. The concept `stoppable_callback_for<Callback, Token, Initializer>` is modeled
+    only if:
+
+    1. The following concepts are modeled:
+
+        * `constructible_from<CB, Token, Initializer>`
+        * `constructible_from<CB, Token&, Initializer>`
+        * `constructible_from<CB, const Token, Initializer>`
+
+    2. An object of type `CB` has an associated <dfn export=true>callback
+        function</dfn> of type `Callback`. Let `cb` be an object of type `CB`
+        and let <i>`callback`</i> denote `cb`'s associated callback function.
+        Direct-non-list-initializing `cb` from arguments `t` and `init` shall
+        execute a <dfn export=true>stoppable callback registration</dfn> as
+        follows:
+
+        1. If `t.stop_possible()` is `true`:
+
+            1. <i>`callback`</i> shall be direct-initialized with `init`.
+
+            2. Construction of `cb` shall only throw exceptions thrown by the
+                initialization of <i>`callback`</i> from `init`.
+
+            3. The callback invocation
+                <code>std::forward&lt;Callback>(<i>callback</i>)()</code> shall
+                be registered with `t`'s associated stop state as follows:
+
+                1. If `t.stop_requested()` evaluates to `false` at the time of
+                    registration, the callback invocation is added to the stop
+                    state's list of callbacks such that
+                    <code>std::forward&lt;Callback>(<i>callback</i>)()</code> is
+                    evaluated if a stop request is made on the stop state.
+
+                2. Otherwise,
+                    <code>std::forward&lt;Callback>(<i>callback</i>)()</code>
+                    shall be immediately evaluated on the thread executing
+                    `cb`'s constructor, and the callback invocation shall not be
+                    added to the list of callback invocations.
+
+            4. If the callback invocation was added to stop state's list of
+                callbacks, `cb` shall be associated with the stop state.
+
+        2. <span class="wg21note">If `t.stop_possible()` is `false`, there is no
+            requirement that the initialization of `cb` causes the
+            initialization of <i>`callback`</i>.</span>
+
+    3. An evaluation of `u.stop_requested()` that strongly happens after
+        ([intro.races]/10) the beginning of the invocation of <i>`callback`</i>
+        shall return `true`.
+
+    4. Destruction of `cb` shall execute a <dfn export=true>stoppable callback
+        deregistration</dfn> as follows:
+
+        1. If the constructor of `cb` did not register a callback invocation
+            with `t`'s stop state, then the stoppable callback
+            deregistration shall have no effect.
+
+        2. Otherwise, the invocation of <i>`callback`</i> shall be removed from
+            the shared stop state.
+
+        3. If <i>`callback`</i> is currently being invoked on another thread
+            then the stoppable callback deregistration shall block
+            ([defns.block]) until the invocation of <i>`callback`</i> returns
+            such that the return from the invocation of <i>`callback`</i>
+            strongly happens before ([intro.races]) the destruction of
+            <i>`callback`</i>.
+
+        4. If <i>`callback`</i> is executing on the current thread, then the
+            destructor shall not block waiting for the return from the
+            invocation of <i>`callback`</i>.
+
+        5. A stoppable callback deregistration shall not block on the completion
+            of the invocation of some other callback registered with the same
+            shared stop state.
+
+        6. As a final step, the stoppable callback deregistration shall destroy
+            the callback function.
+
+
+4. The `stoppable_token` concept checks for the basic interface of a stop token
     that is copyable and allows polling to see if stop has been requested and
-    also whether a stop request is possible. For a stop token type `Token` and a
-    type `Fun` that is callable with no arguments, if the type
-    `stop_callback_for_t<Token, Fun>` is valid, it denotes the type of a stop
-    callback to use to register a callback to be executed if a stop request is
-    ever made on the `stoppable_token`'s associated stop source. The
-    exposition-only <i>`stoppable-token-for`</i> concept checks for a stop token
-    type compatible with a given callback type. The `unstoppable_token` concept
+    also whether a stop request is possible. The `unstoppable_token` concept
     checks for a stop token type that does not allow stopping.
 
     <pre highlight="c++">
     template&lt;template&lt;class> class>
       struct <i>check-type-alias-exists</i>; <i>// exposition-only</i>
-
-    template&lt;class Token, class Fun, class Initializer = Fun>
-      concept <i>stoppable-token-for</i> = <i>// exposition only</i>
-        invocable&lt;Fun> &&
-        constructible_from&lt;Fun, Initializer> &&
-        requires { typename stop_callback_for_t&lt;Token, Fun>; } &&
-        constructible_from&lt;stop_callback_for_t&lt;Token, Fun>, const Token&, Initializer>;
 
     template&lt;class Token>
       concept stoppable_token =
@@ -4273,59 +4362,7 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
         };
     </pre>
 
-2. Let `t` and `u` be distinct, valid objects of type `Token` that reference the
-    same logical shared stop state; let `init` be an object of type `Initializer`;
-    let `Fun` be a type such that <code>invocable&lt;Fun></code> is `true`; and
-    let `CB` denote the type `stop_callback_for_t<Token, Fun>`.
-
-3. The exposition-only concept <code><i>stoppable-token-for</i>&lt;Token, Fun,
-    Initializer></code> is modeled only if:
-
-    1. The following concepts are modeled:
-
-        * `constructible_from<CB, Token, Initializer>`
-        * `constructible_from<CB, Token&, Initializer>`
-        * `constructible_from<CB, const Token, Initializer>`
-
-    2. Direct-non-list-initializing an object `cb` of type `CB` from arguments
-        `t` and `init` behaves as follows:
-
-        1. If `t.stop_possible()` is `false`, it is unspecified whether the
-            initialization of `cb` causes the construction of an instance of
-            type `Fun`.
-
-        2. Otherwise, if `t.stop_possible()` is `true`:
-
-            1. an instance `fun` of type `Fun` is direct-initialized with `init`,
-                and
-
-            2. `fun` is registered with `t`'s shared stop state such that `fun`
-                will be invoked with an empty argument list if a stop request is
-                made on the shared stop state.
-
-            3. If `t.stop_requested()` evaluates to `true` at the time `fun` is
-                registered then `fun` can be invoked on the thread executing
-                `cb`'s constructor.
-
-            4. Construction of `cb` shall only throw exceptions thrown by the
-                initialization of `fun` from `init`.
-
-    3. An evaluation of `u.stop_requested()` that strongly happens after
-        ([intro.races]/10) the beginning of the invocation of `fun` will return
-        `true`.
-
-    4. Destruction of `cb` removes `fun` from the shared stop state.
-
-        1. If `fun` is currently being invoked on another thread then the
-            destructor of `cb` will block until the invocation of `fun` returns
-            such that the return from the invocation of `fun`
-            strongly-happens-before the destruction of `fun`.
-
-        2. Destruction of a callback `cb` shall not block on the completion of
-            the invocation of some other callback registered with the same shared
-            stop state.
-
-4. The type `Token` models `stoppable_token` only if:
+5. The type `Token` models `stoppable_token` only if:
 
     1. If an evaluation, `E`, of `t.stop_possible()` evaluates to `false`, then
         evaluations of `u.stop_possible()` and `u.stop_requested()` that happen
@@ -4335,10 +4372,10 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
         evaluations of `u.stop_possible()` and `u.stop_requested()` that happens
         after `E` shall evaluate to `true`.
 
-    3. For any types `Fun` and `Initializer`, if `invocable<Fun> &&
-        constructible_from<Fun, Initializer>` is `true` and the type `CB` is
-        well-formed, then the concept <code><i>stoppable-token-for</i>&lt;Token,
-        Fun, Initializer></code> shall be modeled.
+    3. For any types `Callback` and `Initializer`, if
+        `stoppable_callback_for<Callback, Token, Initializer>` is satisfied,
+        then `stoppable_callback_for<Callback, Token, Initializer>` shall be
+        modeled.
 
     4. A `stoppable_token` object has at most one associated logical stop state.
         A `stoppable_token` object with no associated stop state is said to be
@@ -4347,7 +4384,7 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
         `t` and `u` reference the same stop state, or if both `t` and `u` are
         disengaged, `t == u` shall be `true`; otherwise, it shall be `false`.
 
-5. A model of `stoppable_source` can be queried whether stop has been requested
+6. A model of `stoppable_source` can be queried whether stop has been requested
     (`stop_requested`) and whether stop is possible (`stop_possible`). It is a
     factory for associated stop tokens (`get_token`) and can be explicitly
     placed into the "stop requested" state (`request_stop`). It maintains a list
@@ -4371,37 +4408,14 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
         to be disengaged. For a disengaged `stoppable_source` object,
         `stop_possible` and `stop_requested` shall return `false`.
 
-    2. A stop token returned from `get_token()` is associated with the stop state
-        of the source.
+    2. A disengaged `stoppable_source` object shall return a disengaged stop token
+        from `get_token()`. Otherwise, `get_token()` shall return a stop token that
+        is associated with the stop state of the source.
 
-    3. The registration of a callback invocation either succeeds or fails. When
-        an invocation of a callback is registered, the following happens
-        atomically:
+    <span class="ed-note">The following paragraph is moved from the introduction,
+    with minor modifications (underlined in green).</span>
 
-        - The stop state is checked. If stop has not been requested, the
-            callback invocation is added to the list of registered callback
-            invocations, and registration has succeeded.
-
-        - Otherwise, registration has failed.
-
-    4. When an invocation of a callback is unregistered, the invocation is
-        atomically removed from the list of registered callback invocations. The
-        removal is not blocked by the concurrent execution of another callback
-        invocation in the list. If the callback invocation being unregistered is
-        currently executing, then:
-
-        - If the execution of the callback invocation is happening concurrently
-            on another thread, the completion of the execution strongly happens
-            before ([intro.races]) the end of the callback's lifetime.
-
-        - Otherwise, the execution is happening on the current thread. Removal
-            of the callback invocation does not block waiting for the execution to
-            complete.
-
-        <span class="ed-note">The following paragraph is moved from the introduction,
-        with minor modifications (underlined in green).</span>
-
-    5. Calls to the <ins>member</ins> functions `request_stop`,
+    3. Calls to the <ins>member</ins> functions `request_stop`,
         `stop_requested`, and `stop_possible` <ins>and similarly named member
         functions on associated `stoppable_token` objects</ins> do not introduce
         data races. A call to `request_stop` that returns `true` synchronizes
@@ -4410,6 +4424,29 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
         <code>stop<ins>pable</ins>_source</code> object that returns `true`.
         Registration of a callback synchronizes with the invocation of that
         callback.
+
+    <span class="ed-note">The following paragraph is taken from
+    [[#spec-stopsource.mem]] and modified.</span>
+
+    4. If the `stoppable_source` is disengaged, `request_stop` shall have no
+        effect and return `false`. Otherwise, it shall execute a <dfn
+        export=true>stop request operation</dfn> on the associated stop state. A
+        stop request operation determines whether the stop state has received a
+        stop request, and if not, makes a stop request. The determination and
+        making of the stop request shall happen atomically, as-if by a
+        read-modify-write operation ([intro.races]). If the request was made,
+        the stop state's registered callback invocations shall be synchronously
+        executed. If an invocation of a callback exits via an exception then
+        `terminate` shall be invoked ([except.terminate]). <span
+        class="wg21note">No constraint is placed on the order in which the
+        callback invocations are executed.</span> `request_stop` shall return
+        `true` if a stop request was made, and `false` otherwise. After a call
+        to `request_stop` either `stop_possible()` shall be `false` or
+        `stop_requested()` shall be `true`.
+    
+        <span class="wg21note">A stop request includes notifying all condition
+        variables of type `condition_variable_any` temporarily registered during an
+        interruptible wait ([thread.condvarany.intwait]).</span>
 
 </div>
 </div>
@@ -4731,11 +4768,17 @@ void swap(stop_source& rhs) noexcept;
 bool request_stop() noexcept;
 </pre>
 
-4. *Effects:* If <del>`*this` does not have ownership of a stop
-    state</del><ins><i>`stop-state`</i> is null</ins>, returns `false`.
-    Otherwise, atomically determines whether the owned stop state has received a
-    stop request, and if not, makes a stop request. The determination and making
-    of the stop request are an atomic read-modify-write operation
+<div class="ins">
+4. *Effects:* Executes a stop request operation ([stoptoken.concepts]) on the
+    associated stop state, if any.
+
+</div>
+
+<div class="del">
+4. *Effects:* If `*this` does not have ownership of a stop state, returns
+    `false`. Otherwise, atomically determines whether the owned stop state has
+    received a stop request, and if not, makes a stop request. The determination
+    and making of the stop request are an atomic read-modify-write operation
     ([intro.races]). If the request was made, the callbacks registered by
     associated `stop_callback` objects are synchronously called. If an
     invocation of a callback exits via an exception then `terminate` is invoked
@@ -4749,6 +4792,8 @@ bool request_stop() noexcept;
     `true`.
 
 6. *Returns:* `true` if this call made a stop request; otherwise `false`.
+
+</div>
 
 <div class="del">
 #### Non-member functions <b>[stopsource.nonmembers]</b> #### {#spec-stopsource.nonmembers}
@@ -4770,9 +4815,119 @@ friend void swap(stop_source& x, stop_source& y) noexcept;
 </div>
 </div>
 
-<div class="hidden">
-<h4 class="heading no-toc" id="hidden.k.2"> </h4>
+<div class="standardeze">
+### Class template `stop_callback` <b>[stopcallback]</b> ### {#spec-stopcallback}
+
+#### General <b>[stopcallback.general]</b> #### {#spec-stopcallback.general}
+
+1. 
+
+<pre highlight="c++">
+namespace std {
+  template&lt;class Callback>
+  class stop_callback {
+  public:
+    using callback_type = Callback;
+
+    // 33.3.5.2, constructors and destructor
+    template&lt;class C>
+      explicit stop_callback(const stop_token& st, C&& cb)
+        noexcept(is_nothrow_constructible_v&lt;Callback, C>);
+    template&lt;class C>
+      explicit stop_callback(stop_token&& st, C&& cb)
+        noexcept(is_nothrow_constructible_v&lt;Callback, C>);
+    ~stop_callback();
+
+    stop_callback(const stop_callback&) = delete;
+    stop_callback(stop_callback&&) = delete;
+    stop_callback& operator=(const stop_callback&) = delete;
+    stop_callback& operator=(stop_callback&&) = delete;
+
+  private:
+    Callback callback; <i>// exposition only</i>
+  };
+
+  template&lt;class Callback>
+    stop_callback(stop_token, Callback) -> stop_callback<Callback>;
+}
+</pre>
+
+2. *Mandates:* `stop_callback` is instantiated with an argument for the template
+    parameter `Callback` that satisfies both `invocable` and `destructible`.
+
+<div class="del">
+3. *Preconditions:* `stop_callback` is instantiated with an argument for the
+    template parameter `Callback` that models both `invocable` and
+    `destructible`.
+
 </div>
+
+<div class="ins">
+
+3. *Remarks:* For a type `C`, if
+    <code><i>stoppable_callback_for</i>&lt;Callback, stop_token, C></code> is
+    satisfied, then <code><i>stoppable_callback_for</i>&lt; Callback,
+    stop_token, C></code> is modeled. The exposition-only `callback` member is
+    the associated callback function ([stoptoken.concepts]) of
+    `stop_callback<Callback>` instances.
+
+</div>
+
+#### Constructors and destructor <b>[stopcallback.cons]</b> #### {#spec-stopcallback.cons}
+
+<pre highlight="c++">
+template&lt;class C>
+explicit stop_callback(const stop_token& st, C&& cb)
+  noexcept(is_nothrow_constructible_v&lt;Callback, C>);
+template&lt;class C>
+explicit stop_callback(stop_token&& st, C&& cb)
+  noexcept(is_nothrow_constructible_v&lt;Callback, C>);
+</pre>
+
+1. *Constraints:* `Callback` and `C` satisfy `constructible_from<Callback, C>`.
+
+<div class="del">
+2. *Preconditions:* `Callback` and `C` model `constructible_from<Callback, C>`.
+
+</div>
+
+3. *Effects:* Initializes `callback` with `std::forward<C>(cb)` <ins> and
+    executes a stoppable callback registration ([stoptoken.concepts])</ins>. <del>If
+    `st.stop_requested()` is `true`, then `std::forward<Callback>(callback)()`
+    is evaluated in the current thread before the constructor returns.
+    Otherwise, if `st` has ownership of a stop state, acquires shared ownership
+    of that stop state and registers the callback with that stop state such that
+    `std::forward<Callback>(callback)()` is evaluated by the first call to
+    `request_stop()` on an associated `stop_source`.</del> <ins>If a callback
+    is registered with `st`'s shared stop state, then `*this` acquires shared
+    ownership of that stop state.</ins>
+
+<div class="del">
+4. *Throws:* Any exception thrown by the initialization of callback.
+
+5. *Remarks:* If evaluating `std::forward<Callback>(callback)()` exits via an
+    exception, then `terminate` is invoked ([except.terminate]).
+
+</div>
+
+<pre highlight="c++">
+~stop_callback();
+</pre>
+
+6. *Effects:* <del>Unregisters the callback from the owned stop state, if any.
+    The destructor does not block waiting for the execution of another callback
+    registered by an associated `stop_callback`. If `callback` is concurrently
+    executing on another thread, then the return from the invocation of
+    `callback` strongly happens before ([intro.races]) `callback` is destroyed.
+    If `callback` is executing on the current thread, then the destructor does
+    not block ([defns.block]) waiting for the return from the invocation of
+    `callback`. Releases</del> <ins>Executes a stoppable callback deregistration
+    ([stoptoken.concepts]), and releases</ins> ownership of the stop state, if
+    any.
+
+
+</div>
+
 
 <span class="ed-note">Insert a new subclause, Class `never_stop_token`
 <b>[stoptoken.never]</b>, after subclause Class template `stop_callback`
