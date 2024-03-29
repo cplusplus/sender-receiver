@@ -6406,7 +6406,7 @@ callback compatible with a given stop token type.</p>
 </pre>
       <li data-md>
        <p>Let <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> be distinct, valid objects of type <code class="highlight"><c- n>Token</c-></code> that reference the
-same logical shared stop state; let <code class="highlight"><c- n>init</c-></code> be an object of type <code class="highlight"><c- n>Initializer</c-></code>; and let <code class="highlight"><c- n>CB</c-></code> denote the type <code class="highlight"><c- n>stop_callback_for_t</c-><c- o>&lt;</c-><c- n>Token</c-><c- p>,</c-> <c- n>Callback</c-><c- o>></c-></code>.</p>
+same logical stop state; let <code class="highlight"><c- n>init</c-></code> be an object of type <code class="highlight"><c- n>Initializer</c-></code>; and let <code class="highlight"><c- n>CB</c-></code> denote the type <code class="highlight"><c- n>stop_callback_for_t</c-><c- o>&lt;</c-><c- n>Token</c-><c- p>,</c-> <c- n>Callback</c-><c- o>></c-></code>.</p>
       <li data-md>
        <p>The concept <code class="highlight"><c- n>stoppable_callback_for</c-><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is modeled
 only if:</p>
@@ -6471,7 +6471,7 @@ with <code class="highlight"><c- n>t</c-></code>’s stop state, then the stoppa
 deregistration shall have no effect.</p>
           <li data-md>
            <p>Otherwise, the invocation of <i><code class="highlight"><c- n>callback</c-></code></i> shall be removed from
-the shared stop state.</p>
+the associated stop state.</p>
           <li data-md>
            <p>If <i><code class="highlight"><c- n>callback</c-></code></i> is currently being invoked on another thread
 then the stoppable callback deregistration shall block
@@ -6484,7 +6484,7 @@ invocation of <i><code class="highlight"><c- n>callback</c-></code></i>.</p>
           <li data-md>
            <p>A stoppable callback deregistration shall not block on the completion
 of the invocation of some other callback registered with the same
-shared stop state.</p>
+logical stop state.</p>
           <li data-md>
            <p>As a final step, the stoppable callback deregistration shall destroy
 the callback function.</p>
