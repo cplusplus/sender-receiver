@@ -4848,7 +4848,7 @@ namespace std {
   };
 
   template&lt;class Callback>
-    stop_callback(stop_token, Callback) -> stop_callback<Callback>;
+    stop_callback(stop_token, Callback) -> stop_callback&lt;Callback>;
 }
 </pre>
 
@@ -4864,12 +4864,10 @@ namespace std {
 
 <div class="ins">
 
-3. *Remarks:* For a type `C`, if
-    <code><i>stoppable_callback_for</i>&lt;Callback, stop_token, C></code> is
-    satisfied, then <code><i>stoppable_callback_for</i>&lt; Callback,
-    stop_token, C></code> is modeled. The exposition-only `callback` member is
-    the associated callback function ([stoptoken.concepts]) of
-    `stop_callback<Callback>` instances.
+3. *Remarks:* For a type `C`, if `stoppable_callback_for<Callback, stop_token,
+    C>` is satisfied, then `stoppable_callback_for<Callback, stop_token, C>` is
+    modeled. The exposition-only `callback` member is the associated callback
+    function ([stoptoken.concepts]) of `stop_callback<Callback>` objects.
 
 </div>
 
@@ -4991,11 +4989,8 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span>
         bool stop_possible() const noexcept;
         void swap(in_place_stop_token&) noexcept;
 
-        // [stoptoken.inplace.special], specialized algorithms
-        friend void swap(in_place_stop_token& lhs, in_place_stop_token& rhs) noexcept;
-
       private:
-        const in_place_stop_source* <i>stop-source</i> = nullptr; // exposition only
+        const in_place_stop_source* <i>stop-source</i> = nullptr; <i>// exposition only</i>
       };
     }
     </pre>
@@ -5032,14 +5027,6 @@ bool stop_possible() const noexcept;
     before the end of the storage duration of the associated
     `in_place_stop_source` object, if any.</span>
 
-#### Specialized algorithms <b>[stoptoken.inplace.special]</b> #### {#spec-stoptoken.inplace.special}
-
-<pre highlight="c++">
-friend void swap(in_place_stop_token& x, in_place_stop_token& y) noexcept;
-</pre>
-
-2. *Effects*: Equivalent to: `x.swap(y);`
-
 </div>
 </div>
 
@@ -5052,14 +5039,11 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span>
 
 #### General <b>[stopsource.inplace.general]</b> #### {#spec-stopsource.inplace.general}
 
-1. The class `in_place_stop_source` implements the semantics of making a stop
-    request, without the need for a dynamic allocation of a shared state. A stop
-    request made on an `in_place_stop_source` object is visible to all
-    associated `in_place_stop_token` ([stoptoken.inplace]) objects. Once a stop
-    request has been made it cannot be withdrawn, and a subsequent stop request
-    has no effect. All uses of `in_place_stop_token` objects associated with a
-    given `in_place_stop_source` object shall happen before the start of the
-    destructor of that `in_place_stop_source` object.
+1. The class `in_place_stop_source` models `stoppable_source`. Unlike
+    `stop_source`, `in_place_stop_source` does not require dynamic allocation or
+    reference counting of a shared stop state. Instead, it requires that all
+    uses of associated `in_place_stop_token` and `in_place_stop_callback`
+    objects happen before the `in_place_stop_source` is destroyed.
 
     <pre highlight="c++">
     namespace std {
@@ -5068,7 +5052,10 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span>
         // [stopsource.inplace.cons], constructors, copy, and assignment
         in_place_stop_source() noexcept;
 
-        in_place_stop_source(in_place_stop_source&&) noexcept = delete;
+        in_place_stop_source(in_place_stop_source&&) = delete;
+        in_place_stop_source(const in_place_stop_source&) = delete;
+        in_place_stop_source& operator=(in_place_stop_source&&) = delete;
+        in_place_stop_source& operator=(const in_place_stop_source&) = delete;
         ~in_place_stop_source();
 
         //[stopsource.inplace.mem], stop handling
@@ -5079,33 +5066,6 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span>
       };
     }
     </pre>
-
-    NOTE: find a way to share this wording with `stop_source`. maybe as a StopSource concept?
-
-2. An instance of `in_place_stop_source` maintains a list of registered callback
-    invocations. The registration of a callback invocation either succeeds or
-    fails. When an invocation of a callback is registered, the following happens
-    atomically:
-
-      - The stop state is checked. If stop has not been requested, the callback
-          invocation is added to the list of registered callback invocations,
-          and registration has succeeded.
-
-      - Otherwise, registration has failed.
-
-    When an invocation of a callback is unregistered, the invocation is
-    atomically removed from the list of registered callback invocations. The
-    removal is not blocked by the concurrent execution of another callback
-    invocation in the list. If the callback invocation being unregistered is
-    currently executing, then:
-
-      - If the execution of the callback invocation is happening concurrently on
-          another thread, the completion of the execution strongly happens
-          before ([intro.races]) the end of the callback's lifetime.
-
-      - Otherwise, the execution is happening on the current thread. Removal of
-          the callback invocation does not block waiting for the execution to
-          complete.
 
 #### Constructors, copy, and assignment <b>[stopsource.inplace.cons]</b> #### {#spec-stopsource.inplace.cons}
 
@@ -5136,17 +5096,9 @@ bool stop_requested() const noexcept;
 bool request_stop() noexcept;
 </pre>
 
-4. *Effects*: Atomically determines whether the stop state inside `*this` has
-    received a stop request, and if not, makes a stop request. The determination
-    and making of the stop request are an atomic read-modify-write operation
-    ([intro.races]). If the request was made, the registered invocations are
-    executed and the evaluations of the invocations are indeterminately
-    sequenced. If an invocation of a callback exits via an exception then
-    `terminate` is invoked ([except.terminate]).
+4. *Effects*: Executes a stop request operation ([stoptoken.concepts]).
 
 5. *Postconditions*: `stop_requested()` is `true`.
-
-6. *Returns*: `true` if this call made a stop request; otherwise `false`.
 
 </div>
 </div>
@@ -5177,6 +5129,9 @@ added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</span>
         ~in_place_stop_callback();
 
         in_place_stop_callback(in_place_stop_callback&&) = delete;
+        in_place_stop_callback(const in_place_stop_callback&) = delete;
+        in_place_stop_callback& operator=(in_place_stop_callback&&) = delete;
+        in_place_stop_callback& operator=(const in_place_stop_callback&) = delete;
 
       private:
         Callback <i>stop-callback</i>;      <i>// exposition only</i>
@@ -5188,22 +5143,21 @@ added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</span>
     }
     </pre>
 
-2. *Mandates*: `in_place_stop_callback` is instantiated with an argument for the
+1. *Mandates*: `in_place_stop_callback` is instantiated with an argument for the
     template parameter `Callback` that satisfies both `invocable` and
     `destructible`.
 
-3. *Preconditions*: `in_place_stop_callback` is instantiated with an argument
-    for the template parameter `Callback` that models both `invocable` and
-    `destructible`.
+2. *Remarks:* For a type `C`, if `stoppable_callback_for<Callback, in_place_stop_token,
+    C>` is satisfied, then `stoppable_callback_for<Callback,
+    in_place_stop_token, C>` is modeled. The exposition-only
+    <i>`stop-callback`</i> member is the associated callback function
+    ([stoptoken.concepts]) of `in_place_stop_callback<Callback>` objects.
 
-REWORD:
-
-*Remarks:* Implementations are not permitted to ....&lt;blah blah> (from optional) 
-
-
-4. *Recommended practice*: Implementations should use the storage of the
-    `in_place_stop_callback` objects to store the state necessary for their
-    association with an `in_place_stop_source` object.
+    Implementations are not permitted to use additional storage, such
+    as dynamic memory, to store the state necessary for an
+    `in_place_stop_callback`'s association with an `in_place_stop_source` object
+    or to register the callback invocation with the associated
+    `in_place_stop_source` object.
 
 #### Constructors and destructor <b>[stopcallback.inplace.cons]</b> #### {#spec-stopcallback.inplace.cons}
 
@@ -5213,35 +5167,18 @@ template&lt;class C>
     noexcept(is_nothrow_constructible_v&lt;Callback, C>);
 </pre>
 
-1. *Constraints*: `constructible_from<Callback, C>` is modeled.
-
-SHARE THIS WORDING WITH STOP_TOKEN, MAYBE WITH A CONCEPT?
+1. *Constraints*: `constructible_from<Callback, C>` is satisfied.
 
 2. *Effects*: Initializes <code><i>stop-callback</i></code> with
-    `std::forward<C>(cb)`. Any `in_place_stop_source` associated with `st`
-    becomes associated with `*this`. Registers ([stopsource.inplace.general])
-    the callback invocation
-    <code>std::forward&lt;Callback>(<i>stop-callback</i>)()</code> with the
-    associated `in_place_stop_source`, if any. If the registration fails,
-    evaluates the callback invocation.
-
-3. *Throws*: Any exception thrown by the initialization of
-    <code><i>stop-callback</i></code>.
-
-4. *Remarks*: If evaluating
-    <code>std::forward&lt;Callback>(<i>stop-callback</i>)()</code> exits via an
-    exception, then `terminate` is invoked ([except.terminate]).
+    `std::forward<C>(cb)` and executes a stoppable callback registration
+    ([stoptoken.concepts]).
 
 <pre highlight="c++">
 ~in_place_stop_callback();
 </pre>
 
-6. *Effects*: Unregisters ([stopsource.inplace.general]) the callback invocation from
-    the associated `in_place_stop_source` object, if any.
-
-7. *Remarks*: A program has undefined behavior if the end of this destructor does
-    not strongly happen before the start of the destructor of the associated
-    `in_place_stop_source` object, if any.
+6. *Effects*: Executes a stoppable callback deregistration
+    ([stoptoken.concepts]).
 
 </div>
 </div>
