@@ -7216,7 +7216,7 @@ namespace std::execution {
         struct awaiter {
           decltype(fn) <i>fn</i>;
 
-          static bool await_ready() noexcept { return false; }
+          static constexpr bool await_ready() noexcept { return false; }
           void await_suspend(coroutine_handle<>) noexcept { <i>fn</i>(); }
           [[noreturn]] void await_resume() noexcept { unreachable(); }
         };
@@ -9578,19 +9578,21 @@ void finish();
         namespace std::execution {
           template&lt;class Sndr, class Promise>
           class <i>sender-awaitable</i> {
-            struct unit {};
-            using value_t = <i>single-sender-value-type</i>&lt;Sndr, env_of_t&lt;Promise>>;
-            using result_t = conditional_t&lt;is_void_v&lt;value_t>, unit, value_t>;
-            struct <i>awaitable-receiver</i>;
+            struct <i>unit</i> {};                                          <i>// exposition only</i>
+            using <i>value-type</i> =                                       <i>// exposition only</i>
+              <i>single-sender-value-type</i>&lt;Sndr, env_of_t&lt;Promise>>;
+            using <i>result-type</i> =                                      <i>// exposition only</i>
+              conditional_t&lt;is_void_v&lt;<i>value-type</i>>, <i>unit</i>, <i>value-type</i>>;
+            struct <i>awaitable-receiver</i>;                               <i>// exposition only</i>
 
-            variant&lt;monostate, result_t, exception_ptr> <i>result</i>{};
-            connect_result_t&lt;Sndr, <i>awaitable-receiver</i>> <i>state</i>;
+            variant&lt;monostate, <i>result-type</i>, exception_ptr> <i>result</i>{}; <i>// exposition only</i>
+            connect_result_t&lt;Sndr, <i>awaitable-receiver</i>> <i>state</i>;        <i>// exposition only</i>
 
           public:
             <i>sender-awaitable</i>(Sndr&& sndr, Promise& p);
-            bool await_ready() const noexcept { return false; }
+            static constexpr bool await_ready() noexcept { return false; }
             void await_suspend(coroutine_handle&lt;Promise>) noexcept { start(<i>state</i>); }
-            value_t await_resume();
+            <i>value-type</i> await_resume();
           };
         }
         </pre>
@@ -9600,8 +9602,8 @@ void finish();
             <pre highlight="c++">
             struct <i>awaitable-receiver</i> {
               using receiver_concept = receiver_t;
-              variant&lt;monostate, result_t, exception_ptr>* <i>result-ptr</i>;
-              coroutine_handle&lt;Promise> <i>continuation</i>;
+              variant&lt;monostate, <i>result-type</i>, exception_ptr>* <i>result-ptr</i>; <i>// exposition only</i>
+              coroutine_handle&lt;Promise> <i>continuation</i>;                     <i>// exposition only</i>
               // ... <i>see below</i>
             };
             </pre>
@@ -9612,8 +9614,9 @@ void finish();
             `Vs...`, and let `err` be an arbitrary expression of type `Err`.
             Then:
 
-            1. If `constructible_from<result_t, Vs...>` is satisfied, the
-                expression `set_value(rcvr, vs...)` is equivalent to:
+            1. If <code>constructible_from&lt;<i>result-type</i>, Vs...></code>
+                is satisfied, the expression `set_value(rcvr, vs...)` is
+                equivalent to:
 
                 <pre highlight="c++">
                 try {
@@ -9643,22 +9646,22 @@ void finish();
                 <code>tag(get_env(as_const(crcvr.<i>continuation</i>.promise())),
                 as...)</code> when that expression is well-formed.
 
-        2. <b><code><i>sender-awaitable</i>(Sndr&& sndr, Promise& p)</code></b>
+        2. <code><i>sender-awaitable</i>(Sndr&& sndr, Promise& p)</code>
 
             - <i>Effects:</i> initializes <i>`state`</i> with
                 <code>connect(std::forward&lt;Sndr>(sndr),
                 <i>awaitable-receiver</i>{&<i>result</i>,
                 coroutine_handle&lt;Promise>::from_promise(p)})</code>.
 
-        3. <b>`value_t await_resume()`</b>
+        3. <code><i>value-type</i> await_resume()</code>
 
             - <i>Effects:</i> equivalent to:
 
                 <pre highlight="c++">
                 if (<i>result</i>.index() == 2)
                   rethrow_exception(get&lt;2>(<i>result</i>));
-                if constexpr (!is_void_v&lt;value_t>)
-                  return std::forward&lt;value_t>(get&lt;1>(<i>result</i>));
+                if constexpr (!is_void_v&lt;<i>value-type</i>>)
+                  return std::forward&lt;<i>value-type</i>>(get&lt;1>(<i>result</i>));
                 </pre>
 
 2. `as_awaitable` is a customization point object. For some subexpressions
