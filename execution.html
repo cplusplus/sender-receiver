@@ -2386,7 +2386,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-03-29">2024-03-29</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-04-02">2024-04-02</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -4915,9 +4915,8 @@ first proposed in <a data-link-type="biblio" href="https://wg21.link/p2175r0"><c
 cancellation include:</p>
    <ul>
     <li data-md>
-     <p>Add <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>stoppable_token</c-></code> and <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>stoppable_token_for</c-></code> concepts that
-generalise the interface of <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>stop_token</c-></code> type to allow other types with
-different implementation strategies.</p>
+     <p>Add a <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>stoppable_token</c-></code> concept that generalises the interface of the <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>stop_token</c-></code> type to allow other stop token types with different
+implementation strategies.</p>
     <li data-md>
      <p>Add <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>unstoppable_token</c-></code> concept for detecting whether a <code class="highlight"><c- n>stoppable_token</c-></code> can never receive a stop-request.</p>
     <li data-md>
@@ -6268,19 +6267,19 @@ asynchronously request that an operation stops execution in a timely manner,
 typically because the result is no longer required. Such a request is called
 a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="stop-request">stop request</dfn>.</p>
      <li data-md>
-      <p><code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_source</c-></code>, <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code>, and <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_callback</c-><ins><c- n>_for</c-></ins></code></p>
-      <del>implement</del>
-      <ins>are concepts that specify the required syntax
-and</ins>
+      <del><code class="highlight"><c- n>stop_source</c-></code>, <code class="highlight"><c- n>stop_token</c-></code>, and <code class="highlight"><c- n>stop_callback</c-></code> implement</del>
+      <ins><i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i>, <code class="highlight"><c- n>stoppable_token</c-></code>, and <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></code></i> are concepts that specify the required
+syntax and</ins>
        semantics of shared 
       <del>ownership</del>
       <ins>access</ins>
-       of a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="stop-state">stop state</dfn>. Any <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_source</c-></code>, <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code>, or <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_callback</c-><ins><c- n>_for</c-></ins></code> object that 
-      <del>shares ownership of</del>
-      <ins>refers to</ins>
-       the same stop state is an <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="associated">associated</dfn> <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_source</c-></code>, <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code>, or <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_callback</c-><ins><c- n>_for</c-></ins></code>, respectively. 
-      <del>The last remaining owner of the stop state automatically releases the
-resources associated with the stop state.</del>
+       of a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="stop-state">stop state</dfn>. 
+      <del>Any <code class="highlight"><c- n>stop_source</c-></code>, <code class="highlight"><c- n>stop_token</c-></code>, or <code class="highlight"><c- n>stop_callback</c-></code> object that shares ownership of the same
+stop state is an <i><strong>associated</strong></i> <code class="highlight"><c- n>stop_source</c-></code>, <code class="highlight"><c- n>stop_token</c-></code>, or <code class="highlight"><c- n>stop_callback</c-></code>, respectively.</del>
+      <ins>Any object modeling <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i>, <code class="highlight"><c- n>stoppable_token</c-></code>, or <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></code></i> that refers to the same stop state is an <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="associated">associated</dfn> <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i>, <code class="highlight"><c- n>stoppable_token</c-></code>, or <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></code></i>,
+respectively.</ins>
+      <del> The last remaining owner of the stop state
+automatically releases the resources associated with the stop state.</del>
      <li data-md>
       <p>
        A <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code> can be passed to an operation 
@@ -6304,21 +6303,36 @@ stop request is made.
        </ul>
       </div>
       <p></p>
-     <p>A stop request made via a <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_source</c-></code> will be
-visible to all associated <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code> and <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_source</c-></code> objects. Once a stop request has
-been made it cannot be withdrawn (a subsequent stop request has no effect).</p>
+     <p>
+      A stop request made via 
+      <del>a <code class="highlight"><c- n>stop_source</c-></code></del>
+      <ins>an object that models <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i></ins>
+       will be visible to all associated <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code> and 
+      <del><code class="highlight"><c- n>stop_source</c-></code></del>
+      <ins> <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i></ins>
+       objects. Once a stop request has been
+made it cannot be withdrawn (a subsequent stop request has no effect).
+     </p>
      <li data-md>
-      <p>Callbacks registered via a <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_callback</c-><ins><c- n>_for</c-></ins></code> object are called
-when a stop request is first made by any associated <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_source</c-></code> object.</p>
+      <p>
+       Callbacks registered via 
+       <del>a <code class="highlight"><c- n>stop_callback</c-></code> object</del>
+       <ins>an object
+that models <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></code></i></ins>
+        are called when a stop
+request is first made by any associated 
+       <del><code class="highlight"><c- n>stop_source</c-></code></del>
+       <ins> <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i></ins>
+        object.
+      </p>
     </ol>
     <p><span class="ed-note">The following paragraph is moved to the specification of
-the new <code class="highlight"><c- n>stoppable_source</c-></code> concept.</span></p>
+the new <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i> concept.</span></p>
     <div class="del">
      <ol start="5">
       <li data-md>
-       <p>Calls to the functions <code class="highlight"><c- n>request_stop</c-></code>, <code class="highlight"><c- n>stop_requested</c-></code>, and <code class="highlight"><c- n>stop_possible</c-></code> do not introduce data races. A call to <code class="highlight"><c- n>request_stop</c-></code> that returns <code class="highlight">true</code> synchronizes with a call to <code class="highlight"><c- n>stop_requested</c-></code> on an associated <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code> or <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_source</c-></code> object that returns <code class="highlight">true</code>.
-Registration of a callback synchronizes with the invocation of that
-callback.</p>
+       <p>Calls to the functions <code class="highlight"><c- n>request_stop</c-></code>, <code class="highlight"><c- n>stop_requested</c-></code>, and <code class="highlight"><c- n>stop_possible</c-></code> do not introduce data races. A call to <code class="highlight"><c- n>request_stop</c-></code> that returns <code class="highlight">true</code> synchronizes with a call to <code class="highlight"><c- n>stop_requested</c-></code> on an associated <code class="highlight"><c- n>stop_token</c-></code> or <code class="highlight"><c- n>stop_source</c-></code> object that returns <code class="highlight">true</code>. Registration of a callback
+synchronizes with the invocation of that callback.</p>
      </ol>
     </div>
     <div class="block-insert">
@@ -6340,7 +6354,7 @@ declarations into the <code class="highlight"><c- o>&lt;</c-><c- n>stop_token</c
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-> <c- p>{</c->
 <div class="block-insert">  <i><c- c1>// [stoptoken.concepts], stop token concepts</c-></i>
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Callback</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Token</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Initializer</c-> <c- o>=</c-> <c- n>Callback</c-><c- o>></c->
-    <c- k>concept</c-> <c- nc>stoppable_callback_for</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
+    <c- k>concept</c-> <i><c- nc>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Token</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>stoppable_token</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
@@ -6349,7 +6363,7 @@ declarations into the <code class="highlight"><c- o>&lt;</c-><c- n>stop_token</c
     <c- k>concept</c-> <c- nc>unstoppable_token</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
   
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Source</c-><c- o>></c->
-    <c- k>concept</c-> <c- nc>stoppable_source</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c-></div>
+    <c- k>concept</c-> <i><c- nc>stoppable</c-><c- o>-</c-><c- n>source</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i></div>
   <c- c1>// 33.3.3, class stop_token</c->
   <c- k>class</c-> <c- nc>stop_token</c-><c- p>;</c->
 
@@ -6395,10 +6409,9 @@ Header <code class="highlight"><c- o>&lt;</c-><c- n>stop_token</c-><c- o>></c-><
 arguments, if the type <code class="highlight"><c- n>stop_callback_for_t</c-><c- o>&lt;</c-><c- n>Token</c-><c- p>,</c-> <c- n>Callback</c-><c- o>></c-></code> is valid, it
 denotes the type of a stop callback to use to register a callback to be
 executed if a stop request is ever made on the <code class="highlight"><c- n>stoppable_token</c-></code>’s
-associated stop source. The <code class="highlight"><c- n>stoppable_callback_for</c-></code> concept checks for a
-callback compatible with a given stop token type.</p>
+associated stop source. The exposition-only <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></code></i> concept checks for a callback compatible with a given stop token type.</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Callback</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Token</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Initializer</c-> <c- o>=</c-> <c- n>Callback</c-><c- o>></c->
-  <c- k>concept</c-> <c- nc>stoppable_callback_for</c-> <c- o>=</c->
+  <c- k>concept</c-> <i><c- nc>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i> <c- o>=</c-> <i><c- c1>// exposition only</c-></i>
     <c- n>invocable</c-><c- o>&lt;</c-><c- n>Callback</c-><c- o>></c-> <c- o>&amp;&amp;</c->
     <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-> <c- o>&amp;&amp;</c->
     <c- k>requires</c-> <c- p>{</c-> <c- k>typename</c-> <c- nc>stop_callback_for_t</c-><c- o>&lt;</c-><c- n>Token</c-><c- p>,</c-> <c- n>Callback</c-><c- o>></c-><c- p>;</c-> <c- p>}</c-> <c- o>&amp;&amp;</c->
@@ -6408,8 +6421,7 @@ callback compatible with a given stop token type.</p>
        <p>Let <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> be distinct, valid objects of type <code class="highlight"><c- n>Token</c-></code> that reference the
 same logical stop state; let <code class="highlight"><c- n>init</c-></code> be an object of type <code class="highlight"><c- n>Initializer</c-></code>; and let <code class="highlight"><c- n>CB</c-></code> denote the type <code class="highlight"><c- n>stop_callback_for_t</c-><c- o>&lt;</c-><c- n>Token</c-><c- p>,</c-> <c- n>Callback</c-><c- o>></c-></code>.</p>
       <li data-md>
-       <p>The concept <code class="highlight"><c- n>stoppable_callback_for</c-><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is modeled
-only if:</p>
+       <p>The concept <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is modeled only if:</p>
        <ol>
         <li data-md>
          <p>The following concepts are modeled:</p>
@@ -6530,23 +6542,23 @@ after <code class="highlight"><c- n>E</c-></code> shall evaluate to <code class=
 evaluations of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> and <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> that happens
 after <code class="highlight"><c- n>E</c-></code> shall evaluate to <code class="highlight">true</code>.</p>
         <li data-md>
-         <p>For any types <code class="highlight"><c- n>Callback</c-></code> and <code class="highlight"><c- n>Initializer</c-></code>, if <code class="highlight"><c- n>stoppable_callback_for</c-><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is satisfied,
-then <code class="highlight"><c- n>stoppable_callback_for</c-><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> shall be
-modeled.</p>
+         <p>For any types <code class="highlight"><c- n>Callback</c-></code> and <code class="highlight"><c- n>Initializer</c-></code>, if <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is satisfied, then <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> shall be modeled.</p>
         <li data-md>
-         <p>A <code class="highlight"><c- n>stoppable_token</c-></code> object has at most one associated logical stop state.
-A <code class="highlight"><c- n>stoppable_token</c-></code> object with no associated stop state is said to be <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="disengaged">disengaged</dfn>. For a disengaged <code class="highlight"><c- n>stoppable_token</c-></code> object, <code class="highlight"><c- n>stop_possible</c-></code> and <code class="highlight"><c- n>stop_requested</c-></code> shall return <code class="highlight">false</code>. If <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> reference the same stop state, or if both <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> are
-disengaged, <code class="highlight"><c- n>t</c-> <c- o>==</c-> <c- n>u</c-></code> shall be <code class="highlight">true</code>; otherwise, it shall be <code class="highlight">false</code>.</p>
+         <p>An object that models <code class="highlight"><c- n>stoppable_token</c-></code> has at most one associated
+logical stop state. A <code class="highlight"><c- n>stoppable_token</c-></code> object with no associated stop
+state is said to be <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="disengaged">disengaged</dfn>. For a disengaged <code class="highlight"><c- n>stoppable_token</c-></code> object, <code class="highlight"><c- n>stop_possible</c-></code> and <code class="highlight"><c- n>stop_requested</c-></code> shall
+return <code class="highlight">false</code>. If <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> reference the same stop state, or if both <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> are disengaged, <code class="highlight"><c- n>t</c-> <c- o>==</c-> <c- n>u</c-></code> shall be <code class="highlight">true</code>; otherwise, it
+shall be <code class="highlight">false</code>.</p>
        </ol>
       <li data-md>
-       <p>A model of <code class="highlight"><c- n>stoppable_source</c-></code> can be queried whether stop has been requested
-(<code class="highlight"><c- n>stop_requested</c-></code>) and whether stop is possible (<code class="highlight"><c- n>stop_possible</c-></code>). It is a
-factory for associated stop tokens (<code class="highlight"><c- n>get_token</c-></code>) and can be explicitly
-placed into the "stop requested" state (<code class="highlight"><c- n>request_stop</c-></code>). It maintains a list
-of registered stop callback invocations that it executes when a stop request
-is first made.</p>
+       <p>A model of the exposition-only <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i> concept can be
+queried whether stop has been requested (<code class="highlight"><c- n>stop_requested</c-></code>) and whether stop
+is possible (<code class="highlight"><c- n>stop_possible</c-></code>). It is a factory for associated stop tokens
+(<code class="highlight"><c- n>get_token</c-></code>) and can be explicitly placed into the "stop requested" state
+(<code class="highlight"><c- n>request_stop</c-></code>). It maintains a list of registered stop callback
+invocations that it executes when a stop request is first made.</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Source</c-><c- o>></c->
-  <c- k>concept</c-> <c- nc>stoppable_source</c-> <c- o>=</c->
+  <c- k>concept</c-> <i><c- nc>stoppable</c-><c- o>-</c-><c- n>source</c-></i> <c- o>=</c-> <i><c- c1>// exposition only</c-></i>
     <c- k>requires</c-> <c- p>(</c-><c- n>Source</c-><c- o>&amp;</c-> <c- n>src</c-><c- p>,</c-> <c- k>const</c-> <c- n>Source</c-> <c- n>csrc</c-><c- p>)</c-> <c- p>{</c-> <i><c- c1>// see implicit expression variations</c-></i>
                                                 <i><c- c1>// ([concepts.equality])</c-></i>
       <c- p>{</c-> <c- n>csrc</c-><c- p>.</c-><c- n>get_token</c-><c- p>()</c-> <c- p>}</c-> <c- o>-></c-> <c- n>stoppable_token</c-><c- p>;</c->
@@ -6557,13 +6569,13 @@ is first made.</p>
 </pre>
        <ol>
         <li data-md>
-         <p>A <code class="highlight"><c- n>stoppable_source</c-></code> object has at most one associated logical stop
-state. A <code class="highlight"><c- n>stoppable_source</c-></code> object with no associated stop state is said
-to be disengaged. For a disengaged <code class="highlight"><c- n>stoppable_source</c-></code> object, <code class="highlight"><c- n>stop_possible</c-></code> and <code class="highlight"><c- n>stop_requested</c-></code> shall return <code class="highlight">false</code>.</p>
+         <p>A <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i> object has at most one associated logical
+stop state. A <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i> object with no associated stop
+state is said to be disengaged. For a disengaged <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i> object, <code class="highlight"><c- n>stop_possible</c-></code> and <code class="highlight"><c- n>stop_requested</c-></code> shall return <code class="highlight">false</code>.</p>
         <li data-md>
-         <p>A disengaged <code class="highlight"><c- n>stoppable_source</c-></code> object shall return a disengaged stop token
-from <code class="highlight"><c- n>get_token</c-><c- p>()</c-></code>. Otherwise, <code class="highlight"><c- n>get_token</c-><c- p>()</c-></code> shall return a stop token that
-is associated with the stop state of the source.</p>
+         <p>A disengaged <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i> object shall return a disengaged
+stop token from <code class="highlight"><c- n>get_token</c-><c- p>()</c-></code>. Otherwise, <code class="highlight"><c- n>get_token</c-><c- p>()</c-></code> shall return a
+stop token that is associated with the stop state of the source.</p>
        </ol>
        <p><span class="ed-note">The following paragraph is moved from the introduction,
 with minor modifications (underlined in green).</span></p>
@@ -6577,16 +6589,18 @@ with minor modifications (underlined in green).</span></p>
 functions on associated <code class="highlight"><c- n>stoppable_token</c-></code> objects</ins>
            do not introduce
 data races. A call to <code class="highlight"><c- n>request_stop</c-></code> that returns <code class="highlight">true</code> synchronizes
-with a call to <code class="highlight"><c- n>stop_requested</c-></code> on an associated <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code> or <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_source</c-></code> object that returns <code class="highlight">true</code>.
-Registration of a callback synchronizes with the invocation of that
-callback.
+with a call to <code class="highlight"><c- n>stop_requested</c-></code> on an associated <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code> or 
+          <del><code class="highlight"><c- n>stop_source</c-></code></del>
+          <ins> <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i></ins>
+           object that returns <code class="highlight">true</code>. Registration
+of a callback synchronizes with the invocation of that callback.
          </p>
        </ol>
        <p><span class="ed-note">The following paragraph is taken from <a href="#spec-stopsource.mem">§ 33.3.5.3 Member functions [stopsource.mem]</a> and modified.</span></p>
        <ol start="4">
         <li data-md>
-         <p>If the <code class="highlight"><c- n>stoppable_source</c-></code> is disengaged, <code class="highlight"><c- n>request_stop</c-></code> shall have no
-effect and return <code class="highlight">false</code>. Otherwise, it shall execute a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="stop-request-operation">stop request operation</dfn> on the associated stop state. A
+         <p>If the <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i> is disengaged, <code class="highlight"><c- n>request_stop</c-></code> shall have
+no effect and return <code class="highlight">false</code>. Otherwise, it shall execute a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="stop-request-operation">stop request operation</dfn> on the associated stop state. A
 stop request operation determines whether the stop state has received a
 stop request, and if not, makes a stop request. The determination and
 making of the stop request shall happen atomically, as-if by a
@@ -6776,7 +6790,7 @@ request. A stop request made on a <code class="highlight"><c- n>stop_source</c->
 associated <code class="highlight"><c- n>stop_source</c-></code> and <code class="highlight"><c- n>stop_token</c-></code> ([thread.stoptoken]) objects. Once
 a stop request has been made it cannot be withdrawn (a subsequent stop
 request has no effect)</del>
-       <ins>models <code class="highlight"><c- n>stoppable_source</c-></code></ins>
+       <ins>models <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i></ins>
        .
       </p>
     </ol>
@@ -7029,9 +7043,9 @@ template parameter <code class="highlight"><c- n>Callback</c-></code> that model
     <div class="ins">
      <ol start="3">
       <li data-md>
-       <p><em>Remarks:</em> For a type <code class="highlight"><c- n>C</c-></code>, if <code class="highlight"><c- n>stoppable_callback_for</c-><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>stop_token</c-><c- p>,</c-> <c- n>C</c-><c- o>></c-></code> is satisfied, then <code class="highlight"><c- n>stoppable_callback_for</c-><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>stop_token</c-><c- p>,</c-> <c- n>C</c-><c- o>></c-></code> is
-modeled. The exposition-only <code class="highlight"><c- n>callback</c-></code> member is the associated callback
-function ([stoptoken.concepts]) of <code class="highlight"><c- n>stop_callback</c-><c- o>&lt;</c-><c- n>Callback</c-><c- o>></c-></code> objects.</p>
+       <p><em>Remarks:</em> For a type <code class="highlight"><c- n>C</c-></code>, if <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>stop_token</c-><c- p>,</c-> <c- n>C</c-><c- o>></c-></code> is
+satisfied, then <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>stop_token</c-><c- p>,</c-> <c- n>C</c-><c- o>></c-></code> is modeled. The exposition-only <code class="highlight"><c- n>callback</c-></code> member is the
+associated callback function ([stoptoken.concepts]) of <code class="highlight"><c- n>stop_callback</c-><c- o>&lt;</c-><c- n>Callback</c-><c- o>></c-></code> objects.</p>
      </ol>
     </div>
     <h5 class="heading settled" data-level="33.3.6.2" id="spec-stopcallback.cons"><span class="secno">33.3.6.2. </span><span class="content">Constructors and destructor <b>[stopcallback.cons]</b></span><a class="self-link" href="#spec-stopcallback.cons"></a></h5>
@@ -7191,7 +7205,7 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span></p>
      <h5 class="heading settled" data-level="33.3.9.1" id="spec-stopsource.inplace.general"><span class="secno">33.3.9.1. </span><span class="content">General <b>[stopsource.inplace.general]</b></span><a class="self-link" href="#spec-stopsource.inplace.general"></a></h5>
      <ol>
       <li data-md>
-       <p>The class <code class="highlight"><c- n>inplace_stop_source</c-></code> models <code class="highlight"><c- n>stoppable_source</c-></code>. Unlike <code class="highlight"><c- n>stop_source</c-></code>, <code class="highlight"><c- n>inplace_stop_source</c-></code> does not require dynamic allocation or
+       <p>The class <code class="highlight"><c- n>inplace_stop_source</c-></code> models <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i>. Unlike <code class="highlight"><c- n>stop_source</c-></code>, <code class="highlight"><c- n>inplace_stop_source</c-></code> does not require dynamic allocation or
 reference counting of a shared stop state. Instead, it requires that all
 uses of associated <code class="highlight"><c- n>inplace_stop_token</c-></code> and <code class="highlight"><c- n>inplace_stop_callback</c-></code> objects happen before the <code class="highlight"><c- n>inplace_stop_source</c-></code> is destroyed.</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-> <c- p>{</c->
@@ -7286,8 +7300,8 @@ added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</span>
        <p><em>Mandates</em>: <code class="highlight"><c- n>inplace_stop_callback</c-></code> is instantiated with an argument for the
 template parameter <code class="highlight"><c- n>Callback</c-></code> that satisfies both <code class="highlight"><c- n>invocable</c-></code> and <code class="highlight"><c- n>destructible</c-></code>.</p>
       <li data-md>
-       <p><em>Remarks:</em> For a type <code class="highlight"><c- n>C</c-></code>, if <code class="highlight"><c- n>stoppable_callback_for</c-><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>inplace_stop_token</c-><c- p>,</c-> <c- n>C</c-><c- o>></c-></code> is satisfied, then <code class="highlight"><c- n>stoppable_callback_for</c-><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>inplace_stop_token</c-><c- p>,</c-> <c- n>C</c-><c- o>></c-></code> is modeled. The exposition-only <i><code class="highlight"><c- n>stop</c-><c- o>-</c-><c- n>callback</c-></code></i> member is the associated callback function
-([stoptoken.concepts]) of <code class="highlight"><c- n>inplace_stop_callback</c-><c- o>&lt;</c-><c- n>Callback</c-><c- o>></c-></code> objects.</p>
+       <p><em>Remarks:</em> For a type <code class="highlight"><c- n>C</c-></code>, if <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>inplace_stop_token</c-><c- p>,</c-> <c- n>C</c-><c- o>></c-></code> is satisfied, then <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Callback</c-><c- p>,</c-> <c- n>inplace_stop_token</c-><c- p>,</c-> <c- n>C</c-><c- o>></c-></code> is modeled. The exposition-only <i><code class="highlight"><c- n>stop</c-><c- o>-</c-><c- n>callback</c-></code></i> member is
+the associated callback function ([stoptoken.concepts]) of <code class="highlight"><c- n>inplace_stop_callback</c-><c- o>&lt;</c-><c- n>Callback</c-><c- o>></c-></code> objects.</p>
        <p>Implementations are not permitted to use additional storage, such
 as dynamic memory, to store the state necessary for an <code class="highlight"><c- n>inplace_stop_callback</c-></code>’s association with an <code class="highlight"><c- n>inplace_stop_source</c-></code> object
 or to register the callback invocation with the associated <code class="highlight"><c- n>inplace_stop_source</c-></code> object.</p>
@@ -8587,30 +8601,27 @@ class template except as noted below:</p>
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Index</c-><c- o>></c-> 
     <c- k>requires</c-> <i><c- n>well</c-><c- o>-</c-><c- n>formed</c-></i><c- o>&lt;</c-><i><c- n>env</c-><c- o>-</c-><c- n>type</c-></i><c- p>,</c-> <c- n>Index</c-><c- p>,</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c->
   <c- k>struct</c-> <i><c- nc>basic</c-><c- o>-</c-><c- n>receiver</c-></i> <c- p>{</c->  <c- c1>// exposition only</c->
-    <c- k>using</c-> <i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
     <c- k>using</c-> <c- n>receiver_concept</c-> <c- o>=</c-> <c- n>receiver_t</c-><c- p>;</c->
 
+    <c- k>using</c-> <i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- k>using</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- k>static</c-> <c- k>constexpr</c-> <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <i><c- n>complete</c-></i> <c- o>=</c-> <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i><c- o>>::</c-><i><c- n>complete</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+
     <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
-      <c- k>requires</c-> <i><c- n>cpo</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i><c- o>>::</c-><i><c- n>complete</c-></i><c- p>,</c->
-        <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_value_t</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c->
+      <c- k>requires</c-> <i><c- n>cpo</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><i><c- n>complete</c-></i><c- p>,</c-> <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_value_t</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c->
     <c- b>void</c-> <c- n>set_value</c-><c- p>(</c-><c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c-> <c- p>{</c->
-      <c- p>(</c-><c- b>void</c-><c- p>)</c-> <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i><c- o>>::</c-><i><c- n>complete</c-></i><c- p>(</c->
-        <c- n>Index</c-><c- p>(),</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>,</c-> <c- n>set_value_t</c-><c- p>(),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...);</c->
+      <i><c- n>complete</c-></i><c- p>(</c-><c- n>Index</c-><c- p>(),</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>,</c-> <c- n>set_value_t</c-><c- p>(),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...);</c->
     <c- p>}</c->
 
     <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Error</c-><c- o>></c->
-      <c- k>requires</c-> <i><c- n>cpo</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i><c- o>>::</c-><i><c- n>complete</c-></i><c- p>,</c->
-        <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_error_t</c-><c- p>,</c-> <c- n>Error</c-><c- o>></c->
+      <c- k>requires</c-> <i><c- n>cpo</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><i><c- n>complete</c-></i><c- p>,</c-> <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_error_t</c-><c- p>,</c-> <c- n>Error</c-><c- o>></c->
     <c- b>void</c-> <c- n>set_error</c-><c- p>(</c-><c- n>Error</c-><c- o>&amp;&amp;</c-> <c- n>err</c-><c- p>)</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c-> <c- p>{</c->
-      <c- p>(</c-><c- b>void</c-><c- p>)</c-> <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i><c- o>>::</c-><i><c- n>complete</c-></i><c- p>(</c->
-        <c- n>Index</c-><c- p>(),</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>,</c-> <c- n>set_error_t</c-><c- p>(),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Error</c-><c- o>></c-><c- p>(</c-><c- n>err</c-><c- p>));</c->
+      <i><c- n>complete</c-></i><c- p>(</c-><c- n>Index</c-><c- p>(),</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>,</c-> <c- n>set_error_t</c-><c- p>(),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Error</c-><c- o>></c-><c- p>(</c-><c- n>err</c-><c- p>));</c->
     <c- p>}</c->
 
     <c- b>void</c-> <c- n>set_stopped</c-><c- p>()</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c->
-      <c- k>requires</c-> <i><c- n>cpo</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i><c- o>>::</c-><i><c- n>complete</c-></i><c- p>,</c->
-        <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_stopped_t</c-><c- o>></c-> <c- p>{</c->
-      <c- p>(</c-><c- b>void</c-><c- p>)</c-> <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i><c- o>>::</c-><i><c- n>complete</c-></i><c- p>(</c->
-        <c- n>Index</c-><c- p>(),</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>,</c-> <c- n>set_stopped_t</c-><c- p>());</c->
+      <c- k>requires</c-> <i><c- n>cpo</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><i><c- n>complete</c-></i><c- p>,</c-> <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_stopped_t</c-><c- o>></c-> <c- p>{</c->
+      <i><c- n>complete</c-></i><c- p>(</c-><c- n>Index</c-><c- p>(),</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>,</c-> <c- n>set_stopped_t</c-><c- p>());</c->
     <c- p>}</c->
 
     <c- k>auto</c-> <c- n>get_env</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-> <c- o>-></c-> <i><c- n>env</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Index</c-><c- p>,</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-> <c- p>{</c->
