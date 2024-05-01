@@ -4135,7 +4135,8 @@ namespace std {
     respectively.</ins><del> The last remaining owner of the stop state
     automatically releases the resources associated with the stop state.</del>
 
-3. A <code>stop<ins>pable</ins>_token</code> can be passed to an operation <del>
+3. A<ins>n object of a type that models</ins>
+    <code>stop<ins>pable</ins>_token</code> can be passed to an operation <del>
     which</del><ins>that</ins> can either
 
     <div class="numbered" style="counter-set: paragraph 3 list_item 0">
@@ -4146,15 +4147,15 @@ namespace std {
         template which</del><ins>that</ins> will be called in the event that a
         stop request is made.</div>
 
-    A stop request made via <del>a `stop_source`</del><ins>an object that models
-    <i>`stoppable-source`</i></ins> will be visible to all associated
+    A stop request made via <del>a `stop_source`</del><ins>an object whose type
+    models <i>`stoppable-source`</i></ins> will be visible to all associated
     <code>stop<ins>pable</ins>_token</code> and <del>`stop_source`</del><ins>
-    <i>`stoppable-source`</i></ins> objects. Once a stop request has been
-    made it cannot be withdrawn (a subsequent stop request has no effect).
+    <i>`stoppable-source`</i></ins> objects. Once a stop request has been made
+    it cannot be withdrawn (a subsequent stop request has no effect).
 
 4. Callbacks registered via <del>a `stop_callback` object</del><ins>an object
-    that models <i>`stoppable-callback-for`</i></ins> are called when a stop
-    request is first made by any associated <del>`stop_source`</del><ins>
+    whose type models <i>`stoppable-callback-for`</i></ins> are called when a
+    stop request is first made by any associated <del>`stop_source`</del><ins>
     <i>`stoppable-source`</i></ins> object.
 
 <span class="ed-note">The following paragraph is moved to the specification of
@@ -4177,10 +4178,11 @@ the new <i>`stoppable-source`</i> concept.</span>
     The last remaining owner of the stop state automatically releases the
     resources associated with the stop state.
 
-6. The types `inplace_stop_source` and `inplace_stop_token` and the class
-    template `inplace_stop_callback` does no dynamic memory allocation of the
-    stop state. <span class="wg21note">They are for use when the lifetimes of
-    the associated token and callback objects are known to nest within the
+6. An object of type `inplace_stop_source` is the sole owner of its stop state.
+    An object of type `inplace_stop_token` or of a specialization of the class
+    template `inplace_stop_callback` does not participate in ownership of its
+    associated stop state. <span class="wg21note">They are for use when all uses
+    of the associated token and callback objects are known to nest within the
     lifetime of the `inplace_stop_source` object.</span>
 
 </div>
@@ -4233,12 +4235,12 @@ namespace std {
   template&lt;class CallbackFn>
     class inplace_stop_callback;
 
+  <span class="ed-note">Do we need the `::template` here?</span>
   template&lt;class T, class CallbackFn>
     using stop_callback_for_t = T::template callback_type&lt;CallbackFn>;</div>
 }
 </pre>
 </div>
-
 
 <span class="ed-note">Insert the following subclause as a new subclause between
 Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
@@ -4248,13 +4250,8 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
 
 ### Stop token concepts <b>[stoptoken.concepts]</b> ### {#spec-stoptoken.concepts}
 
-1. For a stop token type `Token` and a type `CallbackFn` such that
-    <code>invocable&lt;CallbackFn></code> is `true`, if the type
-    `stop_callback_for_t<Token, CallbackFn>` is valid, it denotes the type of a
-    stop callback to use when registering a callback invocation to be executed
-    if a stop request is made on the `stoppable_token`'s associated stop source.
-    The exposition-only <i>`stoppable-callback-for`</i> concept checks for a
-    callback compatible with a given stop token type.
+1. The exposition-only <i>`stoppable-callback-for`</i> concept checks for a
+    callback compatible with a given `Token` type.
 
     <pre highlight="c++">
     template&lt;class CallbackFn, class Token, class Initializer = CallbackFn>
@@ -4266,9 +4263,9 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
     </pre>
 
 2. Let `t` and `u` be distinct, valid objects of type `Token` that reference the
-    same logical stop state; let `init` be an object of type
-    `Initializer`; and let `SCB` denote the type `stop_callback_for_t<Token,
-    CallbackFn>`.
+    same logical stop state; let `init` be an expression such that
+    `same_as<decltype(init), Initializer>` is `true`; and let `SCB` denote the
+    type `stop_callback_for_t<Token, CallbackFn>`.
 
 3. The concept <code><i>stoppable-callback-for</i>&lt;CallbackFn, Token,
     Initializer></code> is modeled only if:
@@ -4317,11 +4314,12 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
             initialization of `cbfn`.</span>
 
     3. Destruction of `scb` shall execute a <dfn export=true>stoppable callback
-        deregistration</dfn> as follows:
+        deregistration</dfn> as follows (in order):
 
         1. If the constructor of `scb` did not register a callback invocation
             with `t`'s stop state, then the stoppable callback
-            deregistration shall have no effect.
+            deregistration shall have no effect other than destroying `cbfn`
+            if it was constructed.
 
         2. Otherwise, the invocation of `cbfn` shall be removed from
             the associated stop state.
@@ -4341,13 +4339,13 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
             of the invocation of some other callback registered with the same
             logical stop state.
 
-        6. As a final step, the stoppable callback deregistration shall destroy
+        6. The stoppable callback deregistration shall destroy
             `cbfn`.
 
 4. The `stoppable_token` concept checks for the basic interface of a stop token
     that is copyable and allows polling to see if stop has been requested and
     also whether a stop request is possible. The `unstoppable_token` concept
-    checks for a stop token type that does not allow stopping.
+    checks for a `stoppable_token` type that does not allow stopping.
 
     <pre highlight="c++">
     template&lt;template&lt;class> class>
@@ -4374,31 +4372,36 @@ Header `<stop_token>` synopsis <b>[thread.stoptoken.syn]</b> and Class
         };
     </pre>
 
-5. The type `Token` models `stoppable_token` only if:
+5. An object whose type models `stoppable_token` has at most one associated
+    logical stop state. A `stoppable_token` object with no associated stop
+    state is said to be <dfn export=true>disengaged</dfn>.
 
-    1. An evaluation, `E`, of `t.stop_possible()` is `false`, then
-        evaluations of `u.stop_possible()` and `u.stop_requested()` that happen
-        after `E` shall evaluate to `false`.
+6. Let `SP` be an evaluation of `t.stop_possible()` that is `false`, and let
+    `SR` be an evaluation of `t.stop_requested()` that is `true`.
 
-    2. An evaluation, `E`, of `t.stop_requested()` is `true`, then
-        evaluations of `u.stop_possible()` and `u.stop_requested()` that happen
-        after `E` shall evaluate to `true`.
+7. The type `Token` models `stoppable_token` only if:
 
-    3. For any types `CallbackFn` and `Initializer`, if
+    1. Any evaluation of `u.stop_possible()` or `u.stop_requested()`
+        that happens after ([intro.races]) `SP` is `false`.
+
+    2. Any evaluation of `u.stop_possible()` or `u.stop_requested()`
+        that happens after `SR` is `true`.
+
+    3. For any types `CallbackFn` and `Initializer` such that
         <code><i>stoppable-callback-for</i>&lt;CallbackFn, Token,
-        Initializer></code> is satisfied, then
+        Initializer></code> is satisfied,
         <code><i>stoppable-callback-for</i>&lt;CallbackFn, Token,
-        Initializer></code> shall be modeled.
+        Initializer></code> is modeled.
 
-    4. An object that models `stoppable_token` has at most one associated
-        logical stop state. A `stoppable_token` object with no associated stop
-        state is said to be <dfn export=true>disengaged</dfn>. For a disengaged
-        `stoppable_token` object, `stop_possible` and `stop_requested` shall
-        return `false`. If `t` and `u` reference the same stop state, or if both
-        `t` and `u` are disengaged, `t == u` shall be `true`; otherwise, it
-        shall be `false`.
+    4. If `t` is disengaged, evaluations of `t.stop_possible()` and
+        `t.stop_requested()` are `false`.
 
-6. An object whose type models the exposition-only <i>`stoppable-source`</i>
+    5. If `t` and `u` reference the same stop state, or if both `t` and `u` are
+        disengaged, `t == u` is `true`; otherwise, it is `false`.
+
+<!-- LWG stopped here on  2024-04-17 -->
+
+8. An object whose type models the exposition-only <i>`stoppable-source`</i>
     concept can be queried whether stop has been requested (`stop_requested`)
     and whether stop is possible (`stop_possible`). It is a factory for
     associated stop tokens (`get_token`), and a stop request can be made on it
