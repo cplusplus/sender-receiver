@@ -2386,7 +2386,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-04-17">2024-04-17</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-05-01">2024-05-01</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -6282,7 +6282,9 @@ respectively.</ins>
 automatically releases the resources associated with the stop state.</del>
      <li data-md>
       <p>
-       A <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code> can be passed to an operation 
+       A
+       <ins>n object of a type that models</ins>
+        <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code> can be passed to an operation 
        <del> which</del>
        <ins>that</ins>
         can either
@@ -6306,21 +6308,22 @@ stop request is made.
      <p>
       A stop request made via 
       <del>a <code class="highlight"><c- n>stop_source</c-></code></del>
-      <ins>an object that models <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i></ins>
+      <ins>an object whose type
+models <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i></ins>
        will be visible to all associated <code class="highlight"><c- n>stop</c-><ins><c- n>pable</c-></ins><c- n>_token</c-></code> and 
       <del><code class="highlight"><c- n>stop_source</c-></code></del>
       <ins> <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i></ins>
-       objects. Once a stop request has been
-made it cannot be withdrawn (a subsequent stop request has no effect).
+       objects. Once a stop request has been made
+it cannot be withdrawn (a subsequent stop request has no effect).
      </p>
      <li data-md>
       <p>
        Callbacks registered via 
        <del>a <code class="highlight"><c- n>stop_callback</c-></code> object</del>
        <ins>an object
-that models <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></code></i></ins>
-        are called when a stop
-request is first made by any associated 
+whose type models <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></code></i></ins>
+        are called when a
+stop request is first made by any associated 
        <del><code class="highlight"><c- n>stop_source</c-></code></del>
        <ins> <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i></ins>
         object.
@@ -6342,10 +6345,11 @@ synchronizes with the invocation of that callback.</p>
 The last remaining owner of the stop state automatically releases the
 resources associated with the stop state.</p>
       <li data-md>
-       <p>The types <code class="highlight"><c- n>inplace_stop_source</c-></code> and <code class="highlight"><c- n>inplace_stop_token</c-></code> and the class
-template <code class="highlight"><c- n>inplace_stop_callback</c-></code> does no dynamic memory allocation of the
-stop state. <span class="wg21note">They are for use when the lifetimes of
-the associated token and callback objects are known to nest within the
+       <p>An object of type <code class="highlight"><c- n>inplace_stop_source</c-></code> is the sole owner of its stop state.
+An object of type <code class="highlight"><c- n>inplace_stop_token</c-></code> or of a specialization of the class
+template <code class="highlight"><c- n>inplace_stop_callback</c-></code> does not participate in ownership of its
+associated stop state. <span class="wg21note">They are for use when all uses
+of the associated token and callback objects are known to nest within the
 lifetime of the <code class="highlight"><c- n>inplace_stop_source</c-></code> object.</span></p>
      </ol>
     </div>
@@ -6394,6 +6398,7 @@ declarations into the <code class="highlight"><c- o>&lt;</c-><c- n>stop_token</c
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>CallbackFn</c-><c- o>></c->
     <c- k>class</c-> <c- nc>inplace_stop_callback</c-><c- p>;</c->
 
+  <span class="ed-note"><c- n>Do</c-> <c- n>we</c-> <c- n>need</c-> <c- n>the</c-> <code class="highlight"><c- o><c- o>::</c-></c-><c- k><c- k>template</c-></c-></code> <c- n>here</c-><c- o>?</c-></span>
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- p>,</c-> <c- k>class</c-> <c- nc>CallbackFn</c-><c- o>></c->
     <c- k>using</c-> <c- n>stop_callback_for_t</c-> <c- o>=</c-> <c- n>T</c-><c- o>::</c-><c- k>template</c-> <c- n>callback_type</c-><c- o>&lt;</c-><c- n>CallbackFn</c-><c- o>></c-><c- p>;</c-></div>
 <c- p>}</c->
@@ -6406,11 +6411,8 @@ Header <code class="highlight"><c- o>&lt;</c-><c- n>stop_token</c-><c- o>></c-><
      <h4 class="heading settled" data-level="33.3.3" id="spec-stoptoken.concepts"><span class="secno">33.3.3. </span><span class="content">Stop token concepts <b>[stoptoken.concepts]</b></span><a class="self-link" href="#spec-stoptoken.concepts"></a></h4>
      <ol>
       <li data-md>
-       <p>For a stop token type <code class="highlight"><c- n>Token</c-></code> and a type <code class="highlight"><c- n>CallbackFn</c-></code> such that <code class="highlight"><c- n>invocable</c-><c- o>&lt;</c-><c- n>CallbackFn</c-><c- o>></c-></code> is <code class="highlight">true</code>, if the type <code class="highlight"><c- n>stop_callback_for_t</c-><c- o>&lt;</c-><c- n>Token</c-><c- p>,</c-> <c- n>CallbackFn</c-><c- o>></c-></code> is valid, it denotes the type of a
-stop callback to use when registering a callback invocation to be executed
-if a stop request is made on the <code class="highlight"><c- n>stoppable_token</c-></code>’s associated stop source.
-The exposition-only <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></code></i> concept checks for a
-callback compatible with a given stop token type.</p>
+       <p>The exposition-only <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></code></i> concept checks for a
+callback compatible with a given <code class="highlight"><c- n>Token</c-></code> type.</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>CallbackFn</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Token</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Initializer</c-> <c- o>=</c-> <c- n>CallbackFn</c-><c- o>></c->
   <c- k>concept</c-> <i><c- nc>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i> <c- o>=</c-> <i><c- c1>// exposition only</c-></i>
     <c- n>invocable</c-><c- o>&lt;</c-><c- n>CallbackFn</c-><c- o>></c-> <c- o>&amp;&amp;</c->
@@ -6420,7 +6422,8 @@ callback compatible with a given stop token type.</p>
 </pre>
       <li data-md>
        <p>Let <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> be distinct, valid objects of type <code class="highlight"><c- n>Token</c-></code> that reference the
-same logical stop state; let <code class="highlight"><c- n>init</c-></code> be an object of type <code class="highlight"><c- n>Initializer</c-></code>; and let <code class="highlight"><c- n>SCB</c-></code> denote the type <code class="highlight"><c- n>stop_callback_for_t</c-><c- o>&lt;</c-><c- n>Token</c-><c- p>,</c-> <c- n>CallbackFn</c-><c- o>></c-></code>.</p>
+same logical stop state; let <code class="highlight"><c- n>init</c-></code> be an expression such that <code class="highlight"><c- n>same_as</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>init</c-><c- p>),</c-> <c- n>Initializer</c-><c- o>></c-></code> is <code class="highlight">true</code>; and let <code class="highlight"><c- n>SCB</c-></code> denote the
+type <code class="highlight"><c- n>stop_callback_for_t</c-><c- o>&lt;</c-><c- n>Token</c-><c- p>,</c-> <c- n>CallbackFn</c-><c- o>></c-></code>.</p>
       <li data-md>
        <p>The concept <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>CallbackFn</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is modeled only if:</p>
        <ol>
@@ -6473,12 +6476,12 @@ initialization of <code class="highlight"><c- n>cbfn</c-></code>.</span></p>
          </ol>
         <li data-md>
          <p>Destruction of <code class="highlight"><c- n>scb</c-></code> shall execute a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="stoppable callback deregistration" id="stoppable-callback-deregistration">stoppable callback
-deregistration</dfn> as follows:</p>
+deregistration</dfn> as follows (in order):</p>
          <ol>
           <li data-md>
            <p>If the constructor of <code class="highlight"><c- n>scb</c-></code> did not register a callback invocation
 with <code class="highlight"><c- n>t</c-></code>’s stop state, then the stoppable callback
-deregistration shall have no effect.</p>
+deregistration shall have no effect other than destroying <code class="highlight"><c- n>cbfn</c-></code> if it was constructed.</p>
           <li data-md>
            <p>Otherwise, the invocation of <code class="highlight"><c- n>cbfn</c-></code> shall be removed from
 the associated stop state.</p>
@@ -6496,14 +6499,14 @@ invocation of <code class="highlight"><c- n>cbfn</c-></code>.</p>
 of the invocation of some other callback registered with the same
 logical stop state.</p>
           <li data-md>
-           <p>As a final step, the stoppable callback deregistration shall destroy <code class="highlight"><c- n>cbfn</c-></code>.</p>
+           <p>The stoppable callback deregistration shall destroy <code class="highlight"><c- n>cbfn</c-></code>.</p>
          </ol>
        </ol>
       <li data-md>
        <p>The <code class="highlight"><c- n>stoppable_token</c-></code> concept checks for the basic interface of a stop token
 that is copyable and allows polling to see if stop has been requested and
 also whether a stop request is possible. The <code class="highlight"><c- n>unstoppable_token</c-></code> concept
-checks for a stop token type that does not allow stopping.</p>
+checks for a <code class="highlight"><c- n>stoppable_token</c-></code> type that does not allow stopping.</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- o>></c-> <c- k>class</c-><c- o>></c->
   <c- k>struct</c-> <i><c- nc>check</c-><c- o>-</c-><c- n>type</c-><c- o>-</c-><c- n>alias</c-><c- o>-</c-><c- n>exists</c-></i><c- p>;</c-> <i><c- c1>// exposition-only</c-></i>
 
@@ -6528,24 +6531,25 @@ checks for a stop token type that does not allow stopping.</p>
     <c- p>};</c->
 </pre>
       <li data-md>
+       <p>An object whose type models <code class="highlight"><c- n>stoppable_token</c-></code> has at most one associated
+logical stop state. A <code class="highlight"><c- n>stoppable_token</c-></code> object with no associated stop
+state is said to be <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="disengaged">disengaged</dfn>.</p>
+      <li data-md>
+       <p>Let <code class="highlight"><c- n>SP</c-></code> be an evaluation of <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> that is <code class="highlight">false</code>, and let <code class="highlight"><c- n>SR</c-></code> be an evaluation of <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> that is <code class="highlight">true</code>.</p>
+      <li data-md>
        <p>The type <code class="highlight"><c- n>Token</c-></code> models <code class="highlight"><c- n>stoppable_token</c-></code> only if:</p>
        <ol>
         <li data-md>
-         <p>An evaluation, <code class="highlight"><c- n>E</c-></code>, of <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> is <code class="highlight">false</code>, then
-evaluations of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> and <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> that happen
-after <code class="highlight"><c- n>E</c-></code> shall evaluate to <code class="highlight">false</code>.</p>
+         <p>Any evaluation of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> or <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> that happens after ([intro.races]) <code class="highlight"><c- n>SP</c-></code> is <code class="highlight">false</code>.</p>
         <li data-md>
-         <p>An evaluation, <code class="highlight"><c- n>E</c-></code>, of <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> is <code class="highlight">true</code>, then
-evaluations of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> and <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> that happen
-after <code class="highlight"><c- n>E</c-></code> shall evaluate to <code class="highlight">true</code>.</p>
+         <p>Any evaluation of <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> or <code class="highlight"><c- n>u</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> that happens after <code class="highlight"><c- n>SR</c-></code> is <code class="highlight">true</code>.</p>
         <li data-md>
-         <p>For any types <code class="highlight"><c- n>CallbackFn</c-></code> and <code class="highlight"><c- n>Initializer</c-></code>, if <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>CallbackFn</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is satisfied, then <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>CallbackFn</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> shall be modeled.</p>
+         <p>For any types <code class="highlight"><c- n>CallbackFn</c-></code> and <code class="highlight"><c- n>Initializer</c-></code> such that <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>CallbackFn</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is satisfied, <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>CallbackFn</c-><c- p>,</c-> <c- n>Token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is modeled.</p>
         <li data-md>
-         <p>An object that models <code class="highlight"><c- n>stoppable_token</c-></code> has at most one associated
-logical stop state. A <code class="highlight"><c- n>stoppable_token</c-></code> object with no associated stop
-state is said to be <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="disengaged">disengaged</dfn>. For a disengaged <code class="highlight"><c- n>stoppable_token</c-></code> object, <code class="highlight"><c- n>stop_possible</c-></code> and <code class="highlight"><c- n>stop_requested</c-></code> shall
-return <code class="highlight">false</code>. If <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> reference the same stop state, or if both <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> are disengaged, <code class="highlight"><c- n>t</c-> <c- o>==</c-> <c- n>u</c-></code> shall be <code class="highlight">true</code>; otherwise, it
-shall be <code class="highlight">false</code>.</p>
+         <p>If <code class="highlight"><c- n>t</c-></code> is disengaged, evaluations of <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_possible</c-><c- p>()</c-></code> and <code class="highlight"><c- n>t</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> are <code class="highlight">false</code>.</p>
+        <li data-md>
+         <p>If <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> reference the same stop state, or if both <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>u</c-></code> are
+disengaged, <code class="highlight"><c- n>t</c-> <c- o>==</c-> <c- n>u</c-></code> is <code class="highlight">true</code>; otherwise, it is <code class="highlight">false</code>.</p>
        </ol>
       <li data-md>
        <p>An object whose type models the exposition-only <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i> concept can be queried whether stop has been requested (<code class="highlight"><c- n>stop_requested</c-></code>)
