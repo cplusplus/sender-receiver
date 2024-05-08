@@ -4976,7 +4976,7 @@ explicit stop_callback(stop_token&& st, <del>C</del><ins>Initializer</ins>&& <de
         static constexpr bool stop_requested() noexcept { return false; }
         static constexpr bool stop_possible() noexcept { return false; }
 
-        bool operator==(const never_stop_token&) const noexcept = default;
+        bool operator==(const never_stop_token&) const = default;
       };
     }
     </pre>
@@ -5003,8 +5003,8 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span>
         template&lt;class CallbackFn>
           using callback_type = inplace_stop_callback&lt;CallbackFn>;
 
-        inplace_stop_token() noexcept = default;
-        bool operator==(const inplace_stop_token&) const noexcept = default;
+        inplace_stop_token() = default;
+        bool operator==(const inplace_stop_token&) const = default;
 
         // [stoptoken.inplace.mem], member functions
         bool stop_requested() const noexcept;
@@ -5061,18 +5061,14 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span>
 
 #### General <b>[stopsource.inplace.general]</b> #### {#spec-stopsource.inplace.general}
 
-1. The class `inplace_stop_source` models <i>`stoppable-source`</i>. Unlike
-    `stop_source`, `inplace_stop_source` does not require dynamic allocation or
-    reference counting of a shared stop state. Instead, it requires that all
-    uses of associated `inplace_stop_token` and `inplace_stop_callback`
-    objects happen before the `inplace_stop_source` is destroyed.
+1. The class `inplace_stop_source` models <i>`stoppable-source`</i>.
 
     <pre highlight="c++">
     namespace std {
       class inplace_stop_source {
       public:
         // [stopsource.inplace.cons], constructors, copy, and assignment
-        inplace_stop_source() noexcept;
+        constexpr inplace_stop_source() noexcept;
 
         inplace_stop_source(inplace_stop_source&&) = delete;
         inplace_stop_source(const inplace_stop_source&) = delete;
@@ -5081,7 +5077,7 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span>
         ~inplace_stop_source();
 
         //[stopsource.inplace.mem], stop handling
-        inplace_stop_token get_token() const noexcept;
+        constexpr inplace_stop_token get_token() const noexcept;
         static constexpr bool stop_possible() noexcept { return true; }
         bool stop_requested() const noexcept;
         bool request_stop() noexcept;
@@ -5092,7 +5088,7 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span>
 #### Constructors, copy, and assignment <b>[stopsource.inplace.cons]</b> #### {#spec-stopsource.inplace.cons}
 
 <pre highlight="c++">
-inplace_stop_source() noexcept;
+constexpr inplace_stop_source() noexcept;
 </pre>
 
 1. *Effects*: Initializes a new stop state inside `*this`.
@@ -5102,10 +5098,11 @@ inplace_stop_source() noexcept;
 #### Members <b>[stopsource.inplace.mem]</b> #### {#spec-stopsource.inplace.mem}
 
 <pre highlight="c++">
-inplace_stop_token get_token() const noexcept;
+constexpr inplace_stop_token get_token() const noexcept;
 </pre>
 
-1. *Returns*: A new associated `inplace_stop_token` object.
+1. *Returns*: A new associated `inplace_stop_token` object. The `inplace_stop_token`
+    object's <i>`stop-source`</i> member is equal to `this`.
 
 <pre highlight="c++">
 bool stop_requested() const noexcept;
@@ -5135,52 +5132,43 @@ added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</span>
 
 #### General <b>[stopcallback.inplace.general]</b> #### {#spec-stopcallback.inplace.general}
 
-1.
+<pre highlight="c++">
+namespace std {
+  template&lt;class CallbackFn>
+  class inplace_stop_callback {
+  public:
+    using callback_type = CallbackFn;
 
-    <pre highlight="c++">
-    namespace std {
-      template&lt;class CallbackFn>
-      class inplace_stop_callback {
-      public:
-        using callback_type = CallbackFn;
+    // [stopcallback.inplace.cons], constructors and destructor
+    template&lt;class Initializer>
+      explicit inplace_stop_callback(inplace_stop_token st, Initializer&& init)
+        noexcept(is_nothrow_constructible_v&lt;CallbackFn, Initializer>);
+    ~inplace_stop_callback();
 
-        // [stopcallback.inplace.cons], constructors and destructor
-        template&lt;class Initializer>
-          explicit inplace_stop_callback(inplace_stop_token st, Initializer&& init)
-            noexcept(is_nothrow_constructible_v&lt;CallbackFn, Initializer>);
-        ~inplace_stop_callback();
+    inplace_stop_callback(inplace_stop_callback&&) = delete;
+    inplace_stop_callback(const inplace_stop_callback&) = delete;
+    inplace_stop_callback& operator=(inplace_stop_callback&&) = delete;
+    inplace_stop_callback& operator=(const inplace_stop_callback&) = delete;
 
-        inplace_stop_callback(inplace_stop_callback&&) = delete;
-        inplace_stop_callback(const inplace_stop_callback&) = delete;
-        inplace_stop_callback& operator=(inplace_stop_callback&&) = delete;
-        inplace_stop_callback& operator=(const inplace_stop_callback&) = delete;
+  private:
+    CallbackFn <i>callback-fn</i>;      <i>// exposition only</i>
+  };
 
-      private:
-        CallbackFn <i>callback-fn</i>;      <i>// exposition only</i>
-      };
+  template&lt;class CallbackFn>
+    inplace_stop_callback(inplace_stop_token, CallbackFn)
+      -> inplace_stop_callback&lt;CallbackFn>;
+}
+</pre>
 
-      template&lt;class CallbackFn>
-        inplace_stop_callback(inplace_stop_token, CallbackFn)
-          -> inplace_stop_callback&lt;CallbackFn>;
-    }
-    </pre>
-
-1. *Mandates*: `inplace_stop_callback` is instantiated with an argument for the
-    template parameter `CallbackFn` that satisfies both `invocable` and
-    `destructible`.
+1. *Mandates*: `CallbackFn` satisfies both `invocable` and `destructible`.
 
 2. *Remarks:* For a type `Initializer`, if
     <code><i>stoppable-callback-for</i>&lt;CallbackFn, inplace_stop_token,
     Initializer></code> is satisfied, then
     <code><i>stoppable-callback-for</i>&lt;CallbackFn, inplace_stop_token,
-    Initializer></code> is modeled. The exposition-only <i>`callback-fn`</i>
-    member is the associated callback function ([stoptoken.concepts]) of
-    `inplace_stop_callback<CallbackFn>` objects.
-
-    Implementations are not permitted to use additional storage, such as dynamic
-    memory, to store the state necessary for an `inplace_stop_callback`'s
-    association with an `inplace_stop_source` object or to register the callback
-    invocation with the associated `inplace_stop_source` object.
+    Initializer></code> is modeled. For an `inplace_stop_callback<CallbackFn>`
+    object, the exposition-only <i>`callback-fn`</i> member is its associated
+    callback function ([stoptoken.concepts]).
 
 #### Constructors and destructor <b>[stopcallback.inplace.cons]</b> #### {#spec-stopcallback.inplace.cons}
 
@@ -5231,11 +5219,8 @@ template&lt;class Initializer>
 <tr><td><a href="#spec-execution.execute">[exec.execute]</a></td><td>One-way execution</td><td></td></tr>
 </table>
 
-3. [<i>Note:</i> A large number of execution control primitives are
-    customization point objects. For an object one might define multiple types of
-    customization point objects, for which different rules apply. Table 2 shows
-    the types of customization point objects used in the execution control
-    library:
+3. Table 2 shows the types of customization point objects
+    [customization.point.object] used in the execution control library:
 
 <table>
 <caption>Table <i>N+1</i>: Types of customization point objects in the execution control library <b>[tab:execution.cpos]</b></caption>
@@ -5247,7 +5232,7 @@ template&lt;class Initializer>
 <tr>
     <td>core</td>
     <td>provide core execution functionality, and connection between core components</td>
-    <td>`connect`, `start`, `execute`</td>
+    <td>e.g., `connect`, `start`, `execute`</td>
 </tr>
 <tr>
     <td>completion functions</td>
@@ -5259,9 +5244,9 @@ template&lt;class Initializer>
     <td>allow the specialization of the provided sender algorithms</td>
     <td>
         <ul>
-            <li>sender factories (`schedule`, `just`, `read`, ...)</li>
-            <li>sender adaptors (`transfer`, `then`, `let_value`, ...)</li>
-            <li>sender consumers (`start_detached`, `sync_wait`)</li>
+            <li>sender factories (e.g., `schedule`, `just`, `read`)</li>
+            <li>sender adaptors (e.g., `transfer`, `then`, `let_value`)</li>
+            <li>sender consumers (e.g., `start_detached`, `sync_wait`)</li>
         </ul>
     </td>
 </tr>
@@ -5270,16 +5255,14 @@ template&lt;class Initializer>
     <td>allow querying different properties of objects</td>
     <td>
         <ul>
-            <li>general queries (`get_allocator`, `get_stop_token`, ...)</li>
-            <li>environment queries (`get_scheduler`, `get_delegatee_scheduler`, ...)</li>
-            <li>scheduler queries (`get_forward_progress_guarantee`, `execute_may_block_caller`, ...)</li>
-            <li>sender attribute queries (`get_completion_scheduler`)</li>
+            <li>general queries (e.g., `get_allocator`, `get_stop_token`)</li>
+            <li>environment queries (e.g., `get_scheduler`, `get_delegatee_scheduler`)</li>
+            <li>scheduler queries (e.g., `get_forward_progress_guarantee`, `execute_may_block_caller`)</li>
+            <li>sender attribute queries (e.g., `get_completion_scheduler`)</li>
         </ul>
     </td>
 </tr>
 </table>
-
--- <i>end note</i>]
 
 4. This clause makes use of the following exposition-only entities:
 
@@ -5293,16 +5276,16 @@ template&lt;class Initializer>
     2. <pre highlight="c++">
         namespace std {
           template&lt;class T>
-            concept <i>movable-value</i> =
+            concept <i>movable-value</i> = // exposition only
               move_constructible&lt;decay_t&lt;T>> &&
               constructible_from&lt;decay_t&lt;T>, T> &&
-              (!is_array_v&lt;remove_cvref_t&lt;T>>);
+              (!is_array_v&lt;remove_reference_t&lt;T>>);
         }
         </pre>
 
     3. For function types `F1` and `F2` denoting `R1(Args1...)` and
         `R2(Args2...)` respectively, <code><i>MATCHING-SIG</i>(F1, F2)</code> is
-        `true` if and only if `same_as<R1(Args&&...), R2(Args2&&...)>` is
+        `true` if and only if `same_as<R1(Args1&&...), R2(Args2&&...)>` is
         `true`.
 
     4. For a subexpression `err`, let `Err` be `decltype((err))` and let
@@ -5310,10 +5293,10 @@ template&lt;class Initializer>
 
         1. `err` if `decay_t<Err>` denotes the type `exception_ptr`.
 
-            - *Mandates:* `err != exception_ptr()` is `true`
+            - *Mandates:* `err != exception_ptr()` is `true`.
 
         2. Otherwise, `make_exception_ptr(system_error(err))` if `decay_t<Err>`
-            denotes the type `error_code`,
+            denotes the type `error_code`.
 
         3. Otherwise, `make_exception_ptr(err)`.
 
@@ -5326,27 +5309,25 @@ template&lt;class Initializer>
     <dfn export=true lt="query object">query object</dfn>. A <dfn
     export=true>query</dfn> is an invocation of a query object with a queryable
     object as its first argument and a (possibly empty) set of additional
-    arguments. The result of a query expression is valid as long as the
-    queryable object is valid. <span class="wg21note">A query imposes syntactic
-    and semantic requirements on its invocations.</span>
+    arguments. <span class="wg21note">A query imposes syntactic and semantic
+    requirements on its invocations.</span>
 
-2. Given a subexpression `env` that refers to a queryable object `o`, a query
-    object <i>`q`</i>, and a (possibly empty) pack of subexpressions
-    `args`, the expression <code><i>q</i>(env, args...)</code> is equal to
-    ([concepts.equality]) the expression <code><i>q</i>(c, args...)</code> where
-    `c` is a `const` lvalue reference to `o`.
+2. Let `q` be a query object, let `args` be a (possibly empty) pack of
+    subexpressions, let `env` be a subexpression that refers to a queryable
+    object `o` of type `O`, and let `cenv` be a subexpression refering to `o`
+    such that `decltype((cenv))` is `const O&`. The expression `q(env, args...)`
+    is equal to ([concepts.equality]) the expression `q(cenv, args...)`.
 
 3. The type of a query expression can not be `void`.
 
-4. The expression <code><i>q</i>(env, args...)</code> is equality-preserving
-    ([concepts.equality]) and does not modify the function object or the
-    arguments.
+4. The expression `q(env, args...)` is equality-preserving
+    ([concepts.equality]) and does not modify the query object or the arguments.
 
-5. If the expression <code>env.query(<i>q</i>, args...)</code> is well-formed,
-    then it is expression-equivalent to <code><i>q</i>(env, args...)</code>.
+5. If the expression `env.query(q, args...)` is well-formed, then it is
+    expression-equivalent to `q(env, args...)`.
 
-6. Unless otherwise specified, the value returned by the expression
-    <code><i>q</i>(env, args...)</code> is valid as long as `env` is valid.
+6. Unless otherwise specified, the result of a query is valid as long as the
+    queryable object is valid.
 
 ### `queryable` concept <b>[exec.queryable.concept]</b> ### {#spec-execution.queryable.concept}
 
@@ -9751,7 +9732,8 @@ void finish();
       }
       </pre>
 
-3. <b><code><i>call-result-t</i>&lt;as_awaitable_t, Value, Promise&> await_transform(Value&& value)</code></b>
+3. <b><code>template&lt;class Value><br/>
+    <i>call-result-t</i>&lt;as_awaitable_t, Value, Promise&> await_transform(Value&& value)</code></b>
 
     - <i>Effects:</i> equivalent to:
 
