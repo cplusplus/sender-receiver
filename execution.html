@@ -2386,7 +2386,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-05-08">2024-05-08</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-05-13">2024-05-13</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -7129,7 +7129,7 @@ stop is never possible nor requested.</p>
     <c- k>static</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- nf>stop_requested</c-><c- p>()</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>return</c-> false<c- p>;</c-> <c- p>}</c->
     <c- k>static</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- nf>stop_possible</c-><c- p>()</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>return</c-> false<c- p>;</c-> <c- p>}</c->
 
-    <c- b>bool</c-> <c- k>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>never_stop_token</c-><c- o>&amp;</c-><c- p>)</c-> <c- k>const</c-> <c- k>noexcept</c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
+    <c- b>bool</c-> <c- k>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>never_stop_token</c-><c- o>&amp;</c-><c- p>)</c-> <c- k>const</c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
   <c- p>};</c->
 <c- p>}</c->
 </pre>
@@ -7153,8 +7153,8 @@ references the stop state of its associated <code class="highlight"><c- n>inplac
     <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>CallbackFn</c-><c- o>></c->
       <c- k>using</c-> <c- n>callback_type</c-> <c- o>=</c-> <c- n>inplace_stop_callback</c-><c- o>&lt;</c-><c- n>CallbackFn</c-><c- o>></c-><c- p>;</c->
 
-    <c- n>inplace_stop_token</c-><c- p>()</c-> <c- k>noexcept</c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
-    <c- b>bool</c-> <c- k>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>inplace_stop_token</c-><c- o>&amp;</c-><c- p>)</c-> <c- k>const</c-> <c- k>noexcept</c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
+    <c- n>inplace_stop_token</c-><c- p>()</c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
+    <c- b>bool</c-> <c- k>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>inplace_stop_token</c-><c- o>&amp;</c-><c- p>)</c-> <c- k>const</c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
 
     <c- c1>// [stoptoken.inplace.mem], member functions</c->
     <c- b>bool</c-> <c- nf>stop_requested</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c->
@@ -7203,14 +7203,12 @@ of Stop tokens <b>[thread.stoptoken]</b>.</span></p>
      <h5 class="heading settled" data-level="33.3.9.1" id="spec-stopsource.inplace.general"><span class="secno">33.3.9.1. </span><span class="content">General <b>[stopsource.inplace.general]</b></span><a class="self-link" href="#spec-stopsource.inplace.general"></a></h5>
      <ol>
       <li data-md>
-       <p>The class <code class="highlight"><c- n>inplace_stop_source</c-></code> models <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i>. Unlike <code class="highlight"><c- n>stop_source</c-></code>, <code class="highlight"><c- n>inplace_stop_source</c-></code> does not require dynamic allocation or
-reference counting of a shared stop state. Instead, it requires that all
-uses of associated <code class="highlight"><c- n>inplace_stop_token</c-></code> and <code class="highlight"><c- n>inplace_stop_callback</c-></code> objects happen before the <code class="highlight"><c- n>inplace_stop_source</c-></code> is destroyed.</p>
+       <p>The class <code class="highlight"><c- n>inplace_stop_source</c-></code> models <i><code class="highlight"><c- n>stoppable</c-><c- o>-</c-><c- n>source</c-></code></i>.</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-> <c- p>{</c->
   <c- k>class</c-> <c- nc>inplace_stop_source</c-> <c- p>{</c->
   <c- k>public</c-><c- o>:</c->
     <c- c1>// [stopsource.inplace.cons], constructors, copy, and assignment</c->
-    <c- n>inplace_stop_source</c-><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c->
+    <c- k>constexpr</c-> <c- n>inplace_stop_source</c-><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c->
 
     <c- n>inplace_stop_source</c-><c- p>(</c-><c- n>inplace_stop_source</c-><c- o>&amp;&amp;</c-><c- p>)</c-> <c- o>=</c-> <c- k>delete</c-><c- p>;</c->
     <c- n>inplace_stop_source</c-><c- p>(</c-><c- k>const</c-> <c- n>inplace_stop_source</c-><c- o>&amp;</c-><c- p>)</c-> <c- o>=</c-> <c- k>delete</c-><c- p>;</c->
@@ -7219,7 +7217,7 @@ uses of associated <code class="highlight"><c- n>inplace_stop_token</c-></code> 
     <c- o>~</c-><c- n>inplace_stop_source</c-><c- p>();</c->
 
     <c- c1>//[stopsource.inplace.mem], stop handling</c->
-    <c- n>inplace_stop_token</c-> <c- nf>get_token</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c->
+    <c- k>constexpr</c-> <c- n>inplace_stop_token</c-> <c- nf>get_token</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c->
     <c- k>static</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- nf>stop_possible</c-><c- p>()</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>return</c-> true<c- p>;</c-> <c- p>}</c->
     <c- b>bool</c-> <c- nf>stop_requested</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c->
     <c- b>bool</c-> <c- nf>request_stop</c-><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c->
@@ -7228,7 +7226,7 @@ uses of associated <code class="highlight"><c- n>inplace_stop_token</c-></code> 
 </pre>
      </ol>
      <h5 class="heading settled" data-level="33.3.9.2" id="spec-stopsource.inplace.cons"><span class="secno">33.3.9.2. </span><span class="content">Constructors, copy, and assignment <b>[stopsource.inplace.cons]</b></span><a class="self-link" href="#spec-stopsource.inplace.cons"></a></h5>
-<pre class="highlight"><c- n>inplace_stop_source</c-><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c->
+<pre class="highlight"><c- k>constexpr</c-> <c- n>inplace_stop_source</c-><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c->
 </pre>
      <ol>
       <li data-md>
@@ -7237,11 +7235,11 @@ uses of associated <code class="highlight"><c- n>inplace_stop_token</c-></code> 
        <p><em>Postconditions</em>: <code class="highlight"><c- n>stop_requested</c-><c- p>()</c-></code> is <code class="highlight">false</code>.</p>
      </ol>
      <h5 class="heading settled" data-level="33.3.9.3" id="spec-stopsource.inplace.mem"><span class="secno">33.3.9.3. </span><span class="content">Members <b>[stopsource.inplace.mem]</b></span><a class="self-link" href="#spec-stopsource.inplace.mem"></a></h5>
-<pre class="highlight"><c- n>inplace_stop_token</c-> <c- nf>get_token</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c->
+<pre class="highlight"><c- k>constexpr</c-> <c- n>inplace_stop_token</c-> <c- nf>get_token</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c->
 </pre>
      <ol>
       <li data-md>
-       <p><em>Returns</em>: A new associated <code class="highlight"><c- n>inplace_stop_token</c-></code> object.</p>
+       <p><em>Returns</em>: A new associated <code class="highlight"><c- n>inplace_stop_token</c-></code> object. The <code class="highlight"><c- n>inplace_stop_token</c-></code> object’s <i><code class="highlight"><c- n>stop</c-><c- o>-</c-><c- n>source</c-></code></i> member is equal to <code class="highlight"><c- k>this</c-></code>.</p>
      </ol>
 <pre class="highlight"><c- b>bool</c-> <c- nf>stop_requested</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c->
 </pre>
@@ -7266,8 +7264,6 @@ added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</span>
     <div class="block-insert">
      <h4 class="heading settled" data-level="33.3.10" id="spec-stopcallback.inplace"><span class="secno">33.3.10. </span><span class="content">Class template <code class="highlight"><c- n>inplace_stop_callback</c-></code> <b>[stopcallback.inplace]</b></span><a class="self-link" href="#spec-stopcallback.inplace"></a></h4>
      <h5 class="heading settled" data-level="33.3.10.1" id="spec-stopcallback.inplace.general"><span class="secno">33.3.10.1. </span><span class="content">General <b>[stopcallback.inplace.general]</b></span><a class="self-link" href="#spec-stopcallback.inplace.general"></a></h5>
-     <ol>
-      <li data-md>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-> <c- p>{</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>CallbackFn</c-><c- o>></c->
   <c- k>class</c-> <c- nc>inplace_stop_callback</c-> <c- p>{</c->
@@ -7294,15 +7290,12 @@ added above, as a new subclause of Stop tokens <b>[thread.stoptoken]</b>.</span>
       <c- o>-></c-> <c- n>inplace_stop_callback</c-><c- o>&lt;</c-><c- n>CallbackFn</c-><c- o>></c-><c- p>;</c->
 <c- p>}</c->
 </pre>
+     <ol>
       <li data-md>
-       <p><em>Mandates</em>: <code class="highlight"><c- n>inplace_stop_callback</c-></code> is instantiated with an argument for the
-template parameter <code class="highlight"><c- n>CallbackFn</c-></code> that satisfies both <code class="highlight"><c- n>invocable</c-></code> and <code class="highlight"><c- n>destructible</c-></code>.</p>
+       <p><em>Mandates</em>: <code class="highlight"><c- n>CallbackFn</c-></code> satisfies both <code class="highlight"><c- n>invocable</c-></code> and <code class="highlight"><c- n>destructible</c-></code>.</p>
       <li data-md>
-       <p><em>Remarks:</em> For a type <code class="highlight"><c- n>Initializer</c-></code>, if <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>CallbackFn</c-><c- p>,</c-> <c- n>inplace_stop_token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is satisfied, then <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>CallbackFn</c-><c- p>,</c-> <c- n>inplace_stop_token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is modeled. The exposition-only <i><code class="highlight"><c- n>callback</c-><c- o>-</c-><c- n>fn</c-></code></i> member is the associated callback function ([stoptoken.concepts]) of <code class="highlight"><c- n>inplace_stop_callback</c-><c- o>&lt;</c-><c- n>CallbackFn</c-><c- o>></c-></code> objects.</p>
-       <p>Implementations are not permitted to use additional storage, such as dynamic
-memory, to store the state necessary for an <code class="highlight"><c- n>inplace_stop_callback</c-></code>’s
-association with an <code class="highlight"><c- n>inplace_stop_source</c-></code> object or to register the callback
-invocation with the associated <code class="highlight"><c- n>inplace_stop_source</c-></code> object.</p>
+       <p><em>Remarks:</em> For a type <code class="highlight"><c- n>Initializer</c-></code>, if <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>CallbackFn</c-><c- p>,</c-> <c- n>inplace_stop_token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is satisfied, then <code class="highlight"><i><c- n>stoppable</c-><c- o>-</c-><c- n>callback</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>CallbackFn</c-><c- p>,</c-> <c- n>inplace_stop_token</c-><c- p>,</c-> <c- n>Initializer</c-><c- o>></c-></code> is modeled. For an <code class="highlight"><c- n>inplace_stop_callback</c-><c- o>&lt;</c-><c- n>CallbackFn</c-><c- o>></c-></code> object, the exposition-only <i><code class="highlight"><c- n>callback</c-><c- o>-</c-><c- n>fn</c-></code></i> member is its associated
+callback function ([stoptoken.concepts]).</p>
      </ol>
      <h5 class="heading settled" data-level="33.3.10.2" id="spec-stopcallback.inplace.cons"><span class="secno">33.3.10.2. </span><span class="content">Constructors and destructor <b>[stopcallback.inplace.cons]</b></span><a class="self-link" href="#spec-stopcallback.inplace.cons"></a></h5>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Initializer</c-><c- o>></c->
@@ -7368,11 +7361,8 @@ for execution control primitives as summarized in Table 1.</p>
      </table>
      <ol start="3">
       <li data-md>
-       <p>[<i>Note:</i> A large number of execution control primitives are
-customization point objects. For an object one might define multiple types of
-customization point objects, for which different rules apply. Table 2 shows
-the types of customization point objects used in the execution control
-library:</p>
+       <p>Table 2 shows the types of customization point objects
+[customization.point.object] used in the execution control library:</p>
      </ol>
      <table>
       <caption>Table <i>N+1</i>: Types of customization point objects in the execution control library <b>[tab:execution.cpos]</b></caption>
@@ -7384,7 +7374,7 @@ library:</p>
        <tr>
         <td>core
         <td>provide core execution functionality, and connection between core components
-        <td><code class="highlight"><c- n>connect</c-></code>, <code class="highlight"><c- n>start</c-></code>, <code class="highlight"><c- n>execute</c-></code>
+        <td>e.g., <code class="highlight"><c- n>connect</c-></code>, <code class="highlight"><c- n>start</c-></code>, <code class="highlight"><c- n>execute</c-></code>
        <tr>
         <td>completion functions
         <td>called by senders to announce the completion of the work (success, error, or cancellation)
@@ -7394,22 +7384,21 @@ library:</p>
         <td>allow the specialization of the provided sender algorithms
         <td>
          <ul>
-          <li>sender factories (<code class="highlight"><c- n>schedule</c-></code>, <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>read</c-></code>, ...)
-          <li>sender adaptors (<code class="highlight"><c- n>transfer</c-></code>, <code class="highlight"><c- n>then</c-></code>, <code class="highlight"><c- n>let_value</c-></code>, ...)
-          <li>sender consumers (<code class="highlight"><c- n>start_detached</c-></code>, <code class="highlight"><c- n>sync_wait</c-></code>)
+          <li>sender factories (e.g., <code class="highlight"><c- n>schedule</c-></code>, <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>read</c-></code>)
+          <li>sender adaptors (e.g., <code class="highlight"><c- n>transfer</c-></code>, <code class="highlight"><c- n>then</c-></code>, <code class="highlight"><c- n>let_value</c-></code>)
+          <li>sender consumers (e.g., <code class="highlight"><c- n>start_detached</c-></code>, <code class="highlight"><c- n>sync_wait</c-></code>)
          </ul>
        <tr>
         <td><a href="#spec-execution.queries">queries</a>
         <td>allow querying different properties of objects
         <td>
          <ul>
-          <li>general queries (<code class="highlight"><c- n>get_allocator</c-></code>, <code class="highlight"><c- n>get_stop_token</c-></code>, ...)
-          <li>environment queries (<code class="highlight"><c- n>get_scheduler</c-></code>, <code class="highlight"><c- n>get_delegatee_scheduler</c-></code>, ...)
-          <li>scheduler queries (<code class="highlight"><c- n>get_forward_progress_guarantee</c-></code>, <code class="highlight"><c- n>execute_may_block_caller</c-></code>, ...)
-          <li>sender attribute queries (<code class="highlight"><c- n>get_completion_scheduler</c-></code>)
+          <li>general queries (e.g., <code class="highlight"><c- n>get_allocator</c-></code>, <code class="highlight"><c- n>get_stop_token</c-></code>)
+          <li>environment queries (e.g., <code class="highlight"><c- n>get_scheduler</c-></code>, <code class="highlight"><c- n>get_delegatee_scheduler</c-></code>)
+          <li>scheduler queries (e.g., <code class="highlight"><c- n>get_forward_progress_guarantee</c-></code>, <code class="highlight"><c- n>execute_may_block_caller</c-></code>)
+          <li>sender attribute queries (e.g., <code class="highlight"><c- n>get_completion_scheduler</c-></code>)
          </ul>
      </table>
-     <p>-- <i>end note</i>]</p>
      <ol start="4">
       <li data-md>
        <p>This clause makes use of the following exposition-only entities:</p>
@@ -7423,14 +7412,14 @@ library:</p>
         <li data-md>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-> <c- p>{</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
-    <c- k>concept</c-> <i><c- nc>movable</c-><c- o>-</c-><c- n>value</c-></i> <c- o>=</c->
+    <c- k>concept</c-> <i><c- nc>movable</c-><c- o>-</c-><c- n>value</c-></i> <c- o>=</c-> <c- c1>// exposition only</c->
       <c- n>move_constructible</c-><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
       <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>decay_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>,</c-> <c- n>T</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-      <c- p>(</c-><c- o>!</c-><c- n>is_array_v</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>>></c-><c- p>);</c->
+      <c- p>(</c-><c- o>!</c-><c- n>is_array_v</c-><c- o>&lt;</c-><c- n>remove_reference_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>>></c-><c- p>);</c->
 <c- p>}</c->
 </pre>
         <li data-md>
-         <p>For function types <code class="highlight"><c- n>F1</c-></code> and <code class="highlight"><c- n>F2</c-></code> denoting <code class="highlight"><c- n>R1</c-><c- p>(</c-><c- n>Args1</c-><c- p>...)</c-></code> and <code class="highlight"><c- n>R2</c-><c- p>(</c-><c- n>Args2</c-><c- p>...)</c-></code> respectively, <code class="highlight"><i><c- n>MATCHING</c-><c- o>-</c-><c- n>SIG</c-></i><c- p>(</c-><c- n>F1</c-><c- p>,</c-> <c- n>F2</c-><c- p>)</c-></code> is <code class="highlight">true</code> if and only if <code class="highlight"><c- n>same_as</c-><c- o>&lt;</c-><c- n>R1</c-><c- p>(</c-><c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...),</c-> <c- n>R2</c-><c- p>(</c-><c- n>Args2</c-><c- o>&amp;&amp;</c-><c- p>...)</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
+         <p>For function types <code class="highlight"><c- n>F1</c-></code> and <code class="highlight"><c- n>F2</c-></code> denoting <code class="highlight"><c- n>R1</c-><c- p>(</c-><c- n>Args1</c-><c- p>...)</c-></code> and <code class="highlight"><c- n>R2</c-><c- p>(</c-><c- n>Args2</c-><c- p>...)</c-></code> respectively, <code class="highlight"><i><c- n>MATCHING</c-><c- o>-</c-><c- n>SIG</c-></i><c- p>(</c-><c- n>F1</c-><c- p>,</c-> <c- n>F2</c-><c- p>)</c-></code> is <code class="highlight">true</code> if and only if <code class="highlight"><c- n>same_as</c-><c- o>&lt;</c-><c- n>R1</c-><c- p>(</c-><c- n>Args1</c-><c- o>&amp;&amp;</c-><c- p>...),</c-> <c- n>R2</c-><c- p>(</c-><c- n>Args2</c-><c- o>&amp;&amp;</c-><c- p>...)</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
         <li data-md>
          <p>For a subexpression <code class="highlight"><c- n>err</c-></code>, let <code class="highlight"><c- n>Err</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>err</c-><c- p>))</c-></code> and let <code class="highlight"><i><c- n>AS</c-><c- o>-</c-><c- n>EXCEPT</c-><c- o>-</c-><c- n>PTR</c-></i><c- p>(</c-><c- n>err</c-><c- p>)</c-></code> be:</p>
          <ol>
@@ -7438,10 +7427,10 @@ library:</p>
            <p><code class="highlight"><c- n>err</c-></code> if <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Err</c-><c- o>></c-></code> denotes the type <code class="highlight"><c- n>exception_ptr</c-></code>.</p>
            <ul>
             <li data-md>
-             <p><em>Mandates:</em> <code class="highlight"><c- n>err</c-> <c- o>!=</c-> <c- n>exception_ptr</c-><c- p>()</c-></code> is <code class="highlight">true</code></p>
+             <p><em>Mandates:</em> <code class="highlight"><c- n>err</c-> <c- o>!=</c-> <c- n>exception_ptr</c-><c- p>()</c-></code> is <code class="highlight">true</code>.</p>
            </ul>
           <li data-md>
-           <p>Otherwise, <code class="highlight"><c- n>make_exception_ptr</c-><c- p>(</c-><c- n>system_error</c-><c- p>(</c-><c- n>err</c-><c- p>))</c-></code> if <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Err</c-><c- o>></c-></code> denotes the type <code class="highlight"><c- n>error_code</c-></code>,</p>
+           <p>Otherwise, <code class="highlight"><c- n>make_exception_ptr</c-><c- p>(</c-><c- n>system_error</c-><c- p>(</c-><c- n>err</c-><c- p>))</c-></code> if <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Err</c-><c- o>></c-></code> denotes the type <code class="highlight"><c- n>error_code</c-></code>.</p>
           <li data-md>
            <p>Otherwise, <code class="highlight"><c- n>make_exception_ptr</c-><c- p>(</c-><c- n>err</c-><c- p>)</c-></code>.</p>
          </ol>
@@ -7454,24 +7443,23 @@ library:</p>
        <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="queryable-object">queryable object</dfn> is a read-only collection of
 key/value pairs where each key is a customization point object known as a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="query-object">query object</dfn>. A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="query">query</dfn> is an invocation of a query object with a queryable
 object as its first argument and a (possibly empty) set of additional
-arguments. The result of a query expression is valid as long as the
-queryable object is valid. <span class="wg21note">A query imposes syntactic
-and semantic requirements on its invocations.</span></p>
+arguments. <span class="wg21note">A query imposes syntactic and semantic
+requirements on its invocations.</span></p>
       <li data-md>
-       <p>Given a subexpression <code class="highlight"><c- n>env</c-></code> that refers to a queryable object <code class="highlight"><c- n>o</c-></code>, a query
-object <i><code class="highlight"><c- n>q</c-></code></i>, and a (possibly empty) pack of subexpressions <code class="highlight"><c- n>args</c-></code>, the expression <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is equal to
-([concepts.equality]) the expression <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>c</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> where <code class="highlight"><c- n>c</c-></code> is a <code class="highlight"><c- k>const</c-></code> lvalue reference to <code class="highlight"><c- n>o</c-></code>.</p>
+       <p>Let <code class="highlight"><c- n>q</c-></code> be a query object, let <code class="highlight"><c- n>args</c-></code> be a (possibly empty) pack of
+subexpressions, let <code class="highlight"><c- n>env</c-></code> be a subexpression that refers to a queryable
+object <code class="highlight"><c- n>o</c-></code> of type <code class="highlight"><c- n>O</c-></code>, and let <code class="highlight"><c- n>cenv</c-></code> be a subexpression refering to <code class="highlight"><c- n>o</c-></code> such that <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>cenv</c-><c- p>))</c-></code> is <code class="highlight"><c- k>const</c-> <c- n>O</c-><c- o>&amp;</c-></code>. The expression <code class="highlight"><c- n>q</c-><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is equal to ([concepts.equality]) the expression <code class="highlight"><c- n>q</c-><c- p>(</c-><c- n>cenv</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>.</p>
       <li data-md>
        <p>The type of a query expression can not be <code class="highlight"><c- b>void</c-></code>.</p>
       <li data-md>
-       <p>The expression <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is equality-preserving
-([concepts.equality]) and does not modify the function object or the
-arguments.</p>
+       <p>The expression <code class="highlight"><c- n>q</c-><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is equality-preserving
+([concepts.equality]) and does not modify the query object or the arguments.</p>
       <li data-md>
-       <p>If the expression <code class="highlight"><c- n>env</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><i><c- n>q</c-></i><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is well-formed,
-then it is expression-equivalent to <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>.</p>
+       <p>If the expression <code class="highlight"><c- n>env</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is well-formed, then it is
+expression-equivalent to <code class="highlight"><c- n>q</c-><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>.</p>
       <li data-md>
-       <p>Unless otherwise specified, the value returned by the expression <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> is valid as long as <code class="highlight"><c- n>env</c-></code> is valid.</p>
+       <p>Unless otherwise specified, the result of a query is valid as long as the
+queryable object is valid.</p>
      </ol>
      <h4 class="heading settled" data-level="34.2.2" id="spec-execution.queryable.concept"><span class="secno">34.2.2. </span><span class="content"><code class="highlight"><c- n>queryable</c-></code> concept <b>[exec.queryable.concept]</b></span><a class="self-link" href="#spec-execution.queryable.concept"></a></h4>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-> <c- p>{</c->
@@ -11391,7 +11379,7 @@ the <code class="highlight"><c- n>unhandled_stopped</c-></code> of the coroutine
 <c- p>}</c->
 </pre>
       <li data-md>
-       <p><b><code class="highlight"><i><c- n>call</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>as_awaitable_t</c-><c- p>,</c-> <c- n>Value</c-><c- p>,</c-> <c- n>Promise</c-><c- o>&amp;></c-> <c- n>await_transform</c-><c- p>(</c-><c- n>Value</c-><c- o>&amp;&amp;</c-> <c- n>value</c-><c- p>)</c-></code></b></p>
+       <p><b><code class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Value</c-><c- o>></c-><br> <i><c- n>call</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- n>as_awaitable_t</c-><c- p>,</c-> <c- n>Value</c-><c- p>,</c-> <c- n>Promise</c-><c- o>&amp;></c-> <c- n>await_transform</c-><c- p>(</c-><c- n>Value</c-><c- o>&amp;&amp;</c-> <c- n>value</c-><c- p>)</c-></code></b></p>
        <ul>
         <li data-md>
          <p><i>Effects:</i> equivalent to:</p>
