@@ -2386,7 +2386,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-05-13">2024-05-13</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-05-21">2024-05-21</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -2671,7 +2671,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
        <a href="#spec-execution.queryable"><span class="secno">34.2</span> <span class="content">Queries and queryables <b>[exec.queryable]</b></span></a>
        <ol class="toc">
         <li><a href="#spec-execution.queryable.general"><span class="secno">34.2.1</span> <span class="content">General <b>[exec.queryable.general]</b></span></a>
-        <li><a href="#spec-execution.queryable.concept"><span class="secno">34.2.2</span> <span class="content"><code class="highlight"><c- n>queryable</c-></code> concept <b>[exec.queryable.concept]</b></span></a>
+        <li><a href="#spec-execution.queryable.concept"><span class="secno">34.2.2</span> <span class="content"><i><code class="highlight"><c- n>queryable</c-></code></i> concept <b>[exec.queryable.concept]</b></span></a>
        </ol>
       <li><a href="#spec-execution-async.ops"><span class="secno">34.3</span> <span class="content">Asynchronous operations <b>[async.ops]</b></span></a>
       <li><a href="#spec-execution.syn"><span class="secno">34.4</span> <span class="content">Header <code class="highlight"><c- o>&lt;</c-><c- n>execution</c-><c- o>></c-></code> synopsis <b>[exec.syn]</b></span></a>
@@ -3218,7 +3218,7 @@ space for solutions.</p>
 Some things that are worth noting about Kirk’s solution:</p>
    <ol>
     <li data-md>
-     <p>Although it schedules asychronous work onto a thread pool, and each unit of
+     <p>Although it schedules asynchronous work onto a thread pool, and each unit of
 work will schedule more work, its use of structured concurrency patterns
 make reference counting unnecessary. The solution does not make use of <code class="highlight"><c- n>shared_ptr</c-></code>.</p>
     <li data-md>
@@ -6077,18 +6077,17 @@ receiver type. This technique is more explicit and easier to understand than <co
 <c- p>};</c->
 </pre>
    <p>The only exception to this is the customization of queries. There is a need to
-build queryable adaptors that can forward and open and unknowable set of queries
+build queryable adaptors that can forward an open and unknowable set of queries
 to some wrapped object. This is done by defining a member function named <code class="highlight"><c- n>query</c-></code> in the adaptor type that takes the query CPO object as its first
 (and usually only) argument. A queryable adaptor might look like this:</p>
-<pre class="highlight"><c- k>template</c-> <c- o>&lt;</c-><c- k>class</c-> <c- nc>Query</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Queryable</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Query</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Queryable</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
 <c- k>concept</c-> <c- nc>query_for</c-> <c- o>=</c->
-  <c- n>execution</c-><c- o>::</c-><c- n>queryable</c-><c- o>&lt;</c-><c- n>Queryable</c-><c- o>></c-> <c- o>&amp;&amp;</c->
   <c- k>requires</c-> <c- p>(</c-><c- k>const</c-> <c- n>Queryable</c-><c- o>&amp;</c-> <c- n>o</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- p>{</c->
     <c- n>o</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>Query</c-><c- p>(),</c-> <c- p>(</c-><c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>)</c-> <c- n>args</c-><c- p>...);</c->
   <c- p>};</c->
 
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Allocator</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>allocator</c-><c- o>&lt;></c-><c- p>,</c->
-         <c- n>execution</c-><c- o>::</c-><c- n>queryable</c-> <c- n>Base</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>empty_env</c-><c- o>></c->
+        <c- k>class</c-> <c- nc>Base</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>empty_env</c-><c- o>></c->
 <c- k>struct</c-> <c- nc>with_allocator</c-> <c- p>{</c->
   <c- n>Allocator</c-> <c- n>alloc</c-><c- p>{};</c->
   <c- n>Base</c-> <c- n>base</c-><c- p>{};</c->
@@ -7461,20 +7460,19 @@ expression-equivalent to <code class="highlight"><c- n>q</c-><c- p>(</c-><c- n>e
        <p>Unless otherwise specified, the result of a query is valid as long as the
 queryable object is valid.</p>
      </ol>
-     <h4 class="heading settled" data-level="34.2.2" id="spec-execution.queryable.concept"><span class="secno">34.2.2. </span><span class="content"><code class="highlight"><c- n>queryable</c-></code> concept <b>[exec.queryable.concept]</b></span><a class="self-link" href="#spec-execution.queryable.concept"></a></h4>
+     <h4 class="heading settled" data-level="34.2.2" id="spec-execution.queryable.concept"><span class="secno">34.2.2. </span><span class="content"><i><code class="highlight"><c- n>queryable</c-></code></i> concept <b>[exec.queryable.concept]</b></span><a class="self-link" href="#spec-execution.queryable.concept"></a></h4>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-> <c- p>{</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
-    <c- k>concept</c-> <c- nc>queryable</c-> <c- o>=</c-> <c- n>destructible</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>;</c->
+    <c- k>concept</c-> <i><c- nc>queryable</c-></i> <c- o>=</c-> <c- n>destructible</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
 <c- p>}</c->
 </pre>
      <ol>
       <li data-md>
-       <p>The <code class="highlight"><c- n>queryable</c-></code> concept specifies the constraints on the types of queryable
-objects.</p>
+       <p>The exposition-only <i><code class="highlight"><c- n>queryable</c-></code></i> concept specifies the constraints on
+the types of queryable objects.</p>
       <li data-md>
-       <p>Let <code class="highlight"><c- n>env</c-></code> be an object of type <code class="highlight"><c- n>Env</c-></code>. The type <code class="highlight"><c- n>Env</c-></code> models <code class="highlight"><c- n>queryable</c-></code> if
-for each callable object <i><code class="highlight"><c- n>q</c-></code></i> and a pack of subexpressions <code class="highlight"><c- n>args</c-></code>, if <code class="highlight"><c- k>requires</c-> <c- p>{</c-> <i><c- n>q</c-></i><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-> <c- p>}</c-></code> is <code class="highlight">true</code> then <code class="highlight"><i><c- n>q</c-></i><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> meets any semantic requirements imposed
-by <i><code class="highlight"><c- n>q</c-></code></i>.</p>
+       <p>Let <code class="highlight"><c- n>env</c-></code> be an object of type <code class="highlight"><c- n>Env</c-></code>. The type <code class="highlight"><c- n>Env</c-></code> models <i><code class="highlight"><c- n>queryable</c-></code></i> if for each callable object <code class="highlight"><c- n>q</c-></code> and a pack of
+subexpressions <code class="highlight"><c- n>args</c-></code>, if <code class="highlight"><c- k>requires</c-> <c- p>{</c-> <c- n>q</c-><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-> <c- p>}</c-></code> is <code class="highlight">true</code> then <code class="highlight"><c- n>q</c-><c- p>(</c-><c- n>env</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code> meets any semantic requirements imposed by <code class="highlight"><c- n>q</c-></code>.</p>
      </ol>
      <h3 class="heading settled" data-level="34.3" id="spec-execution-async.ops"><span class="secno">34.3. </span><span class="content">Asynchronous operations <b>[async.ops]</b></span><a class="self-link" href="#spec-execution-async.ops"></a></h3>
      <ol>
@@ -7490,31 +7488,37 @@ resource is either valid or invalid.</p>
       <li data-md>
        <p>An <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="asynchronous-operation">asynchronous operation</dfn> is a distinct unit of
 program execution that:</p>
-       <ul>
+       <ol>
         <li data-md>
-         <p>is explicitly created;</p>
+         <p>... is explicitly created.</p>
         <li data-md>
-         <p>can be explicitly <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="start" id="start">started</dfn>; an
-  asynchronous operation can be started once at most;</p>
+         <p>... can be explicitly <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="start" id="start">started</dfn> once at
+  most.</p>
         <li data-md>
-         <p>if started, eventually <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="complete" id="complete">completes</dfn> with a (possibly empty) set of result datums, and in exactly one of
-  three modes: success, failure, or cancellation, known as the
-  operation’s <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="disposition">disposition</dfn>; an asychronous
-  operation can only complete once; a successful completion, also known
-  as a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="value-completion">value completion</dfn>, can have an arbitrary
-  number of result datums; a failure completion, also known as an <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="error-completion">error completion</dfn>, has a single result datum; a
-  cancellation completion, also known as a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="stopped completion" id="stopped-completion">stopped
-  completion</dfn>, has no result datum; an asynchronous operation’s <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="async-result">async result</dfn> is its disposition and its
-  (possibly empty) set of result datums.</p>
+         <p>... once started started, eventually <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="complete" id="complete">completes</dfn> exactly once with a (possibly empty) set
+  of result datums and in exactly one of three <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="disposition" id="disposition">dispositions</dfn>: success, failure, or
+  cancellation.</p>
+         <ul>
+          <li data-md>
+           <p>A successful completion, also known as a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="value completion" id="value-completion">value
+completion</dfn>, can have an arbitrary number of result datums.</p>
+          <li data-md>
+           <p>A failure completion, also known as an <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="error completion" id="error-completion">error
+completion</dfn>, has a single result datum.</p>
+          <li data-md>
+           <p>A cancellation completion, also known as a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="stopped-completion">stopped completion</dfn>, has no result datum.</p>
+         </ul>
+         <p>An asynchronous operation’s <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="async-result">async result</dfn> is its
+  disposition and its (possibly empty) set of result datums.</p>
         <li data-md>
-         <p>can complete on a different execution resource than that on which it
-  started; and</p>
+         <p>... can complete on a different execution resource than the execution
+  resource on which it started.</p>
         <li data-md>
-         <p>can create and start other asychronous operations called <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="child-operations">child operations</dfn>. A child operation is an
+         <p>... can create and start other asynchronous operations called <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="child-operations">child operations</dfn>. A child operation is an
   asynchronous operation that is created by the parent operation and, if
   started, completes before the parent operation completes. A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="parent-operation">parent operation</dfn> is the asynchronous operation that
   created a particular child operation.</p>
-       </ul>
+       </ol>
        <p><span class="wg21note">An asynchronous operation can in fact execute
 synchronously; that is, it can complete during the execution of its start
 operation on the thread of execution that started it.</span></p>
@@ -7541,10 +7545,10 @@ receiver as the first argument and the result datums of the asynchronous
 operation as additional arguments. The value completion function invokes the
 receiver’s value completion handler with the value result datums; likewise
 for the error completion function and the stopped completion function. A
-completion function has an associated type known as its <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="completion-tag">completion tag</dfn> that names the unqualified type of the
+completion function has an associated type known as its <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="completion-tag">completion tag</dfn> that is the unqualified type of the
 completion function. A valid invocation of a completion function is called a <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="completion-operation">completion operation</dfn>.</p>
       <li data-md>
-       <p>The <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="asychronous operation lifetime" id="asychronous-operation-lifetime">lifetime of an
+       <p>The <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="asynchronous operation lifetime" id="asynchronous-operation-lifetime">lifetime of an
 asynchronous operation</dfn>, also known as the operation’s <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="async-lifetime">async lifetime</dfn>, begins when its start operation begins
 executing and ends when its completion operation begins executing. If the
 lifetime of an asynchronous operation’s associated operation state ends
@@ -7595,8 +7599,8 @@ schedulers and stopped completion schedulers.</p>
        <p>A sender has an associated queryable object ([exec.queryable]) known as its <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="attributes">attributes</dfn> that describes various characteristics of
 the sender and of the asynchronous operation(s) it produces. For each
 disposition, there is a query object for reading the associated completion
-scheduler from a sender’s attributes; <em>i.e.</em>, a value completion scheduler
-query object for reading a sender’s value completion scheduler, <em>etc</em>. If a
+scheduler from a sender’s attributes; i.e., a value completion scheduler
+query object for reading a sender’s value completion scheduler, etc. If a
 completion scheduler query is well-formed, the returned completion scheduler
 is unique for that disposition for any asynchronous operation the sender
 creates. A schedule sender is required to have a value completion scheduler
@@ -7604,7 +7608,7 @@ attribute whose value is equal to the scheduler that produced the schedule
 sender.</p>
       <li data-md>
        <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="completion-signature">completion signature</dfn> is a function type that
-describes a completion operation. An asychronous operation has a finite set
+describes a completion operation. An asynchronous operation has a finite set
 of possible completion signatures corresponding to the completion operations
 that the asynchronous operation potentially evaluates ([basic.def.odr]). For
 a completion function <i><code class="highlight"><c- n>set</c-></code></i>, receiver <i><code class="highlight"><c- n>rcvr</c-></code></i>, and pack of arguments <i><code class="highlight"><c- n>args</c-></code></i>,
@@ -7612,7 +7616,7 @@ let <code class="highlight"><c- n>c</c-></code> be the completion operation <cod
 A completion signature <code class="highlight"><c- n>Sig</c-></code> is associated with <code class="highlight"><c- n>c</c-></code> if and only if <code class="highlight"><i><c- n>MATCHING</c-><c- o>-</c-><c- n>SIG</c-></i><c- p>(</c-><c- n>Sig</c-><c- p>,</c-> <c- n>F</c-><c- p>)</c-></code> is <code class="highlight">true</code> ([exec.general]). Together,
 a sender type and an environment type <code class="highlight"><c- n>Env</c-></code> determine the set of completion
 signatures of an asynchronous operation that results from connecting the
-sender with a receiver that has an environment of type <code class="highlight"><c- n>Env</c-></code>. <span class="wg21note">The type of the receiver does not affect an asychronous
+sender with a receiver that has an environment of type <code class="highlight"><c- n>Env</c-></code>. <span class="wg21note">The type of the receiver does not affect an asynchronous
 operation’s completion signatures, only the type of the receiver’s
 environment.</span></p>
       <li data-md>
@@ -7648,12 +7652,12 @@ whose return type is not the type of a sender.</p>
 
   <c- c1>// [exec.queryable], queryable objects</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
-    <c- k>concept</c-> <c- nc>queryable</c-> <c- o>=</c-> <c- n>destructible</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>;</c->
+    <c- k>concept</c-> <i><c- nc>queryable</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>above</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
 
   <c- c1>// [exec.queries], queries</c->
-  <c- k>struct</c-> <c- nc>forwarding_query_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>get_allocator_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>get_stop_token_t</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>forwarding_query_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>get_allocator_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>get_stop_token_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
 
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>forwarding_query_t</c-> <c- n>forwarding_query</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>get_allocator_t</c-> <c- n>get_allocator</c-><c- p>{};</c->
@@ -7670,13 +7674,17 @@ whose return type is not the type of a sender.</p>
 
 <c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
   <c- c1>// [exec.queries], queries</c->
-  <c- k>enum</c-> <c- k>class</c-> <c- nc>forward_progress_guarantee</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>get_domain_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>get_scheduler_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>get_delegatee_scheduler_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>get_forward_progress_guarantee_t</c-><c- p>;</c->
+  <c- k>enum</c-> <c- k>class</c-> <c- nc>forward_progress_guarantee</c-> <c- p>{</c->
+    <c- n>concurrent</c-><c- p>,</c->
+    <c- n>parallel</c-><c- p>,</c->
+    <c- n>weakly_parallel</c->
+  <c- p>};</c->
+  <c- k>struct</c-> <c- nc>get_domain_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>get_scheduler_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>get_delegatee_scheduler_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>get_forward_progress_guarantee_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>CPO</c-><c- o>></c->
-    <c- k>struct</c-> <c- nc>get_completion_scheduler_t</c-><c- p>;</c->
+    <c- k>struct</c-> <c- nc>get_completion_scheduler_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
 
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>get_domain_t</c-> <c- n>get_domain</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>get_scheduler_t</c-> <c- n>get_scheduler</c-><c- p>{};</c->
@@ -7686,8 +7694,8 @@ whose return type is not the type of a sender.</p>
     <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>get_completion_scheduler_t</c-><c- o>&lt;</c-><c- n>CPO</c-><c- o>></c-> <c- n>get_completion_scheduler</c-><c- p>{};</c->
 
   <c- k>struct</c-> <c- nc>empty_env</c-> <c- p>{};</c->
-  <c- k>struct</c-> <c- nc>get_env_t</c-><c- p>;</c->
-  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>get_env_t</c-> <c- n>get_env</c-> <c- p>{};</c->
+  <c- k>struct</c-> <c- nc>get_env_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>get_env_t</c-> <c- n>get_env</c-><c- p>{};</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c->
     <c- k>using</c-> <c- n>env_of_t</c-> <c- o>=</c-> <c- k>decltype</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>declval</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>()));</c->
@@ -7710,9 +7718,9 @@ whose return type is not the type of a sender.</p>
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Completions</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>receiver_of</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
-  <c- k>struct</c-> <c- nc>set_value_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>set_error_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>set_stopped_t</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>set_value_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>set_error_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>set_stopped_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
 
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>set_value_t</c-> <c- n>set_value</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>set_error_t</c-> <c- n>set_error</c-><c- p>{};</c->
@@ -7724,7 +7732,7 @@ whose return type is not the type of a sender.</p>
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>O</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>operation_state</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
-  <c- k>struct</c-> <c- nc>start_t</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>start_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>start_t</c-> <c- n>start</c-><c- p>{};</c->
 
   <c- c1>// [exec.snd], senders</c->
@@ -7749,7 +7757,7 @@ whose return type is not the type of a sender.</p>
     <c- k>concept</c-> <i><c- nc>single</c-><c- o>-</c-><c- n>sender</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
 
   <c- c1>// [exec.getcomplsigs], completion signatures</c->
-  <c- k>struct</c-> <c- nc>get_completion_signatures_t</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>get_completion_signatures_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>get_completion_signatures_t</c-> <c- n>get_completion_signatures</c-> <c- p>{};</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Env</c-> <c- o>=</c-> <c- n>empty_env</c-><c- o>></c->
@@ -7779,18 +7787,18 @@ whose return type is not the type of a sender.</p>
       <c- k>requires</c-> <c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c->
     <c- kr>inline</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- n>sends_stopped</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
-  <c- k>template</c-> <c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- o>></c->
-    <c- k>using</c-> <c- n>tag_of_t</c-> <c- o>=</c-> <c- n>see</c-> <c- n>below</c-><c- p>;</c->
+  <c- k>template</c-><c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- o>></c->
+    <c- k>using</c-> <c- n>tag_of_t</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
 
   <c- c1>// [exec.snd.transform], sender transformations</c->
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Domain</c-><c- p>,</c-> <c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-><c- p>...</c-> <c- n>Env</c-><c- o>></c->
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Domain</c-><c- p>,</c-> <c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <i><c- n>queryable</c-></i><c- p>...</c-> <c- n>Env</c-><c- o>></c->
       <c- k>requires</c-> <c- p>(</c-><c- k>sizeof</c-><c- p>...(</c-><c- n>Env</c-><c- p>)</c-> <c- o>&lt;=</c-> <c- mi>1</c-><c- p>)</c->
     <c- k>constexpr</c-> <c- n>sender</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_sender</c-><c- p>(</c->
       <c- n>Domain</c-> <c- n>dom</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- k>const</c-> <c- n>Env</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>);</c->
 
   <c- c1>// [exec.snd.transform.env], environment transformations</c->
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Domain</c-><c- p>,</c-> <c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-> <c- n>Env</c-><c- o>></c->
-    <c- k>constexpr</c-> <c- n>queryable</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_env</c-><c- p>(</c->
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Domain</c-><c- p>,</c-> <c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <i><c- n>queryable</c-></i> <c- n>Env</c-><c- o>></c->
+    <c- k>constexpr</c-> <i><c- n>queryable</c-></i> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_env</c-><c- p>(</c->
       <c- n>Domain</c-> <c- n>dom</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>&amp;&amp;</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
 
   <c- c1>// [exec.snd.apply], sender algorithm application</c->
@@ -7799,7 +7807,7 @@ whose return type is not the type of a sender.</p>
       <c- n>Domain</c-> <c- n>dom</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>);</c->
 
   <c- c1>// [exec.connect], the connect sender algorithm</c->
-  <c- k>struct</c-> <c- nc>connect_t</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>connect_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>connect_t</c-> <c- n>connect</c-><c- p>{};</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
@@ -7807,10 +7815,10 @@ whose return type is not the type of a sender.</p>
       <c- k>decltype</c-><c- p>(</c-><c- n>connect</c-><c- p>(</c-><c- n>declval</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(),</c-> <c- n>declval</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>></c-><c- p>()));</c->
 
   <c- c1>// [exec.factories], sender factories</c->
-  <c- k>struct</c-> <c- nc>just_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>just_error_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>just_stopped_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>schedule_t</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>just_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>just_error_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>just_stopped_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>schedule_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
 
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>just_t</c-> <c- n>just</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>just_error_t</c-> <c- n>just_error</c-><c- p>{};</c->
@@ -7825,23 +7833,23 @@ whose return type is not the type of a sender.</p>
   <c- k>template</c-><c- o>&lt;</c-><i><c- k>class</c-><c- o>-</c-><c- n>type</c-></i> <c- n>D</c-><c- o>></c->
     <c- k>struct</c-> <c- nc>sender_adaptor_closure</c-> <c- p>{</c-> <c- p>};</c->
 
-  <c- k>struct</c-> <c- nc>on_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>transfer_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>schedule_from_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>then_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>upon_error_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>upon_stopped_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>let_value_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>let_error_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>let_stopped_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>bulk_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>split_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>ensure_started_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>when_all_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>when_all_with_variant_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>into_variant_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>stopped_as_optional_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>stopped_as_error_t</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>on_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>transfer_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>schedule_from_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>then_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>upon_error_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>upon_stopped_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>let_value_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>let_error_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>let_stopped_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>bulk_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>split_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>ensure_started_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>when_all_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>when_all_with_variant_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>into_variant_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>stopped_as_optional_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>stopped_as_error_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
 
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>on_t</c-> <c- n>on</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>transfer_t</c-> <c- n>transfer</c-><c- p>{};</c->
@@ -7858,11 +7866,11 @@ whose return type is not the type of a sender.</p>
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>when_all_t</c-> <c- n>when_all</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>when_all_with_variant_t</c-> <c- n>when_all_with_variant</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>into_variant_t</c-> <c- n>into_variant</c-><c- p>{};</c->
-  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>stopped_as_optional_t</c-> <c- n>stopped_as_optional</c-><c- p>;</c->
-  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>stopped_as_error_t</c-> <c- n>stopped_as_error</c-><c- p>;</c->
+  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>stopped_as_optional_t</c-> <c- n>stopped_as_optional</c-><c- p>{};</c->
+  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>stopped_as_error_t</c-> <c- n>stopped_as_error</c-><c- p>{};</c->
 
   <c- c1>// [exec.consumers], sender consumers</c->
-  <c- k>struct</c-> <c- nc>start_detached_t</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>start_detached_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>start_detached_t</c-> <c- n>start_detached</c-><c- p>{};</c->
 
   <c- c1>// [exec.utils], sender and receiver utilities</c->
@@ -7906,11 +7914,11 @@ whose return type is not the type of a sender.</p>
 
 <c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>this_thread</c-> <c- p>{</c->
   <c- c1>// [exec.queries], queries</c->
-  <c- k>struct</c-> <c- nc>execute_may_block_caller_t</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>execute_may_block_caller_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>execute_may_block_caller_t</c-> <c- n>execute_may_block_caller</c-><c- p>{};</c->
 
-  <c- k>struct</c-> <c- nc>sync_wait_t</c-><c- p>;</c->
-  <c- k>struct</c-> <c- nc>sync_wait_with_variant_t</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>sync_wait_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>sync_wait_with_variant_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
 
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>sync_wait_t</c-> <c- n>sync_wait</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>sync_wait_with_variant_t</c-> <c- n>sync_wait_with_variant</c-><c- p>{};</c->
@@ -7918,12 +7926,12 @@ whose return type is not the type of a sender.</p>
 
 <c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
   <c- c1>// [exec.execute], one-way execution</c->
-  <c- k>struct</c-> <c- nc>execute_t</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>execute_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>execute_t</c-> <c- n>execute</c-><c- p>{};</c->
 
   <c- c1>// [exec.as.awaitable]</c->
-  <c- k>struct</c-> <c- nc>as_awaitable_t</c-><c- p>;</c->
-  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>as_awaitable_t</c-> <c- n>as_awaitable</c-><c- p>;</c->
+  <c- k>struct</c-> <c- nc>as_awaitable_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>as_awaitable_t</c-> <c- n>as_awaitable</c-><c- p>{};</c->
 
   <c- c1>// [exec.with.awaitable.senders]</c->
   <c- k>template</c-><c- o>&lt;</c-><i><c- k>class</c-><c- o>-</c-><c- n>type</c-></i> <c- n>Promise</c-><c- o>></c->
@@ -7936,13 +7944,13 @@ whose return type is not the type of a sender.</p>
  defined as follows:</p>
        <ol>
         <li data-md>
-         <p>If <code class="highlight"><c- k>sizeof</c-><c- p>...(</c-><c- n>Ts</c-><c- p>)</c-></code> is greater than zero, <code class="highlight"><i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></i></code> names the type <code class="highlight"><c- n>variant</c-><c- o>&lt;</c-><c- n>Us</c-><c- p>...</c-><c- o>></c-></code> where <code class="highlight"><c- n>Us</c-><c- p>...</c-></code> is the pack <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-><c- p>...</c-></code> with
+         <p>If <code class="highlight"><c- k>sizeof</c-><c- p>...(</c-><c- n>Ts</c-><c- p>)</c-></code> is greater than zero, <code class="highlight"><i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></i></code> denotes <code class="highlight"><c- n>variant</c-><c- o>&lt;</c-><c- n>Us</c-><c- p>...</c-><c- o>></c-></code> where <code class="highlight"><c- n>Us</c-><c- p>...</c-></code> is the pack <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-><c- p>...</c-></code> with
 duplicate types removed.</p>
         <li data-md>
-         <p>Otherwise, <code class="highlight"><i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></i></code> names the
+         <p>Otherwise, <code class="highlight"><i><c- n>variant</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- n>empty</c-><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></i></code> denotes the
 exposition-only class type:</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
-  <c- k>struct</c-> <i><c- nc>empty</c-><c- o>-</c-><c- n>variant</c-></i> <c- p>{</c->
+  <c- k>struct</c-> <i><c- nc>empty</c-><c- o>-</c-><c- n>variant</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
     <i><c- n>empty</c-><c- o>-</c-><c- n>variant</c-></i><c- p>()</c-> <c- o>=</c-> <c- k>delete</c-><c- p>;</c->
   <c- p>};</c->
 <c- p>}</c->
@@ -8024,7 +8032,7 @@ well-formed.</p>
          <ul>
           <li data-md>
            <p><i>Mandates:</i> The expression above is not potentially throwing, and
-its type satisfies <code class="highlight"><c- n>queryable</c-></code> ([exec.queryable]).</p>
+its type satisfies <i><code class="highlight"><c- n>queryable</c-></code></i> ([exec.queryable]).</p>
          </ul>
         <li data-md>
          <p>Otherwise, <code class="highlight"><c- n>empty_env</c-><c- p>{}</c-></code>.</p>
@@ -8190,7 +8198,7 @@ scheduler. A valid invocation of <code class="highlight"><c- n>schedule</c-></co
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sch</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>scheduler</c-> <c- o>=</c->
       <i><c- n>enable</c-><c- o>-</c-><c- n>scheduler</c-></i><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
-      <c- n>queryable</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+      <i><c- n>queryable</c-></i><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <c- k>requires</c-><c- p>(</c-><c- n>Sch</c-><c- o>&amp;&amp;</c-> <c- n>sch</c-><c- p>)</c-> <c- p>{</c->
         <c- p>{</c-> <c- n>schedule</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-><c- p>(</c-><c- n>sch</c-><c- p>))</c-> <c- p>}</c-> <c- o>-></c-> <c- n>sender</c-><c- p>;</c->
         <c- p>{</c-> <c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- o>></c-><c- p>(</c->
@@ -8243,7 +8251,7 @@ operations corresponding to a set of completion signatures. The <code class="hig
     <c- k>concept</c-> <c- nc>receiver</c-> <c- o>=</c->
       <i><c- n>enable</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
       <c- k>requires</c-><c- p>(</c-><c- k>const</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- p>{</c->
-        <c- p>{</c-> <c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)</c-> <c- p>}</c-> <c- o>-></c-> <c- n>queryable</c-><c- p>;</c->
+        <c- p>{</c-> <c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)</c-> <c- p>}</c-> <c- o>-></c-> <i><c- n>queryable</c-></i><c- p>;</c->
       <c- p>}</c-> <c- o>&amp;&amp;</c->
       <c- n>move_constructible</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>></c-> <c- o>&amp;&amp;</c->  <i><c- c1>// rvalues are movable, and</c-></i>
       <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>></c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-><c- p>;</c-> <i><c- c1>// lvalues are copyable</c-></i>
@@ -8315,7 +8323,7 @@ type ([async.ops]).</p>
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>O</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>operation_state</c-> <c- o>=</c->
       <i><c- n>enable</c-><c- o>-</c-><c- n>opstate</c-></i><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>O</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
-      <c- n>queryable</c-><c- o>&lt;</c-><c- n>O</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+      <i><c- n>queryable</c-></i><c- o>&lt;</c-><c- n>O</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <c- n>is_object_v</c-><c- o>&lt;</c-><c- n>O</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <c- k>requires</c-> <c- p>(</c-><c- n>O</c-><c- o>&amp;</c-> <c- n>o</c-><c- p>)</c-> <c- p>{</c->
         <c- p>{</c-> <c- n>start</c-><c- p>(</c-><c- n>o</c-><c- p>)</c-> <c- p>}</c-> <c- k>noexcept</c-><c- p>;</c->
@@ -8540,7 +8548,7 @@ non-movable types into containers like <code class="highlight"><c- n>tuple</c-><
 structured binding declaration [dcl.struct.bind].</span></p>
          </ol>
         <li data-md>
-<pre class="highlight"><c- k>template</c-> <c- o>&lt;</c-><c- n>semiregular</c-> <c- n>Tag</c-><c- p>,</c-> <i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i> <c- n>Data</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>,</c-> <c- n>sender</c-><c- p>...</c-> <c- n>Child</c-><c- o>></c->
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- n>semiregular</c-> <c- n>Tag</c-><c- p>,</c-> <i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i> <c- n>Data</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>,</c-> <c- n>sender</c-><c- p>...</c-> <c- n>Child</c-><c- o>></c->
   <c- k>constexpr</c-> <c- k>auto</c-> <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Data</c-><c- o>&amp;&amp;</c-> <c- n>data</c-><c- p>,</c-> <c- n>Child</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>child</c-><c- p>);</c->
 </pre>
          <ol>
@@ -8690,10 +8698,10 @@ class template except as noted below:</p>
     <c- n>Child</c-><sub><i><c- n>n</c-><c- mi>-1</c-></i></sub> <i><c- n>child</c-><sub><c- n>n</c-><c- mi>-1</c-></sub></i><c- p>;</c->   <c- c1>// exposition only</c->
   <c- p>};</c->
 
-  <c- k>template</c-> <c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
   <c- k>using</c-> <i><c- n>data</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- k>decltype</c-><c- p>((</c-><c- n>declval</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>().</c-><i><c- n>data</c-></i><c- p>));</c-> <c- c1>// exposition only</c->
 
-  <c- k>template</c-> <c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>N</c-> <c- o>=</c-> <c- mi>0</c-><c- o>></c->
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>N</c-> <c- o>=</c-> <c- mi>0</c-><c- o>></c->
   <c- k>using</c-> <i><c- n>child</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- k>decltype</c-><c- p>((</c-><c- n>declval</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>().</c-><i><c- n>child</c-><sub><c- n>N</c-></sub></i><c- p>));</c-> <c- c1>// exposition only</c->
 <c- p>}</c->
 </pre>
@@ -8791,7 +8799,7 @@ sender and a receiver to produce an operation state.</p>
     <c- k>concept</c-> <c- nc>sender</c-> <c- o>=</c->
       <c- b>bool</c-><c- p>(</c-><i><c- n>enable</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>></c-><c- p>)</c-> <c- o>&amp;&amp;</c-> <i><c- c1>// atomic constraint</c-></i>
       <c- k>requires</c-> <c- p>(</c-><c- k>const</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>&amp;</c-> <c- n>sndr</c-><c- p>)</c-> <c- p>{</c->
-        <c- p>{</c-> <c- n>get_env</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-> <c- p>}</c-> <c- o>-></c-> <c- n>queryable</c-><c- p>;</c->
+        <c- p>{</c-> <c- n>get_env</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-> <c- p>}</c-> <c- o>-></c-> <i><c- n>queryable</c-></i><c- p>;</c->
       <c- p>}</c-> <c- o>&amp;&amp;</c->
       <c- n>move_constructible</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>></c-> <c- o>&amp;&amp;</c->  <i><c- c1>// rvalues are movable, and</c-></i>
       <c- n>constructible_from</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>,</c-> <c- n>Sndr</c-><c- o>></c-><c- p>;</c-> <i><c- c1>// lvalues are copyable</c-></i>
@@ -8799,7 +8807,7 @@ sender and a receiver to produce an operation state.</p>
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Env</c-> <c- o>=</c-> <c- n>empty_env</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>sender_in</c-> <c- o>=</c->
       <c- n>sender</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-      <c- n>queryable</c-><c- o>&lt;</c-><c- n>Env</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+      <i><c- n>queryable</c-></i><c- o>&lt;</c-><c- n>Env</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <c- k>requires</c-> <c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>&amp;&amp;</c-> <c- n>env</c-><c- p>)</c-> <c- p>{</c->
         <c- p>{</c-> <c- n>get_completion_signatures</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Env</c-><c- o>></c-><c- p>(</c-><c- n>env</c-><c- p>))</c-> <c- p>}</c->
           <c- o>-></c-> <i><c- n>valid</c-><c- o>-</c-><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-></i><c- p>;</c->
@@ -8977,13 +8985,13 @@ an lvalue <code class="highlight"><c- n>p</c-></code> of type <code class="highl
      <h4 class="heading settled" data-level="34.9.4" id="spec-execution.default_domain"><span class="secno">34.9.4. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>default_domain</c-></code> <b>[exec.domain.default]</b></span><a class="self-link" href="#spec-execution.default_domain"></a></h4>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
   <c- k>struct</c-> <c- nc>default_domain</c-> <c- p>{</c->
-    <c- k>template</c-> <c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-><c- p>...</c-> <c- n>Env</c-><c- o>></c->
+    <c- k>template</c-><c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <i><c- n>queryable</c-></i><c- p>...</c-> <c- n>Env</c-><c- o>></c->
         <c- k>requires</c-> <c- p>(</c-><c- k>sizeof</c-><c- p>...(</c-><c- n>Env</c-><c- p>)</c-> <c- o>&lt;=</c-> <c- mi>1</c-><c- p>)</c->
       <c- k>static</c-> <c- k>constexpr</c-> <c- n>sender</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_sender</c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- k>const</c-> <c- n>Env</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>env</c-><c- p>)</c->
         <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>);</c->
 
-    <c- k>template</c-> <c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-> <c- n>Env</c-><c- o>></c->
-      <c- k>static</c-> <c- k>constexpr</c-> <c- n>queryable</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_env</c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>&amp;&amp;</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
+    <c- k>template</c-><c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <i><c- n>queryable</c-></i> <c- n>Env</c-><c- o>></c->
+      <c- k>static</c-> <c- k>constexpr</c-> <i><c- n>queryable</c-></i> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_env</c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>&amp;&amp;</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
 
     <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
       <c- k>static</c-> <c- k>constexpr</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>apply_sender</c-><c- p>(</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c->
@@ -8992,7 +9000,7 @@ an lvalue <code class="highlight"><c- n>p</c-></code> of type <code class="highl
 <c- p>}</c->
 </pre>
      <h5 class="heading settled" data-level="34.9.4.1" id="spec-execution.default_domain.statics"><span class="secno">34.9.4.1. </span><span class="content">Static members <b>[exec.domain.default.statics]</b></span><a class="self-link" href="#spec-execution.default_domain.statics"></a></h5>
-<pre class="highlight"><c- k>template</c-> <c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-><c- p>...</c-> <c- n>Env</c-><c- o>></c->
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <i><c- n>queryable</c-></i><c- p>...</c-> <c- n>Env</c-><c- o>></c->
     <c- k>requires</c-> <c- p>(</c-><c- k>sizeof</c-><c- p>...(</c-><c- n>Env</c-><c- p>)</c-> <c- o>&lt;=</c-> <c- mi>1</c-><c- p>)</c->
   <c- k>constexpr</c-> <c- n>sender</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_sender</c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- k>const</c-> <c- n>Env</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>env</c-><c- p>)</c->
     <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>);</c->
@@ -9006,8 +9014,8 @@ expression is well-formed; otherwise, <code class="highlight"><c- n>std</c-><c- 
       <li data-md>
        <p><i>Remarks:</i> The exception specification is equivalent to <code class="highlight"><c- k>noexcept</c-><c- p>(</c-><i><c- n>e</c-></i><c- p>)</c-></code>.</p>
      </ol>
-<pre class="highlight"><c- k>template</c-> <c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-> <c- n>Env</c-><c- o>></c->
-  <c- k>constexpr</c-> <c- n>queryable</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_env</c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>&amp;&amp;</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <i><c- n>queryable</c-></i> <c- n>Env</c-><c- o>></c->
+  <c- k>constexpr</c-> <i><c- n>queryable</c-></i> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_env</c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>&amp;&amp;</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
 </pre>
      <ol start="4">
       <li data-md>
@@ -9033,7 +9041,7 @@ expression is well-formed; otherwise, <code class="highlight"><c- n>std</c-><c- 
      </ol>
      <h4 class="heading settled" data-level="34.9.5" id="spec-execution.sender_transform"><span class="secno">34.9.5. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transform_sender</c-></code> <b>[exec.snd.transform]</b></span><a class="self-link" href="#spec-execution.sender_transform"></a></h4>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Domain</c-><c- p>,</c-> <c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-><c- p>...</c-> <c- n>Env</c-><c- o>></c->
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Domain</c-><c- p>,</c-> <c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <i><c- n>queryable</c-></i><c- p>...</c-> <c- n>Env</c-><c- o>></c->
       <c- k>requires</c-> <c- p>(</c-><c- k>sizeof</c-><c- p>...(</c-><c- n>Env</c-><c- p>)</c-> <c- o>&lt;=</c-> <c- mi>1</c-><c- p>)</c->
     <c- k>constexpr</c-> <c- n>sender</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_sender</c-><c- p>(</c-><c- n>Domain</c-> <c- n>dom</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- k>const</c-> <c- n>Env</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>env</c-><c- p>)</c->
       <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>);</c->
@@ -9051,8 +9059,8 @@ expression <code class="highlight"><c- n>transform_sender</c-><c- p>(</c-><c- n>
      </ol>
      <h4 class="heading settled" data-level="34.9.6" id="spec-execution.env_transform"><span class="secno">34.9.6. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transform_env</c-></code> <b>[exec.snd.transform.env]</b></span><a class="self-link" href="#spec-execution.env_transform"></a></h4>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Domain</c-><c- p>,</c-> <c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-> <c- n>Env</c-><c- o>></c->
-    <c- k>constexpr</c-> <c- n>queryable</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_env</c-><c- p>(</c-><c- n>Domain</c-> <c- n>dom</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>&amp;&amp;</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Domain</c-><c- p>,</c-> <c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <i><c- n>queryable</c-></i> <c- n>Env</c-><c- o>></c->
+    <c- k>constexpr</c-> <i><c- n>queryable</c-></i> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>transform_env</c-><c- p>(</c-><c- n>Domain</c-> <c- n>dom</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>&amp;&amp;</c-> <c- n>env</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
 <c- p>}</c->
 </pre>
      <ol>
@@ -10146,7 +10154,7 @@ expression:</p>
         <li data-md>
          <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>>::</c-><i><c- n>start</c-></i></code> is initialized with a callable object that has a call operator
 equivalent to the following:</p>
-<pre class="highlight"><c- k>template</c-> <c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
 <c- b>void</c-> <c- k>operator</c-><c- p>()(</c-><i><c- n>local</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c->
 </pre>
          <ol>
@@ -10276,11 +10284,11 @@ expression:</p>
 
 <c- k>enum</c-> <c- k>class</c-> <i><c- nc>disposition</c-></i> <c- p>{</c-> <i><c- n>started</c-></i><c- p>,</c-> <i><c- n>error</c-></i><c- p>,</c-> <i><c- n>stopped</c-></i> <c- p>};</c->
 
-<c- k>template</c-> <c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
+<c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
 <c- k>struct</c-> <i><c- nc>make</c-><c- o>-</c-><c- n>state</c-></i> <c- p>{</c->
   <c- k>const</c-> <c- n>env_of_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>&amp;</c-> <c- n>env</c-><c- p>;</c->
 
-  <c- k>template</c-> <c- o>&lt;</c-><i><c- n>max</c-><c- mi>-1</c-><c- o>-</c-><c- n>sender</c-><c- o>-</c-><c- n>in</c-></i><c- o>&lt;</c-><c- n>env_of_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>></c-><c- p>...</c-> <c- n>Sndrs</c-><c- o>></c->
+  <c- k>template</c-><c- o>&lt;</c-><i><c- n>max</c-><c- mi>-1</c-><c- o>-</c-><c- n>sender</c-><c- o>-</c-><c- n>in</c-></i><c- o>&lt;</c-><c- n>env_of_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>></c-><c- p>...</c-> <c- n>Sndrs</c-><c- o>></c->
   <c- k>auto</c-> <c- k>operator</c-><c- p>()(</c-><c- k>auto</c-><c- p>,</c-> <c- k>auto</c-><c- p>,</c-> <c- n>Sndrs</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>sndrs</c-><c- p>)</c-> <c- k>const</c-> <c- p>{</c->
     <c- k>using</c-> <c- n>values_tuple</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
     <c- k>using</c-> <c- n>errors_variant</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
@@ -11523,8 +11531,8 @@ the <code class="highlight"><c- n>unhandled_stopped</c-></code> of the coroutine
   <h3 class="no-num no-ref heading settled" id="index-defined-here"><span class="content">Terms defined by this specification</span><a class="self-link" href="#index-defined-here"></a></h3>
   <ul class="index">
    <li><a href="#associated">associated</a><span>, in § 33.3.1</span>
-   <li><a href="#asychronous-operation-lifetime">asychronous operation lifetime</a><span>, in § 34.3</span>
    <li><a href="#asynchronous-operation">asynchronous operation</a><span>, in § 34.3</span>
+   <li><a href="#asynchronous-operation-lifetime">asynchronous operation lifetime</a><span>, in § 34.3</span>
    <li><a href="#async-lifetime">async lifetime</a><span>, in § 34.3</span>
    <li><a href="#async-result">async result</a><span>, in § 34.3</span>
    <li><a href="#attributes">attributes</a><span>, in § 34.3</span>
@@ -11799,10 +11807,10 @@ function parseHTML(markup) {
 {
 let dfnPanelData = {
 "associated": {"dfnID":"associated","dfnText":"associated","external":false,"refSections":[],"url":"#associated"},
-"asychronous-operation-lifetime": {"dfnID":"asychronous-operation-lifetime","dfnText":"lifetime of an\nasynchronous operation","external":false,"refSections":[],"url":"#asychronous-operation-lifetime"},
 "async-lifetime": {"dfnID":"async-lifetime","dfnText":"async lifetime","external":false,"refSections":[],"url":"#async-lifetime"},
 "async-result": {"dfnID":"async-result","dfnText":"async result","external":false,"refSections":[],"url":"#async-result"},
 "asynchronous-operation": {"dfnID":"asynchronous-operation","dfnText":"asynchronous operation","external":false,"refSections":[],"url":"#asynchronous-operation"},
+"asynchronous-operation-lifetime": {"dfnID":"asynchronous-operation-lifetime","dfnText":"lifetime of an\nasynchronous operation","external":false,"refSections":[],"url":"#asynchronous-operation-lifetime"},
 "attributes": {"dfnID":"attributes","dfnText":"attributes","external":false,"refSections":[],"url":"#attributes"},
 "awaitable": {"dfnID":"awaitable","dfnText":"awaitable","external":false,"refSections":[],"url":"#awaitable"},
 "callback-function": {"dfnID":"callback-function","dfnText":"callback\nfunction","external":false,"refSections":[],"url":"#callback-function"},
@@ -11818,9 +11826,9 @@ let dfnPanelData = {
 "connect": {"dfnID":"connect","dfnText":"Connecting","external":false,"refSections":[{"refs":[{"id":"ref-for-connect"}],"title":"4.20.12. execution::ensure_started"},{"refs":[{"id":"ref-for-connect\u2460"}],"title":"5.3. execution::connect"}],"url":"#connect"},
 "decay-copied-from": {"dfnID":"decay-copied-from","dfnText":"decay-copied from","external":false,"refSections":[],"url":"#decay-copied-from"},
 "disengaged": {"dfnID":"disengaged","dfnText":"disengaged","external":false,"refSections":[],"url":"#disengaged"},
-"disposition": {"dfnID":"disposition","dfnText":"disposition","external":false,"refSections":[],"url":"#disposition"},
+"disposition": {"dfnID":"disposition","dfnText":"dispositions","external":false,"refSections":[],"url":"#disposition"},
 "environment": {"dfnID":"environment","dfnText":"environment","external":false,"refSections":[],"url":"#environment"},
-"error-completion": {"dfnID":"error-completion","dfnText":"error completion","external":false,"refSections":[],"url":"#error-completion"},
+"error-completion": {"dfnID":"error-completion","dfnText":"error\ncompletion","external":false,"refSections":[],"url":"#error-completion"},
 "execution-resource": {"dfnID":"execution-resource","dfnText":"execution resource","external":false,"refSections":[{"refs":[{"id":"ref-for-execution-resource"}],"title":"4.1. Execution resources describe the place of execution"}],"url":"#execution-resource"},
 "multi-shot-sender": {"dfnID":"multi-shot-sender","dfnText":"multi-shot sender","external":false,"refSections":[],"url":"#multi-shot-sender"},
 "operation-state": {"dfnID":"operation-state","dfnText":"operation state","external":false,"refSections":[{"refs":[{"id":"ref-for-operation-state"}],"title":"5.2. Operation states represent work"}],"url":"#operation-state"},
@@ -11850,9 +11858,9 @@ let dfnPanelData = {
 "stop-state": {"dfnID":"stop-state","dfnText":"stop state","external":false,"refSections":[],"url":"#stop-state"},
 "stoppable-callback-deregistration": {"dfnID":"stoppable-callback-deregistration","dfnText":"stoppable callback\nderegistration","external":false,"refSections":[],"url":"#stoppable-callback-deregistration"},
 "stoppable-callback-registration": {"dfnID":"stoppable-callback-registration","dfnText":"stoppable callback registration","external":false,"refSections":[],"url":"#stoppable-callback-registration"},
-"stopped-completion": {"dfnID":"stopped-completion","dfnText":"stopped\n  completion","external":false,"refSections":[],"url":"#stopped-completion"},
+"stopped-completion": {"dfnID":"stopped-completion","dfnText":"stopped completion","external":false,"refSections":[],"url":"#stopped-completion"},
 "strictly-lazy-submission": {"dfnID":"strictly-lazy-submission","dfnText":"Strictly lazy submission","external":false,"refSections":[],"url":"#strictly-lazy-submission"},
-"value-completion": {"dfnID":"value-completion","dfnText":"value completion","external":false,"refSections":[],"url":"#value-completion"},
+"value-completion": {"dfnID":"value-completion","dfnText":"value\ncompletion","external":false,"refSections":[],"url":"#value-completion"},
 };
 
 document.addEventListener("DOMContentLoaded", ()=>{
