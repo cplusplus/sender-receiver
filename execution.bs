@@ -609,7 +609,7 @@ The sender/receiver-based Sudoku solver can be found
 [here](https://github.com/kirkshoop/libunifex/blob/sudoku/examples/sudoku.cpp).
 Some things that are worth noting about Kirk's solution:
 
-1. Although it schedules asychronous work onto a thread pool, and each unit of
+1. Although it schedules asynchronous work onto a thread pool, and each unit of
     work will schedule more work, its use of structured concurrency patterns
     make reference counting unnecessary. The solution does not make use of
     `shared_ptr`.
@@ -3900,21 +3900,20 @@ struct my_receiver {
 </pre>
 
 The only exception to this is the customization of queries. There is a need to
-build queryable adaptors that can forward and open and unknowable set of queries
+build queryable adaptors that can forward an open and unknowable set of queries
 to some wrapped object. This is done by defining a member function named
 `query` in the adaptor type that takes the query CPO object as its first
 (and usually only) argument. A queryable adaptor might look like this:
 
 <pre highlight="c++">
-template &lt;class Query, class Queryable, class... Args>
+template&lt;class Query, class Queryable, class... Args>
 concept query_for =
-  execution::queryable&lt;Queryable> &&
   requires (const Queryable& o, Args&&... args) {
     o.query(Query(), (Args&&) args...);
   };
 
 template&lt;class Allocator = std::allocator&lt;>,
-         execution::queryable Base = execution::empty_env>
+        class Base = execution::empty_env>
 struct with_allocator {
   Allocator alloc{};
   Base base{};
@@ -4946,9 +4945,6 @@ explicit stop_callback(stop_token&& st, <del>C</del><ins>Initializer</ins>&& <de
 
 </div>
 
-<!-- LWG stopped here. -->
-
-
 <span class="ed-note">Insert a new subclause, Class `never_stop_token`
 <b>[stoptoken.never]</b>, after subclause Class template `stop_callback`
 <b>[stopcallback]</b>, as a new subclause of Stop tokens
@@ -5329,23 +5325,22 @@ template&lt;class Initializer>
 6. Unless otherwise specified, the result of a query is valid as long as the
     queryable object is valid.
 
-### `queryable` concept <b>[exec.queryable.concept]</b> ### {#spec-execution.queryable.concept}
+### <i>`queryable`</i> concept <b>[exec.queryable.concept]</b> ### {#spec-execution.queryable.concept}
 
     <pre highlight="c++">
     namespace std {
       template&lt;class T>
-        concept queryable = destructible&lt;T>;
+        concept <i>queryable</i> = destructible&lt;T>; // exposition only
     }
     </pre>
 
-1. The `queryable` concept specifies the constraints on the types of queryable
-    objects.
+1. The exposition-only <i>`queryable`</i> concept specifies the constraints on
+    the types of queryable objects.
 
-2. Let `env` be an object of type `Env`. The type `Env` models `queryable` if
-    for each callable object <i>`q`</i> and a pack of subexpressions
-    `args`, if <code>requires { <i>q</i>(env, args...) }</code> is `true` then
-    <code><i>q</i>(env, args...)</code> meets any semantic requirements imposed
-    by <i>`q`</i>.
+2. Let `env` be an object of type `Env`. The type `Env` models
+    <i>`queryable`</i> if for each callable object `q` and a pack of
+    subexpressions `args`, if `requires { q(env, args...) }` is `true` then
+    `q(env, args...)` meets any semantic requirements imposed by `q`.
 
 ## Asynchronous operations <b>[async.ops]</b> ## {#spec-execution-async.ops}
 
@@ -5361,28 +5356,33 @@ template&lt;class Initializer>
 2. An <dfn export=true>asynchronous operation</dfn> is a distinct unit of
     program execution that:
 
-      - is explicitly created;
+      1. ... is explicitly created.
 
-      - can be explicitly <dfn lt="start" export=true>started</dfn>; an
-          asynchronous operation can be started once at most;
+      2. ... can be explicitly <dfn lt="start" export=true>started</dfn> once at
+          most.
 
-      - if started, eventually <dfn lt="complete" export=true>completes</dfn>
-          with a (possibly empty) set of result datums, and in exactly one of
-          three modes: success, failure, or cancellation, known as the
-          operation's <dfn export=true>disposition</dfn>; an asychronous
-          operation can only complete once; a successful completion, also known
-          as a <dfn export=true>value completion</dfn>, can have an arbitrary
-          number of result datums; a failure completion, also known as an <dfn
-          export=true>error completion</dfn>, has a single result datum; a
-          cancellation completion, also known as a <dfn export=true>stopped
-          completion</dfn>, has no result datum; an asynchronous operation's
-          <dfn export=true>async result</dfn> is its disposition and its
-          (possibly empty) set of result datums.
+      3. ... once started started, eventually <dfn lt="complete"
+          export=true>completes</dfn> exactly once with a (possibly empty) set
+          of result datums and in exactly one of three <dfn export=true
+          lt="disposition">dispositions</dfn>: success, failure, or
+          cancellation.
 
-      - can complete on a different execution resource than that on which it
-          started; and
+            - A successful completion, also known as a <dfn export=true>value
+                completion</dfn>, can have an arbitrary number of result datums.
 
-      - can create and start other asychronous operations called <dfn
+            - A failure completion, also known as an <dfn export=true>error
+                completion</dfn>, has a single result datum.
+
+            - A cancellation completion, also known as a <dfn
+                export=true>stopped completion</dfn>, has no result datum.
+
+          An asynchronous operation's <dfn export=true>async result</dfn> is its
+          disposition and its (possibly empty) set of result datums.
+
+      4. ... can complete on a different execution resource than the execution
+          resource on which it started.
+
+      5. ... can create and start other asynchronous operations called <dfn
           export=true>child operations</dfn>. A child operation is an
           asynchronous operation that is created by the parent operation and, if
           started, completes before the parent operation completes. A <dfn
@@ -5424,11 +5424,11 @@ template&lt;class Initializer>
     receiver's value completion handler with the value result datums; likewise
     for the error completion function and the stopped completion function. A
     completion function has an associated type known as its <dfn
-    export=true>completion tag</dfn> that names the unqualified type of the
+    export=true>completion tag</dfn> that is the unqualified type of the
     completion function. A valid invocation of a completion function is called a
     <dfn export=true>completion operation</dfn>.
 
-7. The <dfn lt="asychronous operation lifetime" export=true>lifetime of an
+7. The <dfn lt="asynchronous operation lifetime" export=true>lifetime of an
     asynchronous operation</dfn>, also known as the operation's <dfn
     export=true>async lifetime</dfn>, begins when its start operation begins
     executing and ends when its completion operation begins executing. If the
@@ -5484,8 +5484,8 @@ template&lt;class Initializer>
     <dfn export=true>attributes</dfn> that describes various characteristics of
     the sender and of the asynchronous operation(s) it produces. For each
     disposition, there is a query object for reading the associated completion
-    scheduler from a sender's attributes; *i.e.*, a value completion scheduler
-    query object for reading a sender's value completion scheduler, *etc*. If a
+    scheduler from a sender's attributes; i.e., a value completion scheduler
+    query object for reading a sender's value completion scheduler, etc. If a
     completion scheduler query is well-formed, the returned completion scheduler
     is unique for that disposition for any asynchronous operation the sender
     creates. A schedule sender is required to have a value completion scheduler
@@ -5493,7 +5493,7 @@ template&lt;class Initializer>
     sender.
 
 13. A <dfn export=true>completion signature</dfn> is a function type that
-    describes a completion operation. An asychronous operation has a finite set
+    describes a completion operation. An asynchronous operation has a finite set
     of possible completion signatures corresponding to the completion operations
     that the asynchronous operation potentially evaluates ([basic.def.odr]). For
     a completion function <i>`set`</i>, receiver
@@ -5506,7 +5506,7 @@ template&lt;class Initializer>
     a sender type and an environment type `Env` determine the set of completion
     signatures of an asynchronous operation that results from connecting the
     sender with a receiver that has an environment of type `Env`. <span
-    class="wg21note">The type of the receiver does not affect an asychronous
+    class="wg21note">The type of the receiver does not affect an asynchronous
     operation's completion signatures, only the type of the receiver's
     environment.</span>
 
@@ -5543,12 +5543,12 @@ namespace std {
 
   // [exec.queryable], queryable objects
   template&lt;class T>
-    concept queryable = destructible&lt;T>;
+    concept <i>queryable</i> = <i>see above</i>; <i>// exposition only</i>
 
   // [exec.queries], queries
-  struct forwarding_query_t;
-  struct get_allocator_t;
-  struct get_stop_token_t;
+  struct forwarding_query_t { <i>see below</i> };
+  struct get_allocator_t { <i>see below</i> };
+  struct get_stop_token_t { <i>see below</i> };
 
   inline constexpr forwarding_query_t forwarding_query{};
   inline constexpr get_allocator_t get_allocator{};
@@ -5565,13 +5565,17 @@ namespace std {
 
 namespace std::execution {
   // [exec.queries], queries
-  enum class forward_progress_guarantee;
-  struct get_domain_t;
-  struct get_scheduler_t;
-  struct get_delegatee_scheduler_t;
-  struct get_forward_progress_guarantee_t;
+  enum class forward_progress_guarantee {
+    concurrent,
+    parallel,
+    weakly_parallel
+  };
+  struct get_domain_t { <i>see below</i> };
+  struct get_scheduler_t { <i>see below</i> };
+  struct get_delegatee_scheduler_t { <i>see below</i> };
+  struct get_forward_progress_guarantee_t { <i>see below</i> };
   template&lt;class CPO>
-    struct get_completion_scheduler_t;
+    struct get_completion_scheduler_t { <i>see below</i> };
 
   inline constexpr get_domain_t get_domain{};
   inline constexpr get_scheduler_t get_scheduler{};
@@ -5581,8 +5585,8 @@ namespace std::execution {
     inline constexpr get_completion_scheduler_t&lt;CPO> get_completion_scheduler{};
 
   struct empty_env {};
-  struct get_env_t;
-  inline constexpr get_env_t get_env {};
+  struct get_env_t { <i>see below</i> };
+  inline constexpr get_env_t get_env{};
 
   template&lt;class T>
     using env_of_t = decltype(get_env(declval&lt;T>()));
@@ -5605,9 +5609,9 @@ namespace std::execution {
   template&lt;class Rcvr, class Completions>
     concept receiver_of = <i>see below</i>;
 
-  struct set_value_t;
-  struct set_error_t;
-  struct set_stopped_t;
+  struct set_value_t { <i>see below</i> };
+  struct set_error_t { <i>see below</i> };
+  struct set_stopped_t { <i>see below</i> };
 
   inline constexpr set_value_t set_value{};
   inline constexpr set_error_t set_error{};
@@ -5619,7 +5623,7 @@ namespace std::execution {
   template&lt;class O>
     concept operation_state = <i>see below</i>;
 
-  struct start_t;
+  struct start_t { <i>see below</i> };
   inline constexpr start_t start{};
 
   // [exec.snd], senders
@@ -5644,7 +5648,7 @@ namespace std::execution {
     concept <i>single-sender</i> = <i>see below</i>; // exposition only
 
   // [exec.getcomplsigs], completion signatures
-  struct get_completion_signatures_t;
+  struct get_completion_signatures_t { <i>see below</i> };
   inline constexpr get_completion_signatures_t get_completion_signatures {};
 
   template&lt;class Sndr, class Env = empty_env>
@@ -5674,18 +5678,18 @@ namespace std::execution {
       requires sender_in&lt;Sndr, Env>
     inline constexpr bool sends_stopped = <i>see below</i>;
 
-  template &lt;sender Sndr>
-    using tag_of_t = see below;
+  template&lt;sender Sndr>
+    using tag_of_t = <i>see below</i>;
 
   // [exec.snd.transform], sender transformations
-  template&lt;class Domain, sender Sndr, queryable... Env>
+  template&lt;class Domain, sender Sndr, <i>queryable</i>... Env>
       requires (sizeof...(Env) <= 1)
     constexpr sender decltype(auto) transform_sender(
       Domain dom, Sndr&& sndr, const Env&... env) noexcept(<i>see below</i>);
 
   // [exec.snd.transform.env], environment transformations
-  template&lt;class Domain, sender Sndr, queryable Env>
-    constexpr queryable decltype(auto) transform_env(
+  template&lt;class Domain, sender Sndr, <i>queryable</i> Env>
+    constexpr <i>queryable</i> decltype(auto) transform_env(
       Domain dom, Sndr&& sndr, Env&& env) noexcept;
 
   // [exec.snd.apply], sender algorithm application
@@ -5694,7 +5698,7 @@ namespace std::execution {
       Domain dom, Tag, Sndr&& sndr, Args&&... args) noexcept(<i>see below</i>);
 
   // [exec.connect], the connect sender algorithm
-  struct connect_t;
+  struct connect_t { <i>see below</i> };
   inline constexpr connect_t connect{};
 
   template&lt;class Sndr, class Rcvr>
@@ -5702,10 +5706,10 @@ namespace std::execution {
       decltype(connect(declval&lt;Sndr>(), declval&lt;Rcvr>()));
 
   // [exec.factories], sender factories
-  struct just_t;
-  struct just_error_t;
-  struct just_stopped_t;
-  struct schedule_t;
+  struct just_t { <i>see below</i> };
+  struct just_error_t { <i>see below</i> };
+  struct just_stopped_t { <i>see below</i> };
+  struct schedule_t { <i>see below</i> };
 
   inline constexpr just_t just{};
   inline constexpr just_error_t just_error{};
@@ -5720,23 +5724,23 @@ namespace std::execution {
   template&lt;<i>class-type</i> D>
     struct sender_adaptor_closure { };
 
-  struct on_t;
-  struct transfer_t;
-  struct schedule_from_t;
-  struct then_t;
-  struct upon_error_t;
-  struct upon_stopped_t;
-  struct let_value_t;
-  struct let_error_t;
-  struct let_stopped_t;
-  struct bulk_t;
-  struct split_t;
-  struct ensure_started_t;
-  struct when_all_t;
-  struct when_all_with_variant_t;
-  struct into_variant_t;
-  struct stopped_as_optional_t;
-  struct stopped_as_error_t;
+  struct on_t { <i>see below</i> };
+  struct transfer_t { <i>see below</i> };
+  struct schedule_from_t { <i>see below</i> };
+  struct then_t { <i>see below</i> };
+  struct upon_error_t { <i>see below</i> };
+  struct upon_stopped_t { <i>see below</i> };
+  struct let_value_t { <i>see below</i> };
+  struct let_error_t { <i>see below</i> };
+  struct let_stopped_t { <i>see below</i> };
+  struct bulk_t { <i>see below</i> };
+  struct split_t { <i>see below</i> };
+  struct ensure_started_t { <i>see below</i> };
+  struct when_all_t { <i>see below</i> };
+  struct when_all_with_variant_t { <i>see below</i> };
+  struct into_variant_t { <i>see below</i> };
+  struct stopped_as_optional_t { <i>see below</i> };
+  struct stopped_as_error_t { <i>see below</i> };
 
   inline constexpr on_t on{};
   inline constexpr transfer_t transfer{};
@@ -5753,11 +5757,11 @@ namespace std::execution {
   inline constexpr when_all_t when_all{};
   inline constexpr when_all_with_variant_t when_all_with_variant{};
   inline constexpr into_variant_t into_variant{};
-  inline constexpr stopped_as_optional_t stopped_as_optional;
-  inline constexpr stopped_as_error_t stopped_as_error;
+  inline constexpr stopped_as_optional_t stopped_as_optional{};
+  inline constexpr stopped_as_error_t stopped_as_error{};
 
   // [exec.consumers], sender consumers
-  struct start_detached_t;
+  struct start_detached_t { <i>see below</i> };
   inline constexpr start_detached_t start_detached{};
 
   // [exec.utils], sender and receiver utilities
@@ -5801,11 +5805,11 @@ namespace std::execution {
 
 namespace std::this_thread {
   // [exec.queries], queries
-  struct execute_may_block_caller_t;
+  struct execute_may_block_caller_t { <i>see below</i> };
   inline constexpr execute_may_block_caller_t execute_may_block_caller{};
 
-  struct sync_wait_t;
-  struct sync_wait_with_variant_t;
+  struct sync_wait_t { <i>see below</i> };
+  struct sync_wait_with_variant_t { <i>see below</i> };
 
   inline constexpr sync_wait_t sync_wait{};
   inline constexpr sync_wait_with_variant_t sync_wait_with_variant{};
@@ -5813,12 +5817,12 @@ namespace std::this_thread {
 
 namespace std::execution {
   // [exec.execute], one-way execution
-  struct execute_t;
+  struct execute_t { <i>see below</i> };
   inline constexpr execute_t execute{};
 
   // [exec.as.awaitable]
-  struct as_awaitable_t;
-  inline constexpr as_awaitable_t as_awaitable;
+  struct as_awaitable_t { <i>see below</i> };
+  inline constexpr as_awaitable_t as_awaitable{};
 
   // [exec.with.awaitable.senders]
   template&lt;<i>class-type</i> Promise>
@@ -5830,20 +5834,23 @@ namespace std::execution {
      defined as follows:
 
     1. If `sizeof...(Ts)` is greater than zero,
-        <code><i>variant-or-empty&lt;Ts...></i></code> names the type
+        <code><i>variant-or-empty&lt;Ts...></i></code> denotes
         `variant<Us...>` where `Us...` is the pack `decay_t<Ts>...` with
         duplicate types removed.
 
-    2. Otherwise, <code><i>variant-or-empty&lt;Ts...></i></code> names the
+    2. Otherwise, <code><i>variant-or-empty&lt;Ts...></i></code> denotes the
         exposition-only class type:
 
         <pre highlight="c++">
         namespace std::execution {
-          struct <i>empty-variant</i> {
+          struct <i>empty-variant</i> { // exposition only
             <i>empty-variant</i>() = delete;
           };
         }
         </pre>
+
+
+<!-- LWG stopped here -->
 
 ## Queries <b>[exec.queries]</b> ## {#spec-execution.queries}
 
@@ -5914,7 +5921,7 @@ namespace std::execution {
         well-formed.
 
         * <i>Mandates:</i> The expression above is not potentially throwing, and
-            its type satisfies `queryable` ([exec.queryable]).
+            its type satisfies <i>`queryable`</i> ([exec.queryable]).
 
     2. Otherwise, `empty_env{}`.
 
@@ -6077,7 +6084,7 @@ namespace std::execution {
       template&lt;class Sch>
         concept scheduler =
           <i>enable-scheduler</i>&lt;remove_cvref_t&lt;Sch>> &&
-          queryable&lt;Sch> &&
+          <i>queryable</i>&lt;Sch> &&
           requires(Sch&& sch) {
             { schedule(std::forward&lt;Sch>(sch)) } -> sender;
             { get_completion_scheduler&lt;set_value_t>(
@@ -6141,7 +6148,7 @@ namespace std::execution {
         concept receiver =
           <i>enable-receiver</i>&lt;remove_cvref_t&lt;Rcvr>> &&
           requires(const remove_cvref_t&lt;Rcvr>& rcvr) {
-            { get_env(rcvr) } -> queryable;
+            { get_env(rcvr) } -> <i>queryable</i>;
           } &&
           move_constructible&lt;remove_cvref_t&lt;Rcvr>> &&  <i>// rvalues are movable, and</i>
           constructible_from&lt;remove_cvref_t&lt;Rcvr>, Rcvr>; <i>// lvalues are copyable</i>
@@ -6217,7 +6224,7 @@ namespace std::execution {
       template&lt;class O>
         concept operation_state =
           <i>enable-opstate</i>&lt;remove_cvref_t&lt;O>> &&
-          queryable&lt;O> &&
+          <i>queryable</i>&lt;O> &&
           is_object_v&lt;O> &&
           requires (O& o) {
             { start(o) } noexcept;
@@ -6467,7 +6474,7 @@ namespace std::execution {
             structured binding declaration [dcl.struct.bind].</span>
 
     14. <pre highlight="c++">
-        template &lt;semiregular Tag, <i>movable-value</i> Data = <i>see below</i>, sender... Child>
+        template&lt;semiregular Tag, <i>movable-value</i> Data = <i>see below</i>, sender... Child>
           constexpr auto <i>make-sender</i>(Tag, Data&& data, Child&&... child);
         </pre>
 
@@ -6623,10 +6630,10 @@ namespace std::execution {
                   Child<sub><i>n-1</i></sub> <i>child<sub>n-1</sub></i>;   // exposition only
                 };
 
-                template &lt;class Sndr>
+                template&lt;class Sndr>
                 using <i>data-type</i> = decltype((declval&lt;Sndr>().<i>data</i>)); // exposition only
 
-                template &lt;class Sndr, size_t N = 0>
+                template&lt;class Sndr, size_t N = 0>
                 using <i>child-type</i> = decltype((declval&lt;Sndr>().<i>child<sub>N</sub></i>)); // exposition only
               }
               </pre>
@@ -6742,7 +6749,7 @@ namespace std::execution {
         concept sender =
           bool(<i>enable-sender</i>&lt;remove_cvref_t&lt;Sndr>>) && <i>// atomic constraint</i>
           requires (const remove_cvref_t&lt;Sndr>& sndr) {
-            { get_env(sndr) } -> queryable;
+            { get_env(sndr) } -> <i>queryable</i>;
           } &&
           move_constructible&lt;remove_cvref_t&lt;Sndr>> &&  <i>// rvalues are movable, and</i>
           constructible_from&lt;remove_cvref_t&lt;Sndr>, Sndr>; <i>// lvalues are copyable</i>
@@ -6750,7 +6757,7 @@ namespace std::execution {
       template&lt;class Sndr, class Env = empty_env>
         concept sender_in =
           sender&lt;Sndr> &&
-          queryable&lt;Env> &&
+          <i>queryable</i>&lt;Env> &&
           requires (Sndr&& sndr, Env&& env) {
             { get_completion_signatures(std::forward&lt;Sndr>(sndr), std::forward&lt;Env>(env)) }
               -> <i>valid-completion-signatures</i>;
@@ -6952,13 +6959,13 @@ namespace std::execution {
 <pre highlight="c++">
 namespace std::execution {
   struct default_domain {
-    template &lt;sender Sndr, queryable... Env>
+    template&lt;sender Sndr, <i>queryable</i>... Env>
         requires (sizeof...(Env) <= 1)
       static constexpr sender decltype(auto) transform_sender(Sndr&& sndr, const Env&... env)
         noexcept(<i>see below</i>);
 
-    template &lt;sender Sndr, queryable Env>
-      static constexpr queryable decltype(auto) transform_env(Sndr&& sndr, Env&& env) noexcept;
+    template&lt;sender Sndr, <i>queryable</i> Env>
+      static constexpr <i>queryable</i> decltype(auto) transform_env(Sndr&& sndr, Env&& env) noexcept;
 
     template&lt;class Tag, sender Sndr, class... Args>
       static constexpr decltype(auto) apply_sender(Tag, Sndr&& sndr, Args&&... args)
@@ -6970,7 +6977,7 @@ namespace std::execution {
 #### Static members <b>[exec.domain.default.statics]</b> #### {#spec-execution.default_domain.statics}
 
 <pre highlight="c++">
-template &lt;sender Sndr, queryable... Env>
+template&lt;sender Sndr, <i>queryable</i>... Env>
     requires (sizeof...(Env) <= 1)
   constexpr sender decltype(auto) transform_sender(Sndr&& sndr, const Env&... env)
     noexcept(<i>see below</i>);
@@ -6985,8 +6992,8 @@ template &lt;sender Sndr, queryable... Env>
 3. <i>Remarks:</i> The exception specification is equivalent to <code>noexcept(<i>e</i>)</code>.
 
 <pre highlight="c++">
-template &lt;sender Sndr, queryable Env>
-  constexpr queryable decltype(auto) transform_env(Sndr&& sndr, Env&& env) noexcept;
+template&lt;sender Sndr, <i>queryable</i> Env>
+  constexpr <i>queryable</i> decltype(auto) transform_env(Sndr&& sndr, Env&& env) noexcept;
 </pre>
 
 4. Let <i>`e`</i> be the expression
@@ -7018,7 +7025,7 @@ template&lt;class Tag, sender Sndr, class... Args>
 
 <pre highlight="c++">
 namespace std::execution {
-  template&lt;class Domain, sender Sndr, queryable... Env>
+  template&lt;class Domain, sender Sndr, <i>queryable</i>... Env>
       requires (sizeof...(Env) <= 1)
     constexpr sender decltype(auto) transform_sender(Domain dom, Sndr&& sndr, const Env&... env)
       noexcept(<i>see below</i>);
@@ -7044,8 +7051,8 @@ namespace std::execution {
 
 <pre highlight="c++">
 namespace std::execution {
-  template&lt;class Domain, sender Sndr, queryable Env>
-    constexpr queryable decltype(auto) transform_env(Domain dom, Sndr&& sndr, Env&& env) noexcept;
+  template&lt;class Domain, sender Sndr, <i>queryable</i> Env>
+    constexpr <i>queryable</i> decltype(auto) transform_env(Domain dom, Sndr&& sndr, Env&& env) noexcept;
 }
 </pre>
 
@@ -8311,7 +8318,7 @@ namespace std::execution {
         equivalent to the following:
 
         <pre highlight="c++">
-        template &lt;class Sndr, class Rcvr>
+        template&lt;class Sndr, class Rcvr>
         void operator()(<i>local-state</i>&lt;Sndr, Rcvr>& state, Rcvr& rcvr) const noexcept;
         </pre>
 
@@ -8462,11 +8469,11 @@ namespace std::execution {
 
           enum class <i>disposition</i> { <i>started</i>, <i>error</i>, <i>stopped</i> };
 
-          template &lt;class Rcvr>
+          template&lt;class Rcvr>
           struct <i>make-state</i> {
             const env_of_t&lt;Rcvr>& env;
 
-            template &lt;<i>max-1-sender-in</i>&lt;env_of_t&lt;Rcvr>>... Sndrs>
+            template&lt;<i>max-1-sender-in</i>&lt;env_of_t&lt;Rcvr>>... Sndrs>
             auto operator()(auto, auto, Sndrs&&... sndrs) const {
               using values_tuple = <i>see below</i>;
               using errors_variant = <i>see below</i>;
