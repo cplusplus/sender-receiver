@@ -1318,7 +1318,7 @@ allocations and indirections in the generated code.
 
 In a suite of generic async algorithms that are expected to be callable from hot
 code paths, the extra allocations and indirections are a deal-breaker. It is for
-these reasons that we consider coroutines a poor choise for a basis of all
+these reasons that we consider coroutines a poor choice for a basis of all
 standard async.
 
 ### Callbacks ### {#intro-prior-art-callbacks}
