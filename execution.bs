@@ -1499,7 +1499,7 @@ concurrency, including:
 
 ## R10 ## {#r10}
 
-The changes since R8 are as follows:
+The changes since R9 are as follows:
 
 <b>Fixes:</b>
 
