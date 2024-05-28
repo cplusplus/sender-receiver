@@ -4088,9 +4088,9 @@ following new paragraph:</span>
     <pre highlight="c++">
     template&lt;class Alloc>
     concept <i>simple-allocator</i> =
-      requires(Alloc alloc, size_t n, typename Alloc::value_type* p) {
-        { alloc.allocate(n) } -> same_as&lt;typename Alloc::value_type*>;
-        { alloc.deallocate(p, n) };
+      requires(Alloc alloc, size_t n) {
+        { *alloc.allocate(n) } -> same_as&lt;typename Alloc::value_type&>;
+        { alloc.deallocate(alloc.allocate(n), n) };
       } &&
       copy_constructible&lt;Alloc> &&
       equality_comparable&lt;Alloc>;
