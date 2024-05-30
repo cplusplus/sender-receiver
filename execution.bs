@@ -1497,6 +1497,22 @@ concurrency, including:
 
 # Revision history # {#revisions}
 
+## R10 ## {#r10}
+
+The changes since R9 are as follows:
+
+<b>Fixes:</b>
+
+
+<b>Enhancements:</b>
+
+  * The `get_delegatee_scheduler` query has been renamed to
+    `get_delegation_scheduler`.
+
+  * An exposition-only <i>`simple-allocator`</i> concept is added to the
+    Library introduction ([library]), and the specification of the
+    `get_allocator` query is expressed in terms of it.
+
 ## R9 ## {#r9}
 
 The changes since R8 are as follows:
@@ -3185,8 +3201,8 @@ execution::sender auto read(auto tag);
 execution::sender auto get_scheduler() {
   return read(execution::get_scheduler);
 }
-execution::sender auto get_delegatee_scheduler() {
-  return read(execution::get_delegatee_scheduler);
+execution::sender auto get_delegation_scheduler() {
+  return read(execution::get_delegation_scheduler);
 }
 execution::sender auto get_allocator() {
   return read(execution::get_allocator);
@@ -4016,6 +4032,72 @@ a new bullet as follows:</span>
 3. An object `dst` is said to be <dfn export=true>decay-copied from</dfn> a
     subexpression `src` if the type of `dst` is `decay_t<decltype((src))>`,
     and `dst` is copy-initialized from `src`.
+
+</div>
+</div>
+
+<div class="hidden">
+<h3 class="heading no-toc" id="hidden.d.2"> </h3>
+<h3 class="heading no-toc" id="hidden.d.3"> </h3>
+<h3 class="heading no-toc" id="hidden.d.4"> </h3>
+<h3 class="heading no-toc" id="hidden.d.4a"> </h3>
+<h4 class="heading no-toc" id="hidden.d.5"> </h4>
+<h4 class="heading no-toc" id="hidden.d.6"> </h4>
+<h4 class="heading no-toc" id="hidden.d.7"> </h4>
+<h4 class="heading no-toc" id="hidden.d.7a"> </h4>
+<h5 class="heading no-toc" id="hidden.d.8"> </h5>
+<h5 class="heading no-toc" id="hidden.d.9"> </h5>
+<h5 class="heading no-toc" id="hidden.d.10"> </h5>
+<h5 class="heading no-toc" id="hidden.d.11"> </h5>
+<h5 class="heading no-toc" id="hidden.d.12"> </h5>
+<h5 class="heading no-toc" id="hidden.d.13"> </h5>
+</div>
+
+
+<div class="standardeze">
+<h6 class="heading" id="allocator.requirements.general">General <b>[allocator.requirements.general]</b> </h6>
+
+<span class="ed-note">At the end of [allocator.requirements.general], add the
+following new paragraph:</span>
+
+98. [*Example 2*: The following is an allocator class template supporting the
+    minimal interface that meets the requirements of
+    [allocator.requirements.general]:
+
+    <pre highlight="c++">
+    template&lt;class T>
+    struct SimpleAllocator {
+      using value_type = T;
+      SimpleAllocator(<i>ctor args</i>);
+
+      template&lt;class U> SimpleAllocator(const SimpleAllocator&lt;U>& other);
+
+      T* allocate(std::size_t n);
+      void deallocate(T* p, std::size_t n);
+
+      template&lt;class U> bool operator==(const SimpleAllocator&lt;U>& rhs) const;
+    };
+    </pre>
+
+    -- *end example*]
+
+<div class="block-insert">
+99. The following exposition-only concept defines the minimal requirements on an
+    <i>Allocator</i> type.
+
+    <pre highlight="c++">
+    template&lt;class Alloc>
+    concept <i>simple-allocator</i> =
+      requires(Alloc alloc, size_t n) {
+        { *alloc.allocate(n) } -> same_as&lt;typename Alloc::value_type&>;
+        { alloc.deallocate(alloc.allocate(n), n) };
+      } &&
+      copy_constructible&lt;Alloc> &&
+      equality_comparable&lt;Alloc>;
+    </pre>
+
+    1. A type `Alloc` models <i>`simple-allocator`</i> if it meets the requirements of
+        [allocator.requirements.general].
 
 </div>
 </div>
@@ -5252,7 +5334,7 @@ template&lt;class Initializer>
     <td>
         <ul>
             <li>general queries (e.g., `get_allocator`, `get_stop_token`)</li>
-            <li>environment queries (e.g., `get_scheduler`, `get_delegatee_scheduler`)</li>
+            <li>environment queries (e.g., `get_scheduler`, `get_delegation_scheduler`)</li>
             <li>scheduler queries (e.g., `get_forward_progress_guarantee`, `execute_may_block_caller`)</li>
             <li>sender attribute queries (e.g., `get_completion_scheduler`)</li>
         </ul>
@@ -5572,14 +5654,14 @@ namespace std::execution {
   };
   struct get_domain_t { <i>see below</i> };
   struct get_scheduler_t { <i>see below</i> };
-  struct get_delegatee_scheduler_t { <i>see below</i> };
+  struct get_delegation_scheduler_t { <i>see below</i> };
   struct get_forward_progress_guarantee_t { <i>see below</i> };
   template&lt;class CPO>
     struct get_completion_scheduler_t { <i>see below</i> };
 
   inline constexpr get_domain_t get_domain{};
   inline constexpr get_scheduler_t get_scheduler{};
-  inline constexpr get_delegatee_scheduler_t get_delegatee_scheduler{};
+  inline constexpr get_delegation_scheduler_t get_delegation_scheduler{};
   inline constexpr get_forward_progress_guarantee_t get_forward_progress_guarantee{};
   template&lt;class CPO>
     inline constexpr get_completion_scheduler_t&lt;CPO> get_completion_scheduler{};
@@ -5849,12 +5931,9 @@ namespace std::execution {
         }
         </pre>
 
-
-<!-- LWG stopped here -->
-
 ## Queries <b>[exec.queries]</b> ## {#spec-execution.queries}
 
-### `std::forwarding_query` <b>[exec.fwd.env]</b> ### {#spec-execution.forwarding_query}
+### `forwarding_query` <b>[exec.fwd.env]</b> ### {#spec-execution.forwarding_query}
 
 1. `forwarding_query` asks a query object whether it should be forwarded
     through queryable adaptors.
@@ -5867,33 +5946,35 @@ namespace std::execution {
         expression is well-formed.
 
         * <i>Mandates:</i> The expression above has type `bool` and is a core
-            constant expressions if `q` is a core constant expression.
+            constant expression if `q` is a core constant expression.
 
     2. Otherwise, `true` if `derived_from<Q, forwarding_query_t>` is
         `true`.
 
     3. Otherwise, `false`.
 
-### `std::get_allocator` <b>[exec.get.allocator]</b> ### {#spec-execution.get_allocator}
+### `get_allocator` <b>[exec.get.allocator]</b> ### {#spec-execution.get_allocator}
 
-1. `get_allocator` asks an object for its associated allocator.
+1. `get_allocator` asks a queryable object for its associated allocator.
 
 2. The name `get_allocator` denotes a query object. For a subexpression `env`,
     `get_allocator(env)` is expression-equivalent to
     <code><i>MANDATE-NOTHROW</i>(as_const(env).query(get_allocator))</code>.
 
       * <i>Mandates:</i> If the expression above is well-formed, its type
-          satisfies <i>Allocator</i>.
+          satisfies *`simple-allocator`* ([allocator.requirements.general]).
 
-3. `forwarding_query(get_allocator)` is a core constant
-    expression and has value `true`.
+3. `forwarding_query(get_allocator)` is a core constant expression and has value
+    `true`.
 
 4. `get_allocator()` (with no arguments) is expression-equivalent to
     `execution::read(get_allocator)` ([exec.read]).
 
-### `std::get_stop_token` <b>[exec.get.stop.token]</b> ### {#spec-execution.get_stop_token}
 
-1. `get_stop_token` asks an object for an associated stop token.
+
+### `get_stop_token` <b>[exec.get.stop.token]</b> ### {#spec-execution.get_stop_token}
+
+1. `get_stop_token` asks a queryable object for an associated stop token.
 
 2. The name `get_stop_token` denotes a query object. For a subexpression `env`,
     `get_stop_token(env)` is expression-equivalent to:
@@ -5917,23 +5998,23 @@ namespace std::execution {
 1. `execution::get_env` is a customization point object. For a subexpression
     `o`, `execution::get_env(o)` is expression-equivalent to:
 
-    1. `as_const(o).get_env()` if that expression is
+    1. <code><i>MANDATE-NOTHROW</i>(as_const(o).get_env())</code> if that expression is
         well-formed.
 
-        * <i>Mandates:</i> The expression above is not potentially throwing, and
-            its type satisfies <i>`queryable`</i> ([exec.queryable]).
+        * <i>Mandates:</i> The type of the expression above satisfies
+            <i>`queryable`</i> ([exec.queryable]).
 
     2. Otherwise, `empty_env{}`.
 
 2. The value of `get_env(o)` shall be valid while `o` is valid.
 
 3. <span class="wg21note">When passed a sender object, `get_env` returns the
-    sender's attributes. When passed a receiver, `get_env` returns the
-    receiver's environment.</span>
+    sender's associated attributes. When passed a receiver, `get_env` returns the
+    receiver's associated execution environment.</span>
 
 ### `execution::get_domain` <b>[exec.get.domain]</b> ### {#spec-execution.get_domain}
 
-1. `get_domain` asks an object for an associated execution domain tag.
+1. `get_domain` asks a queryable object for its associated execution domain tag.
 
 2. The name `get_domain` denotes a query object. For a subexpression `env`,
     `get_domain(env)` is expression-equivalent to
@@ -5947,7 +6028,7 @@ namespace std::execution {
 
 ### `execution::get_scheduler` <b>[exec.get.scheduler]</b> ### {#spec-execution.get_scheduler}
 
-1. `get_scheduler` asks an object for its associated scheduler.
+1. `get_scheduler` asks a queryable object for its associated scheduler.
 
 2. The name `get_scheduler` denotes a query object. For a
     subexpression `env`,  `get_scheduler(env)` is expression-equivalent to
@@ -5962,23 +6043,24 @@ namespace std::execution {
 4. `get_scheduler()` (with no arguments) is expression-equivalent to
     `execution::read(get_scheduler)` ([exec.read]).
 
-### `execution::get_delegatee_scheduler` <b>[exec.get.delegatee.scheduler]</b> ### {#spec-execution.get_delegatee_scheduler}
+### `execution::get_delegation_scheduler` <b>[exec.get.delegation.scheduler]</b> ### {#spec-execution.get_delegation_scheduler}
 
-1. `get_delegatee_scheduler` asks an object for a scheduler that can be used to
-    delegate work to for the purpose of forward progress delegation.
+1. `get_delegation_scheduler` asks a queryable object for a scheduler that can be
+    used to delegate work to for the purpose of forward progress delegation
+    ([intro.progress]).
 
-2. The name `get_delegatee_scheduler` denotes a query object. For a
-    subexpression `env`, `get_delegatee_scheduler(env)` is expression-equivalent to
-    <code><i>MANDATE-NOTHROW</i>(as_const(env).query(get_delegatee_scheduler))</code>.
+2. The name `get_delegation_scheduler` denotes a query object. For a
+    subexpression `env`, `get_delegation_scheduler(env)` is expression-equivalent to
+    <code><i>MANDATE-NOTHROW</i>(as_const(env).query(get_delegation_scheduler))</code>.
 
       * <i>Mandates:</i> If the expression above is well-formed, its type
           satisfies `scheduler`.
 
-3. `forwarding_query(execution::get_delegatee_scheduler)` is a core
+3. `forwarding_query(execution::get_delegation_scheduler)` is a core
     constant expression and has value `true`.
 
-4. `get_delegatee_scheduler()` (with no arguments) is expression-equivalent to
-    `execution::read(get_delegatee_scheduler)` ([exec.read]).
+4. `get_delegation_scheduler()` (with no arguments) is expression-equivalent to
+    `execution::read(get_delegation_scheduler)` ([exec.read]).
 
 ### `execution::get_forward_progress_guarantee` <b>[exec.get.forward.progress.guarantee]</b> ### {#spec-execution.get_forward_progress_guarantee}
 
@@ -5993,7 +6075,8 @@ namespace std::execution {
 </pre>
 
 1. `get_forward_progress_guarantee` asks a scheduler about the forward progress
-    guarantee of execution agents created by that scheduler.
+    guarantee of execution agents created by that scheduler's associated
+    execution resource ([intro.progress]).
 
 2. The name `get_forward_progress_guarantee` denotes a query object. For a
     subexpression `sch`, let `Sch` be `decltype((sch))`. If `Sch` does not
@@ -6002,7 +6085,7 @@ namespace std::execution {
     to:
 
     1. <code><i>MANDATE-NOTHROW</i>(as_const(sch).query(get_forward_progress_guarantee))</code>,
-        if this expression is well-formed.
+        if that expression is well-formed.
 
         * <i>Mandates:</i> The type of the expression above is
             `forward_progress_guarantee`.
@@ -6011,33 +6094,33 @@ namespace std::execution {
 
 3. If `get_forward_progress_guarantee(sch)` for some scheduler `sch` returns
     `forward_progress_guarantee::concurrent`, all execution agents created by
-    that scheduler shall provide the concurrent forward progress guarantee. If
-    it returns `forward_progress_guarantee::parallel`, all execution agents
-    created by that scheduler shall provide at least the parallel forward
-    progress guarantee.
+    that scheduler's associated execution resource shall provide the concurrent
+    forward progress guarantee. If it returns
+    `forward_progress_guarantee::parallel`, all such execution agents shall
+    provide at least the parallel forward progress guarantee.
 
 ### `this_thread::execute_may_block_caller` <b>[exec.execute.may.block.caller]</b> ### {#spec-execution.execute_may_block_caller}
 
-1. `this_thread::execute_may_block_caller` asks a scheduler `sch` whether a call
-    `execute(sch, f)` with any invocable `f` may block the thread where such a
-    call occurs.
+1. `execute_may_block_caller` asks a scheduler `sch` whether any invocation of
+    the `execute` algorithm ([exec.execute]) with `sch` may block the current
+    thread of execution ([defns.block]).
 
-2. The name `this_thread::execute_may_block_caller` denotes a query object. For
+2. The name `execute_may_block_caller` denotes a query object. For
     a subexpression `sch`, let `Sch` be `decltype((sch))`. If `Sch` does not
-    satisfy `scheduler`, `this_thread::execute_may_block_caller` is ill-formed.
-    Otherwise, `this_thread::execute_may_block_caller(sch)` is
+    satisfy `scheduler`, `execute_may_block_caller(sch)` is ill-formed.
+    Otherwise, `execute_may_block_caller(sch)` is
     expression-equivalent to:
 
-    1. <code><i>MANDATE-NOTHROW</i>(as_const(sch).query(this_thread::execute_may_block_caller))</code>,
-        if this expression is well-formed.
+    1. <code><i>MANDATE-NOTHROW</i>(as_const(sch).query(execute_may_block_caller))</code>,
+        if that expression is well-formed.
 
         * <i>Mandates:</i> The type of the expression above is `bool`.
 
     2. Otherwise, `true`.
 
-3. If `this_thread::execute_may_block_caller(sch)` for some scheduler `sch`
-    returns `false`, no `execute(sch, f)` call with some invocable `f` shall
-    block the calling thread.
+3. If `execute_may_block_caller(sch)` returns `false` for some scheduler `sch`,
+    no invocation of the `execute` algorithm with `sch` shall block the calling
+    thread.
 
 ### `execution::get_completion_scheduler` <b>[exec.completion.scheduler]</b> ### {#spec-execution.get_completion_scheduler}
 
@@ -6046,26 +6129,32 @@ namespace std::execution {
     attributes.
 
 2. The name `get_completion_scheduler` denotes a query object template. For a
-    subexpression `q`, let `Q` be `decltype((q))`. If the template argument
-    `Tag` in `get_completion_scheduler<Tag>(q)` is not one of `set_value_t`,
-    `set_error_t`, or `set_stopped_t`, `get_completion_scheduler<Tag>(q)` is
-    ill-formed. Otherwise, `get_completion_scheduler<Tag>(q)` is
+    subexpression `q`, the expression
+    <code>get_completion_scheduler&lt;<i>completion-tag</i>>(q)</code> is
+    ill-formed if <i>`completion-tag`</i> is not one of `set_value_t`,
+    `set_error_t`, or `set_stopped_t`. Otherwise,
+    <code>get_completion_scheduler&lt;<i>completion-tag</i>>(q)</code> is
     expression-equivalent to
-    <code><i>MANDATE-NOTHROW</i>(as_const(q).query(get_completion_scheduler&lt;Tag>))</code>.
+    <code><i>MANDATE-NOTHROW</i>(as_const(q).query(get_completion_scheduler&lt;<i>completion-tag</i>>))</code>.
 
       * <i>Mandates:</i> If the expression above is well-formed, its type
           satisfies `scheduler`.
 
-3. If, for some sender `sndr` and completion function `C` that has an associated
-    completion tag `Tag`, `get_completion_scheduler<Tag>(get_env(sndr))` is
-    well-formed and results in a scheduler `sch`, and the sender `sndr` invokes
-    `C(rcvr, args...)`, for some receiver `rcvr` that has been connected to `sndr`, with
-    additional arguments `args...`, on an execution agent that does not
-    belong to the associated execution resource of `sch`, the behavior is
-    undefined.
+3. Let <i>`completion-fn`</i> be a completion function ([async.ops]); let
+    <i>`completion-tag`</i> be the associated completion tag of
+    <i>`completion-fn`</i>; let `args` be a pack of subexpressions; and let
+    `sndr` be a subexpression such that `sender<decltype((sndr))>` is `true` and
+    <code>get_completion_scheduler&lt;<i>completion-tag</i>>(get_env(sndr))</code>
+    is well-formed and denotes a scheduler `sch`. If an asynchronous operation
+    created by connecting `sndr` with a receiver `rcvr` causes the evaluation of
+    <code><i>completion-fn</i>(rcvr, args...)</code>, the behavior is undefined
+    unless it happens on an execution agent that belongs to `sch`'s associated
+    execution resource.
 
-4. The expression `forwarding_query(get_completion_scheduler<CPO>)`
+4. The expression <code>forwarding_query(get_completion_scheduler&lt;<i>completion-tag</i>>)</code>
     is a core constant expression and has value `true`.
+
+<!-- LWG stopped here -->
 
 ## Schedulers <b>[exec.sched] </b> ## {#spec-execution.schedulers}
 
@@ -8857,7 +8946,7 @@ namespace std::execution {
         execution::run_loop* <em>loop</em>; // <i>exposition only</i>
 
         auto query(execution::get_scheduler_t) const noexcept { <em>loop</em>->get_scheduler(); }
-        auto query(execution::get_delegatee_scheduler_t) const noexcept { <em>loop</em>->get_scheduler(); }
+        auto query(execution::get_delegation_scheduler_t) const noexcept { <em>loop</em>->get_scheduler(); }
       };
     }
     </pre>
@@ -8987,7 +9076,7 @@ namespace std::execution {
         progress guarantee delegation ([intro.progress]) until the specified
         sender completes. <span class="wg21note">The default implementation of
         `sync_wait` achieves forward progress guarantee delegation by providing
-        a `run_loop` scheduler via the `get_delegatee_scheduler` query on the
+        a `run_loop` scheduler via the `get_delegation_scheduler` query on the
         <i>`sync-wait-receiver`</i>'s environment. The `run_loop` is
         driven by the current thread of execution.</span>
 
