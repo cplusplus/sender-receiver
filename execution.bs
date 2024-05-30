@@ -1506,6 +1506,9 @@ The changes since R9 are as follows:
 
 <b>Enhancements:</b>
 
+  * The `operation_state` concept no longer requires that operation states
+    model `queryable`.
+
   * The `get_delegatee_scheduler` query has been renamed to
     `get_delegation_scheduler`.
 
@@ -6148,13 +6151,11 @@ namespace std::execution {
     is well-formed and denotes a scheduler `sch`. If an asynchronous operation
     created by connecting `sndr` with a receiver `rcvr` causes the evaluation of
     <code><i>completion-fn</i>(rcvr, args...)</code>, the behavior is undefined
-    unless it happens on an execution agent that belongs to `sch`'s associated
-    execution resource.
+    unless the evaluation happens on an execution agent that belongs to `sch`'s
+    associated execution resource.
 
 4. The expression <code>forwarding_query(get_completion_scheduler&lt;<i>completion-tag</i>>)</code>
     is a core constant expression and has value `true`.
-
-<!-- LWG stopped here -->
 
 ## Schedulers <b>[exec.sched] </b> ## {#spec-execution.schedulers}
 
@@ -6165,14 +6166,8 @@ namespace std::execution {
     <pre highlight="c++">
     namespace std::execution {
       template&lt;class Sch>
-        concept <i>enable-scheduler</i> = <i>// exposition only</i>
-          requires {
-            requires derived_from&lt;typename Sch::scheduler_concept, scheduler_t>;
-          };
-
-      template&lt;class Sch>
         concept scheduler =
-          <i>enable-scheduler</i>&lt;remove_cvref_t&lt;Sch>> &&
+          derived_from&lt;typename Sch::scheduler_concept, scheduler_t> &&
           <i>queryable</i>&lt;Sch> &&
           requires(Sch&& sch) {
             { schedule(std::forward&lt;Sch>(sch)) } -> sender;
@@ -6185,30 +6180,30 @@ namespace std::execution {
     }
     </pre>
 
-2. Let `Sch` be the type of a scheduler and let `Env` be the type of an execution
-    environment for which `sender_in<schedule_result_t<Sch>, Env>` is `true`. Then
-    <code><i>sender-of-in</i>&lt;schedule_result_t&lt;Sch>, Env></code> shall be `true`.
+2. Let `Sch` be the type of a scheduler and let `Env` be the type of an
+    execution environment for which `sender_in<schedule_result_t<Sch>, Env>` is
+    satisfied. Then <code><i>sender-of-in</i>&lt;schedule_result_t&lt;Sch>,
+    Env></code> shall be modeled.
 
 3. None of a scheduler's copy constructor, destructor, equality comparison, or
-    `swap` member functions shall exit via an exception.
+    `swap` member functions shall exit via an exception. None of these member
+    functions, nor a scheduler type's `schedule` function, shall introduce data
+    races as a result of potentially concurrent ([intro.races]) invocations of
+    those functions from different threads.
 
-4. None of these member functions, nor a scheduler type's `schedule` function,
-    shall introduce data races as a result of concurrent invocations of those
-    functions from different threads.
+4. For any two values `sch1` and `sch2` of some scheduler type `Sch`, `sch1 ==
+    sch2` shall return `true` only if both `sch1` and `sch2` share the same
+    associated execution resource.
 
-5. For any two (possibly `const`) values `sch1` and `sch2` of some scheduler type
-    `Sch`, `sch1 == sch2` shall return `true` only if both `sch1` and `sch2` share the
-    same associated execution resource.
-
-6. For a given scheduler expression `sch`, the expression
+5. For a given scheduler expression `sch`, the expression
     `get_completion_scheduler<set_value_t>(get_env(schedule(sch)))` shall
     compare equal to `sch`.
 
-7. For a given scheduler expression `sch`, if the expression `get_domain(sch)`
+6. For a given scheduler expression `sch`, if the expression `get_domain(sch)`
     is well-formed, then the expression `get_domain(get_env(schedule(sch)))`
     is also well-formed and has the same type.
 
-8. A scheduler type's destructor shall not block pending completion of any
+7. A scheduler type's destructor shall not block pending completion of any
     receivers connected to the sender objects returned from `schedule`. <span
     class="wg21note">The ability to wait for completion of submitted function
     objects can be provided by the associated execution resource of the
@@ -6223,19 +6218,14 @@ namespace std::execution {
     ([async.ops]). The `receiver_of` concept defines the requirements for a
     receiver type that is usable as the first argument of a set of completion
     operations corresponding to a set of completion signatures. The `get_env`
-    customization point is used to access a receiver's associated environment.
+    customization point object is used to access a receiver's associated
+    environment.
 
     <pre highlight="c++">
     namespace std::execution {
       template&lt;class Rcvr>
-        concept <i>enable-receiver</i> = // exposition only
-          requires {
-            requires derived_from&lt;typename Rcvr::receiver_concept, receiver_t>;
-          };
-
-      template&lt;class Rcvr>
         concept receiver =
-          <i>enable-receiver</i>&lt;remove_cvref_t&lt;Rcvr>> &&
+          derived_from&lt;typename Rcvr::receiver_concept, receiver_t> &&
           requires(const remove_cvref_t&lt;Rcvr>& rcvr) {
             { get_env(rcvr) } -> <i>queryable</i>;
           } &&
@@ -6263,39 +6253,42 @@ namespace std::execution {
     }
     </pre>
 
-2. Class types that are `final` do not model the `receiver` concept.
+2. Class types that are marked `final` do not model the `receiver` concept.
 
 3. Let `rcvr` be a receiver and let `op_state` be an operation state associated
-    with an asynchronous operation created by connecting `rcvr` with a sender. Let
-    `token` be a stop token equal to `get_stop_token(get_env(rcvr))`. `token` shall
-    remain valid for the duration of the asynchronous operation's lifetime
-    ([async.ops]). <span class="wg21note">This means that, unless it knows about
-    further guarantees provided by the type of receiver `rcvr`, the implementation
-    of `op_state` can not use `token` after it executes a completion operation.
-    This also implies that any stop callbacks registered on `token` must be
-    destroyed before the invocation of the completion operation.</span>
+    with an asynchronous operation created by connecting `rcvr` with a sender.
+    Let `token` be a stop token equal to `get_stop_token(get_env(rcvr))`.
+    `token` shall remain valid for the duration of the asynchronous operation's
+    lifetime ([async.ops]). <span class="wg21note">This means that, unless it
+    knows about further guarantees provided by the type of `rcvr`, the
+    implementation of `op_state` can not use `token` after it executes a
+    completion operation. This also implies that any stop callbacks registered
+    on `token` must be destroyed before the invocation of the completion
+    operation.</span>
 
 ### `execution::set_value` <b>[exec.set.value]</b> ### {#spec-execution.receivers.set_value}
 
 1. `set_value` is a value completion function ([async.ops]). Its associated
     completion tag is `set_value_t`. The expression `set_value(rcvr, vs...)` for
     a subexpression `rcvr` and pack of subexpressions `vs` is ill-formed if `rcvr`
-    is an lvalue or a `const` rvalue. Otherwise, it is expression-equivalent to
+    is an lvalue or an rvalue of const type. Otherwise, it is expression-equivalent to
     <code><i>MANDATE-NOTHROW</i>(rcvr.set_value(vs...))</code>.
 
 ### `execution::set_error` <b>[exec.set.error]</b> ### {#spec-execution.receivers.set_error}
 
-1. `set_error` is an error completion function. Its associated completion tag is
-    `set_error_t`. The expression `set_error(rcvr, err)` for some subexpressions `rcvr`
-    and `err` is ill-formed if `rcvr` is an lvalue or a `const` rvalue. Otherwise, it is
-    expression-equivalent to <code><i>MANDATE-NOTHROW</i>(rcvr.set_error(err))</code>.
+1. `set_error` is an error completion function ([async.ops]). Its associated completion tag is
+    `set_error_t`. The expression `set_error(rcvr, err)` for some subexpressions
+    `rcvr` and `err` is ill-formed if `rcvr` is an lvalue or an rvalue of const
+    type. Otherwise, it is expression-equivalent to
+    <code><i>MANDATE-NOTHROW</i>(rcvr.set_error(err))</code>.
 
 ### `execution::set_stopped` <b>[exec.set.stopped]</b> ### {#spec-execution.receivers.set_stopped}
 
-1. `set_stopped` is a stopped completion function. Its associated completion tag
-    is `set_stopped_t`.  The expression `set_stopped(rcvr)` for a subexpression
-    `rcvr` is ill-formed if `rcvr` is an lvalue or a `const` rvalue. Otherwise, it is
-    expression-equivalent to <code><i>MANDATE-NOTHROW</i>(rcvr.set_stopped())</code>.
+1. `set_stopped` is a stopped completion function ([async.ops]). Its associated
+    completion tag is `set_stopped_t`.  The expression `set_stopped(rcvr)` for a
+    subexpression `rcvr` is ill-formed if `rcvr` is an lvalue or an rvalue of
+    `const` type. Otherwise, it is expression-equivalent to
+    <code><i>MANDATE-NOTHROW</i>(rcvr.set_stopped())</code>.
 
 ## Operation states <b>[exec.opstate]</b> ## {#spec-execution.opstate}
 
@@ -6304,16 +6297,9 @@ namespace std::execution {
 
     <pre highlight="c++">
     namespace std::execution {
-      template&lt;class Rcvr>
-        concept <i>enable-opstate</i> = // exposition only
-          requires {
-            requires derived_from&lt;typename Rcvr::operation_state_concept, operation_state_t>;
-          };
-
       template&lt;class O>
         concept operation_state =
-          <i>enable-opstate</i>&lt;remove_cvref_t&lt;O>> &&
-          <i>queryable</i>&lt;O> &&
+          derived_from&lt;typename Rcvr::operation_state_concept, operation_state_t> &&
           is_object_v&lt;O> &&
           requires (O& o) {
             { start(o) } noexcept;
@@ -6321,24 +6307,30 @@ namespace std::execution {
     }
     </pre>
 
-2. If an `operation_state` object is moved during the lifetime of its
-    asynchronous operation ([async.ops]), the behavior is undefined.
+2. If an `operation_state` object is destroyed during the lifetime of its
+    asynchronous operation ([async.ops]), the behavior is undefined. <span
+    class="wg21note">The `operation_state` concept does not impose requirements
+    on any operations other than destruction and `start`, including copy and
+    move operations. Invoking any such operation on an object whose type models
+    `operation_state` can lead to undefined behavior.</span>
 
-3. Library-provided operation state types are non-movable.
+3. The program is ill-formed if it performs a copy or move construction or
+    assigment operation on an operation state object created by connecting a
+    library-provided sender.
 
 ### `execution::start` <b>[exec.opstate.start]</b> ### {#spec-execution.opstate.start}
 
 1. The name `start` denotes a customization point object that starts
     ([async.ops]) the asynchronous operation associated with the operation state
     object. For a subexpression `op`, the expression `start(op)` is ill-formed
-    if `op` is an rvalue. Otherwise, it is expression-equivalent to:
+    if `op` is an rvalue. Otherwise, it is expression-equivalent to
+    <code><i>MANDATE-NOTHROW</i>(op.start())</code>.
 
-    <pre highlight="c++">
-    <i>MANDATE-NOTHROW</i>(op.start())
-    </pre>
+2. If `op.start()` does not start ([async.ops]) the asynchronous operation
+    associated with the operation state `op`, the behavior of calling
+    `start(op)` is undefined.
 
-2. If `op.start()` does not start the asynchronous operation associated with the
-    operation state `op`, the behavior of calling `start(op)` is undefined.
+<!-- LWG stopped here -->
 
 ## Senders <b>[exec.snd]</b> ## {#spec-execution.senders}
 
