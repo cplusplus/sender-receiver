@@ -2386,7 +2386,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-05-29">2024-05-29</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-03">2024-06-03</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -4067,6 +4067,9 @@ concurrency, including:</p>
    <p><b>Fixes:</b></p>
    <p><b>Enhancements:</b></p>
    <ul>
+    <li data-md>
+     <p>The <code class="highlight"><c- n>operation_state</c-></code> concept no longer requires that operation states
+model <code class="highlight"><c- n>queryable</c-></code>.</p>
     <li data-md>
      <p>The <code class="highlight"><c- n>get_delegatee_scheduler</c-></code> query has been renamed to <code class="highlight"><c- n>get_delegation_scheduler</c-></code>.</p>
     <li data-md>
@@ -8249,8 +8252,8 @@ expression-equivalent to <code class="highlight"><i><c- n>MANDATE</c-><c- o>-</c
       <li data-md>
        <p>Let <i><code class="highlight"><c- n>completion</c-><c- o>-</c-><c- n>fn</c-></code></i> be a completion function ([async.ops]); let <i><code class="highlight"><c- n>completion</c-><c- o>-</c-><c- n>tag</c-></code></i> be the associated completion tag of <i><code class="highlight"><c- n>completion</c-><c- o>-</c-><c- n>fn</c-></code></i>; let <code class="highlight"><c- n>args</c-></code> be a pack of subexpressions; and let <code class="highlight"><c- n>sndr</c-></code> be a subexpression such that <code class="highlight"><c- n>sender</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-><c- o>></c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><i><c- n>completion</c-><c- o>-</c-><c- n>tag</c-></i><c- o>></c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>sndr</c-><c- p>))</c-></code> is well-formed and denotes a scheduler <code class="highlight"><c- n>sch</c-></code>. If an asynchronous operation
 created by connecting <code class="highlight"><c- n>sndr</c-></code> with a receiver <code class="highlight"><c- n>rcvr</c-></code> causes the evaluation of <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>fn</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>args</c-><c- p>...)</c-></code>, the behavior is undefined
-unless it happens on an execution agent that belongs to <code class="highlight"><c- n>sch</c-></code>’s associated
-execution resource.</p>
+unless the evaluation happens on an execution agent that belongs to <code class="highlight"><c- n>sch</c-></code>’s
+associated execution resource.</p>
       <li data-md>
        <p>The expression <code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><i><c- n>completion</c-><c- o>-</c-><c- n>tag</c-></i><c- o>></c-><c- p>)</c-></code> is a core constant expression and has value <code class="highlight">true</code>.</p>
      </ol>
@@ -8262,14 +8265,8 @@ execution resource.</p>
 scheduler. A valid invocation of <code class="highlight"><c- n>schedule</c-></code> is a schedule-expression.</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sch</c-><c- o>></c->
-    <c- k>concept</c-> <i><c- nc>enable</c-><c- o>-</c-><c- n>scheduler</c-></i> <c- o>=</c-> <i><c- c1>// exposition only</c-></i>
-      <c- k>requires</c-> <c- p>{</c->
-        <c- k>requires</c-> <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>Sch</c-><c- o>::</c-><c- n>scheduler_concept</c-><c- p>,</c-> <c- n>scheduler_t</c-><c- o>></c-><c- p>;</c->
-      <c- p>};</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sch</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>scheduler</c-> <c- o>=</c->
-      <i><c- n>enable</c-><c- o>-</c-><c- n>scheduler</c-></i><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
+      <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>Sch</c-><c- o>::</c-><c- n>scheduler_concept</c-><c- p>,</c-> <c- n>scheduler_t</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <i><c- n>queryable</c-></i><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <c- k>requires</c-><c- p>(</c-><c- n>Sch</c-><c- o>&amp;&amp;</c-> <c- n>sch</c-><c- p>)</c-> <c- p>{</c->
         <c- p>{</c-> <c- n>schedule</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-><c- p>(</c-><c- n>sch</c-><c- p>))</c-> <c- p>}</c-> <c- o>-></c-> <c- n>sender</c-><c- p>;</c->
@@ -8282,17 +8279,17 @@ scheduler. A valid invocation of <code class="highlight"><c- n>schedule</c-></co
 <c- p>}</c->
 </pre>
       <li data-md>
-       <p>Let <code class="highlight"><c- n>Sch</c-></code> be the type of a scheduler and let <code class="highlight"><c- n>Env</c-></code> be the type of an execution
-environment for which <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>schedule_result_t</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">true</code>. Then <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- n>of</c-><c- o>-</c-><c- n>in</c-></i><c- o>&lt;</c-><c- n>schedule_result_t</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> shall be <code class="highlight">true</code>.</p>
+       <p>Let <code class="highlight"><c- n>Sch</c-></code> be the type of a scheduler and let <code class="highlight"><c- n>Env</c-></code> be the type of an
+execution environment for which <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>schedule_result_t</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is
+satisfied. Then <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- n>of</c-><c- o>-</c-><c- n>in</c-></i><c- o>&lt;</c-><c- n>schedule_result_t</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> shall be modeled.</p>
       <li data-md>
-       <p>None of a scheduler’s copy constructor, destructor, equality comparison, or <code class="highlight"><c- n>swap</c-></code> member functions shall exit via an exception.</p>
+       <p>None of a scheduler’s copy constructor, destructor, equality comparison, or <code class="highlight"><c- n>swap</c-></code> member functions shall exit via an exception. None of these member
+functions, nor a scheduler type’s <code class="highlight"><c- n>schedule</c-></code> function, shall introduce data
+races as a result of potentially concurrent ([intro.races]) invocations of
+those functions from different threads.</p>
       <li data-md>
-       <p>None of these member functions, nor a scheduler type’s <code class="highlight"><c- n>schedule</c-></code> function,
-shall introduce data races as a result of concurrent invocations of those
-functions from different threads.</p>
-      <li data-md>
-       <p>For any two (possibly <code class="highlight"><c- k>const</c-></code>) values <code class="highlight"><c- n>sch1</c-></code> and <code class="highlight"><c- n>sch2</c-></code> of some scheduler type <code class="highlight"><c- n>Sch</c-></code>, <code class="highlight"><c- n>sch1</c-> <c- o>==</c-> <c- n>sch2</c-></code> shall return <code class="highlight">true</code> only if both <code class="highlight"><c- n>sch1</c-></code> and <code class="highlight"><c- n>sch2</c-></code> share the
-same associated execution resource.</p>
+       <p>For any two values <code class="highlight"><c- n>sch1</c-></code> and <code class="highlight"><c- n>sch2</c-></code> of some scheduler type <code class="highlight"><c- n>Sch</c-></code>, <code class="highlight"><c- n>sch1</c-> <c- o>==</c-> <c- n>sch2</c-></code> shall return <code class="highlight">true</code> only if both <code class="highlight"><c- n>sch1</c-></code> and <code class="highlight"><c- n>sch2</c-></code> share the same
+associated execution resource.</p>
       <li data-md>
        <p>For a given scheduler expression <code class="highlight"><c- n>sch</c-></code>, the expression <code class="highlight"><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- o>></c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>schedule</c-><c- p>(</c-><c- n>sch</c-><c- p>)))</c-></code> shall
 compare equal to <code class="highlight"><c- n>sch</c-></code>.</p>
@@ -8311,17 +8308,12 @@ scheduler.</span></p>
        <p>A receiver represents the continuation of an asynchronous operation. The <code class="highlight"><c- n>receiver</c-></code> concept defines the requirements for a receiver type
 ([async.ops]). The <code class="highlight"><c- n>receiver_of</c-></code> concept defines the requirements for a
 receiver type that is usable as the first argument of a set of completion
-operations corresponding to a set of completion signatures. The <code class="highlight"><c- n>get_env</c-></code> customization point is used to access a receiver’s associated environment.</p>
+operations corresponding to a set of completion signatures. The <code class="highlight"><c- n>get_env</c-></code> customization point object is used to access a receiver’s associated
+environment.</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
-    <c- k>concept</c-> <i><c- nc>enable</c-><c- o>-</c-><c- n>receiver</c-></i> <c- o>=</c-> <c- c1>// exposition only</c->
-      <c- k>requires</c-> <c- p>{</c->
-        <c- k>requires</c-> <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>Rcvr</c-><c- o>::</c-><c- n>receiver_concept</c-><c- p>,</c-> <c- n>receiver_t</c-><c- o>></c-><c- p>;</c->
-      <c- p>};</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>receiver</c-> <c- o>=</c->
-      <i><c- n>enable</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
+      <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>Rcvr</c-><c- o>::</c-><c- n>receiver_concept</c-><c- p>,</c-> <c- n>receiver_t</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <c- k>requires</c-><c- p>(</c-><c- k>const</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- p>{</c->
         <c- p>{</c-> <c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)</c-> <c- p>}</c-> <c- o>-></c-> <i><c- n>queryable</c-></i><c- p>;</c->
       <c- p>}</c-> <c- o>&amp;&amp;</c->
@@ -8349,36 +8341,37 @@ operations corresponding to a set of completion signatures. The <code class="hig
 <c- p>}</c->
 </pre>
       <li data-md>
-       <p>Class types that are <code class="highlight"><c- k>final</c-></code> do not model the <code class="highlight"><c- n>receiver</c-></code> concept.</p>
+       <p>Class types that are marked <code class="highlight"><c- k>final</c-></code> do not model the <code class="highlight"><c- n>receiver</c-></code> concept.</p>
       <li data-md>
        <p>Let <code class="highlight"><c- n>rcvr</c-></code> be a receiver and let <code class="highlight"><c- n>op_state</c-></code> be an operation state associated
-with an asynchronous operation created by connecting <code class="highlight"><c- n>rcvr</c-></code> with a sender. Let <code class="highlight"><c- n>token</c-></code> be a stop token equal to <code class="highlight"><c- n>get_stop_token</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))</c-></code>. <code class="highlight"><c- n>token</c-></code> shall
-remain valid for the duration of the asynchronous operation’s lifetime
-([async.ops]). <span class="wg21note">This means that, unless it knows about
-further guarantees provided by the type of receiver <code class="highlight"><c- n>rcvr</c-></code>, the implementation
-of <code class="highlight"><c- n>op_state</c-></code> can not use <code class="highlight"><c- n>token</c-></code> after it executes a completion operation.
-This also implies that any stop callbacks registered on <code class="highlight"><c- n>token</c-></code> must be
-destroyed before the invocation of the completion operation.</span></p>
+with an asynchronous operation created by connecting <code class="highlight"><c- n>rcvr</c-></code> with a sender.
+Let <code class="highlight"><c- n>token</c-></code> be a stop token equal to <code class="highlight"><c- n>get_stop_token</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))</c-></code>. <code class="highlight"><c- n>token</c-></code> shall remain valid for the duration of the asynchronous operation’s
+lifetime ([async.ops]). <span class="wg21note">This means that, unless it
+knows about further guarantees provided by the type of <code class="highlight"><c- n>rcvr</c-></code>, the
+implementation of <code class="highlight"><c- n>op_state</c-></code> can not use <code class="highlight"><c- n>token</c-></code> after it executes a
+completion operation. This also implies that any stop callbacks registered
+on <code class="highlight"><c- n>token</c-></code> must be destroyed before the invocation of the completion
+operation.</span></p>
      </ol>
      <h4 class="heading settled" data-level="34.7.2" id="spec-execution.receivers.set_value"><span class="secno">34.7.2. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>set_value</c-></code> <b>[exec.set.value]</b></span><a class="self-link" href="#spec-execution.receivers.set_value"></a></h4>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>set_value</c-></code> is a value completion function ([async.ops]). Its associated
 completion tag is <code class="highlight"><c- n>set_value_t</c-></code>. The expression <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>vs</c-><c- p>...)</c-></code> for
-a subexpression <code class="highlight"><c- n>rcvr</c-></code> and pack of subexpressions <code class="highlight"><c- n>vs</c-></code> is ill-formed if <code class="highlight"><c- n>rcvr</c-></code> is an lvalue or a <code class="highlight"><c- k>const</c-></code> rvalue. Otherwise, it is expression-equivalent to <code class="highlight"><i><c- n>MANDATE</c-><c- o>-</c-><c- n>NOTHROW</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>.</c-><c- n>set_value</c-><c- p>(</c-><c- n>vs</c-><c- p>...))</c-></code>.</p>
+a subexpression <code class="highlight"><c- n>rcvr</c-></code> and pack of subexpressions <code class="highlight"><c- n>vs</c-></code> is ill-formed if <code class="highlight"><c- n>rcvr</c-></code> is an lvalue or an rvalue of const type. Otherwise, it is expression-equivalent to <code class="highlight"><i><c- n>MANDATE</c-><c- o>-</c-><c- n>NOTHROW</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>.</c-><c- n>set_value</c-><c- p>(</c-><c- n>vs</c-><c- p>...))</c-></code>.</p>
      </ol>
      <h4 class="heading settled" data-level="34.7.3" id="spec-execution.receivers.set_error"><span class="secno">34.7.3. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>set_error</c-></code> <b>[exec.set.error]</b></span><a class="self-link" href="#spec-execution.receivers.set_error"></a></h4>
      <ol>
       <li data-md>
-       <p><code class="highlight"><c- n>set_error</c-></code> is an error completion function. Its associated completion tag is <code class="highlight"><c- n>set_error_t</c-></code>. The expression <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>err</c-><c- p>)</c-></code> for some subexpressions <code class="highlight"><c- n>rcvr</c-></code> and <code class="highlight"><c- n>err</c-></code> is ill-formed if <code class="highlight"><c- n>rcvr</c-></code> is an lvalue or a <code class="highlight"><c- k>const</c-></code> rvalue. Otherwise, it is
-expression-equivalent to <code class="highlight"><i><c- n>MANDATE</c-><c- o>-</c-><c- n>NOTHROW</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>.</c-><c- n>set_error</c-><c- p>(</c-><c- n>err</c-><c- p>))</c-></code>.</p>
+       <p><code class="highlight"><c- n>set_error</c-></code> is an error completion function ([async.ops]). Its associated completion tag is <code class="highlight"><c- n>set_error_t</c-></code>. The expression <code class="highlight"><c- n>set_error</c-><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>err</c-><c- p>)</c-></code> for some subexpressions <code class="highlight"><c- n>rcvr</c-></code> and <code class="highlight"><c- n>err</c-></code> is ill-formed if <code class="highlight"><c- n>rcvr</c-></code> is an lvalue or an rvalue of const
+type. Otherwise, it is expression-equivalent to <code class="highlight"><i><c- n>MANDATE</c-><c- o>-</c-><c- n>NOTHROW</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>.</c-><c- n>set_error</c-><c- p>(</c-><c- n>err</c-><c- p>))</c-></code>.</p>
      </ol>
      <h4 class="heading settled" data-level="34.7.4" id="spec-execution.receivers.set_stopped"><span class="secno">34.7.4. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>set_stopped</c-></code> <b>[exec.set.stopped]</b></span><a class="self-link" href="#spec-execution.receivers.set_stopped"></a></h4>
      <ol>
       <li data-md>
-       <p><code class="highlight"><c- n>set_stopped</c-></code> is a stopped completion function. Its associated completion tag
-is <code class="highlight"><c- n>set_stopped_t</c-></code>.  The expression <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)</c-></code> for a subexpression <code class="highlight"><c- n>rcvr</c-></code> is ill-formed if <code class="highlight"><c- n>rcvr</c-></code> is an lvalue or a <code class="highlight"><c- k>const</c-></code> rvalue. Otherwise, it is
-expression-equivalent to <code class="highlight"><i><c- n>MANDATE</c-><c- o>-</c-><c- n>NOTHROW</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>.</c-><c- n>set_stopped</c-><c- p>())</c-></code>.</p>
+       <p><code class="highlight"><c- n>set_stopped</c-></code> is a stopped completion function ([async.ops]). Its associated
+completion tag is <code class="highlight"><c- n>set_stopped_t</c-></code>.  The expression <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)</c-></code> for a
+subexpression <code class="highlight"><c- n>rcvr</c-></code> is ill-formed if <code class="highlight"><c- n>rcvr</c-></code> is an lvalue or an rvalue of <code class="highlight"><c- k>const</c-></code> type. Otherwise, it is expression-equivalent to <code class="highlight"><i><c- n>MANDATE</c-><c- o>-</c-><c- n>NOTHROW</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>.</c-><c- n>set_stopped</c-><c- p>())</c-></code>.</p>
      </ol>
      <h3 class="heading settled" data-level="34.8" id="spec-execution.opstate"><span class="secno">34.8. </span><span class="content">Operation states <b>[exec.opstate]</b></span><a class="self-link" href="#spec-execution.opstate"></a></h3>
      <ol>
@@ -8386,16 +8379,9 @@ expression-equivalent to <code class="highlight"><i><c- n>MANDATE</c-><c- o>-</c
        <p>The <code class="highlight"><c- n>operation_state</c-></code> concept defines the requirements of an operation state
 type ([async.ops]).</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
-    <c- k>concept</c-> <i><c- nc>enable</c-><c- o>-</c-><c- n>opstate</c-></i> <c- o>=</c-> <c- c1>// exposition only</c->
-      <c- k>requires</c-> <c- p>{</c->
-        <c- k>requires</c-> <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>Rcvr</c-><c- o>::</c-><c- n>operation_state_concept</c-><c- p>,</c-> <c- n>operation_state_t</c-><c- o>></c-><c- p>;</c->
-      <c- p>};</c->
-
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>O</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>operation_state</c-> <c- o>=</c->
-      <i><c- n>enable</c-><c- o>-</c-><c- n>opstate</c-></i><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>O</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
-      <i><c- n>queryable</c-></i><c- o>&lt;</c-><c- n>O</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+      <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>Rcvr</c-><c- o>::</c-><c- n>operation_state_concept</c-><c- p>,</c-> <c- n>operation_state_t</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <c- n>is_object_v</c-><c- o>&lt;</c-><c- n>O</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <c- k>requires</c-> <c- p>(</c-><c- n>O</c-><c- o>&amp;</c-> <c- n>o</c-><c- p>)</c-> <c- p>{</c->
         <c- p>{</c-> <c- n>start</c-><c- p>(</c-><c- n>o</c-><c- p>)</c-> <c- p>}</c-> <c- k>noexcept</c-><c- p>;</c->
@@ -8403,10 +8389,14 @@ type ([async.ops]).</p>
 <c- p>}</c->
 </pre>
       <li data-md>
-       <p>If an <code class="highlight"><c- n>operation_state</c-></code> object is moved during the lifetime of its
-asynchronous operation ([async.ops]), the behavior is undefined.</p>
+       <p>If an <code class="highlight"><c- n>operation_state</c-></code> object is destroyed during the lifetime of its
+asynchronous operation ([async.ops]), the behavior is undefined. <span class="wg21note">The <code class="highlight"><c- n>operation_state</c-></code> concept does not impose requirements
+on any operations other than destruction and <code class="highlight"><c- n>start</c-></code>, including copy and
+move operations. Invoking any such operation on an object whose type models <code class="highlight"><c- n>operation_state</c-></code> can lead to undefined behavior.</span></p>
       <li data-md>
-       <p>Library-provided operation state types are non-movable.</p>
+       <p>The program is ill-formed if it performs a copy or move construction or
+assigment operation on an operation state object created by connecting a
+library-provided sender.</p>
      </ol>
      <h4 class="heading settled" data-level="34.8.1" id="spec-execution.opstate.start"><span class="secno">34.8.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>start</c-></code> <b>[exec.opstate.start]</b></span><a class="self-link" href="#spec-execution.opstate.start"></a></h4>
      <ol>
@@ -8414,12 +8404,10 @@ asynchronous operation ([async.ops]), the behavior is undefined.</p>
        <p>The name <code class="highlight"><c- n>start</c-></code> denotes a customization point object that starts
 ([async.ops]) the asynchronous operation associated with the operation state
 object. For a subexpression <code class="highlight"><c- n>op</c-></code>, the expression <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>op</c-><c- p>)</c-></code> is ill-formed
-if <code class="highlight"><c- n>op</c-></code> is an rvalue. Otherwise, it is expression-equivalent to:</p>
-<pre class="highlight"><i><c- n>MANDATE</c-><c- o>-</c-><c- n>NOTHROW</c-></i><c- p>(</c-><c- n>op</c-><c- p>.</c-><c- n>start</c-><c- p>())</c->
-</pre>
+if <code class="highlight"><c- n>op</c-></code> is an rvalue. Otherwise, it is expression-equivalent to <code class="highlight"><i><c- n>MANDATE</c-><c- o>-</c-><c- n>NOTHROW</c-></i><c- p>(</c-><c- n>op</c-><c- p>.</c-><c- n>start</c-><c- p>())</c-></code>.</p>
       <li data-md>
-       <p>If <code class="highlight"><c- n>op</c-><c- p>.</c-><c- n>start</c-><c- p>()</c-></code> does not start the asynchronous operation associated with the
-operation state <code class="highlight"><c- n>op</c-></code>, the behavior of calling <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>op</c-><c- p>)</c-></code> is undefined.</p>
+       <p>If <code class="highlight"><c- n>op</c-><c- p>.</c-><c- n>start</c-><c- p>()</c-></code> does not start ([async.ops]) the asynchronous operation
+associated with the operation state <code class="highlight"><c- n>op</c-></code>, the behavior of calling <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>op</c-><c- p>)</c-></code> is undefined.</p>
      </ol>
      <h3 class="heading settled" data-level="34.9" id="spec-execution.senders"><span class="secno">34.9. </span><span class="content">Senders <b>[exec.snd]</b></span><a class="self-link" href="#spec-execution.senders"></a></h3>
      <h4 class="heading settled" data-level="34.9.1" id="spec-execution.senders.general"><span class="secno">34.9.1. </span><span class="content">General <b>[exec.snd.general]</b></span><a class="self-link" href="#spec-execution.senders.general"></a></h4>
