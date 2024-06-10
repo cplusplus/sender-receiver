@@ -2386,7 +2386,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-03">2024-06-03</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-10">2024-06-10</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -8270,8 +8270,8 @@ scheduler. A valid invocation of <code class="highlight"><c- n>schedule</c-></co
       <i><c- n>queryable</c-></i><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <c- k>requires</c-><c- p>(</c-><c- n>Sch</c-><c- o>&amp;&amp;</c-> <c- n>sch</c-><c- p>)</c-> <c- p>{</c->
         <c- p>{</c-> <c- n>schedule</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-><c- p>(</c-><c- n>sch</c-><c- p>))</c-> <c- p>}</c-> <c- o>-></c-> <c- n>sender</c-><c- p>;</c->
-        <c- p>{</c-> <c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- o>></c-><c- p>(</c->
-            <c- n>get_env</c-><c- p>(</c-><c- n>schedule</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-><c- p>(</c-><c- n>sch</c-><c- p>))))</c-> <c- p>}</c->
+        <c- p>{</c-> <c- k>auto</c-><c- p>(</c-><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- o>></c-><c- p>(</c->
+            <c- n>get_env</c-><c- p>(</c-><c- n>schedule</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-><c- p>(</c-><c- n>sch</c-><c- p>)))))</c-> <c- p>}</c->
               <c- o>-></c-> <c- n>same_as</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>>></c-><c- p>;</c->
       <c- p>}</c-> <c- o>&amp;&amp;</c->
       <c- n>equality_comparable</c-><c- o>&lt;</c-><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>>></c-> <c- o>&amp;&amp;</c->
