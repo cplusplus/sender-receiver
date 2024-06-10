@@ -6171,8 +6171,8 @@ namespace std::execution {
           <i>queryable</i>&lt;Sch> &&
           requires(Sch&& sch) {
             { schedule(std::forward&lt;Sch>(sch)) } -> sender;
-            { get_completion_scheduler&lt;set_value_t>(
-                get_env(schedule(std::forward&lt;Sch>(sch)))) }
+            { auto(get_completion_scheduler&lt;set_value_t>(
+                get_env(schedule(std::forward&lt;Sch>(sch))))) }
                   -> same_as&lt;remove_cvref_t&lt;Sch>>;
           } &&
           equality_comparable&lt;remove_cvref_t&lt;Sch>> &&
