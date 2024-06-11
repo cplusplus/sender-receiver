@@ -3485,7 +3485,7 @@ execution::scheduler auto sched = thread_pool.scheduler();
 execution::sender auto sends_1 = ...;
 execution::sender auto sends_abc = ...;
 
-execution::sender auto both = execution::when_all(sched,
+execution::sender auto both = execution::when_all(
     sends_1,
     sends_abc
 );
