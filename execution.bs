@@ -7971,7 +7971,7 @@ namespace std::execution {
             </pre>
 
         4. <code><i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;<i>let-cpo</i>>>::<i>complete</i></code> is
-            is initialized with a callable object equivalent to the following:
+            initialized with a callable object equivalent to the following:
 
             <pre highlight="c++">
             []&lt;class Tag, class... Args>
