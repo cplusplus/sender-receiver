@@ -9839,7 +9839,7 @@ satisfied if and only if the types <i><code class="highlight"><c- n>args</c-><c-
 </pre>
         <li data-md>
          <p><code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>decayed</c-><c- o>-</c-><c- n>typeof</c-></i><c- o>&lt;</c-><i><c- n>let</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>>>::</c-><i><c- n>complete</c-></i></code> is
-is initialized with a callable object equivalent to the following:</p>
+initialized with a callable object equivalent to the following:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
   <c- p>(</c-><c- k>auto</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>,</c-> <c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
     <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>same_as</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <i><c- n>decayed</c-><c- o>-</c-><c- n>typeof</c-></i><c- o>&lt;</c-><i><c- n>set</c-><c- o>-</c-><c- n>cpo</c-></i><c- o>>></c-><c- p>)</c-> <c- p>{</c->
