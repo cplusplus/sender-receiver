@@ -6299,7 +6299,7 @@ namespace std::execution {
     namespace std::execution {
       template&lt;class O>
         concept operation_state =
-          derived_from&lt;typename Rcvr::operation_state_concept, operation_state_t> &&
+          derived_from&lt;typename O::operation_state_concept, operation_state_t> &&
           is_object_v&lt;O> &&
           requires (O& o) {
             { start(o) } noexcept;
