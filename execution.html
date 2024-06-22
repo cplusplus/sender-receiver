@@ -1561,7 +1561,7 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version 4afc1fdf9, updated Tue May 28 15:43:17 2024 -0700" name="generator">
+  <meta content="Bikeshed version a1dabb26c, updated Mon Jun 17 15:00:44 2024 -0700" name="generator">
   <link href="https://wg21.link/P2300" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
   <meta content="dark light" name="color-scheme">
@@ -2386,7 +2386,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-13">2024-06-13</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-22">2024-06-22</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -3440,7 +3440,7 @@ completion signatures when executed within a particular environment.</p>
   <c- p>}</c->
 <c- p>};</c->
 
-<c- c1>// Helpers for computing the `then` sender's completion signatures: </c->
+<c- c1>// Helpers for computing the `then` sender's completion signatures:</c->
 <c- n>template</c-> <c- o>&lt;</c-><c- n>class</c-><c- p>...</c-> <c- n>Ts</c-><c- o>></c->
   <c- n>using</c-> <c- n>_value_t</c-> <c- o>=</c->
     <c- n>stdexec</c-><c- o>::</c-><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>stdexec</c-><c- o>::</c-><c- n>set_value_t</c-><c- p>(</c-><c- n>Ts</c-><c- p>...)</c-><c- o>></c-><c- p>;</c->
@@ -6441,7 +6441,7 @@ declarations into the <code class="highlight"><c- o>&lt;</c-><c- n>stop_token</c
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Token</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>unstoppable_token</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
-  
+
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Source</c-><c- o>></c->
     <c- k>concept</c-> <i><c- nc>stoppable</c-><c- o>-</c-><c- n>source</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i></div>
   <c- c1>// 33.3.3, class stop_token</c->
@@ -8413,19 +8413,19 @@ associated with the operation state <code class="highlight"><c- n>op</c-></code>
      <h4 class="heading settled" data-level="34.9.1" id="spec-execution.senders.general"><span class="secno">34.9.1. </span><span class="content">General <b>[exec.snd.general]</b></span><a class="self-link" href="#spec-execution.senders.general"></a></h4>
      <ol>
       <li data-md>
-       <p>For the purposes of this subclause, a sender is an object that satisfies the <code class="highlight"><c- n>sender</c-></code> concept ([async.ops]).</p>
+       <p>For the purposes of this subclause, a sender is an object whose type
+satisfies the <code class="highlight"><c- n>sender</c-></code> concept ([async.ops]).</p>
       <li data-md>
        <p>Subclauses [exec.factories] and [exec.adapt] define customizable algorithms
 that return senders. Each algorithm has a default implementation. Let <code class="highlight"><c- n>sndr</c-></code> be the result of an invocation of such an algorithm or an object equal to
-such ([concepts.equality]), and let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. Let <code class="highlight"><c- n>rcvr</c-></code> be a receiver with associated environment <code class="highlight"><c- n>env</c-></code> of type <code class="highlight"><c- n>Env</c-></code> such that <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">true</code>. For the default implementation of the
+the result ([concepts.equality]), and let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. Let <code class="highlight"><c- n>rcvr</c-></code> be a receiver of type <code class="highlight"><c- n>Rcvr</c-></code> with associated environment <code class="highlight"><c- n>env</c-></code> of type <code class="highlight"><c- n>Env</c-></code> such that <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-></code> is <code class="highlight">true</code>. For the default implementation of the
 algorithm that produced <code class="highlight"><c- n>sndr</c-></code>, connecting <code class="highlight"><c- n>sndr</c-></code> to <code class="highlight"><c- n>rcvr</c-></code> and starting the
 resulting operation state ([async.ops]) necessarily results in the potential
 evaluation ([basic.def.odr]) of a set of completion operations whose first
 argument is a subexpression equal to <code class="highlight"><c- n>rcvr</c-></code>. Let <code class="highlight"><c- n>Sigs</c-></code> be a pack of
 completion signatures corresponding to this set of completion operations.
 Then the type of the expression <code class="highlight"><c- n>get_completion_signatures</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is a
-specialization of the class template <code class="highlight"><c- n>completion_signatures</c-></code>,
-([exec.utils.cmplsigs]) the set of whose template arguments is <code class="highlight"><c- n>Sigs</c-></code>. If a
+specialization of the class template <code class="highlight"><c- n>completion_signatures</c-></code> ([exec.utils.cmplsigs]), the set of whose template arguments is <code class="highlight"><c- n>Sigs</c-></code>. If a
 user-provided implementation of the algorithm that produced <code class="highlight"><c- n>sndr</c-></code> is
 selected instead of the default, any completion signature that is in the set
 of types denoted by <code class="highlight"><c- n>completion_signatures_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> and that is not
@@ -8435,16 +8435,16 @@ unless otherwise specified.</p>
        <p>This subclause makes use of the following exposition-only entities.</p>
        <ol>
         <li data-md>
-         <p>For a queryable object <code class="highlight"><c- n>env</c-></code>, let <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>env</c-><c- p>)</c-></code> be a
-queryable object such that for a query object <code class="highlight"><c- n>q</c-></code> and a pack of
-subexpressions <code class="highlight"><c- n>as</c-></code>, the expression <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>env</c-><c- p>).</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> is ill-formed if <code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is <code class="highlight">false</code>;
-otherwise, it is expression-equivalent to <code class="highlight"><c- n>env</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code>.</p>
+         <p>For a queryable object <code class="highlight"><c- n>env</c-></code>, <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>env</c-><c- p>)</c-></code> is an
+expression whose type satisfies *<code class="highlight"><c- n>queryable</c-></code>* such that for a query object <code class="highlight"><c- n>q</c-></code> and a pack of subexpressions <code class="highlight"><c- n>as</c-></code>, the expression <code class="highlight"><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>env</c-><c- p>).</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> is ill-formed if <code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is <code class="highlight">false</code>; otherwise, it is expression-equivalent
+to <code class="highlight"><c- n>env</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code>.</p>
         <li data-md>
-         <p>For a query object <code class="highlight"><c- n>q</c-></code> and a subexpression <code class="highlight"><c- n>v</c-></code>, let <code class="highlight"><i><c- n>MAKE</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code> be a queryable object <code class="highlight"><c- n>env</c-></code> such that
-the result of <code class="highlight"><c- n>env</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> has a value equal to <code class="highlight"><c- n>v</c-></code> ([concepts.equality]). Unless otherwise stated, the object to which <code class="highlight"><c- n>env</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> refers remains valid while <code class="highlight"><c- n>env</c-></code> remains valid.</p>
+         <p>For a query object <code class="highlight"><c- n>q</c-></code> and a subexpression <code class="highlight"><c- n>v</c-></code>, <code class="highlight"><i><c- n>MAKE</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>v</c-><c- p>)</c-></code> is an expression <code class="highlight"><c- n>env</c-></code> whose type satisfies *<code class="highlight"><c- n>queryable</c-></code>* such
+that the result of <code class="highlight"><c- n>env</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> has a value equal to <code class="highlight"><c- n>v</c-></code> ([concepts.equality]). Unless otherwise stated, the object to which <code class="highlight"><c- n>env</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> refers remains valid while <code class="highlight"><c- n>env</c-></code> remains valid.</p>
         <li data-md>
          <p>For two queryable objects <code class="highlight"><c- n>env1</c-></code> and <code class="highlight"><c- n>env2</c-></code>, a query object <code class="highlight"><c- n>q</c-></code> and a
-pack of subexpressions <code class="highlight"><c- n>as</c-></code>, let <code class="highlight"><i><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>env1</c-><c- p>,</c-> <c- n>env2</c-><c- p>)</c-></code> be a queryable object <code class="highlight"><c- n>env3</c-></code> such that <code class="highlight"><c- n>env3</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> is expression-equivalent to:</p>
+pack of subexpressions <code class="highlight"><c- n>as</c-></code>, <code class="highlight"><i><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>env1</c-><c- p>,</c-> <c- n>env2</c-><c- p>)</c-></code> is
+an expression <code class="highlight"><c- n>env3</c-></code> whose type satisfies *<code class="highlight"><c- n>queryable</c-></code>* such that <code class="highlight"><c- n>env3</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> is expression-equivalent to:</p>
          <ul>
           <li data-md>
            <p><code class="highlight"><c- n>env1</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> if that expression is well-formed,</p>
@@ -8455,40 +8455,41 @@ pack of subexpressions <code class="highlight"><c- n>as</c-></code>, let <code c
            <p>otherwise, <code class="highlight"><c- n>env3</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>q</c-><c- p>,</c-> <c- n>as</c-><c- p>...)</c-></code> is ill-formed.</p>
          </ul>
         <li data-md>
-         <p>The expansions of <i><code class="highlight"><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></code></i>, <i><code class="highlight"><c- n>MAKE</c-><c- o>-</c-><c- n>ENV</c-></code></i>, and <i><code class="highlight"><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></code></i> can be context-dependent; <em>i.e.</em>, they can expand to
-expressions with different types and value categories in different
-contexts for the same arguments.</p>
+         <p>The results of <i><code class="highlight"><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></code></i>, <i><code class="highlight"><c- n>MAKE</c-><c- o>-</c-><c- n>ENV</c-></code></i>, and <i><code class="highlight"><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></code></i> can be context-dependent; i.e., they can evaluate to expressions with
+different types and value categories in different contexts for the same
+arguments.</p>
         <li data-md>
-         <p>For a scheduler <code class="highlight"><c- n>sch</c-></code>, let <code class="highlight"><i><c- n>SCHED</c-><c- o>-</c-><c- n>ATTRS</c-></i><c- p>(</c-><c- n>sch</c-><c- p>)</c-></code> be a
-queryable object <code class="highlight"><c- n>o1</c-></code> such that <code class="highlight"><c- n>o1</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><i><c- n>Tag</c-></i><c- o>></c-><c- p>)</c-></code> is a
-prvalue with the same type and value as <code class="highlight"><c- n>sch</c-></code> where <i><code class="highlight"><c- n>Tag</c-></code></i> is one
-of <code class="highlight"><c- n>set_value_t</c-></code> or <code class="highlight"><c- n>set_stopped_t</c-></code>; and let <code class="highlight"><c- n>o1</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_domain</c-><c- p>)</c-></code> be expression-equivalent to <code class="highlight"><c- n>sch</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_domain</c-><c- p>)</c-></code>. Let <code class="highlight"><i><c- n>SCHED</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>sch</c-><c- p>)</c-></code> be a queryable object <code class="highlight"><c- n>o2</c-></code> such that <code class="highlight"><c- n>o1</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_scheduler</c-><c- p>)</c-></code> is a prvalue with the same
-type and value as <code class="highlight"><c- n>sch</c-></code>, and let <code class="highlight"><c- n>o2</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_domain</c-><c- p>)</c-></code> be expression-equivalent to <code class="highlight"><c- n>sch</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_domain</c-><c- p>)</c-></code>.</p>
+         <p>For a scheduler <code class="highlight"><c- n>sch</c-></code>, <code class="highlight"><i><c- n>SCHED</c-><c- o>-</c-><c- n>ATTRS</c-></i><c- p>(</c-><c- n>sch</c-><c- p>)</c-></code> is an
+expression <code class="highlight"><c- n>o1</c-></code> whose type satisfied *<code class="highlight"><c- n>queryable</c-></code>* such that <code class="highlight"><c- n>o1</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><i><c- n>Tag</c-></i><c- o>></c-><c- p>)</c-></code> is a
+expression with the same type and value as <code class="highlight"><c- n>sch</c-></code> where <i><code class="highlight"><c- n>Tag</c-></code></i> is
+one of <code class="highlight"><c- n>set_value_t</c-></code> or <code class="highlight"><c- n>set_stopped_t</c-></code>, and such that <code class="highlight"><c- n>o1</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_domain</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- n>sch</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_domain</c-><c- p>)</c-></code>. <code class="highlight"><i><c- n>SCHED</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>sch</c-><c- p>)</c-></code> is an expression <code class="highlight"><c- n>o2</c-></code> whose type satisfied *<code class="highlight"><c- n>queryable</c-></code>* such that <code class="highlight"><c- n>o1</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_scheduler</c-><c- p>)</c-></code> is a prvalue with the same type and
+value as <code class="highlight"><c- n>sch</c-></code>, and such that <code class="highlight"><c- n>o2</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_domain</c-><c- p>)</c-></code> is
+expression-equivalent to <code class="highlight"><c- n>sch</c-><c- p>.</c-><c- n>query</c-><c- p>(</c-><c- n>get_domain</c-><c- p>)</c-></code>.</p>
         <li data-md>
-         <p>For two subexpressions <code class="highlight"><c- n>rcvr</c-></code> and <code class="highlight"><c- n>expr</c-></code>, let <code class="highlight"><i><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>expr</c-><c- p>)</c-></code> be <code class="highlight"><c- p>(</c-><c- n>expr</c-><c- p>,</c-> <c- n>set_value</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))</c-></code> if the type of <code class="highlight"><c- n>expr</c-></code> is <code class="highlight"><c- b>void</c-></code>;
-otherwise, it is <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>expr</c-><c- p>)</c-></code>. Let <code class="highlight"><i><c- n>TRY</c-><c- o>-</c-><c- n>EVAL</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>expr</c-><c- p>)</c-></code> be:</p>
+         <p>For two subexpressions <code class="highlight"><c- n>rcvr</c-></code> and <code class="highlight"><c- n>expr</c-></code>, <code class="highlight"><i><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>expr</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- p>(</c-><c- n>expr</c-><c- p>,</c-> <c- n>set_value</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))</c-></code> if
+the type of <code class="highlight"><c- n>expr</c-></code> is <code class="highlight"><c- b>void</c-></code>; otherwise, <code class="highlight"><c- n>set_value</c-><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>expr</c-><c- p>)</c-></code>. <code class="highlight"><i><c- n>TRY</c-><c- o>-</c-><c- n>EVAL</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>expr</c-><c- p>)</c-></code> is equivalent to:</p>
 <pre class="highlight"><c- k>try</c-> <c- p>{</c->
   <c- n>expr</c-><c- p>;</c->
 <c- p>}</c-> <c- k>catch</c-><c- p>(...)</c-> <c- p>{</c->
   <c- n>set_error</c-><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>current_exception</c-><c- p>());</c->
 <c- p>}</c->
 </pre>
-         <p>if <code class="highlight"><c- n>expr</c-></code> is potentially-throwing; otherwise, <code class="highlight"><c- n>expr</c-></code>. Let <code class="highlight"><i><c- n>TRY</c-><c- o>-</c-><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>expr</c-><c- p>)</c-></code> be <code class="highlight"><i><c- n>TRY</c-><c- o>-</c-><c- n>EVAL</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <i><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>expr</c-><c- p>))</c-></code> except that <code class="highlight"><c- n>rcvr</c-></code> is evaluated only once.</p>
+         <p>if <code class="highlight"><c- n>expr</c-></code> is potentially-throwing; otherwise, <code class="highlight"><c- n>expr</c-></code>. <code class="highlight"><i><c- n>TRY</c-><c- o>-</c-><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>expr</c-><c- p>)</c-></code> is <code class="highlight"><i><c- n>TRY</c-><c- o>-</c-><c- n>EVAL</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <i><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>expr</c-><c- p>))</c-></code> except
+that <code class="highlight"><c- n>rcvr</c-></code> is evaluated only once.</p>
         <li data-md>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Default</c-> <c- o>=</c-> <c- n>default_domain</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
   <c- k>constexpr</c-> <c- k>auto</c-> <i><c- n>completion</c-><c- o>-</c-><c- n>domain</c-></i><c- p>(</c-><c- k>const</c-> <c- n>Sndr</c-><c- o>&amp;</c-> <c- n>sndr</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
 </pre>
          <ol>
           <li data-md>
-           <p>Let <code class="highlight"><i><c- n>COMPL</c-><c- o>-</c-><c- n>DOMAIN</c-></i><c- p>(</c-><c- n>T</c-><c- p>)</c-></code> be the type of the
+           <p><code class="highlight"><i><c- n>COMPL</c-><c- o>-</c-><c- n>DOMAIN</c-></i><c- p>(</c-><c- n>T</c-><c- p>)</c-></code> is the type of the
 expression <code class="highlight"><c- n>get_domain</c-><c- p>(</c-><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>sndr</c-><c- p>)))</c-></code>.</p>
           <li data-md>
-           <p><em>Effects:</em> If <code class="highlight"><i><c- n>COMPL</c-><c- o>-</c-><c- n>DOMAIN</c-></i><c- p>(</c-><c- n>set_value_t</c-><c- p>)</c-></code>, <code class="highlight"><i><c- n>COMPL</c-><c- o>-</c-><c- n>DOMAIN</c-></i><c- p>(</c-><c- n>set_error_t</c-><c- p>)</c-></code>, and <code class="highlight"><i><c- n>COMPL</c-><c- o>-</c-><c- n>DOMAIN</c-></i><c- p>(</c-><c- n>set_stopped_t</c-><c- p>)</c-></code> all share a common
-type [meta.trans.other] (ignoring those types that are ill-formed),
-then <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>domain</c-></i><c- o>&lt;</c-><c- n>Default</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is a
-default-constructed prvalue of that type. Otherwise, if all of those
-types are ill-formed, <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>domain</c-></i><c- o>&lt;</c-><c- n>Default</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is a
-default-constructed prvalue of type <code class="highlight"><c- n>Default</c-></code>. Otherwise, <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>domain</c-></i><c- o>&lt;</c-><c- n>Default</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is
+           <p><em>Effects:</em> If all of the types <code class="highlight"><i><c- n>COMPL</c-><c- o>-</c-><c- n>DOMAIN</c-></i><c- p>(</c-><c- n>set_value_t</c-><c- p>)</c-></code>, <code class="highlight"><i><c- n>COMPL</c-><c- o>-</c-><c- n>DOMAIN</c-></i><c- p>(</c-><c- n>set_error_t</c-><c- p>)</c-></code>, and <code class="highlight"><i><c- n>COMPL</c-><c- o>-</c-><c- n>DOMAIN</c-></i><c- p>(</c-><c- n>set_stopped_t</c-><c- p>)</c-></code> are ill-formed, <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>domain</c-></i><c- o>&lt;</c-><c- n>Default</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is a
+default-constructed prvalue of type <code class="highlight"><c- n>Default</c-></code>. Otherwise, if they
+all share a common type ([meta.trans.other]) (ignoring those types
+that are ill-formed), then <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>domain</c-></i><c- o>&lt;</c-><c- n>Default</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is a
+default-constructed prvalue of that type. Otherwise, <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>domain</c-></i><c- o>&lt;</c-><c- n>Default</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is
 ill-formed.</p>
          </ol>
         <li data-md>
@@ -8498,12 +8499,12 @@ ill-formed.</p>
 </pre>
          <ol>
           <li data-md>
-           <p>Let <i><code class="highlight"><c- n>e</c-></code></i> be the expression <code class="highlight"><c- n>Tag</c-><c- p>()(</c-><c- n>env</c-><c- p>)</c-></code> if that
+           <p>Let <code class="highlight"><c- n>e</c-></code> be the expression <code class="highlight"><c- n>Tag</c-><c- p>()(</c-><c- n>env</c-><c- p>)</c-></code> if that
 expression is well-formed; otherwise, it is <code class="highlight"><c- k>static_cast</c-><c- o>&lt;</c-><c- n>Default</c-><c- o>></c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Default</c-><c- o>></c-><c- p>(</c-><c- n>value</c-><c- p>))</c-></code>.</p>
           <li data-md>
-           <p><i>Returns:</i> <i><code class="highlight"><c- n>e</c-></code></i>.</p>
+           <p><i>Returns:</i> <code class="highlight"><c- n>e</c-></code>.</p>
           <li data-md>
-           <p><i>Remarks:</i> The expression in the <code class="highlight"><c- k>noexcept</c-></code> clause is <code class="highlight"><c- k>noexcept</c-><c- p>(</c-><i><c- n>e</c-></i><c- p>)</c-></code>.</p>
+           <p><i>Remarks:</i> The expression in the <code class="highlight"><c- k>noexcept</c-></code> clause is <code class="highlight"><c- k>noexcept</c-><c- p>(</c-><c- n>e</c-><c- p>)</c-></code>.</p>
          </ol>
         <li data-md>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
@@ -8511,7 +8512,7 @@ expression is well-formed; otherwise, it is <code class="highlight"><c- k>static
 </pre>
          <ol>
           <li data-md>
-           <p><i>Effects:</i> Equivalent to <code class="highlight"><c- k>return</c-> <i><c- n>Domain</c-></i><c- p>();</c-></code> where <i><code class="highlight"><c- n>Domain</c-></code></i> is the decayed type of the first of the
+           <p><i>Effects:</i> Equivalent to: <code class="highlight"><c- k>return</c-> <i><c- n>Domain</c-></i><c- p>();</c-></code> where <i><code class="highlight"><c- n>Domain</c-></code></i> is the decayed type of the first of the
 following expressions that is well-formed:</p>
            <ul>
             <li data-md>
@@ -8535,14 +8536,22 @@ following expressions that is well-formed:</p>
 then <code class="highlight"><c- k>return</c-> <i><c- n>Domain</c-></i><c- p>();</c-></code> where <i><code class="highlight"><c- n>Domain</c-></code></i> is
 the type of the following expression:</p>
 <pre class="highlight"><c- p>[]</c-> <c- p>{</c->
-  <c- k>auto</c-> <c- p>[</c-><i><c- n>ignore1</c-></i><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <i><c- n>ignore2</c-></i><c- p>]</c-> <c- o>=</c-> <c- n>sndr</c-><c- p>;</c->
+  <c- k>auto</c-> <c- p>[</c-><c- n>_</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>_</c-><c- p>]</c-> <c- o>=</c-> <c- n>sndr</c-><c- p>;</c->
   <c- k>return</c-> <i><c- n>query</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>());</c->
 <c- p>}();</c->
 </pre>
+             <p><span class="wg21note">The <code class="highlight"><c- n>transfer</c-></code> algorithm works in tandem
+with <code class="highlight"><c- n>schedule_from</c-></code> ([exec.schedule.from])) to give scheduler
+authors a way to customize both how to transition onto
+(<code class="highlight"><c- n>transfer</c-></code>) and off of (<code class="highlight"><c- n>schedule_from</c-></code>) a given execution
+context. Thus, <code class="highlight"><c- n>transfer</c-></code> must ignore the domain of the
+predecessor and use the domain of the destination scheduler to
+select a customization, a property that is unique to <code class="highlight"><c- n>transfer</c-></code>.
+That is why it is given special treatment here.</span></p>
             <li data-md>
              <p>Otherwise, <code class="highlight"><c- k>return</c-> <i><c- n>Domain</c-></i><c- p>();</c-></code> where <i><code class="highlight"><c- n>Domain</c-></code></i> is
-the first of the following expressions that is well-formed and has class
-type:</p>
+the first of the following expressions that is well-formed and
+its type is not <code class="highlight"><c- b>void</c-></code>:</p>
              <ul>
               <li data-md>
                <p><code class="highlight"><c- n>get_domain</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>sndr</c-><c- p>))</c-></code></p>
@@ -8556,10 +8565,6 @@ type:</p>
                <p><code class="highlight"><c- n>default_domain</c-><c- p>()</c-></code>.</p>
              </ul>
            </ul>
-           <p><span class="wg21note">The <code class="highlight"><c- n>transfer</c-></code> algorithm is unique in that it
-ignores the execution domain of its predecessor, using only the
-domain of its destination scheduler to select a
-customization.</span></p>
          </ol>
         <li data-md>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><i><c- n>callable</c-></i> <c- n>Fun</c-><c- o>></c->
@@ -8580,7 +8585,8 @@ customization.</span></p>
          <ol>
           <li data-md>
            <p><span class="wg21note"><i><code class="highlight"><c- n>emplace</c-><c- o>-</c-><c- n>from</c-></code></i> is used to emplace
-non-movable types into containers like <code class="highlight"><c- n>tuple</c-></code>, <code class="highlight"><c- n>optional</c-></code>, and <code class="highlight"><c- n>variant</c-></code>.</span></p>
+non-movable types into <code class="highlight"><c- n>tuple</c-></code>, <code class="highlight"><c- n>optional</c-></code>, <code class="highlight"><c- n>variant</c-></code>, and similar
+types.</span></p>
          </ol>
         <li data-md>
 <pre class="highlight"><c- k>struct</c-> <i><c- nc>on</c-><c- o>-</c-><c- n>stop</c-><c- o>-</c-><c- n>request</c-></i> <c- p>{</c-> <i><c- c1>// exposition only</c-></i>
@@ -8608,30 +8614,31 @@ non-movable types into containers like <code class="highlight"><c- n>tuple</c-><
 structured binding declaration [dcl.struct.bind].</span></p>
          </ol>
         <li data-md>
-<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- n>semiregular</c-> <c- n>Tag</c-><c- p>,</c-> <i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i> <c- n>Data</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>,</c-> <c- n>sender</c-><c- p>...</c-> <c- n>Child</c-><c- o>></c->
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Data</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Child</c-><c- o>></c->
   <c- k>constexpr</c-> <c- k>auto</c-> <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Data</c-><c- o>&amp;&amp;</c-> <c- n>data</c-><c- p>,</c-> <c- n>Child</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>child</c-><c- p>);</c->
 </pre>
          <ol>
+          <li data-md>
+           <p><em>Mandates:</em> The following expressions are <code class="highlight">true</code>:</p>
+           <ul>
+            <li data-md>
+             <p><code class="highlight"><c- n>semiregular</c-><c- o>&lt;</c-><c- n>Tag</c-><c- o>></c-></code></p>
+            <li data-md>
+             <p><code class="highlight"><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i><c- o>&lt;</c-><c- n>Data</c-><c- o>></c-></code></p>
+            <li data-md>
+             <p><code class="highlight"><c- p>(</c-><c- n>sender</c-><c- o>&lt;</c-><c- n>Child</c-><c- o>></c-> <c- o>&amp;&amp;</c-><c- p>...)</c-></code></p>
+           </ul>
           <li data-md>
            <p><em>Returns:</em> A prvalue of type <code class="highlight"><i><c- n>basic</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>decay_t</c-><c- o>&lt;</c-><c- n>Data</c-><c- o>></c-><c- p>,</c-> <c- n>decay_t</c-><c- o>&lt;</c-><c- n>Child</c-><c- o>></c-><c- p>...</c-><c- o>></c-></code> where the <i><code class="highlight"><c- n>tag</c-></code></i> member has been default-initialized and the <i><code class="highlight"><c- n>data</c-></code></i> and <code class="highlight"><i><c- n>child</c-><sub><c- n>n</c-></sub></i><c- p>...</c-></code> members have been direct
 initialized from their respective forwarded arguments, where <i><code class="highlight"><c- n>basic</c-><c- o>-</c-><c- n>sender</c-></code></i> is the following exposition-only
 class template except as noted below:</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Us</c-><c- o>></c->
-  <c- k>concept</c-> <i><c- nc>one</c-><c- o>-</c-><c- n>of</c-></i> <c- o>=</c-> <c- p>(</c-><c- n>same_as</c-><c- o>&lt;</c-><c- n>T</c-><c- p>,</c-> <c- n>Us</c-><c- o>></c-> <c- o>||</c-><c- p>...);</c-> <c- c1>// exposition only</c->
-
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- o>></c->
   <c- k>concept</c-> <i><c- nc>completion</c-><c- o>-</c-><c- n>tag</c-></i> <c- o>=</c-> <c- c1>// exposition only</c->
-    <i><c- n>one</c-><c- o>-</c-><c- n>of</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>set_value_t</c-><c- p>,</c-> <c- n>set_error_t</c-><c- p>,</c-> <c- n>set_stopped_t</c-><c- o>></c-><c- p>;</c->
+    <c- n>same_as</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>set_value_t</c-><c- o>></c-> <c- o>||</c-> <c- n>same_as</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>set_error_t</c-><c- o>></c-> <c- o>||</c-> <c- n>same_as</c-><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>set_stopped_t</c-><c- o>></c-><c- p>;</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-><c- o>></c-> <c- k>class</c-> <c- nc>T</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
   <c- k>concept</c-> <i><c- nc>well</c-><c- o>-</c-><c- n>formed</c-></i> <c- o>=</c-> <c- k>requires</c-> <c- p>{</c-> <c- k>typename</c-> <c- nc>T</c-><c- o>&lt;</c-><c- n>Args</c-><c- p>...</c-><c- o>></c-><c- p>;</c-> <c- p>};</c-> <c- c1>// exposition only</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>Fun</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
-  <c- k>concept</c-> <i><c- nc>cpo</c-><c- o>-</c-><c- n>callable</c-></i> <c- o>=</c-> <i><c- n>callable</c-></i><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>Fun</c-><c- p>),</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>Fun</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
-  <c- k>using</c-> <i><c- n>cpo</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i> <c- o>=</c-> <i><c- n>call</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>Fun</c-><c- p>),</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
 
   <c- k>struct</c-> <i><c- nc>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->  <c- c1>// exposition only</c->
     <c- k>static</c-> <c- k>constexpr</c-> <c- k>auto</c-> <i><c- n>get</c-><c- o>-</c-><c- n>attrs</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
@@ -8645,86 +8652,89 @@ class template except as noted below:</p>
   <c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{};</c-> <c- c1>// exposition only</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-> <c- c1>// exposition only</c->
-  <c- k>using</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- n>decay_t</c-><c- o>&lt;</c-><i><c- n>cpo</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c->
-    <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i><c- p>,</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;>></c-><c- p>;</c->
+  <c- k>using</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- n>decay_t</c-><c- o>&lt;</c-><i><c- n>call</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c->
+    <c- k>decltype</c-><c- p>(</c-><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i><c- p>),</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;>></c-><c- p>;</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Index</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-> <c- c1>// exposition only</c->
-  <c- k>using</c-> <i><c- n>env</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <i><c- n>cpo</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c->
-    <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>env</c-></i><c- p>,</c-> <c- n>Index</c-><c- p>,</c->
+  <c- k>using</c-> <i><c- n>env</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <i><c- n>call</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c->
+    <c- k>decltype</c-><c- p>(</c-><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>env</c-></i><c- p>),</c-> <c- n>Index</c-><c- p>,</c->
     <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>Rcvr</c-><c- o>&amp;>></c-><c- p>;</c->
 
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Index</c-><c- o>></c-> 
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
+  <c- k>using</c-> <i><c- n>data</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- k>decltype</c-><c- p>((</c-><c- n>declval</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>().</c-><i><c- n>data</c-></i><c- p>));</c-> <c- c1>// exposition only</c->
+
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>N</c-> <c- o>=</c-> <c- mi>0</c-><c- o>></c->
+  <c- k>using</c-> <i><c- n>child</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- k>decltype</c-><c- p>((</c-><c- n>declval</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>().</c-><i><c- n>child</c-><sub><c- n>N</c-></sub></i><c- p>));</c-> <c- c1>// exposition only</c->
+
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
+  <c- k>using</c-> <i><c- n>indices</c-><c- o>-</c-><c- k>for</c-></i> <c- o>=</c-> <c- k>typename</c-> <c- nc>remove_reference_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>::</c-><i><c- n>indices</c-><c- o>-</c-><c- k>for</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
+  <c- k>struct</c-> <i><c- nc>basic</c-><c- o>-</c-><c- n>state</c-></i> <c- p>{</c-> <i><c- c1>// exposition only</c-></i>
+    <i><c- n>basic</c-><c- o>-</c-><c- n>state</c-></i><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>)</c->
+      <c- o>:</c-> <i><c- n>rcvr</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))</c->
+      <c- p>,</c-> <i><c- n>state</c-></i><c- p>(</c-><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <i><c- n>rcvr</c-></i><c- p>))</c-> <c- p>{</c-> <c- p>}</c->
+
+    <c- n>Rcvr</c-> <i><c- n>rcvr</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+    <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-> <i><c- n>state</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+  <c- p>};</c->
+
+  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Index</c-><c- o>></c->
     <c- k>requires</c-> <i><c- n>well</c-><c- o>-</c-><c- n>formed</c-></i><c- o>&lt;</c-><i><c- n>env</c-><c- o>-</c-><c- n>type</c-></i><c- p>,</c-> <c- n>Index</c-><c- p>,</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c->
   <c- k>struct</c-> <i><c- nc>basic</c-><c- o>-</c-><c- n>receiver</c-></i> <c- p>{</c->  <c- c1>// exposition only</c->
     <c- k>using</c-> <c- n>receiver_concept</c-> <c- o>=</c-> <c- n>receiver_t</c-><c- p>;</c->
 
-    <c- k>using</c-> <i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
-    <c- k>using</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
-    <c- k>static</c-> <c- k>constexpr</c-> <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <i><c- n>complete</c-></i> <c- o>=</c-> <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i><c- o>>::</c-><i><c- n>complete</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- k>using</c-> <i><c- n>tag</c-><c- o>-</c-><c- n>t</c-></i> <c- o>=</c-> <c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- k>using</c-> <i><c- n>state</c-><c- o>-</c-><c- n>t</c-></i> <c- o>=</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- k>static</c-> <c- k>constexpr</c-> <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <i><c- n>complete</c-></i> <c- o>=</c-> <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>t</c-></i><c- o>>::</c-><i><c- n>complete</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
 
     <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
-      <c- k>requires</c-> <i><c- n>cpo</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><i><c- n>complete</c-></i><c- p>,</c-> <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_value_t</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c->
+      <c- k>requires</c-> <i><c- n>callable</c-></i><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><i><c- n>complete</c-></i><c- p>),</c-> <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>t</c-></i><c- o>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_value_t</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c->
     <c- b>void</c-> <c- n>set_value</c-><c- p>(</c-><c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c-> <c- p>{</c->
       <i><c- n>complete</c-></i><c- p>(</c-><c- n>Index</c-><c- p>(),</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>,</c-> <c- n>set_value_t</c-><c- p>(),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...);</c->
     <c- p>}</c->
 
     <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Error</c-><c- o>></c->
-      <c- k>requires</c-> <i><c- n>cpo</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><i><c- n>complete</c-></i><c- p>,</c-> <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_error_t</c-><c- p>,</c-> <c- n>Error</c-><c- o>></c->
+      <c- k>requires</c-> <i><c- n>callable</c-></i><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><i><c- n>complete</c-></i><c- p>),</c-> <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>t</c-></i><c- o>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_error_t</c-><c- p>,</c-> <c- n>Error</c-><c- o>></c->
     <c- b>void</c-> <c- n>set_error</c-><c- p>(</c-><c- n>Error</c-><c- o>&amp;&amp;</c-> <c- n>err</c-><c- p>)</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c-> <c- p>{</c->
       <i><c- n>complete</c-></i><c- p>(</c-><c- n>Index</c-><c- p>(),</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>,</c-> <c- n>set_error_t</c-><c- p>(),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Error</c-><c- o>></c-><c- p>(</c-><c- n>err</c-><c- p>));</c->
     <c- p>}</c->
 
     <c- b>void</c-> <c- n>set_stopped</c-><c- p>()</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c->
-      <c- k>requires</c-> <i><c- n>cpo</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><i><c- n>complete</c-></i><c- p>,</c-> <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_stopped_t</c-><c- o>></c-> <c- p>{</c->
+      <c- k>requires</c-> <i><c- n>callable</c-></i><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><i><c- n>complete</c-></i><c- p>),</c-> <c- n>Index</c-><c- p>,</c-> <i><c- n>state</c-><c- o>-</c-><c- n>t</c-></i><c- o>&amp;</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>set_stopped_t</c-><c- o>></c-> <c- p>{</c->
       <i><c- n>complete</c-></i><c- p>(</c-><c- n>Index</c-><c- p>(),</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>,</c-> <c- n>set_stopped_t</c-><c- p>());</c->
     <c- p>}</c->
 
     <c- k>auto</c-> <c- n>get_env</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-> <c- o>-></c-> <i><c- n>env</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Index</c-><c- p>,</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-> <c- p>{</c->
-      <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-> <c- o>=</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>;</c->
-      <c- k>return</c-> <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>env</c-></i><c- p>(</c-><c- n>Index</c-><c- p>(),</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <c- n>rcvr</c-><c- p>);</c->
+      <c- k>return</c-> <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>t</c-></i><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>env</c-></i><c- p>(</c-><c- n>Index</c-><c- p>(),</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <i><c- n>op</c-></i><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>);</c->
     <c- p>}</c->
 
-    <i><c- n>basic</c-><c- o>-</c-><c- n>operation</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>*</c-> <i><c- n>op</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+    <i><c- n>basic</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>*</c-> <i><c- n>op</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
   <c- p>};</c->
 
-  <c- k>constexpr</c-> <c- k>auto</c-> <i><c- n>connect</c-><c- o>-</c-><c- n>all</c-></i> <c- o>=</c->   <c- c1>// exposition only</c->
-    <c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- b>size_t</c-><c- p>...</c-> <c- n>Is</c-><c- o>></c-><c- p>(</c->
-      <i><c- n>basic</c-><c- o>-</c-><c- n>operation</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>*</c-> <c- n>op</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>index_sequence</c-><c- o>&lt;</c-><c- n>Is</c-><c- p>...</c-><c- o>></c-><c- p>)</c->
-        <c- k>noexcept</c-><c- p>(</c-> <i><b><c- n>TODO</c-></b></i> <c- p>)</c-> <c- k>requires</c-> <c- p>(</c-> <i><b><c- n>TODO</c-></b></i> <c- p>)</c-> <c- p>{</c->
-        <c- k>auto</c-><c- o>&amp;&amp;</c-> <c- p>[</c-><c- n>ign1</c-><c- p>,</c-> <c- n>ign2</c-><c- p>,</c-> <c- p>...</c-><c- n>child</c-><c- p>]</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>);</c->
-        <c- k>return</c-> <i><c- n>product</c-><c- o>-</c-><c- n>type</c-></i><c- p>{</c-><c- n>connect</c-><c- p>(</c->
-          <c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>child</c-><c- p>),</c->
-          <i><c- n>basic</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- p>,</c-> <c- n>integral_constant</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>Is</c-><c- o>>></c-><c- p>{</c-><c- n>op</c-><c- p>})...};</c->
-      <c- p>};</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
-  <c- k>using</c-> <i><c- n>indices</c-><c- o>-</c-><c- k>for</c-></i> <c- o>=</c-> <c- n>make_index_sequence</c-><c- o>&lt;</c-><c- n>tuple_size_v</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- mi>-2</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
+  <c- k>constexpr</c-> <c- k>auto</c-> <i><c- n>connect</c-><c- o>-</c-><c- n>all</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
-  <c- k>using</c-> <i><c- n>inner</c-><c- o>-</c-><c- n>ops</c-><c- o>-</c-><c- n>tuple</c-></i> <c- o>=</c->   <c- c1>// exposition only</c->
-    <i><c- n>cpo</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c-><i><c- n>connect</c-><c- o>-</c-><c- n>all</c-></i><c- p>,</c-> <i><c- n>basic</c-><c- o>-</c-><c- n>operation</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>*</c-><c- p>,</c-> <c- n>Sndr</c-><c- p>,</c->
-      <i><c- n>indices</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>></c-><c- p>;</c->
+  <c- k>using</c-> <i><c- n>connect</c-><c- o>-</c-><c- n>all</c-><c- o>-</c-><c- n>result</c-></i> <c- o>=</c-> <i><c- n>call</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>t</c-></i><c- o>&lt;</c->  <c- c1>// exposition only</c->
+    <c- k>decltype</c-><c- p>(</c-><i><c- n>connect</c-><c- o>-</c-><c- n>all</c-></i><c- p>),</c-> <i><c- n>basic</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>*</c-><c- p>,</c-> <c- n>Sndr</c-><c- p>,</c-> <i><c- n>indices</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>></c-><c- p>;</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
     <c- k>requires</c-> <i><c- n>well</c-><c- o>-</c-><c- n>formed</c-></i><c- o>&lt;</c-><i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- p>,</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-> <c- o>&amp;&amp;</c->
-      <i><c- n>well</c-><c- o>-</c-><c- n>formed</c-></i><c- o>&lt;</c-><i><c- n>inner</c-><c- o>-</c-><c- n>ops</c-><c- o>-</c-><c- n>tuple</c-></i><c- p>,</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c->
-  <c- k>struct</c-> <i><c- nc>basic</c-><c- o>-</c-><c- n>operation</c-></i> <c- p>{</c->  <c- c1>// exposition only</c->
+             <i><c- n>well</c-><c- o>-</c-><c- n>formed</c-></i><c- o>&lt;</c-><i><c- n>connect</c-><c- o>-</c-><c- n>all</c-><c- o>-</c-><c- n>result</c-></i><c- p>,</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c->
+  <c- k>struct</c-> <i><c- nc>basic</c-><c- o>-</c-><c- n>operation</c-></i> <c- o>:</c-> <i><c- n>basic</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-> <c- p>{</c->  <c- c1>// exposition only</c->
     <c- k>using</c-> <c- n>operation_state_concept</c-> <c- o>=</c-> <c- n>operation_state_t</c-><c- p>;</c->
-    <c- k>using</c-> <i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- k>using</c-> <i><c- n>tag</c-><c- o>-</c-><c- n>t</c-></i> <c- o>=</c-> <c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
 
-    <c- n>Rcvr</c-> <i><c- n>rcvr</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
-    <i><c- n>state</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-> <i><c- n>state</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
-    <i><c- n>inner</c-><c- o>-</c-><c- n>ops</c-><c- o>-</c-><c- n>tuple</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-> <i><c- n>inner</c-><c- o>-</c-><c- n>ops</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+    <i><c- n>connect</c-><c- o>-</c-><c- n>all</c-><c- o>-</c-><c- n>result</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-> <i><c- n>inner</c-><c- o>-</c-><c- n>ops</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
 
-    <i><c- n>basic</c-><c- o>-</c-><c- n>operation</c-></i><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Rcvr</c-> <c- n>rcvr_init</c-><c- p>)</c->  <c- c1>// exposition only</c->
-      <c- o>:</c-> <i><c- n>rcvr</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr_init</c-><c- p>))</c->
-      <c- p>,</c-> <i><c- n>state</c-></i><c- p>(</c-><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <i><c- n>rcvr</c-></i><c- p>))</c->
+    <i><c- n>basic</c-><c- o>-</c-><c- n>operation</c-></i><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>)</c->  <c- c1>// exposition only</c->
+      <c- o>:</c-> <i><c- n>basic</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))</c->
       <c- p>,</c-> <i><c- n>inner</c-><c- o>-</c-><c- n>ops</c-></i><c- p>(</c-><i><c- n>connect</c-><c- o>-</c-><c- n>all</c-></i><c- p>(</c-><c- k>this</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <i><c- n>indices</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>()))</c->
     <c- p>{}</c->
 
     <c- b>void</c-> <c- n>start</c-><c- p>()</c-> <c- o>&amp;</c-> <c- k>noexcept</c-> <c- p>{</c->
       <c- k>auto</c-><c- o>&amp;</c-> <c- p>[...</c-><c- n>ops</c-><c- p>]</c-> <c- o>=</c-> <i><c- n>inner</c-><c- o>-</c-><c- n>ops</c-></i><c- p>;</c->
-      <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>type</c-></i><c- o>>::</c-><i><c- n>start</c-></i><c- p>(</c-><i><c- n>state</c-></i><c- p>,</c-> <i><c- n>rcvr</c-></i><c- p>,</c-> <c- n>ops</c-><c- p>...);</c->
+      <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>tag</c-><c- o>-</c-><c- n>t</c-></i><c- o>>::</c-><i><c- n>start</c-></i><c- p>(</c-><c- k>this</c-><c- o>-></c-><i><c- n>state</c-></i><c- p>,</c-> <c- k>this</c-><c- o>-></c-><i><c- n>rcvr</c-></i><c- p>,</c-> <c- n>ops</c-><c- p>...);</c->
     <c- p>}</c->
   <c- p>};</c->
 
@@ -8734,13 +8744,15 @@ class template except as noted below:</p>
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Data</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Child</c-><c- o>></c->
   <c- k>struct</c-> <i><c- nc>basic</c-><c- o>-</c-><c- n>sender</c-></i> <c- p>{</c->  <c- c1>// exposition only</c->
     <c- k>using</c-> <c- n>sender_concept</c-> <c- o>=</c-> <c- n>sender_t</c-><c- p>;</c->
+    <c- k>using</c-> <i><c- n>indices</c-><c- o>-</c-><c- k>for</c-></i> <c- o>=</c-> <c- n>index_sequence_for</c-><c- o>&lt;</c-><c- n>Child</c-><c- p>...</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
 
     <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>get_env</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-> <c- p>{</c->
       <c- k>return</c-> <i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>attrs</c-></i><c- p>(</c-><i><c- n>data</c-></i><c- p>,</c-> <i><c- n>child</c-><sub><c- n>0</c-></sub></i><c- p>,</c-> <c- p>...</c-> <i><c- n>child</c-><sub><c- n>n</c-><c- mi>-1</c-></sub></i><c- p>);</c->
     <c- p>}</c->
 
     <c- k>template</c-><c- o>&lt;</c-><i><c- n>decays</c-><c- o>-</c-><c- n>to</c-></i><c- o>&lt;</c-><i><c- n>basic</c-><c- o>-</c-><c- n>sender</c-></i><c- o>></c-> <c- n>Self</c-><c- p>,</c-> <c- n>receiver</c-> <c- n>Rcvr</c-><c- o>></c->
-    <c- k>auto</c-> <c- n>connect</c-><c- p>(</c-><c- k>this</c-> <c- n>Self</c-><c- o>&amp;&amp;</c-> <c- n>self</c-><c- p>,</c-> <c- n>Rcvr</c-> <c- n>rcvr</c-><c- p>)</c-> <c- o>-></c-> <i><c- n>basic</c-><c- o>-</c-><c- n>operation</c-></i><c- o>&lt;</c-><c- n>Self</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-> <c- p>{</c->
+    <c- k>auto</c-> <c- n>connect</c-><c- p>(</c-><c- k>this</c-> <c- n>Self</c-><c- o>&amp;&amp;</c-> <c- n>self</c-><c- p>,</c-> <c- n>Rcvr</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>(</c-><i><c- n>see</c-> <c- n>below</c-></i><c- p>)</c->
+      <c- o>-></c-> <i><c- n>basic</c-><c- o>-</c-><c- n>operation</c-></i><c- o>&lt;</c-><c- n>Self</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-> <c- p>{</c->
       <c- k>return</c-> <c- p>{</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Self</c-><c- o>></c-><c- p>(</c-><c- n>self</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)};</c->
     <c- p>}</c->
 
@@ -8757,12 +8769,6 @@ class template except as noted below:</p>
       <c- p>...</c->
     <c- n>Child</c-><sub><i><c- n>n</c-><c- mi>-1</c-></i></sub> <i><c- n>child</c-><sub><c- n>n</c-><c- mi>-1</c-></sub></i><c- p>;</c->   <c- c1>// exposition only</c->
   <c- p>};</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
-  <c- k>using</c-> <i><c- n>data</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- k>decltype</c-><c- p>((</c-><c- n>declval</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>().</c-><i><c- n>data</c-></i><c- p>));</c-> <c- c1>// exposition only</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>N</c-> <c- o>=</c-> <c- mi>0</c-><c- o>></c->
-  <c- k>using</c-> <i><c- n>child</c-><c- o>-</c-><c- n>type</c-></i> <c- o>=</c-> <c- k>decltype</c-><c- p>((</c-><c- n>declval</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>().</c-><i><c- n>child</c-><sub><c- n>N</c-></sub></i><c- p>));</c-> <c- c1>// exposition only</c->
 <c- p>}</c->
 </pre>
           <li data-md>
@@ -8775,12 +8781,40 @@ aggregate initialized.</p>
            <p><span class="wg21note">An expression of type <i><code class="highlight"><c- n>basic</c-><c- o>-</c-><c- n>sender</c-></code></i> is usable as the initializer of a
 structured binding declaration [dcl.struct.bind].</span></p>
           <li data-md>
+           <p>The expression in the <code class="highlight"><c- k>noexcept</c-></code> clause of the constructor of <i><code class="highlight"><c- n>basic</c-><c- o>-</c-><c- n>state</c-></code></i> is:</p>
+<pre class="highlight"><c- n>is_nothrow_move_constructible_v</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+<i><c- n>nothrow</c-><c- o>-</c-><c- n>callable</c-></i><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i><c- p>),</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;></c->
+</pre>
+          <li data-md>
+           <p>The object <i><code class="highlight"><c- n>connect</c-><c- o>-</c-><c- n>all</c-></code></i> is initialized with the following
+lambda:</p>
+<pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- p>,</c-> <c- b>size_t</c-><c- p>...</c-> <c- n>Is</c-><c- o>></c-><c- p>(</c->
+  <i><c- n>basic</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>*</c-> <c- n>op</c-><c- p>,</c-> <c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>index_sequence</c-><c- o>&lt;</c-><c- n>Is</c-><c- p>...</c-><c- o>></c-><c- p>)</c-> <c- k>noexcept</c-><c- p>(</c-><c- k>noexcept</c-><c- p>(</c-><i><c- n>E</c-></i><c- p>))</c->
+    <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><i><c- n>E</c-></i><c- p>)</c-> <c- p>{</c->
+    <c- k>return</c-> <i><c- n>E</c-></i><c- p>;</c->
+  <c- p>}</c->
+</pre>
+           <p>where <i><code class="highlight"><c- n>E</c-></code></i> is the following expression:</p>
+<pre class="highlight"><i><c- n>product</c-><c- o>-</c-><c- n>type</c-></i><c- p>{</c-><c- n>connect</c-><c- p>(</c->
+  <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>).</c-><i><c- n>child</c-><sub><c- n>Is</c-></sub></i><c- p>,</c->
+  <i><c- n>basic</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- p>,</c-> <c- n>integral_constant</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>Is</c-><c- o>>></c-><c- p>{</c-><c- n>op</c-><c- p>})...}</c->
+</pre>
+          <li data-md>
+           <p>The expression in the <code class="highlight"><c- k>noexcept</c-></code> clause of the constructor of <i><code class="highlight"><c- n>basic</c-><c- o>-</c-><c- n>operation</c-></code></i> is:</p>
+<pre class="highlight"><c- n>is_nothrow_constructible_v</c-><c- o>&lt;</c-><c- n>basic</c-><c- o>-</c-><c- n>state</c-><c- o>&lt;</c-><c- n>Self</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-><c- p>,</c-> <c- n>Self</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+<c- k>noexcept</c-><c- p>(</c-><i><c- n>connect</c-><c- o>-</c-><c- n>all</c-></i><c- p>(</c-><c- k>this</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <i><c- n>indices</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>()))</c->
+</pre>
+          <li data-md>
+           <p>The expression in the <code class="highlight"><c- k>noexcept</c-></code> clause of the <code class="highlight"><c- n>connect</c-></code> member function of <i><code class="highlight"><c- n>basic</c-><c- o>-</c-><c- n>sender</c-></code></i> is:</p>
+<pre class="highlight"><c- n>is_nothrow_constructible_v</c-><c- o>&lt;</c-><c- n>basic</c-><c- o>-</c-><c- n>operation</c-><c- o>&lt;</c-><c- n>Self</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c-><c- p>,</c-> <c- n>Self</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>></c->
+</pre>
+          <li data-md>
            <p>The member <code class="highlight"><i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i><c- o>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>attrs</c-></i></code> is
 initialized with a callable object equivalent to the following
 lambda:</p>
 <pre class="highlight"><c- p>[](</c-><c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>data</c-><c- p>,</c-> <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>child</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- p>{</c->
   <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- k>sizeof</c-><c- p>...(</c-><c- n>child</c-><c- p>)</c-> <c- o>==</c-> <c- mi>1</c-><c- p>)</c->
-    <c- k>return</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>child</c-><c- p>...));</c->
+    <c- k>return</c-> <c- p>(</c-><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>child</c-><c- p>)),</c-> <c- p>...);</c->
   <c- k>else</c->
     <c- k>return</c-> <c- n>empty_env</c-><c- p>();</c->
 <c- p>}</c->
@@ -8788,8 +8822,7 @@ lambda:</p>
           <li data-md>
            <p>The member <code class="highlight"><i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i><c- o>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>env</c-></i></code> is initialized
 with a callable object equivalent to the following lambda:</p>
-<pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-><c- p>(</c-><c- k>auto</c-> <c- n>index</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- k>const</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c->
-  <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)))</c-> <c- p>{</c->
+<pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-><c- p>(</c-><c- k>auto</c-> <c- n>index</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- k>const</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- p>{</c->
   <c- k>return</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>));</c->
 <c- p>}</c->
 </pre>
@@ -8797,7 +8830,7 @@ with a callable object equivalent to the following lambda:</p>
            <p>The member <code class="highlight"><i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i><c- o>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i></code> is initialized
 with a callable object equivalent to the following lambda:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- p>{</c->
-  <c- k>return</c-> <c- n>get</c-><c- o>&lt;</c-><c- mi>1</c-><c- o>></c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>));</c->
+  <c- k>return</c-> <c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>).</c-><i><c- n>data</c-></i><c- p>);</c->
 <c- p>}</c->
 </pre>
           <li data-md>
@@ -8818,11 +8851,12 @@ with a callable object equivalent to the following lambda:</p>
 <c- p>}</c->
 </pre>
           <li data-md>
-           <p>For a subexpression <code class="highlight"><c- n>sndr</c-></code> let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. Let <code class="highlight"><c- n>rcvr</c-></code> be a receiver that has an associated environment of type <code class="highlight"><c- n>Env</c-></code> such that <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">true</code>. <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> denotes
+           <p>For a subexpression <code class="highlight"><c- n>sndr</c-></code> let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. Let <code class="highlight"><c- n>rcvr</c-></code> be a receiver with an associated environment of type <code class="highlight"><c- n>Env</c-></code> such that <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">true</code>. <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> denotes
 a specialization of <code class="highlight"><c- n>completion_signatures</c-></code>, the set of whose
 template arguments correspond to the set of completion operations
-that are potentially evaluated as a result of calling <code class="highlight"><c- n>start</c-></code> on the
-operation state that results from connecting <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>rcvr</c-></code>. When <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">false</code>, the type denoted by <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code>, if any,
+that are potentially evaluated as a result of starting ([async.ops])
+the operation state that results from connecting <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>rcvr</c-></code>.
+When <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">false</code>, the type denoted by <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code>, if any,
 is not a specialization of <code class="highlight"><c- n>completion_signatures</c-></code>.</p>
            <p><em>Recommended practice:</em> When <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">false</code>,
 implementations are encouraged to use the type denoted by <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> to
@@ -8846,9 +8880,7 @@ sender and a receiver to produce an operation state.</p>
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
     <c- k>concept</c-> <i><c- nc>is</c-><c- o>-</c-><c- n>sender</c-></i> <c- o>=</c-> <c- c1>// exposition only</c->
-      <c- k>requires</c-> <c- p>{</c->
-        <c- k>requires</c-> <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>Sndr</c-><c- o>::</c-><c- n>sender_concept</c-><c- p>,</c-> <c- n>sender_t</c-><c- o>></c-><c- p>;</c->
-      <c- p>};</c->
+      <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>Sndr</c-><c- o>::</c-><c- n>sender_concept</c-><c- p>,</c-> <c- n>sender_t</c-><c- o>></c-><c- p>;</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
     <c- k>concept</c-> <i><c- nc>enable</c-><c- o>-</c-><c- n>sender</c-></i> <c- o>=</c-> <c- c1>// exposition only</c->
