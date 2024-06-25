@@ -9018,8 +9018,8 @@ namespace std::execution {
         * The type <code><i>sync-wait-result-type</i>&lt;Sndr></code> is well-formed.
 
         * <code>same_as&lt;decltype(<i>e</i>),
-            sync-wait-result-type</i>&lt;Sndr>></code> is `true`, where
-            <i>`e`</i> is `apply_sender` the expression above.
+            <i>sync-wait-result-type</i>&lt;Sndr>></code> is `true`, where
+            <i>`e`</i> is the `apply_sender` expression above.
 
 5. Let <i>`sync-wait-state`</i> and
     <i>`sync-wait-receiver`</i> be the following exposition-only class
