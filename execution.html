@@ -2386,7 +2386,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-22">2024-06-22</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-25">2024-06-25</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -10735,7 +10735,7 @@ once:</p>
         <li data-md>
          <p>The type <code class="highlight"><i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-></code> is well-formed.</p>
         <li data-md>
-         <p><code class="highlight"><c- n>same_as</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><i><c- n>e</c-></i><c- p>),</c-> <c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>></c-></code> is <code class="highlight">true</code>, where <i><code class="highlight"><c- n>e</c-></code></i> is <code class="highlight"><c- n>apply_sender</c-></code> the expression above.</p>
+         <p><code class="highlight"><c- n>same_as</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><i><c- n>e</c-></i><c- p>),</c-> <i><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>></c-></code> is <code class="highlight">true</code>, where <i><code class="highlight"><c- n>e</c-></code></i> is the <code class="highlight"><c- n>apply_sender</c-></code> expression above.</p>
        </ul>
       <li data-md>
        <p>Let <i><code class="highlight"><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>state</c-></code></i> and <i><code class="highlight"><c- n>sync</c-><c- o>-</c-><c- n>wait</c-><c- o>-</c-><c- n>receiver</c-></code></i> be the following exposition-only class
