@@ -5965,7 +5965,7 @@ namespace std::execution {
     <code><i>MANDATE-NOTHROW</i>(as_const(env).query(get_allocator))</code>.
 
       * <i>Mandates:</i> If the expression above is well-formed, its type
-          satisfies *`simple-allocator`* ([allocator.requirements.general]).
+          satisfies <i>`simple-allocator`</i> ([allocator.requirements.general]).
 
 3. `forwarding_query(get_allocator)` is a core constant expression and has value
     `true`.
@@ -6182,7 +6182,7 @@ namespace std::execution {
 
 2. Let `Sch` be the type of a scheduler and let `Env` be the type of an
     execution environment for which `sender_in<schedule_result_t<Sch>, Env>` is
-    satisfied. Then <code><i>sender-of-in</i>&lt;schedule_result_t&lt;Sch>,
+    satisfied. Then <code><i>sender-in-of</i>&lt;schedule_result_t&lt;Sch>,
     Env></code> shall be modeled.
 
 3. None of a scheduler's copy constructor, destructor, equality comparison, or
@@ -6360,21 +6360,21 @@ namespace std::execution {
 3. This subclause makes use of the following exposition-only entities.
 
     1. For a queryable object `env`, <code><i>FWD-ENV</i>(env)</code> is an
-        expression whose type satisfies *`queryable`* such that for a query object
+        expression whose type satisfies <i>`queryable`</i> such that for a query object
         `q` and a pack of subexpressions `as`, the expression
         <code><i>FWD-ENV</i>(env).query(q, as...)</code> is ill-formed if
         `forwarding_query(q)` is `false`; otherwise, it is expression-equivalent
         to `env.query(q, as...)`.
 
     2. For a query object `q` and a subexpression `v`, <code><i>MAKE-ENV</i>(q,
-        v)</code> is an expression `env` whose type satisfies *`queryable`* such
+        v)</code> is an expression `env` whose type satisfies <i>`queryable`</i> such
         that the result of `env.query(q)` has a value equal to `v`
         ([concepts.equality]). Unless otherwise stated, the object to which
         `env.query(q)` refers remains valid while `env` remains valid.
 
     3. For two queryable objects `env1` and `env2`, a query object `q` and a
         pack of subexpressions `as`, <code><i>JOIN-ENV</i>(env1, env2)</code> is
-        an expression `env3` whose type satisfies *`queryable`* such that
+        an expression `env3` whose type satisfies <i>`queryable`</i> such that
         `env3.query(q, as...)` is expression-equivalent to:
 
           - `env1.query(q, as...)` if that expression is well-formed,
@@ -6390,13 +6390,13 @@ namespace std::execution {
         arguments.
 
     5. For a scheduler `sch`, <code><i>SCHED-ATTRS</i>(sch)</code> is an
-        expression `o1` whose type satisfied *`queryable`* such that
+        expression `o1` whose type satisfies <i>`queryable`</i> such that
         <code>o1.query(get_completion_scheduler&lt;<i>Tag</i>>)</code> is a
         expression with the same type and value as `sch` where <i>`Tag`</i> is
         one of `set_value_t` or `set_stopped_t`, and such that
         <code>o1.query(get_domain)</code> is expression-equivalent to
         <code>sch.query(get_domain)</code>. <code><i>SCHED-ENV</i>(sch)</code>
-        is an expression `o2` whose type satisfied *`queryable`* such that
+        is an expression `o2` whose type satisfies <i>`queryable`</i> such that
         <code>o1.query(get_scheduler)</code> is a prvalue with the same type and
         value as `sch`, and such that <code>o2.query(get_domain)</code> is
         expression-equivalent to <code>sch.query(get_domain)</code>.
@@ -6460,8 +6460,8 @@ namespace std::execution {
           constexpr auto <i>get-domain-early</i>(const Sndr& sndr) noexcept;
         </pre>
 
-        1. <i>Effects:</i> Equivalent to: <code>return <i>Domain</i>();</code>
-            where <i>`Domain`</i> is the decayed type of the first of the
+        1. <i>Effects:</i> Equivalent to: <code>return Domain();</code>
+            where `Domain` is the decayed type of the first of the
             following expressions that is well-formed:
 
             - `get_domain(get_env(sndr))`
@@ -6492,14 +6492,14 @@ namespace std::execution {
                 with `schedule_from` ([exec.schedule.from])) to give scheduler
                 authors a way to customize both how to transition onto
                 (`transfer`) and off of (`schedule_from`) a given execution
-                context. Thus, `transfer` must ignore the domain of the
-                predecessor and use the domain of the destination scheduler to
-                select a customization, a property that is unique to `transfer`.
-                That is why it is given special treatment here.</span>
+                context. Thus, `transfer` ignores the domain of the predecessor
+                and uses the domain of the destination scheduler to select a
+                customization, a property that is unique to `transfer`. That is
+                why it is given special treatment here.</span>
 
-            - Otherwise, <code>return <i>Domain</i>();</code> where <i>`Domain`</i> is
+            - Otherwise, <code>return Domain();</code> where `Domain` is
                 the first of the following expressions that is well-formed and
-                its type is not `void`:
+                whose type is not `void`:
 
                 - `get_domain(get_env(sndr))`
 
@@ -6540,17 +6540,19 @@ namespace std::execution {
         </pre>
 
     13. <pre highlight="c++">
-        template&lt;class... T>
+        template&lt;class T<sub><i>0</i></sub>, class T<sub><i>1</i></sub>, ... class T<sub><i>n</i></sub>>
         struct <i>product-type</i> {  <i>// exposition only</i>
-          using type<sub><i>0</i></sub> = T<sub><i>0</i></sub>;      // exposition only
-          using type<sub><i>1</i></sub> = T<sub><i>1</i></sub>;      // exposition only
-            ...
-          using type<sub><i>n-1</i></sub> = T<sub><i>n-1</i></sub>;   // exposition only
-
           T<sub><i>0</i></sub> <i>t<sub>0</sub></i>;      // exposition only
           T<sub><i>1</i></sub> <i>t<sub>1</sub></i>;      // exposition only
             ...
-          T<sub><i>n-1</i></sub> <i>t<sub>n-1</sub></i>;   // exposition only
+          T<sub><i>n</i></sub> <i>t<sub>n</sub></i>;      // exposition only
+
+          template&lt;size_t I, class Self>
+          constexpr decltype(auto) <i>get</i>(this Self&& self) noexcept; // exposition only
+
+          template&lt;class Self, class Fn>
+          constexpr decltype(auto) <i>apply</i>(this Self&& self, Fn&& fn) // exposition only
+            noexcept(<i>see below</i>);
         };
         </pre>
 
@@ -6558,7 +6560,35 @@ namespace std::execution {
             <i>`product-type`</i> is usable as the initializer of a
             structured binding declaration [dcl.struct.bind].</span>
 
-<!-- LWG stopped here -->
+        2.  <pre highlight="c++">
+            template&lt;size_t I, class Self>
+            constexpr decltype(auto) <i>get</i>(this Self&& self) noexcept;
+            </pre>
+
+            1. *Effects:* Equivalent to:
+
+                <pre highlight="c++">
+                auto& [...ts] = self;
+                return std::forward_like&lt;Self>(ts...\[I]);
+                </pre>
+
+        3.  <pre highlight="c++">
+            template&lt;class Self, class Fn>
+            constexpr decltype(auto) <i>apply</i>(this Self&& self, Fn&& fn) noexcept(<i>see below</i>);
+            </pre>
+
+            1. *Effects:* Equivalent to:
+
+                <pre highlight="c++">
+                auto& [...ts] = self;
+                return std::forward&lt;Fn>(fn)(std::forward_like&lt;Self>(ts)...);
+                </pre>
+
+            2. *Requires:* The expression in the `return` statement above is
+                well-formed.
+
+            4. *Remarks:* The expression in the `noexcept` clause is `true` if the
+                `return` statement above is not potentially throwing; otherwise, `false`.
 
     14. <pre highlight="c++">
         template&lt;class Tag, class Data = <i>see below</i>, class... Child>
@@ -6574,11 +6604,8 @@ namespace std::execution {
             - `(sender<Child> &&...)`
 
         2. *Returns:* A prvalue of type <code><i>basic-sender</i>&lt;Tag,
-            decay_t&lt;Data>, decay_t&lt;Child>...></code> where the
-            <i>`tag`</i> member has been default-initialized and the
-            <i>`data`</i> and
-            <code><i>child<sub>n</sub></i>...</code> members have been direct
-            initialized from their respective forwarded arguments, where
+            decay_t&lt;Data>, decay_t&lt;Child>...></code> that has been
+            direct-list-initialized with the forwarded arguments, where
             <i>`basic-sender`</i> is the following exposition-only
             class template except as noted below:
 
@@ -6589,7 +6616,7 @@ namespace std::execution {
                   same_as&lt;Tag, set_value_t> || same_as&lt;Tag, set_error_t> || same_as&lt;Tag, set_stopped_t>;
 
                 template&lt;template&lt;class...> class T, class... Args>
-                concept <i>well-formed</i> = requires { typename T&lt;Args...>; }; // exposition only
+                concept <i>valid-specialization</i> = requires { typename T&lt;Args...>; }; // exposition only
 
                 struct <i>default-impls</i> {  // exposition only
                   static constexpr auto <i>get-attrs</i> = <i>see below</i>;
@@ -6609,16 +6636,13 @@ namespace std::execution {
                 template&lt;class Index, class Sndr, class Rcvr> // exposition only
                 using <i>env-type</i> = <i>call-result-t</i>&lt;
                   decltype(<i>impls-for</i>&lt;tag_of_t&lt;Sndr>>::<i>get-env</i>), Index,
-                  <i>state-type</i>&lt;Sndr, Rcvr>&, const Rcvr&>>;
+                  <i>state-type</i>&lt;Sndr, Rcvr>&, const Rcvr&>;
+
+                template&lt;class Sndr, size_t I = 0>
+                using <i>child-type</i> = decltype(declval&lt;Sndr>().template <i>get</i>&lt;I+2>()); // exposition only
 
                 template&lt;class Sndr>
-                using <i>data-type</i> = decltype((declval&lt;Sndr>().<i>data</i>)); // exposition only
-
-                template&lt;class Sndr, size_t N = 0>
-                using <i>child-type</i> = decltype((declval&lt;Sndr>().<i>child<sub>N</sub></i>)); // exposition only
-
-                template&lt;class Sndr>
-                using <i>indices-for</i> = typename remove_reference_t&lt;Sndr>::<i>indices-for</i>; // exposition only
+                using <i>indices-for</i> = remove_reference_t&lt;Sndr>::<i>indices-for</i>; // exposition only
 
                 template&lt;class Sndr, class Rcvr>
                 struct <i>basic-state</i> { <i>// exposition only</i>
@@ -6631,7 +6655,7 @@ namespace std::execution {
                 };
 
                 template&lt;class Sndr, class Rcvr, class Index>
-                  requires <i>well-formed</i>&lt;<i>env-type</i>, Index, Sndr, Rcvr>
+                  requires <i>valid-specialization</i>&lt;<i>env-type</i>, Index, Sndr, Rcvr>
                 struct <i>basic-receiver</i> {  // exposition only
                   using receiver_concept = receiver_t;
 
@@ -6670,8 +6694,8 @@ namespace std::execution {
                   decltype(<i>connect-all</i>), <i>basic-state</i>&lt;Sndr, Rcvr>*, Sndr, <i>indices-for</i>&lt;Sndr>>;
 
                 template&lt;class Sndr, class Rcvr>
-                  requires <i>well-formed</i>&lt;<i>state-type</i>, Sndr, Rcvr> &&
-                           <i>well-formed</i>&lt;<i>connect-all-result</i>, Sndr, Rcvr>
+                  requires <i>valid-specialization</i>&lt;<i>state-type</i>, Sndr, Rcvr> &&
+                           <i>valid-specialization</i>&lt;<i>connect-all-result</i>, Sndr, Rcvr>
                 struct <i>basic-operation</i> : <i>basic-state</i>&lt;Sndr, Rcvr> {  // exposition only
                   using operation_state_concept = operation_state_t;
                   using <i>tag-t</i> = tag_of_t&lt;Sndr>; // exposition only
@@ -6690,15 +6714,16 @@ namespace std::execution {
                 };
 
                 template&lt;class Sndr, class Env>
-                using <i>completion-signatures-for</i> =  <i>see below</i>; // exposition only
+                using <i>completion-signatures-for</i> = <i>see below</i>; // exposition only
 
                 template&lt;class Tag, class Data, class... Child>
-                struct <i>basic-sender</i> {  // exposition only
+                struct <i>basic-sender</i> : <i>product-type</i>&lt;Tag, Data, Child...> {  // exposition only
                   using sender_concept = sender_t;
                   using <i>indices-for</i> = index_sequence_for&lt;Child...>; // exposition only
 
                   decltype(auto) get_env() const noexcept {
-                    return <i>impls-for</i>&lt;Tag>::<i>get-attrs</i>(<i>data</i>, <i>child<sub>0</sub></i>, ... <i>child<sub>n-1</sub></i>);
+                    auto& [_, data, ...child] = *this;
+                    return <i>impls-for</i>&lt;Tag>::<i>get-attrs</i>(data, child...);
                   }
 
                   template&lt;<i>decays-to</i>&lt;<i>basic-sender</i>> Self, receiver Rcvr>
@@ -6712,26 +6737,19 @@ namespace std::execution {
                     -> <i>completion-signatures-for</i>&lt;Self, Env> {
                     return {};
                   }
-
-                  Tag <i>tag</i>;            // exposition only
-                  Data <i>data</i>;          // exposition only
-                  Child<sub><i>0</i></sub> <i>child<sub>0</sub></i>;      // exposition only
-                  Child<sub><i>1</i></sub> <i>child<sub>1</sub></i>;      // exposition only
-                    ...
-                  Child<sub><i>n-1</i></sub> <i>child<sub>n-1</sub></i>;   // exposition only
                 };
               }
               </pre>
 
         1. *Remarks:* The default template argument for the `Data` template parameter
-            denotes an unspecified empty trivial class type.
+            denotes an unspecified empty trivially copyable class type that models
+            `semiregular`.
 
-        2. It is unspecified whether instances of <i>`basic-sender`</i> can be
-            aggregate initialized.
+        2. It is unspecified whether a specialization of <i>`basic-sender`</i> is
+            an aggregate.
 
-        3. <span class="wg21note">An expression of type
-            <i>`basic-sender`</i> is usable as the initializer of a
-            structured binding declaration [dcl.struct.bind].</span>
+        3. An expression of type <i>`basic-sender`</i> is usable as the initializer of a
+            structured binding declaration [dcl.struct.bind].
 
         4. The expression in the `noexcept` clause of the constructor of <i>`basic-state`</i>
             is:
@@ -6741,30 +6759,30 @@ namespace std::execution {
             <i>nothrow-callable</i>&lt;decltype(<i>impls-for</i>&lt;tag_of_t&lt;Sndr>>::<i>get-state</i>), Sndr, Rcvr&>
             </pre>
 
-        5. The object <i>`connect-all`</i> is initialized with the following
-            lambda:
+        5. The object <i>`connect-all`</i> is initialized with a callable object
+            equivalent to the following lambda:
 
               <pre highlight="c++">
               []&lt;class Sndr, class Rcvr, size_t... Is>(
-                <i>basic-state</i>&lt;Sndr, Rcvr>* op, Sndr&& sndr, index_sequence&lt;Is...>) noexcept(noexcept(<i>E</i>))
-                  -> decltype(<i>E</i>) {
-                  return <i>E</i>;
+                <i>basic-state</i>&lt;Sndr, Rcvr>* op, Sndr&& sndr, index_sequence&lt;Is...>) noexcept(<i>see below</i>)
+                  -> decltype(auto) {
+                  auto& [_, data, ...child] = sndr;
+                  return <i>product-type</i>{connect(
+                    std::forward_like&lt;Sndr>(child),
+                    <i>basic-receiver</i>&lt;Sndr, Rcvr, integral_constant&lt;size_t, Is>>{op})...};
                 }
               </pre>
 
-              where <i>`E`</i> is the following expression:
+              1. *Requires:* The expression in the `return` statement is well-formed.
 
-              <pre highlight="c++">
-              <i>product-type</i>{connect(
-                std::forward&lt;Sndr>(sndr).<i>child<sub>Is</sub></i>,
-                <i>basic-receiver</i>&lt;Sndr, Rcvr, integral_constant&lt;size_t, Is>>{op})...}
-              </pre>
+              2. *Remarks:* The expression in the `noexcept` clause is `true` if
+                  the `return` statement is not potentially throwing; otherwise, `false`.
 
         6. The expression in the `noexcept` clause of the constructor of <i>`basic-operation`</i>
             is:
 
             <pre highlight="c++">
-            is_nothrow_constructible_v&lt;basic-state</i>&lt;Self, Rcvr>, Self, Rcvr> &&
+            is_nothrow_constructible_v&lt;<i>basic-state</i>&lt;Self, Rcvr>, Self, Rcvr> &&
             noexcept(<i>connect-all</i>(this, std::forward&lt;Sndr>(sndr), <i>indices-for</i>&lt;Sndr>()))
             </pre>
 
@@ -6772,7 +6790,7 @@ namespace std::execution {
             <i>`basic-sender`</i> is:
 
             <pre highlight="c++">
-            is_nothrow_constructible_v&lt;basic-operation</i>&lt;Self, Rcvr>, Self, Rcvr>
+            is_nothrow_constructible_v&lt;<i>basic-operation</i>&lt;Self, Rcvr>, Self, Rcvr>
             </pre>
 
         8. The member <code><i>default-impls</i>::<i>get-attrs</i></code> is
@@ -6780,7 +6798,7 @@ namespace std::execution {
             lambda:
 
               <pre highlight="c++">
-              [](const auto& data, const auto&... child) noexcept -> decltype(auto) {
+              [](const auto&, const auto&... child) noexcept -> decltype(auto) {
                 if constexpr (sizeof...(child) == 1)
                   return (<i>FWD-ENV</i>(get_env(child)), ...);
                 else
@@ -6792,7 +6810,7 @@ namespace std::execution {
             with a callable object equivalent to the following lambda:
 
               <pre highlight="c++">
-              []&lt;class Rcvr>(auto index, auto& state, const Rcvr& rcvr) noexcept -> decltype(auto) {
+              [](auto, auto&, const auto& rcvr) noexcept -> decltype(auto) {
                 return <i>FWD-ENV</i>(get_env(rcvr));
               }
               </pre>
@@ -6802,7 +6820,8 @@ namespace std::execution {
 
               <pre highlight="c++">
               []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) noexcept -> decltype(auto) {
-                return (std::forward&lt;Sndr>(sndr).<i>data</i>);
+                auto& [_, data, ...child] = sndr;
+                return std::forward_like&lt;Sndr>(data);
               }
               </pre>
 
@@ -6810,7 +6829,7 @@ namespace std::execution {
             with a callable object equivalent to the following lambda:
 
               <pre highlight="c++">
-              [](auto& state, auto& rcvr, auto&... ops) noexcept -> void {
+              [](auto&, auto&, auto&... ops) noexcept -> void {
                 (execution::start(ops), ...);
               }
               </pre>
@@ -6871,12 +6890,12 @@ namespace std::execution {
 
       template&lt;class Sndr>
         concept sender =
-          bool(<i>enable-sender</i>&lt;remove_cvref_t&lt;Sndr>>) && <i>// atomic constraint</i>
+          bool(<i>enable-sender</i>&lt;remove_cvref_t&lt;Sndr>>) && <i>// atomic constraint ([temp.constr.atomic])</i>
           requires (const remove_cvref_t&lt;Sndr>& sndr) {
             { get_env(sndr) } -> <i>queryable</i>;
           } &&
-          move_constructible&lt;remove_cvref_t&lt;Sndr>> &&  <i>// rvalues are movable, and</i>
-          constructible_from&lt;remove_cvref_t&lt;Sndr>, Sndr>; <i>// lvalues are copyable</i>
+          move_constructible&lt;remove_cvref_t&lt;Sndr>> &&  <i>// senders are movable and</i>
+          constructible_from&lt;remove_cvref_t&lt;Sndr>, Sndr>; <i>// decay copyable</i>
 
       template&lt;class Sndr, class Env = empty_env>
         concept sender_in =
@@ -6897,9 +6916,10 @@ namespace std::execution {
     }
     </pre>
 
-2. Given a subexpression `sndr`, let `Sndr` be `decltype((sndr))`, let `Env` be
-    the type of an environment, and let `rcvr` be a receiver with an associated
-    environment `Env`. A completion operation is a <dfn
+
+2. Given a subexpression `sndr`, let `Sndr` be `decltype((sndr))` and let `rcvr`
+    be a receiver with an associated environment whose type is `Env`.
+    A completion operation is a <dfn
     export=true>permissible completion</dfn> for `Sndr` and `Env` if its
     completion signature appears in the argument list of the specialization of
     `completion_signatures` denoted by `completion_signatures_of_t<Sndr, Env>`.
@@ -6908,12 +6928,12 @@ namespace std::execution {
     starting the resulting operation state are permissible completions for
     `Sndr` and `Env`.
 
-3. A type `Sigs` satisfies and models the exposition-only concept
+3. A type models the exposition-only concept
     <i>`valid-completion-signatures`</i> if it denotes a specialization
     of the `completion_signatures` class template.
 
 4. The exposition-only concepts <i>`sender-of`</i> and
-    <i>`sender-of-in`</i> define the requirements for a sender
+    <i>`sender-in-of`</i> define the requirements for a sender
     type that completes with a given unique set of value result types.
 
     <pre highlight="c++">
@@ -6922,14 +6942,14 @@ namespace std::execution {
         using <i>value-signature</i> = set_value_t(As...); <i>// exposition only</i>
 
       template&lt;class Sndr, class Env, class... Values>
-        concept <i>sender-of-in</i> =
+        concept <i>sender-in-of</i> =
           sender_in&lt;Sndr, Env> &&
           <i>MATCHING-SIG</i>( <i>// see [exec.general]</i>
             set_value_t(Values...),
             value_types_of_t&lt;Sndr, Env, <i>value-signature</i>, type_identity_t>);
 
       template&lt;class Sndr, class... Values>
-        concept <i>sender-of</i> = <i>sender-of-in</i>&lt;Sndr, empty_env, Values...>;
+        concept <i>sender-of</i> = <i>sender-in-of</i>&lt;Sndr, empty_env, Values...>;
     }
     </pre>
 
@@ -6971,20 +6991,18 @@ namespace std::execution {
       - Only expose an overload of a member `connect` that accepts an lvalue
           sender if they model `copy_constructible`.
 
-      - Model `copy_constructible` if they satisfy `copy_constructible`.
-
 ### Awaitable helpers <b>[exec.awaitables]</b> ### {#spec.exec-awaitables}
 
-1. The sender concepts recognize awaitables as senders. For this clause
-    ([exec]), an <dfn export=true>awaitable</dfn> is an expression that would be
+1. The sender concepts recognize awaitables as senders. For [exec], an
+    <dfn export=true>awaitable</dfn> is an expression that would be
     well-formed as the operand of a `co_await` expression within a given
     context.
 
 2. For a subexpression `c`, let <code><i>GET-AWAITER</i>(c, p)</code> be
     expression-equivalent to the series of transformations and conversions
     applied to `c` as the operand of an *await-expression* in a coroutine,
-    resulting in lvalue <i>`e`</i> as described by [expr.await]/3.2-4, where `p`
-    is an lvalue referring to the coroutine's promise type, `Promise`. <span
+    resulting in lvalue <i>`e`</i> as described by [expr.await], where `p`
+    is an lvalue referring to the coroutine's promise, which has type `Promise`. <span
     class="wg21note">This includes the invocation of the promise type's
     `await_transform` member if any, the invocation of the `operator co_await`
     picked by overload resolution if any, and any necessary implicit
@@ -7000,7 +7018,7 @@ namespace std::execution {
     <pre highlight="c++">
     namespace std {
       template&lt;class T>
-      concept <i>await-suspend-result</i> = <i>see below</i>;
+      concept <i>await-suspend-result</i> = <i>see below</i>; <i>// exposition only</i>
 
       template&lt;class A, class Promise>
       concept <i>is-awaiter</i> = <i>// exposition only</i>
@@ -7047,9 +7065,8 @@ namespace std::execution {
             }
 
           template&lt;<i>has-as-awaitable</i>&lt;Derived> T>
-            auto await_transform(T&& value)
-              noexcept(noexcept(std::forward&lt;T>(value).as_awaitable(declval&lt;Derived&>())))
-              -> decltype(std::forward&lt;T>(value).as_awaitable(declval&lt;Derived&>())) {
+            decltype(auto) await_transform(T&& value)
+              noexcept(noexcept(std::forward&lt;T>(value).as_awaitable(declval&lt;Derived&>()))) {
               return std::forward&lt;T>(value).as_awaitable(static_cast&lt;Derived&>(*this));
             }
         };
@@ -7217,12 +7234,14 @@ namespace std::execution {
 1. `get_completion_signatures` is a customization point object. Let `sndr` be an
     expression such that `decltype((sndr))` is `Sndr`, and let `env` be an
     expression such that `decltype((env))` is `Env`. Then
-    `get_completion_signatures(sndr, env)` is expression-equivalent to:
+    `get_completion_signatures(sndr, env)` is expression-equivalent to
+    <code>(void(sndr), void(env), <i>CS</i>())</code> except that `void(sndr)`
+    and `void(env)` are indeterminately sequenced, where <i>`CS`</i> is:
 
-    1. `decltype(sndr.get_completion_signatures(env)){}` if that
-        expression is well-formed,
+    1. `decltype(sndr.get_completion_signatures(env))` if that
+        type is well-formed,
 
-    2. Otherwise, `remove_cvref_t<Sndr>::completion_signatures{}` if that expression is well-formed,
+    2. Otherwise, `remove_cvref_t<Sndr>::completion_signatures` if that type is well-formed,
 
     3. Otherwise, if <code><i>is-awaitable</i>&lt;Sndr, <i>env-promise</i>&lt;Env>></code>
         is `true`, then:
@@ -7232,13 +7251,14 @@ namespace std::execution {
               <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;Sndr,
                             <i>env-promise</i>&lt;Env>>), <i>// see [exec.snd.concepts]</i>
               set_error_t(exception_ptr),
-              set_stopped_t()>{}
+              set_stopped_t()>
             </pre>
 
-    4. Otherwise, `get_completion_signatures(sndr, env)` is ill-formed.
+    4. Otherwise, <i>`CS`</i> is ill-formed.
 
-2. Let `rcvr` be an rvalue receiver of type `Rcvr`, and let `Sndr` be the type of a
-    sender such that `sender_in<Sndr, env_of_t<Rcvr>>` is `true`. Let `Sigs...` be the
+2. Let `rcvr` be an rvalue whose type `Rcvr` models `receiver`, and let `Sndr`
+    be the type of a sender such that `sender_in<Sndr, env_of_t<Rcvr>>` is
+    `true`. Let `Sigs...` be the
     template arguments of the `completion_signatures` specialization named by
     `completion_signatures_of_t<Sndr, env_of_t<Rcvr>>`. Let <i>`CSO`</i> be
     a completion function. If sender `Sndr` or its operation state cause the
@@ -7254,16 +7274,15 @@ namespace std::execution {
 
 2. The name `connect` denotes a customization point object. For subexpressions
     `sndr` and `rcvr`, let `Sndr` be `decltype((sndr))` and `Rcvr` be
-    `decltype((rcvr))`, and let `DS` and `DR` be the decayed types of `Sndr` and
-    `Rcvr`, respectively.
+    `decltype((rcvr))`, and let `DS` and `DR` be `decay_t<Sndr>` and
+    `decay_t<Rcvr>`, respectively.
 
-3. Let <i>`connect-awaitable-promise`</i> be the following class:
+3. Let <i>`connect-awaitable-promise`</i> be the following exposition-only class:
 
     <pre highlight="c++">
     namespace std::execution {
       struct <i>connect-awaitable-promise</i>
         : <i>with-await-transform</i>&lt;<i>connect-awaitable-promise</i>> {
-        DR& <i>rcvr</i>; <i>// exposition only</i>
 
         <i>connect-awaitable-promise</i>(DS&, DR& rcvr) noexcept : <i>rcvr</i>(rcvr) {}
 
@@ -7273,7 +7292,7 @@ namespace std::execution {
         [[noreturn]] void return_void() noexcept { terminate(); }
 
         coroutine_handle<> unhandled_stopped() noexcept {
-          set_stopped((DR&&) <i>rcvr</i>);
+          set_stopped(std::move(<i>rcvr</i>));
           return noop_coroutine();
         }
 
@@ -7282,21 +7301,23 @@ namespace std::execution {
             coroutine_handle&lt;<i>connect-awaitable-promise</i>>::from_promise(*this)};
         }
 
-        env_of_t&lt;const DR&> get_env() const noexcept {
+        env_of_t&lt;DR> get_env() const noexcept {
           return execution::get_env(<i>rcvr</i>);
         }
+
+      private:
+        DR& <i>rcvr</i>; <i>// exposition only</i>
       };
     }
     </pre>
 
-4. Let <i>`operation-state-task`</i> be the following class:
+4. Let <i>`operation-state-task`</i> be the following exposition-only class:
 
     <pre highlight="c++">
     namespace std::execution {
       struct <i>operation-state-task</i> {
         using operation_state_concept = operation_state_t;
         using promise_type = <i>connect-awaitable-promise</i>;
-        coroutine_handle<> <i>coro</i>; <i>// exposition only</i>
 
         explicit <i>operation-state-task</i>(coroutine_handle<> h) noexcept : <i>coro</i>(h) {}
         <i>operation-state-task</i>(<i>operation-state-task</i>&& o) noexcept
@@ -7306,6 +7327,9 @@ namespace std::execution {
         void start() & noexcept {
           <i>coro</i>.resume();
         }
+
+      private:
+        coroutine_handle<> <i>coro</i>; <i>// exposition only</i>
       };
     }
     </pre>
@@ -7337,7 +7361,7 @@ namespace std::execution {
           [[noreturn]] void await_resume() noexcept { unreachable(); }
         };
         return awaiter{fn};
-      };
+      }
 
       <i>operation-state-task</i> <i>connect-awaitable</i>(DS sndr, DR rcvr) requires receiver_of&lt;DR, Sigs> {
         exception_ptr ep;
@@ -7356,8 +7380,7 @@ namespace std::execution {
     }
     </pre>
 
-6. If `Sndr` does not satisfy `sender` or if `Rcvr` does not satisfy `receiver`,
-    `connect(sndr, rcvr)` is ill-formed. Otherwise, the expression `connect(sndr, rcvr)` is
+6. The expression `connect(sndr, rcvr)` is
     expression-equivalent to:
 
     1. `sndr.connect(rcvr)` if that expression is well-formed.
@@ -7365,27 +7388,27 @@ namespace std::execution {
         * <i>Mandates:</i> The type of the expression above satisfies
             `operation_state`.
 
-    2. Otherwise, <code><i>connect-awaitable</i>(sndr, rcvr)</code> if that expression is
-        well-formed.
+    2. Otherwise, <code><i>connect-awaitable</i>(sndr, rcvr)</code>.
 
-    3. Otherwise, `connect(sndr, rcvr)` is ill-formed.
+    3. *Mandates:* `sender<Sndr> && receiver<Rcvr>` is `true`.
+
 
 ### Sender factories <b>[exec.factories]</b> ### {#spec-execution.senders.factories}
 
 #### `execution::schedule` <b>[exec.schedule]</b> #### {#spec-execution.senders.schedule}
 
-1. `schedule` obtains a schedule-sender ([async.ops]) from a scheduler.
+1. `schedule` obtains a schedule sender ([async.ops]) from a scheduler.
 
 2. The name `schedule` denotes a customization point object. For a
-    subexpression `sch`, the expression `schedule(sch)` is expression-equivalent to:
+    subexpression `sch`, the expression `schedule(sch)` is expression-equivalent to
+    `sch.schedule()`.
+    
 
-    1. `sch.schedule()` if that expression is valid. If `sch.schedule()` does
-        not return a sender whose `set_value` completion scheduler is equal
-        to `sch`, the behavior of calling `schedule(sch)` is undefined.
+    1. If the expression <code>get_completion_scheduler&lt;set_value_t>(
+        get_env(sch.schedule())) == sch</code> is ill-formed or evaluates
+        to `false`, the behavior of calling `schedule(sch)` is undefined.
 
-        * <i>Mandates:</i> The type of `sch.schedule()` satisfies `sender`.
-
-    2. Otherwise, `schedule(sch)` is ill-formed.
+    2. <i>Mandates:</i> The type of `sch.schedule()` satisfies `sender`.
 
 #### `execution::just`, `execution::just_error`, `execution::just_stopped` <b>[exec.just]</b> #### {#spec-execution.senders.just}
 
@@ -7409,7 +7432,7 @@ namespace std::execution {
             is `false`;
 
     Otherwise, it is expression-equivalent to <code><i>make-sender</i>(<i>just-cpo</i>,
-    <i>product-type</i>{vs...})</code>.
+    <i>product-type</i>{ts...})</code>.
 
 3. For `just`, `just_error`, and `just_stopped`, let <i>`set-cpo`</i>
     be `set_value`, `set_error`, and `set_stopped` respectively. The
@@ -7459,33 +7482,34 @@ namespace std::execution {
 
 #### General <b>[exec.adapt.general]</b> #### {#spec-execution.senders.adapt.general}
 
-1. Subclause [exec.adapt] specifies a set of sender adaptors.
+1. [exec.adapt] specifies a set of sender adaptors.
 
-2. The bitwise OR operator is overloaded for the purpose of creating sender
+2. The bitwise inclusive OR operator is overloaded for the purpose of creating sender
     chains. The adaptors also support function call syntax with equivalent
     semantics.
 
-3. Unless otherwise specified, a sender adaptor is prohibited from causing
-    observable effects, apart from moving and copying its arguments, before the
-    returned sender is connected with a receiver using `connect`, and `start` is
-    called on the resulting operation state. This requirement applies to any
-    function that is selected by the implementation of the sender adaptor.
+3. Unless otherwise specified:
 
-4. Unless otherwise specified, a parent sender ([async.ops]) with a single child
-    sender `sndr` has an associated attribute object equal to
-    <code><i>FWD-ENV</i>(get_env(sndr))</code> ([exec.fwd.env]). Unless
-    otherwise specified, a parent sender with more than one child senders has an
-    associated attributes object equal to <code>empty_env{}</code>. These
-    requirements apply to any function that is selected by the implementation of
-    the sender adaptor.
+    1. A sender adaptor is prohibited from causing observable effects, apart
+        from moving and copying its arguments, before the returned sender is
+        connected with a receiver using `connect`, and `start` is called on the
+        resulting operation state.
 
-5. Unless otherwise specified, when a parent sender is connected to a receiver
-    `rcvr`, any receiver used to connect a child sender has an associated
-    environment equal to <code><i>FWD-ENV</i>(get_env(rcvr))</code>. This
-    requirement applies to any sender returned from a function that is selected
-    by the implementation of such sender adaptor.
+    2. A parent sender ([async.ops]) with a single child
+        sender `sndr` has an associated attribute object equal to
+        <code><i>FWD-ENV</i>(get_env(sndr))</code> ([exec.fwd.env]).
+        
+    3. A parent sender with more than one child sender has an
+        associated attributes object equal to <code>empty_env{}</code>.
 
-6. If a sender returned from a sender adaptor specified in this subclause is
+    4. When a parent sender is connected to a receiver `rcvr`, any receiver used
+        to connect a child sender has an associated environment equal to
+        <code><i>FWD-ENV</i>(get_env(rcvr))</code>.
+
+    These requirement apply to any function that is selected by the implementation
+    of the sender adaptor.
+
+4. If a sender returned from a sender adaptor specified in [exec.adapt] is
     specified to include `set_error_t(Err)` among its set of completion signatures
     where `decay_t<Err>` denotes the type `exception_ptr`, but the implementation
     does not potentially evaluate an error completion operation with an
@@ -7495,7 +7519,7 @@ namespace std::execution {
 #### Sender adaptor closure objects <b>[exec.adapt.objects]</b> #### {#spec-execution.senders.adaptor.objects}
 
 1. A <i>pipeable sender adaptor closure object</i> is a function object that
-    accepts one or more `sender` arguments and returns a `sender`. For a sender
+    accepts one or more `sender` arguments and returns a `sender`. For a pipeable sender
     adaptor closure object `c` and an expression `sndr` such that
     `decltype((sndr))` models `sender`, the following expressions are equivalent
     and yield a `sender`:
@@ -7512,22 +7536,22 @@ namespace std::execution {
     `e` is a perfect forwarding call wrapper ([func.require]) with the following
     properties:
 
-    - Its target object is an object `d2` of type `decay_t<decltype((d))>`
+    - Its target object is an object `d2` of type `decltype(auto(d))`
         direct-non-list-initialized with `d`.
 
     - It has one bound argument entity, an object `c2` of type
-        `decay_t<decltype((c))>` direct-non-list-initialized with `C`.
+        `decltype(auto(c))` direct-non-list-initialized with `c`.
 
     - Its call pattern is `d2(c2(arg))`, where `arg` is the argument used in a
         function call expression of `e`.
 
    The expression `c | d` is well-formed if and only if the initializations of
-   the state entities of `e` are all well-formed.
+   the state entities ([func.def]) of `e` are all well-formed.
 
 2. An object `t` of type `T` is a pipeable sender adaptor closure object if `T`
     models `derived_from<sender_adaptor_closure<T>>`, `T` has no other base
     classes of type `sender_adaptor_closure<U>` for any other type `U`, and `T`
-    does not model `sender`.
+    does not satisfy `sender`.
 
 3. The template parameter `D` for `sender_adaptor_closure` can be an incomplete
     type. Before any expression of type <code><i>cv</i> D</code> appears as an
@@ -7546,11 +7570,10 @@ namespace std::execution {
 6. If a pipeable sender adaptor object `adaptor` accepts more than one argument,
     then let `sndr` be an expression such that `decltype((sndr))` models
     `sender`, let `args...` be arguments such that `adaptor(sndr, args...)` is a
-    well-formed expression as specified in the rest of this subclause
-    ([exec.adapt.objects]), and let `BoundArgs` be a pack that denotes
-    `decay_t<decltype((args))>...`. The expression `adaptor(args...)` produces a
-    pipeable sender adaptor closure object `f` that is a perfect forwarding call
-    wrapper with the following properties:
+    well-formed expression as specified below, and let `BoundArgs` be a pack
+    that denotes `decltype(auto(args))...`. The expression `adaptor(args...)`
+    produces a pipeable sender adaptor closure object `f` that is a perfect
+    forwarding call wrapper with the following properties:
 
     - Its target object is a copy of `adaptor`.
 
@@ -7570,7 +7593,7 @@ namespace std::execution {
 1. `on` adapts an input sender into a sender that will start on an execution
     agent belonging to a particular scheduler's associated execution resource.
 
-2. The name `on` denotes a customization point object. For some subexpressions
+2. The name `on` denotes a customization point object. For subexpressions
     `sch` and `sndr`, if `decltype((sch))` does not satisfy `scheduler`, or
     `decltype((sndr))` does not satisfy `sender`, `on(sch, sndr)` is ill-formed.
 
@@ -7579,8 +7602,10 @@ namespace std::execution {
         <pre highlight="c++">
         transform_sender(
           <i>query-or-default</i>(get_domain, sch, default_domain()),
-          <i>make-sender</i>(on, sch, sndr));
+          <i>make-sender</i>(on, sch, sndr))
         </pre>
+
+    except that `sch` is evaluated only once.
 
 4. Let `out_sndr` and `env` be subexpressions such that `OutSndr` is `decltype((out_sndr))`. If
     <code><i>sender-for</i>&lt;OutSndr, on_t></code> is `false`, then the expressions
@@ -7590,17 +7615,18 @@ namespace std::execution {
         - `on.transform_env(out_sndr, env)` is equivalent to:
 
             <pre highlight="c++">
-            auto&& [ign1, sch, ign2] = out_sndr;
+            auto&& [_, sch, _] = out_sndr;
             return <i>JOIN-ENV</i>(<i>SCHED-ENV</i>(sch), <i>FWD-ENV</i>(env));
             </pre>
 
         - `on.transform_sender(out_sndr, env)` is equivalent to:
 
             <pre highlight="c++">
-            auto&& [ign, sch, sndr] = out_sndr;
+            auto&& [_, sch, sndr] = out_sndr;
             return let_value(
               schedule(sch),
-              [sndr = std::forward_like&lt;OutSndr>(sndr)]() mutable {
+              [sndr = std::forward_like&lt;OutSndr>(sndr)]() mutable
+                noexcept(is_nothrow_move_constructible_v<OutSndr>) {
                 return std::move(sndr);
               });
             </pre>
@@ -7611,16 +7637,14 @@ namespace std::execution {
     type `Env` such that `sender_in<OutSndr, Env>` is `true`. Let `op` be an lvalue
     referring to the operation state that results from connecting `out_sndr` with
     `out_rcvr`. Calling `start(op)` shall start `sndr` on an execution agent of the
-    associated execution resource of `sch`, or failing that, shall execute an
-    error completion on `out_rcvr`.
+    associated execution resource of `sch`. If scheduling onto `sch` fails, an error
+    completion on `out_rcvr` shall be executed on an unspecified execution agent.
 
 #### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
 
-1. `transfer` adapts a sender into one with a different associated `set_value`
-    completion scheduler. <span class="wg21note">It results in a transition
-    between different execution resources when executed.</span>
+1. `transfer` adapts a sender into one that completes on the specified scheduler.
 
-2. The name `transfer` denotes a customization point object. For some
+2. The name `transfer` denotes a customization point object. For
     subexpressions `sch` and `sndr`, if `decltype((sch))` does not satisfy
     `scheduler`, or `decltype((sndr))` does not satisfy `sender`,
     `transfer(sndr, sch)` is ill-formed.
@@ -7630,8 +7654,10 @@ namespace std::execution {
         <pre highlight="c++">
         transform_sender(
           <i>get-domain-early</i>(sndr),
-          <i>make-sender</i>(transfer, sch, sndr));
+          <i>make-sender</i>(transfer, sch, sndr))
         </pre>
+
+    except that `sndr` is evaluated only once.
 
 4. The exposition-only class template <i>`impls-for`</i> is specialized
     for `transfer_t` as follows:
@@ -7654,13 +7680,13 @@ namespace std::execution {
     is equal to:
 
         <pre highlight="c++">
-        auto [tag, data, child] = sndr;
+        auto [_, data, child] = sndr;
         return schedule_from(std::move(data), std::move(child));
         </pre>
 
     <span class="wg21note">This causes the `transfer(sndr, sch)` sender to become
-    `schedule_from(sch, sndr)` when it is connected with a receiver with an
-    execution domain that does not customize `transfer`.</span>
+    `schedule_from(sch, sndr)` when it is connected with a receiver whose
+    execution domain does not customize `transfer`.</span>
 
 6. Let `out_sndr` be a subexpression denoting a sender returned from
     `transfer(sndr, sch)` or one equal to such, and let `OutSndr` be the type
@@ -7670,8 +7696,8 @@ namespace std::execution {
     results from connecting `out_sndr` with `out_rcvr`. Calling `start(op)`
     shall start `sndr` on the current execution agent and execute completion
     operations on `out_rcvr` on an execution agent of the execution resource
-    associated with `sch`. If scheduling onto `sch` fails, execute an error
-    completion on `out_rcvr` on an unspecified execution agent.
+    associated with `sch`. If scheduling onto `sch` fails, an error completion
+    on `out_rcvr` shall be executed on an unspecified execution agent.
 
 #### `execution::schedule_from` <b>[exec.schedule.from]</b> #### {#spec-execution.senders.adaptors.schedule_from}
 
@@ -7683,7 +7709,7 @@ namespace std::execution {
 2. The name `schedule_from` denotes a customization point object. For some
     subexpressions `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be
     `decltype((sndr))`. If `Sch` does not satisfy `scheduler`, or `Sndr` does not
-    satisfy `sender`, `schedule_from` is ill-formed.
+    satisfy `sender`, `schedule_from(sch, sndr)` is ill-formed.
 
 3. Otherwise, the expression `schedule_from(sch, sndr)` is expression-equivalent
     to:
@@ -7691,8 +7717,10 @@ namespace std::execution {
         <pre highlight="c++">
         transform_sender(
           <i>query-or-default</i>(get_domain, sch, default_domain()),
-          <i>make-sender</i>(schedule_from, sch, sndr));
+          <i>make-sender</i>(schedule_from, sch, sndr))
         </pre>
+
+    except that `sch` is evaluated only once.
 
 4. The exposition-only class template <i>`impls-for`</i>
     ([exec.snd.general]) is specialized for `schedule_from_t` as
@@ -7722,30 +7750,32 @@ namespace std::execution {
         with a callable object equivalent to the following lambda:
 
           <pre highlight="c++">
-          []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr)
+          []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) noexcept(<i>see below</i>)
               requires sender_in&lt;<i>child-type</i>&lt;Sndr>, env_of_t&lt;Rcvr>> {
-            return apply(
-              [&]&lt;class Sch, class Child>(auto, Sch sch, Child&& child) {
-                using <i>variant-type</i> = <i>see below</i>;
-                using <i>receiver-type</i> = <i>see below</i>;
-                using <i>operation-type</i> = connect_result_t&lt;schedule_result_t&lt;Sch>, <i>receiver-type</i>>;
 
-                struct <i>state-type</i> {
-                  Rcvr& <i>rcvr</i>;
-                  <i>variant-type</i> <i>async-result</i>;
-                  <i>operation-type</i> <i>op-state</i>;
+            auto& [_, sch, child] = sndr;
 
-                  explicit <i>state-type</i>(Sch sch, Rcvr& rcvr)
-                    : <i>rcvr</i>(rcvr), <i>op-state</i>(connect(schedule(sch), <i>receiver-type</i>{<i></i>{}, this})) {}
-                };
+            using <i>sched-t</i> = decltype(auto(sch));
+            using <i>variant-type</i> = <i>see below</i>;
+            using <i>receiver-type</i> = <i>see below</i>;
+            using <i>operation-type</i> = connect_result_t&lt;schedule_result_t&lt;<i>sched-t</i>>, <i>receiver-type</i>>;
+            constexpr bool nothrow = noexcept(connect(schedule(sch), <i>receiver-type</i>{nullptr}));
 
-                return <i>state-type</i>{sch, rcvr};
-              },
-              std::forward&lt;Sndr>(sndr));
+            struct <i>state-type</i> {
+              Rcvr& <i>rcvr</i>;
+              <i>variant-type</i> <i>async-result</i>;
+              <i>operation-type</i> <i>op-state</i>;
+
+              explicit <i>state-type</i>(<i>sched-t</i> sch, Rcvr& rcvr) noexcept(nothrow)
+                : <i>rcvr</i>(rcvr), <i>op-state</i>(connect(schedule(sch), <i>receiver-type</i>{this})) {}
+            };
+
+            return <i>state-type</i>{sch, rcvr};
           }
           </pre>
 
-          1. The local class <i>`state-type`</i> is a structural type.
+          1. Objects of the local class <i>`state-type`</i> can be used to
+              initialize a structured binding.
 
           2. Let `Sigs` be a pack of the arguments to the
               `completion_signatures` specialization named by
@@ -7765,9 +7795,6 @@ namespace std::execution {
                   struct <i>receiver-type</i> {
                     using receiver_concept = receiver_t;
                     <i>state-type</i>* <i>state</i>; // exposition only
-
-                    Rcvr&& base() && noexcept { return std::move(<i>state</i>-><i>rcvr</i>); }
-                    const Rcvr& base() const & noexcept { return <i>state</i>-><i>rcvr</i>; }
 
                     void set_value() && noexcept {
                       visit(
@@ -7796,6 +7823,10 @@ namespace std::execution {
                 }
                 </pre>
 
+          4. The expression in the `noexcept` clause of the lambda is `true` if
+              the construction of the returned <i>`state-type`</i> object is not
+              potentially throwing; otherwise, `false`.
+
     3. The member <code><i>impls-for</i>&lt;schedule_from_t>::<i>complete</i></code>
         is initialized with a callable object equivalent to the following lambda:
 
@@ -7817,18 +7848,16 @@ namespace std::execution {
           };
           </pre>
 
-5. Let the subexpression `out_sndr` denote the result of the invocation
-    `schedule_from(sch, sndr)` or an object copied or moved from such, and let
-    the subexpression `rcvr` denote a receiver such that the expression
-    `connect(out_sndr, rcvr)` is well-formed. The expression
-    `connect(out_sndr, rcvr)` has undefined behavior unless it creates an
-    asynchronous operation ([async.ops]) that, when started:
-
-      - eventually completes on an execution agent belonging to the associated
-        execution resource of `sch`, and
-
-      - completes with the same async result as `sndr`.
-
+5. Let `out_sndr` be a subexpression denoting a sender returned from
+    `schedule_from(sch, sndr)` or one equal to such, and let `OutSndr` be the type
+    `decltype((out_sndr))`. Let `out_rcvr` be a subexpression denoting a
+    receiver that has an environment of type `Env` such that `sender_in<OutSndr,
+    Env>` is `true`. Let `op` be an lvalue referring to the operation state that
+    results from connecting `out_sndr` with `out_rcvr`. Calling `start(op)`
+    shall start `sndr` on the current execution agent and execute completion
+    operations on `out_rcvr` on an execution agent of the execution resource
+    associated with `sch`. If scheduling onto `sch` fails, an error completion
+    on `out_rcvr` shall be executed on an unspecified execution agent.
 
 #### `execution::then`, `execution::upon_error`, `execution::upon_stopped` <b>[exec.then]</b> #### {#spec-execution.senders.adaptor.then}
 
@@ -7839,9 +7868,9 @@ namespace std::execution {
 
 2. The names `then`, `upon_error`, and `upon_stopped` denote customization point
     objects. Let the expression <i>`then-cpo`</i> be one of `then`,
-    `upon_error`, or `upon_stopped`. For subexpressions `sndr` and `f`, let `Sndr` be
-    `decltype((sndr))` and let `F` be the decayed type of `f`. If `Sndr` does not
-    satisfy `sender`, or `F` does not satisfy <i>`movable-value`</i>,
+    `upon_error`, or `upon_stopped`. For subexpressions `sndr` and `f`, if
+    `decltype(sndr)` does not satisfy `sender`, or `decltype(f)` does not
+    satisfy <i>`movable-value`</i>,
     <code><i>then-cpo</i>(sndr, f)</code> is ill-formed.
 
 3. Otherwise, the expression <code><i>then-cpo</i>(sndr, f)</code> is
@@ -7850,8 +7879,10 @@ namespace std::execution {
         <pre highlight="c++">
         transform_sender(
           <i>get-domain-early</i>(sndr),
-          <i>make-sender</i>(<i>then-cpo</i>, f, sndr));
+          <i>make-sender</i>(<i>then-cpo</i>, f, sndr))
         </pre>
+    
+    except that `sndr` is evaluated only once.
 
 4. For `then`, `upon_error`, and `upon_stopped`, let <i>`set-cpo`</i>
     be `set_value`, `set_error`, and `set_stopped` respectively. The
@@ -7864,7 +7895,7 @@ namespace std::execution {
           struct <i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;<i>then-cpo</i>>> : <i>default-impls</i> {
             static constexpr auto complete =
               []&lt;class Tag, class... Args>
-                (auto /*index*/, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
+                (auto, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
                   if constexpr (same_as&lt;Tag, <i>decayed-typeof</i>&lt;<i>set-cpo</i>>>) {
                     <i>TRY-SET-VALUE</i>(std::move(rcvr),
                                   invoke(std::move(fn), std::forward&lt;Args>(args)...));
@@ -7880,8 +7911,8 @@ namespace std::execution {
     unless it returns a sender `out_sndr` that:
 
     1. Invokes `f` or a copy of such with the value, error, or stopped result
-        datums of `sndr` (for `then`, `upon_error`, and `upon_stopped`
-        respectively), using the result value of `f` as `out_sndr`'s value
+        datums of `sndr` for `then`, `upon_error`, and `upon_stopped`
+        respectively, using the result value of `f` as `out_sndr`'s value
         completion, and
 
     2. Forwards all other completion operations unchanged.
@@ -7893,10 +7924,10 @@ namespace std::execution {
     operation by passing the sender's result datums to a user-specified
     callable, which returns a new sender that is connected and started.
 
-2. Let the expression <i>`let-cpo`</i> be one of `let_value`,
-    `let_error`, or `let_stopped` and let <i>`set-cpo`</i> be the
-    completion function that corresponds to <i>`let-cpo`</i>
-    (`set_value` for `let_value`, etc.). For a subexpression `sndr`, let
+2. For `let_value`, `let_error`, and `let_stopped`, let <i>`set-cpo`</i>
+    be `set_value`, `set_error`, and `set_stopped` respectively. 
+    Let the expression <i>`let-cpo`</i> be one of `let_value`,
+    `let_error`, or `let_stopped`. For a subexpression `sndr`, let
     <code><i>let-env</i>(sndr)</code> be expression-equivalent to the first
     well-formed expression below:
 
@@ -7904,12 +7935,12 @@ namespace std::execution {
 
       - <code><i>MAKE-ENV</i>(get_domain, get_domain(get_env(sndr)))</code>
 
-      - `empty_env{}`
+      - `(void(sndr), empty_env{})`
 
 3. The names `let_value`, `let_error`, and `let_stopped` denote customization
-    point objects. For subexpressions `sndr` and `f`, let `Sndr` be `decltype((sndr))`,
-    let `F` be the decayed type of `f`. If `Sndr` does not satisfy `sender` or if `F`
-    does not satisfy <i>`movable-value`</i>, the expression
+    point objects. For subexpressions `sndr` and `f`, let `F` be the decayed
+    type of `f`. If `decltype(sndr)` does not satisfy `sender` or if
+    `decltype(f)` does not satisfy <i>`movable-value`</i>, the expression
     <code><i>let-cpo</i>(sndr, f)</code> is ill-formed. If `F` does not satisfy
     `invocable`, the expression `let_stopped(sndr, f)` is ill-formed.
 
@@ -7919,8 +7950,10 @@ namespace std::execution {
       <pre highlight="c++">
       transform_sender(
         <i>get-domain-early</i>(sndr),
-        <i>make-sender</i>(<i>let-cpo</i>, f, sndr));
+        <i>make-sender</i>(<i>let-cpo</i>, f, sndr))
       </pre>
+
+    except that `sndr` is evaluated only once.
 
 5. The exposition-only class template <i>`impls-for`</i>
     ([exec.snd.general]) is specialized for <i>`let-cpo`</i> as
@@ -7944,38 +7977,51 @@ namespace std::execution {
             <pre highlight="c++">
             namespace std::execution {
               template&lt;class Rcvr, class Env>
-              struct <i>receiver2</i> : Rcvr {
-                explicit <i>receiver2</i>(Rcvr rcvr, Env env)
-                  : Rcvr(std::move(rcvr)), env(std::move(env)) {}
+              struct <i>receiver2</i> {
+                using receiver_concept = receiver_t;
 
-                auto get_env() const noexcept {
-                  const Rcvr& rcvr = *this;
+                template&lt;class... Args>
+                void set_value(Args&&... args) && noexcept {
+                  execution::set_value(std::move(rcvr), std::forward&lt;Args>(args)...);
+                }
+
+                template&lt;class Error>
+                void set_error(Error&& err) && noexcept {
+                  execution::set_error(std::move(rcvr), std::forward&lt;Error>(err));
+                }
+
+                void set_stopped() && noexcept {
+                  execution::set_stopped(std::move(rcvr));
+                }
+
+                decltype(auto) get_env() const noexcept {
                   return <i>JOIN-ENV</i>(env, <i>FWD-ENV</i>(execution::get_env(rcvr)));
                 }
 
+                Rcvr& rcvr; // exposition only
                 Env env; // exposition only
               };
             }
             </pre>
 
         2. <code><i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;<i>let-cpo</i>>>::<i>get-state</i></code> is
-            is initialized with a callable object equivalent to the following:
+            initialized with a callable object equivalent to the following:
 
             <pre highlight="c++">
             []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) requires <i>see below</i> {
-              auto&& [tag, data, child] = std::forward&lt;Sndr>(sndr);
-              return [&]&lt;class Fn, class Env>(Fn fn, Env env) {
-                using <i>args-variant-type</i> = <i>see below</i>;
-                using <i>ops2-variant-type</i> = <i>see below</i>;
+              auto& [_, fn, child] = sndr;
+              using <i>fn-t</i> = decay_t&lt;decltype(fn)>;
+              using <i>env-t</i> = decltype(<i>let-env</i>(child));
+              using <i>args-variant-type</i> = <i>see below</i>;
+              using <i>ops2-variant-type</i> = <i>see below</i>;
 
-                struct <i>state-type</i> {
-                  Fn fn;
-                  Env env;
-                  <i>args-variant-type</i> args;
-                  <i>ops2-variant-type</i> ops2;
-                };
-                return <i>state-type</i>{std::move(fn), std::move(env), {}, {}};
-              }(std::forward_like&lt;Sndr>(data), <i>let-env</i>(child));
+              struct <i>state-type</i> {
+                Fn fn;
+                Env env;
+                <i>args-variant-type</i> args;
+                <i>ops2-variant-type</i> ops2;
+              };
+              return <i>state-type</i>{std::forward_like&lt;Sndr>(fn), <i>let-env</i>(child), {}, {}};
             }
             </pre>
 
@@ -7988,7 +8034,7 @@ namespace std::execution {
                 <code><i>as-tuple</i>&lt;Tag(Args...)></code> denotes the type
                 <code><i>decayed-tuple</i>&lt;Args...></code>. Then
                 <i>`args-variant-type`</i> denotes the type <code>variant&lt;monostate,
-                <i>as-tuple</i>&lt;LetSigs>...></code>.
+                <i>as-tuple</i>&lt;LetSigs>...></code> except with duplicate types removed.
 
             2. Let <i>`as-sndr2`</i> be an alias template such that
                 <code><i>as-sndr2</i>&lt;Tag(Args...)></code> denotes the type
@@ -7996,21 +8042,22 @@ namespace std::execution {
                 Then <i>`ops2-variant-type`</i> denotes the type
                 <code>variant&lt;monostate,
                 connect_result_t&lt;<i>as-sndr2</i>&lt;LetSigs>,
-                <i>receiver2</i>&lt;Rcvr, Env>>...></code>.
+                <i>receiver2</i>&lt;Rcvr, Env>>...></code> except with duplicate types removed.
 
             3. The <i>requires-clause</i> constraining the above lambda is
                 satisfied if and only if the types <i>`args-variant-type`</i>
                 and <i>`ops2-variant-type`</i> are well-formed.
 
-        3. The exposition-only function template <i>`let-bind`</i> is equal to:
+        3. The exposition-only function template <i>`let-bind`</i> has effects equivalent to:
 
             <pre highlight="c++">
-            auto& args = state.args.emplace&lt;<i>decayed-tuple</i>&lt;Args...>>(std::forward&lt;Args>(args)...);
-            auto sndr2 = apply(std::move(state.fn), args);
-            auto rcvr2 = <i>receiver2</i>{std::move(rcvr), std::move(state.env)};
-            auto mkop2 = [&] { return connect(std::move(sndr2), std::move(rcvr2)); };
-            auto& op2 = state.ops2.emplace&lt;decltype(mkop2())>(<i>emplace-from</i>{mkop2});
-            start(op2);
+            using args_t = <i>decayed-tuple</i>&lt;Args...>;
+            auto mkop2 = [&] {
+              return connect(
+                apply(std::move(state.fn), state.args.emplace&lt;args_t>(std::forward&lt;Args>(args)...)),
+                <i>receiver2</i>{rcvr, std::move(state.env)});
+            };
+            start(state.ops2.emplace&lt;decltype(mkop2())>(<i>emplace-from</i>{mkop2}));
             </pre>
 
         4. <code><i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;<i>let-cpo</i>>>::<i>complete</i></code> is
@@ -8034,7 +8081,7 @@ namespace std::execution {
     <code><i>JOIN-ENV</i>(<i>let-env</i>(sndr), <i>FWD-ENV</i>(env))</code>.
 
 7. Let the subexpression `out_sndr` denote the result of the invocation
-    <code><i>let-cpo</i>(sndr, f)</code> or an object copied or moved from such,
+    <code><i>let-cpo</i>(sndr, f)</code> or an object equal to such,
     and let the subexpression `rcvr` denote a receiver such that the expression
     `connect(out_sndr, rcvr)` is well-formed. The expression `connect(out_sndr,
     rcvr)` has undefined behavior unless it creates an asynchronous operation
@@ -8053,20 +8100,21 @@ namespace std::execution {
 1. `bulk` runs a task repeatedly for every index in an index space.
 
 2. The name `bulk` denotes a customization point object. For subexpressions
-    `sndr`, `shape`, and `f`, let `Sndr` be `decltype((sndr))`, let `Shape` be
-    the decayed type of `shape`, and let `F` be the decayed type of `f`. If
-    `Sndr` does not satisfy `sender`, or if `Shape` does not satisfy `integral`,
-    or if `F` does not satisfy <i>`movable-value`</i>, <code>bulk(sndr,
-    shape, f)</code> is ill-formed.
+    `sndr`, `shape`, and `f`, let `Shape` be `decltype(auto(shape))`. If
+    `decltype((sndr))` does not satisfy `sender`, or if `Shape` does not
+    satisfy `integral`, or if `decltype((f))` does not satisfy <i>`movable-value`</i>,
+    `bulk(sndr, shape, f)` is ill-formed.
 
-3. Otherwise, the expression <code>bulk(sndr, shape, f)</code> is
+3. Otherwise, the expression `bulk(sndr, shape, f)` is
     expression-equivalent to:
 
         <pre highlight="c++">
         transform_sender(
           <i>get-domain-early</i>(sndr),
-          <i>make-sender</i>(bulk, <i>product-type</i>{shape, f}, sndr));
+          <i>make-sender</i>(bulk, <i>product-type</i>{shape, f}, sndr))
         </pre>
+
+    except that `sndr` is evaluated only once.
 
 4. The exposition-only class template <i>`impls-for`</i>
     ([exec.snd.general]) is specialized for `bulk_t` as follows:
@@ -8090,7 +8138,7 @@ namespace std::execution {
                 auto& [shape, f] = state;
                 constexpr bool nothrow = noexcept(f(auto(shape), args...));
                 <i>TRY-EVAL</i>(std::move(rcvr), [&]() noexcept(nothrow) {
-                  for (auto max = shape, i = 0; i < max; ++i) {
+                  for (decltype(auto(shape)) i = 0; i < shape; ++i) {
                     f(auto(i), args...);
                   }
                   Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
@@ -8106,7 +8154,7 @@ namespace std::execution {
               or if the expression `f(auto(shape), args...)` is well-formed.
 
 5. Let the subexpression `out_sndr` denote the result of the invocation
-    <code>bulk(sndr, shape, f)</code> or an object copied or moved from such,
+    `bulk(sndr, shape, f)` or an object equal to such,
     and let the subexpression `rcvr` denote a receiver such that the expression
     `connect(out_sndr, rcvr)` is well-formed. The expression `connect(out_sndr,
     rcvr)` has undefined behavior unless it creates an asynchronous operation
@@ -8118,6 +8166,8 @@ namespace std::execution {
           input sender, and
 
       - propagates all completion operations sent by `sndr`.
+
+<!-- LWG stopped here -->
 
 #### `execution::split` and `execution::ensure_started` <b>[exec.split]</b> #### {#spec-execution.senders.adapt.split}
 
