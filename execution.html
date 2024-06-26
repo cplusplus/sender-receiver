@@ -2386,7 +2386,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-25">2024-06-25</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-26">2024-06-26</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -9208,17 +9208,19 @@ that expression is well-formed; otherwise, <code class="highlight"><c- n>default
       <li data-md>
        <p><code class="highlight"><c- n>get_completion_signatures</c-></code> is a customization point object. Let <code class="highlight"><c- n>sndr</c-></code> be an
 expression such that <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> is <code class="highlight"><c- n>Sndr</c-></code>, and let <code class="highlight"><c- n>env</c-></code> be an
-expression such that <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>env</c-><c- p>))</c-></code> is <code class="highlight"><c- n>Env</c-></code>. Then <code class="highlight"><c- n>get_completion_signatures</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- p>(</c-><c- b>void</c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- b>void</c-><c- p>(</c-><c- n>env</c-><c- p>),</c-> <i><c- n>CS</c-></i><c- p>())</c-></code> except that <code class="highlight"><c- b>void</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> and <code class="highlight"><c- b>void</c-><c- p>(</c-><c- n>env</c-><c- p>)</c-></code> are indeterminately sequenced, where <i><code class="highlight"><c- n>CS</c-></code></i> is:</p>
+expression such that <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>env</c-><c- p>))</c-></code> is <code class="highlight"><c- n>Env</c-></code>. Let <code class="highlight"><c- n>new_sndr</c-></code> be the
+expression <code class="highlight"><c- n>transform_sender</c-><c- p>(</c-><c- k>decltype</c-><c- p>(</c-><i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>late</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)){},</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code>, and let <code class="highlight"><c- n>NewSndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>new_sndr</c-><c- p>))</c-></code>.
+Then <code class="highlight"><c- n>get_completion_signatures</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><c- p>(</c-><c- b>void</c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- b>void</c-><c- p>(</c-><c- n>env</c-><c- p>),</c-> <i><c- n>CS</c-></i><c- p>())</c-></code> except that <code class="highlight"><c- b>void</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> and <code class="highlight"><c- b>void</c-><c- p>(</c-><c- n>env</c-><c- p>)</c-></code> are indeterminately sequenced, where <i><code class="highlight"><c- n>CS</c-></code></i> is:</p>
        <ol>
         <li data-md>
-         <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>sndr</c-><c- p>.</c-><c- n>get_completion_signatures</c-><c- p>(</c-><c- n>env</c-><c- p>))</c-></code> if that
+         <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>new_sndr</c-><c- p>.</c-><c- n>get_completion_signatures</c-><c- p>(</c-><c- n>env</c-><c- p>))</c-></code> if that
 type is well-formed,</p>
         <li data-md>
-         <p>Otherwise, <code class="highlight"><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>::</c-><c- n>completion_signatures</c-></code> if that type is well-formed,</p>
+         <p>Otherwise, <code class="highlight"><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>NewSndr</c-><c- o>>::</c-><c- n>completion_signatures</c-></code> if that type is well-formed,</p>
         <li data-md>
-         <p>Otherwise, if <code class="highlight"><i><c- n>is</c-><c- o>-</c-><c- n>awaitable</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>env</c-><c- o>-</c-><c- n>promise</c-></i><c- o>&lt;</c-><c- n>Env</c-><c- o>>></c-></code> is <code class="highlight">true</code>, then:</p>
+         <p>Otherwise, if <code class="highlight"><i><c- n>is</c-><c- o>-</c-><c- n>awaitable</c-></i><c- o>&lt;</c-><c- n>NewSndr</c-><c- p>,</c-> <i><c- n>env</c-><c- o>-</c-><c- n>promise</c-></i><c- o>&lt;</c-><c- n>Env</c-><c- o>>></c-></code> is <code class="highlight">true</code>, then:</p>
 <pre class="highlight"><c- n>completion_signatures</c-><c- o>&lt;</c->
-  <i><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-><c- o>-</c-><c- n>SIG</c-></i><c- p>(</c-><i><c- n>await</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c->
+  <i><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-><c- o>-</c-><c- n>SIG</c-></i><c- p>(</c-><i><c- n>await</c-><c- o>-</c-><c- n>result</c-><c- o>-</c-><c- n>type</c-></i><c- o>&lt;</c-><c- n>NewSndr</c-><c- p>,</c->
                 <i><c- n>env</c-><c- o>-</c-><c- n>promise</c-></i><c- o>&lt;</c-><c- n>Env</c-><c- o>>></c-><c- p>),</c-> <i><c- c1>// see [exec.snd.concepts]</c-></i>
   <c- n>set_error_t</c-><c- p>(</c-><c- n>exception_ptr</c-><c- p>),</c->
   <c- n>set_stopped_t</c-><c- p>()</c-><c- o>></c->
@@ -9239,7 +9241,7 @@ that <code class="highlight"><i><c- n>MATCHING</c-><c- o>-</c-><c- n>SIG</c-></i
       <li data-md>
        <p><code class="highlight"><c- n>connect</c-></code> connects ([async.ops]) a sender with a receiver.</p>
       <li data-md>
-       <p>The name <code class="highlight"><c- n>connect</c-></code> denotes a customization point object. For subexpressions <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>rcvr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> and <code class="highlight"><c- n>Rcvr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>rcvr</c-><c- p>))</c-></code>, and let <code class="highlight"><c- n>DS</c-></code> and <code class="highlight"><c- n>DR</c-></code> be <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-></code> and <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>></c-></code>, respectively.</p>
+       <p>The name <code class="highlight"><c- n>connect</c-></code> denotes a customization point object. For subexpressions <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>rcvr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> and <code class="highlight"><c- n>Rcvr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>rcvr</c-><c- p>))</c-></code>, let <code class="highlight"><c- n>new_sndr</c-></code> be the expression <code class="highlight"><c- n>transform_sender</c-><c- p>(</c-><c- k>decltype</c-><c- p>(</c-><i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>late</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))){},</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))</c-></code>, and let <code class="highlight"><c- n>DS</c-></code> and <code class="highlight"><c- n>DR</c-></code> be <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>((</c-><c- n>new_sndr</c-><c- p>))</c-><c- o>></c-></code> and <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>></c-></code>, respectively.</p>
       <li data-md>
        <p>Let <i><code class="highlight"><c- n>connect</c-><c- o>-</c-><c- n>awaitable</c-><c- o>-</c-><c- n>promise</c-></code></i> be the following exposition-only class:</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
@@ -9338,13 +9340,13 @@ coroutine defined as follows:</p>
 expression-equivalent to:</p>
        <ol>
         <li data-md>
-         <p><code class="highlight"><c- n>sndr</c-><c- p>.</c-><c- n>connect</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)</c-></code> if that expression is well-formed.</p>
+         <p><code class="highlight"><c- n>new_sndr</c-><c- p>.</c-><c- n>connect</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)</c-></code> if that expression is well-formed.</p>
          <ul>
           <li data-md>
            <p><i>Mandates:</i> The type of the expression above satisfies <code class="highlight"><c- n>operation_state</c-></code>.</p>
          </ul>
         <li data-md>
-         <p>Otherwise, <code class="highlight"><i><c- n>connect</c-><c- o>-</c-><c- n>awaitable</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code>.</p>
+         <p>Otherwise, <code class="highlight"><i><c- n>connect</c-><c- o>-</c-><c- n>awaitable</c-></i><c- p>(</c-><c- n>new_sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code>.</p>
         <li data-md>
          <p><em>Mandates:</em> <code class="highlight"><c- n>sender</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-> <c- o>&amp;&amp;</c-> <c- n>receiver</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
        </ol>
