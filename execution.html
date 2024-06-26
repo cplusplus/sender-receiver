@@ -2454,7 +2454,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
        <a href="#example-server"><span class="secno">1.7</span> <span class="content">Examples: Server theme</span></a>
        <ol class="toc">
         <li><a href="#example-server-let"><span class="secno">1.7.1</span> <span class="content">Composability with <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_</c-><c- o>*</c-></code></span></a>
-        <li><a href="#example-server-on"><span class="secno">1.7.2</span> <span class="content">Moving between execution resources with <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer</c-></code></span></a>
+        <li><a href="#example-server-on"><span class="secno">1.7.2</span> <span class="content">Moving between execution resources with <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code></span></a>
        </ol>
       <li><a href="#intro-compare"><span class="secno">1.8</span> <span class="content">Design changes from P0443</span></a>
       <li>
@@ -2553,11 +2553,11 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <li>
        <a href="#design-sender-adaptors"><span class="secno">4.20</span> <span class="content">User-facing sender adaptors</span></a>
        <ol class="toc">
-        <li><a href="#design-sender-adaptor-transfer"><span class="secno">4.20.1</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer</c-></code></span></a>
+        <li><a href="#design-sender-adaptor-continues_on"><span class="secno">4.20.1</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code></span></a>
         <li><a href="#design-sender-adaptor-then"><span class="secno">4.20.2</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>then</c-></code></span></a>
         <li><a href="#design-sender-adaptor-upon"><span class="secno">4.20.3</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_</c-><c- o>*</c-></code></span></a>
         <li><a href="#design-sender-adaptor-let"><span class="secno">4.20.4</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_</c-><c- o>*</c-></code></span></a>
-        <li><a href="#design-sender-adaptor-on"><span class="secno">4.20.5</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code></span></a>
+        <li><a href="#design-sender-adaptor-starts_on"><span class="secno">4.20.5</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-></code></span></a>
         <li><a href="#design-sender-adaptor-into_variant"><span class="secno">4.20.6</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>into_variant</c-></code></span></a>
         <li><a href="#design-sender-adaptor-stopped_as_optional"><span class="secno">4.20.7</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>stopped_as_optional</c-></code></span></a>
         <li><a href="#design-sender-adaptor-stopped_as_error"><span class="secno">4.20.8</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>stopped_as_error</c-></code></span></a>
@@ -2732,17 +2732,18 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
          <ol class="toc">
           <li><a href="#spec-execution.senders.adapt.general"><span class="secno">34.9.11.1</span> <span class="content">General <b>[exec.adapt.general]</b></span></a>
           <li><a href="#spec-execution.senders.adaptor.objects"><span class="secno">34.9.11.2</span> <span class="content">Sender adaptor closure objects <b>[exec.adapt.objects]</b></span></a>
-          <li><a href="#spec-execution.senders.adapt.on"><span class="secno">34.9.11.3</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code> <b>[exec.on]</b></span></a>
-          <li><a href="#spec-execution.senders.adapt.transfer"><span class="secno">34.9.11.4</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer</c-></code> <b>[exec.transfer]</b></span></a>
+          <li><a href="#spec-execution.senders.adapt.starts.on"><span class="secno">34.9.11.3</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-></code> <b>[exec.starts.on]</b></span></a>
+          <li><a href="#spec-execution.senders.adapt.continues.on"><span class="secno">34.9.11.4</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code> <b>[exec.continues.on]</b></span></a>
           <li><a href="#spec-execution.senders.adaptors.schedule_from"><span class="secno">34.9.11.5</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>schedule_from</c-></code> <b>[exec.schedule.from]</b></span></a>
-          <li><a href="#spec-execution.senders.adaptor.then"><span class="secno">34.9.11.6</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>then</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_stopped</c-></code> <b>[exec.then]</b></span></a>
-          <li><a href="#spec-execution.senders.adapt.let"><span class="secno">34.9.11.7</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_value</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_stopped</c-></code>, <b>[exec.let]</b></span></a>
-          <li><a href="#spec-execution.senders.adapt.bulk"><span class="secno">34.9.11.8</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>bulk</c-></code> <b>[exec.bulk]</b></span></a>
-          <li><a href="#spec-execution.senders.adapt.split"><span class="secno">34.9.11.9</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>split</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>ensure_started</c-></code> <b>[exec.split]</b></span></a>
-          <li><a href="#spec-execution.senders.adaptor.when_all"><span class="secno">34.9.11.10</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>when_all</c-></code> <b>[exec.when.all]</b></span></a>
-          <li><a href="#spec-execution.senders.adapt.into_variant"><span class="secno">34.9.11.11</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>into_variant</c-></code> <b>[exec.into.variant]</b></span></a>
-          <li><a href="#spec-execution.senders.adapt.stopped_as_optional"><span class="secno">34.9.11.12</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>stopped_as_optional</c-></code> <b>[exec.stopped.as.optional]</b></span></a>
-          <li><a href="#spec-execution.senders.adapt.stopped_as_error"><span class="secno">34.9.11.13</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>stopped_as_error</c-></code> <b>[exec.stopped.as.error]</b></span></a>
+          <li><a href="#spec-execution.senders.adaptors.on"><span class="secno">34.9.11.6</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code> <b>[exec.on]</b></span></a>
+          <li><a href="#spec-execution.senders.adaptor.then"><span class="secno">34.9.11.7</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>then</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_stopped</c-></code> <b>[exec.then]</b></span></a>
+          <li><a href="#spec-execution.senders.adapt.let"><span class="secno">34.9.11.8</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_value</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_stopped</c-></code>, <b>[exec.let]</b></span></a>
+          <li><a href="#spec-execution.senders.adapt.bulk"><span class="secno">34.9.11.9</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>bulk</c-></code> <b>[exec.bulk]</b></span></a>
+          <li><a href="#spec-execution.senders.adapt.split"><span class="secno">34.9.11.10</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>split</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>ensure_started</c-></code> <b>[exec.split]</b></span></a>
+          <li><a href="#spec-execution.senders.adaptor.when_all"><span class="secno">34.9.11.11</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>when_all</c-></code> <b>[exec.when.all]</b></span></a>
+          <li><a href="#spec-execution.senders.adapt.into_variant"><span class="secno">34.9.11.12</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>into_variant</c-></code> <b>[exec.into.variant]</b></span></a>
+          <li><a href="#spec-execution.senders.adapt.stopped_as_optional"><span class="secno">34.9.11.13</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>stopped_as_optional</c-></code> <b>[exec.stopped.as.optional]</b></span></a>
+          <li><a href="#spec-execution.senders.adapt.stopped_as_error"><span class="secno">34.9.11.14</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>stopped_as_error</c-></code> <b>[exec.stopped.as.error]</b></span></a>
          </ol>
         <li>
          <a href="#spec-execution.senders.consumers"><span class="secno">34.9.12</span> <span class="content">Sender consumers <b>[exec.consumers]</b></span></a>
@@ -2899,7 +2900,7 @@ throws an exception if the last sender sent an error.</p>
   <c- n>partials</c-><c- p>[</c-><c- mi>0</c-><c- p>]</c-> <c- o>=</c-> <c- n>init</c-><c- p>;</c->                                                         <c- c1>// 4</c->
 
   <c- k>return</c-> <c- n>just</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>partials</c-><c- p>))</c->                                            <c- c1>// 5</c->
-       <c- o>|</c-> <c- n>transfer</c-><c- p>(</c-><c- n>sch</c-><c- p>)</c->
+       <c- o>|</c-> <c- n>continues_on</c-><c- p>(</c-><c- n>sch</c-><c- p>)</c->
        <c- o>|</c-> <c- n>bulk</c-><c- p>(</c-><c- n>tile_count</c-><c- p>,</c->                                                     <c- c1>// 6</c->
            <c- p>[</c-> <c- o>=</c-> <c- p>](</c-><c- n>std</c-><c- o>::</c-><c- b>size_t</c-> <c- n>i</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>vector</c-><c- o>&lt;</c-><c- b>double</c-><c- o>>&amp;</c-> <c- n>partials</c-><c- p>)</c-> <c- p>{</c->              <c- c1>// 7</c->
              <c- k>auto</c-> <c- n>start</c-> <c- o>=</c-> <c- n>i</c-> <c- o>*</c-> <c- n>tile_size</c-><c- p>;</c->                                      <c- c1>// 8</c->
@@ -2944,7 +2945,7 @@ agents that will be spawned.</p>
 we’ll do with a <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>vector</c-></code>, <code class="highlight"><c- n>partials</c-></code>. We need one <code class="highlight"><c- b>double</c-></code> of temporary
 storage for each execution agent we create.</p>
     <li data-md>
-     <p>Next we’ll create our initial sender with <a href="#design-sender-factory-just">§ 4.19.2 execution::just</a> and <a href="#design-sender-adaptor-transfer">§ 4.20.1 execution::transfer</a>. These senders will send the temporary
+     <p>Next we’ll create our initial sender with <a href="#design-sender-factory-just">§ 4.19.2 execution::just</a> and <a href="#design-sender-adaptor-continues_on">§ 4.20.1 execution::continues_on</a>. These senders will send the temporary
 storage, which we’ve moved into the sender. The sender has a completion
 scheduler of <code class="highlight"><c- n>sch</c-></code>, which means the next item in the chain will use <code class="highlight"><c- n>sch</c-></code>.</p>
     <li data-md>
@@ -3756,7 +3757,7 @@ error flows is easy.</p>
 any of these steps to be completely asynchronous; the overall flow doesn’t care.
 Regardless of the execution resource in which the steps, or part of the steps
 are executed in, the flow is still the same.</p>
-   <h4 class="heading settled" data-level="1.7.2" id="example-server-on"><span class="secno">1.7.2. </span><span class="content">Moving between execution resources with <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer</c-></code></span><a class="self-link" href="#example-server-on"></a></h4>
+   <h4 class="heading settled" data-level="1.7.2" id="example-server-on"><span class="secno">1.7.2. </span><span class="content">Moving between execution resources with <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code></span><a class="self-link" href="#example-server-on"></a></h4>
    <p>Example context:</p>
    <ul>
     <li data-md>
@@ -3771,7 +3772,7 @@ are executed in, the flow is still the same.</p>
     <li data-md>
      <p>show how one can change the execution resource</p>
     <li data-md>
-     <p>exemplify the use of <code class="highlight"><c- n>on</c-></code> and <code class="highlight"><c- n>transfer</c-></code> algorithms</p>
+     <p>exemplify the use of <code class="highlight"><c- n>starts_on</c-></code> and <code class="highlight"><c- n>continues_on</c-></code> algorithms</p>
    </ul>
 <pre class="language-c++ highlight"><c- n>namespace</c-> <c- n>stdexec</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- p>;</c->
 
@@ -3786,9 +3787,9 @@ are executed in, the flow is still the same.</p>
 <c- c1>// The entire flow</c->
 <c- k>auto</c-> <c- n>snd</c-> <c- o>=</c->
     <c- c1>// start by reading data on the I/O thread</c->
-    <c- n>stdexec</c-><c- o>::</c-><c- n>on</c-><c- p>(</c-><c- n>io_sched</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>snd_read</c-><c- p>))</c->
+    <c- n>stdexec</c-><c- o>::</c-><c- n>starts_on</c-><c- p>(</c-><c- n>io_sched</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>snd_read</c-><c- p>))</c->
     <c- c1>// do the processing on the worker threads pool</c->
-    <c- o>|</c-> <c- n>stdexec</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c-><c- n>work_sched</c-><c- p>)</c->
+    <c- o>|</c-> <c- n>stdexec</c-><c- o>::</c-><c- n>continues_on</c-><c- p>(</c-><c- n>work_sched</c-><c- p>)</c->
     <c- c1>// process the incoming data (on worker threads)</c->
     <c- o>|</c-> <c- n>stdexec</c-><c- o>::</c-><c- n>then</c-><c- p>([</c-><c- n>buf</c-><c- p>](</c-><c- b>int</c-> <c- n>read_len</c-><c- p>)</c-> <c- p>{</c-> <c- n>process_read_data</c-><c- p>(</c-><c- n>buf</c-><c- p>,</c-> <c- n>read_len</c-><c- p>);</c-> <c- p>})</c->
     <c- c1>// done</c->
@@ -3803,15 +3804,15 @@ be the most efficient one, but it’s working for our purposes.) For performance
 reasons, the reading from the socket needs to be done on the I/O thread, and all
 the processing needs to happen on a work-specific execution resource (i.e.,
 thread pool).</p>
-   <p>Calling <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code> will ensure that the given sender will be started on the
+   <p>Calling <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-></code> will ensure that the given sender will be started on the
 given scheduler. In our example, <code class="highlight"><c- n>snd_read</c-></code> is going to be started on the I/O
 scheduler. This sender will just call the legacy code.</p>
    <p>The completion-signal will be issued in the I/O execution resource, so we have
-to move it to the work thread pool. This is achieved with the help of the <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer</c-></code> algorithm. The rest of the processing (in our case, the
+to move it to the work thread pool. This is achieved with the help of the <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code> algorithm. The rest of the processing (in our case, the
 last call to <code class="highlight"><c- n>then</c-></code>) will happen in the work thread pool.</p>
-   <p>The reader should notice the difference between <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer</c-></code>. The <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code> algorithm will ensure that the given
+   <p>The reader should notice the difference between <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code>. The <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-></code> algorithm will ensure that the given
 sender will start in the specified context, and doesn’t care where the
-completion-signal for that sender is sent. The <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer</c-></code> algorithm
+completion-signal for that sender is sent. The <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code> algorithm
 will not care where the given sender is going to be started, but will ensure
 that the completion-signal of will be transferred to the given context.</p>
    <h3 class="heading settled" data-level="1.8" id="intro-compare"><span class="secno">1.8. </span><span class="content">Design changes from P0443</span><a class="self-link" href="#intro-compare"></a></h3>
@@ -4360,7 +4361,7 @@ code:</p>
     <c- n>ex</c-><c- o>::</c-><c- n>get_scheduler</c-><c- p>(),</c-> <c- c1>// Fetches scheduler from receiver.</c->
     <c- p>[](</c-><c- k>auto</c-> <c- n>current_sched</c-><c- p>)</c-> <c- p>{</c->
       <c- c1>// Lauch some nested work on the current scheduler:</c->
-      <c- k>return</c-> <c- n>ex</c-><c- o>::</c-><c- n>on</c-><c- p>(</c-><c- n>current_sched</c-><c- p>,</c-> <i><c- n>nested</c-> <c- n>work</c-><c- p>...</c-></i><c- p>);</c->
+      <c- k>return</c-> <c- n>ex</c-><c- o>::</c-><c- n>starts_on</c-><c- p>(</c-><c- n>current_sched</c-><c- p>,</c-> <i><c- n>nested</c-> <c- n>work</c-><c- p>...</c-></i><c- p>);</c->
     <c- p>});</c->
 
 <c- n>std</c-><c- o>::</c-><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>task</c-><c- p>));</c->
@@ -4482,7 +4483,7 @@ dependently-typed senders.</p>
    <p><b>Fixes:</b></p>
    <ul>
     <li data-md>
-     <p>Fix specification of the <code class="highlight"><c- n>on</c-></code> algorithm to clarify lifetimes of intermediate
+     <p>Fix specification of the <code class="highlight"><c- n>starts_on</c-></code> algorithm to clarify lifetimes of intermediate
 operation states and properly scope the <code class="highlight"><c- n>get_scheduler</c-></code> query.</p>
     <li data-md>
      <p>Fix a memory safety bug in the implementation of <i><code class="highlight"><c- n>connect</c-><c- o>-</c-><c- n>awaitable</c-></code></i>.</p>
@@ -4721,7 +4722,7 @@ of the following situations:</p>
    <p>None of these implementation strategies are acceptable for many classes of
 parallel runtimes, such as task frameworks (like <a href="https://github.com/STEllAR-GROUP/hpx">HPX</a>) or accelerator runtimes (like CUDA
 or SYCL).</p>
-   <p>Therefore, in addition to the <code class="highlight"><c- n>on</c-></code> sender algorithm from <a data-link-type="biblio" href="https://wg21.link/p1897r3"><cite>Towards C++23 executors: A proposal for an initial set of algorithms</cite></a>, we are
+   <p>Therefore, in addition to the <code class="highlight"><c- n>starts_on</c-></code> sender algorithm from <a data-link-type="biblio" href="https://wg21.link/p1897r3"><cite>Towards C++23 executors: A proposal for an initial set of algorithms</cite></a>, we are
 proposing a way for senders to advertise what scheduler (and by extension what
 execution resource) they will complete on. Any given sender <b>may</b> have <a data-link-type="dfn" href="#completion-scheduler" id="ref-for-completion-scheduler">completion schedulers</a> for some or all of the signals (value, error, or
 stopped) it completes with (for more detail on the completion-signals, see <a href="#design-receivers">§ 5.1 Receivers serve as glue between senders</a>). When further work is attached to that sender by invoking
@@ -4748,7 +4749,7 @@ resource represented by a scheduler returned from this function. See <a href="#d
   <c- n>execution</c-><c- o>::</c-><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>execution</c-><c- o>::</c-><c- n>set_value_t</c-><c- o>></c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>snd1</c-><c- p>));</c->
 <c- c1>// completion_sch1 is equivalent to cpu_sched</c->
 
-<c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>snd2</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c-><c- n>snd1</c-><c- p>,</c-> <c- n>gpu_sched</c-><c- p>);</c->
+<c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>snd2</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-><c- p>(</c-><c- n>snd1</c-><c- p>,</c-> <c- n>gpu_sched</c-><c- p>);</c->
 <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>snd3</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c-><c- n>snd2</c-><c- p>,</c-> <c- p>[]{</c->
     <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- s>"I am running on gpu_sched!</c-><c- se>\n</c-><c- s>"</c-><c- p>;</c->
 <c- p>});</c->
@@ -4767,7 +4768,7 @@ had this capability.</p>
    <p>We propose that, for senders advertising their <a data-link-type="dfn" href="#completion-scheduler" id="ref-for-completion-scheduler①">completion scheduler</a>, all
 execution resource transitions <b>must</b> be explicit; running user code
 anywhere but where they defined it to run <b>must</b> be considered a bug.</p>
-   <p>The <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer</c-></code> sender adaptor performs a transition from one
+   <p>The <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code> sender adaptor performs a transition from one
 execution resource to another:</p>
 <pre class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>scheduler</c-> <c- k>auto</c-> <c- n>sch1</c-> <c- o>=</c-> <c- p>...;</c->
 <c- n>execution</c-><c- o>::</c-><c- n>scheduler</c-> <c- k>auto</c-> <c- n>sch2</c-> <c- o>=</c-> <c- p>...;</c->
@@ -4777,7 +4778,7 @@ execution resource to another:</p>
     <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- s>"I am running on sch1!</c-><c- se>\n</c-><c- s>"</c-><c- p>;</c->
 <c- p>});</c->
 
-<c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>snd2</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c-><c- n>then1</c-><c- p>,</c-> <c- n>sch2</c-><c- p>);</c->
+<c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>snd2</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-><c- p>(</c-><c- n>then1</c-><c- p>,</c-> <c- n>sch2</c-><c- p>);</c->
 <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>then2</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c-><c- n>snd2</c-><c- p>,</c-> <c- p>[]{</c->
     <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- s>"I am running on sch2!</c-><c- se>\n</c-><c- s>"</c-><c- p>;</c->
 <c- p>});</c->
@@ -5212,9 +5213,9 @@ then back on the CPU thread pool:</p>
       <td>
 <pre class="highlight">
 <c- k>auto</c-> <c- n>snd</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c->
-             <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c->
+             <c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-><c- p>(</c->
                <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c->
-                 <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c->
+                 <c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-><c- p>(</c->
                    <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c->
                      <c- n>execution</c-><c- o>::</c-><c- n>schedule</c-><c- p>(</c-><c- n>thread_pool</c-><c- p>.</c-><c- n>scheduler</c-><c- p>())</c->
                      <c- p>[]{</c-> <c- k>return</c-> <c- mi>123</c-><c- p>;</c-> <c- p>}),</c->
@@ -5231,9 +5232,9 @@ then back on the CPU thread pool:</p>
 <pre class="highlight">
 <c- k>auto</c-> <c- n>snd0</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>schedule</c-><c- p>(</c-><c- n>thread_pool</c-><c- p>.</c-><c- n>scheduler</c-><c- p>());</c->
 <c- k>auto</c-> <c- n>snd1</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c-><c- n>snd0</c-><c- p>,</c-> <c- p>[]{</c-> <c- k>return</c-> <c- mi>123</c-><c- p>;</c-> <c- p>});</c->
-<c- k>auto</c-> <c- n>snd2</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c-><c- n>snd1</c-><c- p>,</c-> <c- n>cuda</c-><c- o>::</c-><c- n>new_stream_scheduler</c-><c- p>());</c->
+<c- k>auto</c-> <c- n>snd2</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-><c- p>(</c-><c- n>snd1</c-><c- p>,</c-> <c- n>cuda</c-><c- o>::</c-><c- n>new_stream_scheduler</c-><c- p>());</c->
 <c- k>auto</c-> <c- n>snd3</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c-><c- n>snd2</c-><c- p>,</c-> <c- p>[](</c-><c- b>int</c-> <c- n>i</c-><c- p>){</c-> <c- k>return</c-> <c- mi>123</c-> <c- o>*</c-> <c- mi>5</c-><c- p>;</c-> <c- p>})</c->
-<c- k>auto</c-> <c- n>snd4</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c-><c- n>snd3</c-><c- p>,</c-> <c- n>thread_pool</c-><c- p>.</c-><c- n>scheduler</c-><c- p>())</c->
+<c- k>auto</c-> <c- n>snd4</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-><c- p>(</c-><c- n>snd3</c-><c- p>,</c-> <c- n>thread_pool</c-><c- p>.</c-><c- n>scheduler</c-><c- p>())</c->
 <c- k>auto</c-> <c- n>snd5</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c-><c- n>snd4</c-><c- p>,</c-> <c- p>[](</c-><c- b>int</c-> <c- n>i</c-><c- p>){</c-> <c- k>return</c-> <c- n>i</c-> <c- o>-</c-> <c- mi>5</c-><c- p>;</c-> <c- p>});</c->
 <c- k>auto</c-> <c- p>[</c-><c- n>result</c-><c- p>]</c-> <c- o>=</c-> <c- o>*</c-><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-><c- p>(</c-><c- n>snd4</c-><c- p>);</c->
 <c- c1>// result == 610</c->
@@ -5244,9 +5245,9 @@ then back on the CPU thread pool:</p>
 <pre class="highlight">
 <c- k>auto</c-> <c- n>snd</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>schedule</c-><c- p>(</c-><c- n>thread_pool</c-><c- p>.</c-><c- n>scheduler</c-><c- p>())</c->
          <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>([]{</c-> <c- k>return</c-> <c- mi>123</c-><c- p>;</c-> <c- p>})</c->
-         <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c-><c- n>cuda</c-><c- o>::</c-><c- n>new_stream_scheduler</c-><c- p>())</c->
+         <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-><c- p>(</c-><c- n>cuda</c-><c- o>::</c-><c- n>new_stream_scheduler</c-><c- p>())</c->
          <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>([](</c-><c- b>int</c-> <c- n>i</c-><c- p>){</c-> <c- k>return</c-> <c- mi>123</c-> <c- o>*</c-> <c- mi>5</c-><c- p>;</c-> <c- p>})</c->
-         <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c-><c- n>thread_pool</c-><c- p>.</c-><c- n>scheduler</c-><c- p>())</c->
+         <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-><c- p>(</c-><c- n>thread_pool</c-><c- p>.</c-><c- n>scheduler</c-><c- p>())</c->
          <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>([](</c-><c- b>int</c-> <c- n>i</c-><c- p>){</c-> <c- k>return</c-> <c- n>i</c-> <c- o>-</c-> <c- mi>5</c-><c- p>;</c-> <c- p>});</c->
 <c- k>auto</c-> <c- p>[</c-><c- n>result</c-><c- p>]</c-> <c- o>=</c-> <c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-><c- p>(</c-><c- n>snd</c-><c- p>).</c-><c- n>value</c-><c- p>();</c->
 <c- c1>// result == 610</c->
@@ -5262,9 +5263,9 @@ sender adaptor takes a variadic pack of senders, a partially applied form
 would be ambiguous with a non partially applied form with an arity of one
 less.</p>
     <li data-md>
-     <p><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code>: This sender adaptor changes how the sender passed to it is
+     <p><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-></code>: This sender adaptor changes how the sender passed to it is
 executed, not what happens to its result, but allowing it in a pipeline makes
-it read as if it performed a function more similar to <code class="highlight"><c- n>transfer</c-></code>.</p>
+it read as if it performed a function more similar to <code class="highlight"><c- n>continues_on</c-></code>.</p>
    </ul>
    <p>Sender consumers could be made pipeable, but we have chosen to not do so.
 However, since these are terminal nodes in a pipeline and nothing can be piped
@@ -5577,7 +5578,7 @@ onto it.</p>
 <pre class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>task</c-> <c- o>=</c->
   <c- n>execution</c-><c- o>::</c-><c- n>get_scheduler</c-><c- p>()</c->
     <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>let_value</c-><c- p>([](</c-><c- k>auto</c-> <c- n>sched</c-><c- p>)</c-> <c- p>{</c->
-        <c- k>return</c-> <c- n>execution</c-><c- o>::</c-><c- n>on</c-><c- p>(</c-><c- n>sched</c-><c- p>,</c-> <i><c- n>some</c-> <c- n>nested</c-> <c- n>work</c-> <c- n>here</c-></i><c- p>);</c->
+        <c- k>return</c-> <c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-><c- p>(</c-><c- n>sched</c-><c- p>,</c-> <i><c- n>some</c-> <c- n>nested</c-> <c- n>work</c-> <c- n>here</c-></i><c- p>);</c->
     <c- p>});</c->
 
 <c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-><c- p>(</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>task</c-><c- p>)</c-> <c- p>);</c-> <c- c1>// wait for it to finish</c->
@@ -5596,8 +5597,8 @@ work for execution prior to the returned sender being <a data-link-type="dfn" hr
 are also guaranteed to not start any input senders passed into them. Sender
 consumers such as <a href="#design-sender-consumer-start_detached">§ 4.21.1 execution::start_detached</a> and <a href="#design-sender-consumer-sync_wait">§ 4.21.2 this_thread::sync_wait</a> start senders.</p>
    <p>For more implementer-centric description of starting senders, see <a href="#design-laziness">§ 5.5 Sender adaptors are lazy</a>.</p>
-   <h4 class="heading settled" data-level="4.20.1" id="design-sender-adaptor-transfer"><span class="secno">4.20.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer</c-></code></span><a class="self-link" href="#design-sender-adaptor-transfer"></a></h4>
-<pre class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>transfer</c-><c- p>(</c->
+   <h4 class="heading settled" data-level="4.20.1" id="design-sender-adaptor-continues_on"><span class="secno">4.20.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code></span><a class="self-link" href="#design-sender-adaptor-continues_on"></a></h4>
+<pre class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>continues_on</c-><c- p>(</c->
     <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>input</c-><c- p>,</c->
     <c- n>execution</c-><c- o>::</c-><c- n>scheduler</c-> <c- k>auto</c-> <c- n>scheduler</c->
 <c- p>);</c->
@@ -5610,7 +5611,7 @@ sender to the execution agent of the target scheduler. See <a href="#design-tran
 <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>cpu_task</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>schedule</c-><c- p>(</c-><c- n>cpu_sched</c-><c- p>);</c->
 <c- c1>// cpu_task describes the creation of a new task on the system thread pool</c->
 
-<c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>gpu_task</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>transfer</c-><c- p>(</c-><c- n>cpu_task</c-><c- p>,</c-> <c- n>gpu_sched</c-><c- p>);</c->
+<c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>gpu_task</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-><c- p>(</c-><c- n>cpu_task</c-><c- p>,</c-> <c- n>gpu_sched</c-><c- p>);</c->
 <c- c1>// gpu_task describes the transition of the task graph described by cpu_task to the gpu</c->
 </pre>
    <h4 class="heading settled" data-level="4.20.2" id="design-sender-adaptor-then"><span class="secno">4.20.2. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>then</c-></code></span><a class="self-link" href="#design-sender-adaptor-then"></a></h4>
@@ -5671,8 +5672,8 @@ frameworks.</p>
    <p><code class="highlight"><c- n>let_value</c-></code> is <strong>guaranteed</strong> to not begin executing <code class="highlight"><c- n>function</c-></code> until the
 returned sender is started.</p>
    <p><code class="highlight"><c- n>let_error</c-></code> and <code class="highlight"><c- n>let_stopped</c-></code> are similar to <code class="highlight"><c- n>let_value</c-></code>, but where <code class="highlight"><c- n>let_value</c-></code> works with values sent by the input sender, <code class="highlight"><c- n>let_error</c-></code> works with errors, and <code class="highlight"><c- n>let_stopped</c-></code> is invoked when the "stopped" signal is sent.</p>
-   <h4 class="heading settled" data-level="4.20.5" id="design-sender-adaptor-on"><span class="secno">4.20.5. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code></span><a class="self-link" href="#design-sender-adaptor-on"></a></h4>
-<pre class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>on</c-><c- p>(</c->
+   <h4 class="heading settled" data-level="4.20.5" id="design-sender-adaptor-starts_on"><span class="secno">4.20.5. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-></code></span><a class="self-link" href="#design-sender-adaptor-starts_on"></a></h4>
+<pre class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>starts_on</c-><c- p>(</c->
     <c- n>execution</c-><c- o>::</c-><c- n>scheduler</c-> <c- k>auto</c-> <c- n>sched</c-><c- p>,</c->
     <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>snd</c->
 <c- p>);</c->
@@ -6018,7 +6019,7 @@ specialized for such senders. Similarly, an implementation could recognize two
 subsequent <a href="#design-sender-adaptor-bulk">§ 4.20.9 execution::bulk</a>s of compatible shapes, and merge them
 together into a single submission of a GPU kernel.</p>
    <h3 class="heading settled" data-level="5.7" id="design-transition-details"><span class="secno">5.7. </span><span class="content">Execution resource transitions are two-step</span><a class="self-link" href="#design-transition-details"></a></h3>
-   <p>Because <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer</c-></code> takes a sender as its first argument, it is not
+   <p>Because <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code> takes a sender as its first argument, it is not
 actually directly customizable by the target scheduler. This is by design: the
 target scheduler may not know how to transition <i>from</i> a scheduler such as
 a CUDA scheduler; transitioning away from a GPU in an efficient manner requires
@@ -6030,21 +6031,21 @@ which will perform a transition to the regular CPU execution resource, so that
 any sender can be attached to it.</p>
    <p>This, however, is a problem: because customization of sender algorithms must be
 controlled by the scheduler they will run on (see <a href="#design-customization">§ 5.4 Sender algorithms are customizable</a>),
-the type of the sender returned from <code class="highlight"><c- n>transfer</c-></code> must be controllable by the
+the type of the sender returned from <code class="highlight"><c- n>continues_on</c-></code> must be controllable by the
 target scheduler. Besides, the target scheduler may itself represent a
 specialized execution resource, which requires additional work to be performed
 to transition <i>to</i> it. GPUs and remote node schedulers are once again good
 examples of such schedulers: executing code on their execution resources
 requires making runtime API calls for work submission, and quite possibly for
-the data movement of the values being sent by the input sender passed into <code class="highlight"><c- n>transfer</c-></code>.</p>
+the data movement of the values being sent by the input sender passed into <code class="highlight"><c- n>continues_on</c-></code>.</p>
    <p>To allow for such customization from both ends, we propose the inclusion of a
 secondary transitioning sender adaptor, called <code class="highlight"><c- n>schedule_from</c-></code>. This adaptor is
 a form of <code class="highlight"><c- n>schedule</c-></code>, but takes an additional, second argument: the input
 sender. This adaptor is not meant to be invoked manually by the end users; they
-are always supposed to invoke <code class="highlight"><c- n>transfer</c-></code>, to ensure that both schedulers have a
-say in how the transitions are made. Any scheduler that specializes <code class="highlight"><c- n>transfer</c-><c- p>(</c-><c- n>snd</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> shall ensure that the return value of their customization
+are always supposed to invoke <code class="highlight"><c- n>continues_on</c-></code>, to ensure that both schedulers have a
+say in how the transitions are made. Any scheduler that specializes <code class="highlight"><c- n>continues_on</c-><c- p>(</c-><c- n>snd</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> shall ensure that the return value of their customization
 is equivalent to <code class="highlight"><c- n>schedule_from</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>snd2</c-><c- p>)</c-></code>, where <code class="highlight"><c- n>snd2</c-></code> is a successor of <code class="highlight"><c- n>snd</c-></code> that sends values equivalent to those sent by <code class="highlight"><c- n>snd</c-></code>.</p>
-   <p>The default implementation of <code class="highlight"><c- n>transfer</c-><c- p>(</c-><c- n>snd</c-><c- p>,</c-> <c- n>sched</c-><c- p>)</c-></code> is <code class="highlight"><c- n>schedule_from</c-><c- p>(</c-><c- n>sched</c-><c- p>,</c-> <c- n>snd</c-><c- p>)</c-></code>.</p>
+   <p>The default implementation of <code class="highlight"><c- n>continues_on</c-><c- p>(</c-><c- n>snd</c-><c- p>,</c-> <c- n>sched</c-><c- p>)</c-></code> is <code class="highlight"><c- n>schedule_from</c-><c- p>(</c-><c- n>sched</c-><c- p>,</c-> <c- n>snd</c-><c- p>)</c-></code>.</p>
    <h3 class="heading settled" data-level="5.8" id="design-typed"><span class="secno">5.8. </span><span class="content">All senders are typed</span><a class="self-link" href="#design-typed"></a></h3>
    <p>All senders must advertise the types they will send when they complete. There
 are many sender adaptors that need this information. Even just transitioning
@@ -7460,7 +7461,7 @@ for execution control primitives as summarized in Table 1.</p>
         <td>
          <ul>
           <li>sender factories (e.g., <code class="highlight"><c- n>schedule</c-></code>, <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>read</c-></code>)
-          <li>sender adaptors (e.g., <code class="highlight"><c- n>transfer</c-></code>, <code class="highlight"><c- n>then</c-></code>, <code class="highlight"><c- n>let_value</c-></code>)
+          <li>sender adaptors (e.g., <code class="highlight"><c- n>continues_on</c-></code>, <code class="highlight"><c- n>then</c-></code>, <code class="highlight"><c- n>let_value</c-></code>)
           <li>sender consumers (e.g., <code class="highlight"><c- n>start_detached</c-></code>, <code class="highlight"><c- n>sync_wait</c-></code>)
          </ul>
        <tr>
@@ -7909,8 +7910,9 @@ whose return type is not the type of a sender.</p>
   <c- k>template</c-><c- o>&lt;</c-><i><c- k>class</c-><c- o>-</c-><c- n>type</c-></i> <c- n>D</c-><c- o>></c->
     <c- k>struct</c-> <c- nc>sender_adaptor_closure</c-> <c- p>{</c-> <c- p>};</c->
 
+  <c- k>struct</c-> <c- nc>starts_on_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
+  <c- k>struct</c-> <c- nc>continues_on_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>struct</c-> <c- nc>on_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
-  <c- k>struct</c-> <c- nc>transfer_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>struct</c-> <c- nc>schedule_from_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>struct</c-> <c- nc>then_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>struct</c-> <c- nc>upon_error_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
@@ -7927,8 +7929,9 @@ whose return type is not the type of a sender.</p>
   <c- k>struct</c-> <c- nc>stopped_as_optional_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>struct</c-> <c- nc>stopped_as_error_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
 
+  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>starts_on_t</c-> <c- n>starts_on</c-><c- p>{};</c->
+  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>continues_on_t</c-> <c- n>continues_on</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>on_t</c-> <c- n>on</c-><c- p>{};</c->
-  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>transfer_t</c-> <c- n>transfer</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>schedule_from_t</c-> <c- n>schedule_from</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>then_t</c-> <c- n>then</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>upon_error_t</c-> <c- n>upon_error</c-><c- p>{};</c->
@@ -8540,13 +8543,13 @@ the type of the following expression:</p>
   <c- k>return</c-> <i><c- n>query</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>());</c->
 <c- p>}();</c->
 </pre>
-             <p><span class="wg21note">The <code class="highlight"><c- n>transfer</c-></code> algorithm works in tandem
+             <p><span class="wg21note">The <code class="highlight"><c- n>continues_on</c-></code> algorithm works in tandem
 with <code class="highlight"><c- n>schedule_from</c-></code> ([exec.schedule.from])) to give scheduler
 authors a way to customize both how to transition onto
-(<code class="highlight"><c- n>transfer</c-></code>) and off of (<code class="highlight"><c- n>schedule_from</c-></code>) a given execution
-context. Thus, <code class="highlight"><c- n>transfer</c-></code> ignores the domain of the predecessor
+(<code class="highlight"><c- n>continues_on</c-></code>) and off of (<code class="highlight"><c- n>schedule_from</c-></code>) a given execution
+context. Thus, <code class="highlight"><c- n>continues_on</c-></code> ignores the domain of the predecessor
 and uses the domain of the destination scheduler to select a
-customization, a property that is unique to <code class="highlight"><c- n>transfer</c-></code>. That is
+customization, a property that is unique to <code class="highlight"><c- n>continues_on</c-></code>. That is
 why it is given special treatment here.</span></p>
             <li data-md>
              <p>Otherwise, <code class="highlight"><c- k>return</c-> <c- n>Domain</c-><c- p>();</c-></code> where <code class="highlight"><c- n>Domain</c-></code> is
@@ -8887,6 +8890,30 @@ is not a specialization of <code class="highlight"><c- n>completion_signatures</
            <p><em>Recommended practice:</em> When <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">false</code>,
 implementations are encouraged to use the type denoted by <code class="highlight"><i><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> to
 communicate to users why.</p>
+         </ol>
+        <li data-md>
+<pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- n>sender</c-> <c- n>Sndr</c-><c- p>,</c-> <c- n>queryable</c-> <c- n>Env</c-><c- o>></c->
+  <c- k>constexpr</c-> <c- k>auto</c-> <i><c- n>write</c-><c- o>-</c-><c- n>env</c-></i><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>&amp;&amp;</c-> <c- n>env</c-><c- p>);</c-> <c- c1>// exposition only</c->
+</pre>
+         <ol>
+          <li data-md>
+           <p><i><code class="highlight"><c- n>write</c-><c- o>-</c-><c- n>env</c-></code></i> is an exposition-only sender adaptor that, when
+connected with a receiver <code class="highlight"><c- n>rcvr</c-></code>, connects the adapted sender with a
+receiver whose execution environment is the result of joining the <code class="highlight"><c- n>queryable</c-></code> argument <code class="highlight"><c- n>env</c-></code> to the result of <code class="highlight"><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)</c-></code>.</p>
+          <li data-md>
+           <p>Let <i><code class="highlight"><c- n>write</c-><c- o>-</c-><c- n>env</c-><c- o>-</c-><c- n>t</c-></code></i> be an exposition-only empty class type.</p>
+          <li data-md>
+           <p><em>Returns:</em> <code class="highlight"><i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><i><c- n>make</c-><c- o>-</c-><c- n>env</c-><c- o>-</c-><c- n>t</c-></i><c- p>(),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Env</c-><c- o>></c-><c- p>(</c-><c- n>env</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>))</c-></code>.</p>
+          <li data-md>
+           <p><em>Remarks:</em> The exposition-only class template <i><code class="highlight"><c- n>impls</c-><c- o>-</c-><c- k>for</c-></code></i> ([exec.snd.general]) is specialized for <i><code class="highlight"><c- n>write</c-><c- o>-</c-><c- n>env</c-><c- o>-</c-><c- n>t</c-></code></i> as follows:</p>
+<pre class="highlight" style="white-space: pre-wrap; font-size: 85%; text-align: left;"><c- k>template</c-><c- o>&lt;></c->
+<c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>write</c-><c- o>-</c-><c- n>env</c-><c- o>-</c-><c- n>t</c-></i><c- o>></c-> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->
+  <c- k>static</c-> <c- k>constexpr</c-> <c- k>auto</c-> <em><c- n>get</c-><c- o>-</c-><c- n>env</c-></em> <c- o>=</c->
+    <c- p>[](</c-><c- k>auto</c-><c- p>,</c-> <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
+      <c- k>return</c-> <em><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></em><c- p>(</c-><c- n>state</c-><c- p>,</c-> <c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>));</c->
+    <c- p>};</c->
+<c- p>};</c->
+</pre>
          </ol>
        </ol>
      </ol>
@@ -9520,31 +9547,31 @@ argument used in a function call expression of <code class="highlight"><c- n>f</
 initializations of the bound argument entities of the result, as specified
 above, are all well-formed.</p>
      </ol>
-     <h5 class="heading settled" data-level="34.9.11.3" id="spec-execution.senders.adapt.on"><span class="secno">34.9.11.3. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code> <b>[exec.on]</b></span><a class="self-link" href="#spec-execution.senders.adapt.on"></a></h5>
+     <h5 class="heading settled" data-level="34.9.11.3" id="spec-execution.senders.adapt.starts.on"><span class="secno">34.9.11.3. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-></code> <b>[exec.starts.on]</b></span><a class="self-link" href="#spec-execution.senders.adapt.starts.on"></a></h5>
      <ol>
       <li data-md>
-       <p><code class="highlight"><c- n>on</c-></code> adapts an input sender into a sender that will start on an execution
+       <p><code class="highlight"><c- n>starts_on</c-></code> adapts an input sender into a sender that will start on an execution
 agent belonging to a particular scheduler’s associated execution resource.</p>
       <li data-md>
-       <p>The name <code class="highlight"><c- n>on</c-></code> denotes a customization point object. For subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>sndr</c-></code>, if <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is ill-formed.</p>
+       <p>The name <code class="highlight"><c- n>starts_on</c-></code> denotes a customization point object. For subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>sndr</c-></code>, if <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, <code class="highlight"><c- n>starts_on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is ill-formed.</p>
       <li data-md>
-       <p>Otherwise, the expression <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to:</p>
+       <p>Otherwise, the expression <code class="highlight"><c- n>starts_on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to:</p>
 <pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
   <i><c- n>query</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>()),</c->
-  <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>on</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>))</c->
+  <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>starts_on</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>))</c->
 </pre>
        <p>except that <code class="highlight"><c- n>sch</c-></code> is evaluated only once.</p>
       <li data-md>
-       <p>Let <code class="highlight"><c- n>out_sndr</c-></code> and <code class="highlight"><c- n>env</c-></code> be subexpressions such that <code class="highlight"><c- n>OutSndr</c-></code> is <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr</c-><c- p>))</c-></code>. If <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>OutSndr</c-><c- p>,</c-> <c- n>on_t</c-><c- o>></c-></code> is <code class="highlight">false</code>, then the expressions <code class="highlight"><c- n>on</c-><c- p>.</c-><c- n>transform_env</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> and <code class="highlight"><c- n>on</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> are ill-formed;
+       <p>Let <code class="highlight"><c- n>out_sndr</c-></code> and <code class="highlight"><c- n>env</c-></code> be subexpressions such that <code class="highlight"><c- n>OutSndr</c-></code> is <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr</c-><c- p>))</c-></code>. If <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>OutSndr</c-><c- p>,</c-> <c- n>starts_on_t</c-><c- o>></c-></code> is <code class="highlight">false</code>, then the expressions <code class="highlight"><c- n>starts_on</c-><c- p>.</c-><c- n>transform_env</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> and <code class="highlight"><c- n>starts_on</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> are ill-formed;
 otherwise:</p>
        <ul>
         <li data-md>
-         <p><code class="highlight"><c- n>on</c-><c- p>.</c-><c- n>transform_env</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is equivalent to:</p>
+         <p><code class="highlight"><c- n>starts_on</c-><c- p>.</c-><c- n>transform_env</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is equivalent to:</p>
 <pre class="highlight"><c- k>auto</c-><c- o>&amp;&amp;</c-> <c- p>[</c-><c- n>_</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>_</c-><c- p>]</c-> <c- o>=</c-> <c- n>out_sndr</c-><c- p>;</c->
 <c- k>return</c-> <i><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><i><c- n>SCHED</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>sch</c-><c- p>),</c-> <i><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></i><c- p>(</c-><c- n>env</c-><c- p>));</c->
 </pre>
         <li data-md>
-         <p><code class="highlight"><c- n>on</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is equivalent to:</p>
+         <p><code class="highlight"><c- n>starts_on</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is equivalent to:</p>
 <pre class="highlight"><c- k>auto</c-><c- o>&amp;&amp;</c-> <c- p>[</c-><c- n>_</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>]</c-> <c- o>=</c-> <c- n>out_sndr</c-><c- p>;</c->
 <c- k>return</c-> <c- n>let_value</c-><c- p>(</c->
   <c- n>schedule</c-><c- p>(</c-><c- n>sch</c-><c- p>),</c->
@@ -9555,24 +9582,24 @@ otherwise:</p>
 </outsndr></pre>
        </ul>
       <li data-md>
-       <p>Let <code class="highlight"><c- n>out_sndr</c-></code> be a subexpression denoting a sender returned from <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> or one equal to such, and let <code class="highlight"><c- n>OutSndr</c-></code> be the type <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr</c-><c- p>))</c-></code>. Let <code class="highlight"><c- n>out_rcvr</c-></code> be a subexpression denoting a receiver that has an environment of
+       <p>Let <code class="highlight"><c- n>out_sndr</c-></code> be a subexpression denoting a sender returned from <code class="highlight"><c- n>starts_on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> or one equal to such, and let <code class="highlight"><c- n>OutSndr</c-></code> be the type <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr</c-><c- p>))</c-></code>. Let <code class="highlight"><c- n>out_rcvr</c-></code> be a subexpression denoting a receiver that has an environment of
 type <code class="highlight"><c- n>Env</c-></code> such that <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>OutSndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">true</code>. Let <code class="highlight"><c- n>op</c-></code> be an lvalue
 referring to the operation state that results from connecting <code class="highlight"><c- n>out_sndr</c-></code> with <code class="highlight"><c- n>out_rcvr</c-></code>. Calling <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>op</c-><c- p>)</c-></code> shall start <code class="highlight"><c- n>sndr</c-></code> on an execution agent of the
 associated execution resource of <code class="highlight"><c- n>sch</c-></code>. If scheduling onto <code class="highlight"><c- n>sch</c-></code> fails, an error
 completion on <code class="highlight"><c- n>out_rcvr</c-></code> shall be executed on an unspecified execution agent.</p>
      </ol>
-     <h5 class="heading settled" data-level="34.9.11.4" id="spec-execution.senders.adapt.transfer"><span class="secno">34.9.11.4. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transfer</c-></code> <b>[exec.transfer]</b></span><a class="self-link" href="#spec-execution.senders.adapt.transfer"></a></h5>
+     <h5 class="heading settled" data-level="34.9.11.4" id="spec-execution.senders.adapt.continues.on"><span class="secno">34.9.11.4. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code> <b>[exec.continues.on]</b></span><a class="self-link" href="#spec-execution.senders.adapt.continues.on"></a></h5>
      <ol>
       <li data-md>
-       <p><code class="highlight"><c- n>transfer</c-></code> adapts a sender into one that completes on the specified scheduler.</p>
+       <p><code class="highlight"><c- n>continues_on</c-></code> adapts a sender into one that completes on the specified scheduler.</p>
       <li data-md>
-       <p>The name <code class="highlight"><c- n>transfer</c-></code> denotes a customization point object. For
-subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>sndr</c-></code>, if <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, <code class="highlight"><c- n>transfer</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> is ill-formed.</p>
+       <p>The name <code class="highlight"><c- n>continues_on</c-></code> denotes a customization point object. For
+subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>sndr</c-></code>, if <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, <code class="highlight"><c- n>continues_on</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> is ill-formed.</p>
       <li data-md>
-       <p>Otherwise, the expression <code class="highlight"><c- n>transfer</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> is expression-equivalent to:</p>
+       <p>Otherwise, the expression <code class="highlight"><c- n>continues_on</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> is expression-equivalent to:</p>
 <pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
   <i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>early</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>),</c->
-  <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>transfer</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>))</c->
+  <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>continues_on</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>))</c->
 </pre>
        <p>except that <code class="highlight"><c- n>sndr</c-></code> is evaluated only once.</p>
       <li data-md>
@@ -9589,15 +9616,15 @@ for <code class="highlight"><c- n>transfer_t</c-></code> as follows:</p>
 <c- p>}</c->
 </pre>
       <li data-md>
-       <p>Let <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>env</c-></code> be subexpressions such that <code class="highlight"><c- n>Sndr</c-></code> is <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. If <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>transfer_t</c-><c- o>></c-></code> is <code class="highlight">false</code>, then the expression <code class="highlight"><c- n>transfer</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is ill-formed; otherwise, it
+       <p>Let <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>env</c-></code> be subexpressions such that <code class="highlight"><c- n>Sndr</c-></code> is <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. If <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>transfer_t</c-><c- o>></c-></code> is <code class="highlight">false</code>, then the expression <code class="highlight"><c- n>continues_on</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is ill-formed; otherwise, it
 is equal to:</p>
 <pre class="highlight"><c- k>auto</c-> <c- p>[</c-><c- n>_</c-><c- p>,</c-> <c- n>data</c-><c- p>,</c-> <c- n>child</c-><c- p>]</c-> <c- o>=</c-> <c- n>sndr</c-><c- p>;</c->
 <c- k>return</c-> <c- n>schedule_from</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>data</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>child</c-><c- p>));</c->
 </pre>
-       <p><span class="wg21note">This causes the <code class="highlight"><c- n>transfer</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> sender to become <code class="highlight"><c- n>schedule_from</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> when it is connected with a receiver whose
-execution domain does not customize <code class="highlight"><c- n>transfer</c-></code>.</span></p>
+       <p><span class="wg21note">This causes the <code class="highlight"><c- n>continues_on</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> sender to become <code class="highlight"><c- n>schedule_from</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> when it is connected with a receiver whose
+execution domain does not customize <code class="highlight"><c- n>continues_on</c-></code>.</span></p>
       <li data-md>
-       <p>Let <code class="highlight"><c- n>out_sndr</c-></code> be a subexpression denoting a sender returned from <code class="highlight"><c- n>transfer</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> or one equal to such, and let <code class="highlight"><c- n>OutSndr</c-></code> be the type <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr</c-><c- p>))</c-></code>. Let <code class="highlight"><c- n>out_rcvr</c-></code> be a subexpression denoting a
+       <p>Let <code class="highlight"><c- n>out_sndr</c-></code> be a subexpression denoting a sender returned from <code class="highlight"><c- n>continues_on</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>)</c-></code> or one equal to such, and let <code class="highlight"><c- n>OutSndr</c-></code> be the type <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr</c-><c- p>))</c-></code>. Let <code class="highlight"><c- n>out_rcvr</c-></code> be a subexpression denoting a
 receiver that has an environment of type <code class="highlight"><c- n>Env</c-></code> such that <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>OutSndr</c-><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is <code class="highlight">true</code>. Let <code class="highlight"><c- n>op</c-></code> be an lvalue referring to the operation state that
 results from connecting <code class="highlight"><c- n>out_sndr</c-></code> with <code class="highlight"><c- n>out_rcvr</c-></code>. Calling <code class="highlight"><c- n>start</c-><c- p>(</c-><c- n>op</c-><c- p>)</c-></code> shall start <code class="highlight"><c- n>sndr</c-></code> on the current execution agent and execute completion
 operations on <code class="highlight"><c- n>out_rcvr</c-></code> on an execution agent of the execution resource
@@ -9609,7 +9636,7 @@ on <code class="highlight"><c- n>out_rcvr</c-></code> shall be executed on an un
       <li data-md>
        <p><code class="highlight"><c- n>schedule_from</c-></code> schedules work dependent on the completion of a sender onto a
 scheduler’s associated execution resource. <span class="wg21note"><code class="highlight"><c- n>schedule_from</c-></code> is not meant to be used in user code; it is
-used in the implementation of <code class="highlight"><c- n>transfer</c-></code>.</span></p>
+used in the implementation of <code class="highlight"><c- n>continues_on</c-></code>.</span></p>
       <li data-md>
        <p>The name <code class="highlight"><c- n>schedule_from</c-></code> denotes a customization point object. For some
 subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sch</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> and <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>Sch</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or <code class="highlight"><c- n>Sndr</c-></code> does not
@@ -9743,7 +9770,141 @@ operations on <code class="highlight"><c- n>out_rcvr</c-></code> on an execution
 associated with <code class="highlight"><c- n>sch</c-></code>. If scheduling onto <code class="highlight"><c- n>sch</c-></code> fails, an error completion
 on <code class="highlight"><c- n>out_rcvr</c-></code> shall be executed on an unspecified execution agent.</p>
      </ol>
-     <h5 class="heading settled" data-level="34.9.11.6" id="spec-execution.senders.adaptor.then"><span class="secno">34.9.11.6. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>then</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_stopped</c-></code> <b>[exec.then]</b></span><a class="self-link" href="#spec-execution.senders.adaptor.then"></a></h5>
+     <h5 class="heading settled" data-level="34.9.11.6" id="spec-execution.senders.adaptors.on"><span class="secno">34.9.11.6. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>on</c-></code> <b>[exec.on]</b></span><a class="self-link" href="#spec-execution.senders.adaptors.on"></a></h5>
+     <ol>
+      <li data-md>
+       <p>The <code class="highlight"><c- n>on</c-></code> sender adaptor has two forms:</p>
+       <ul>
+        <li data-md>
+         <p><code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code>, which starts a sender <code class="highlight"><c- n>sndr</c-></code> on an execution agent
+belonging to a scheduler <code class="highlight"><c- n>sch</c-></code>’s associated execution resource and that,
+upon <code class="highlight"><c- n>sndr</c-></code>’s completion, transfers execution back to the execution
+resource on which the <code class="highlight"><c- n>on</c-></code> sender was started.</p>
+        <li data-md>
+         <p><code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>closure</c-><c- p>)</c-></code>, which upon completion of a sender <code class="highlight"><c- n>sndr</c-></code>,
+transfers execution to an execution agent belonging to a scheduler <code class="highlight"><c- n>sch</c-></code>’s
+associated execution resource, then executes a sender adaptor closure <code class="highlight"><c- n>closure</c-></code> with the async results of the sender, and that then transfers
+execution back to the execution resource on which <code class="highlight"><c- n>sndr</c-></code> completed.</p>
+       </ul>
+      <li data-md>
+       <p>The name <code class="highlight"><c- n>on</c-></code> denotes a customization point object. For some subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>sndr</c-></code>, if <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is ill-formed.</p>
+      <li data-md>
+       <p>Otherwise, the expression <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to:</p>
+<pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
+  <em><c- n>query</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- k>default</c-></em><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>()),</c->
+  <em><c- n>make</c-><c- o>-</c-><c- n>sender</c-></em><c- p>(</c-><c- n>on</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>));</c->
+</pre>
+      <li data-md>
+       <p>For a subexpression <code class="highlight"><c- n>closure</c-></code>, if <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>closure</c-><c- p>))</c-></code> is not a sender
+adaptor closure object ([exec.adapt.objects]), the expression <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>closure</c-><c- p>)</c-></code> is ill-formed; otherwise, it is expression-equivalent to:</p>
+<pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
+  <em><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>early</c-></em><c- p>(</c-><c- n>sndr</c-><c- p>),</c->
+  <em><c- n>make</c-><c- o>-</c-><c- n>sender</c-></em><c- p>(</c-><c- n>on</c-><c- p>,</c-> <c- n>pair</c-><c- p>{</c-><c- n>sch</c-><c- p>,</c-> <c- n>closure</c-><c- p>},</c-> <c- n>sndr</c-><c- p>));</c->
+</pre>
+      <li data-md>
+       <p>Let <code class="highlight"><c- n>out_sndr</c-></code> and <code class="highlight"><c- n>env</c-></code> be subexpressions, let <code class="highlight"><c- n>OutSndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr</c-><c- p>))</c-></code>, and let <code class="highlight"><c- n>Env</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>env</c-><c- p>))</c-></code>. If <code class="highlight"><em><c- n>sender</c-><c- o>-</c-><c- k>for</c-></em><c- o>&lt;</c-><c- n>OutSndr</c-><c- p>,</c-> <c- n>on_t</c-><c- o>></c-></code> is <code class="highlight">false</code>, then the
+expressions <code class="highlight"><c- n>on</c-><c- p>.</c-><c- n>transform_env</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> and <code class="highlight"><c- n>on</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> are ill-formed; otherwise:</p>
+       <ol>
+        <li data-md>
+         <p>Let <i><code class="highlight"><c- k>not</c-><c- o>-</c-><c- n>a</c-><c- o>-</c-><c- n>scheduler</c-></code></i> be an unspecified empty class type, and
+let <i><code class="highlight"><c- k>not</c-><c- o>-</c-><c- n>a</c-><c- o>-</c-><c- n>sender</c-></code></i> be the exposition-only type:</p>
+<pre class="highlight"><c- k>struct</c-> <em><c- nc>not</c-><c- o>-</c-><c- n>a</c-><c- o>-</c-><c- n>sender</c-></em> <c- p>{</c->
+  <c- k>using</c-> <c- n>sender_concept</c-> <c- o>=</c-> <c- n>sender_t</c-><c- p>;</c->
+
+  <c- k>auto</c-> <c- n>get_completion_signatures</c-><c- p>(</c-><c- k>auto</c-><c- o>&amp;&amp;</c-><c- p>)</c-> <c- k>const</c-> <c- p>{</c->
+    <c- k>return</c-> <em><c- n>see</c-> <c- n>below</c-></em><c- p>;</c->
+  <c- p>}</c->
+<c- p>};</c->
+</pre>
+         <p>... where the member function <code class="highlight"><c- n>get_completion_signatures</c-></code> returns an
+object of a type that is not a specialization of the <code class="highlight"><c- n>completion_signatures</c-></code> class template.</p>
+        <li data-md>
+         <p><code class="highlight"><c- n>on</c-><c- p>.</c-><c- n>transform_env</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is equivalent to:</p>
+<pre class="highlight"><c- k>auto</c-><c- o>&amp;</c-> <c- p>[</c-><c- n>_</c-><c- p>,</c-> <c- n>data</c-><c- p>,</c-> <c- n>_</c-><c- p>]</c-> <c- o>=</c-> <c- n>out_sndr</c-><c- p>;</c->
+<c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>scheduler</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>data</c-><c- p>)</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+  <c- k>return</c-> <em><c- n>JOIN</c-><c- o>-</c-><c- n>ENV</c-></em><c- p>(</c-><em><c- n>SCHED</c-><c- o>-</c-><c- n>ENV</c-></em><c- p>(</c-><c- n>data</c-><c- p>),</c-> <em><c- n>FWD</c-><c- o>-</c-><c- n>ENV</c-></em><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Env</c-><c- o>></c-><c- p>(</c-><c- n>env</c-><c- p>)));</c->
+<c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+  <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Env</c-><c- o>></c-><c- p>(</c-><c- n>env</c-><c- p>);</c->
+<c- p>}</c->
+</pre>
+        <li data-md>
+         <p><code class="highlight"><c- n>on</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>env</c-><c- p>)</c-></code> is equivalent to:</p>
+<pre class="highlight"><c- k>auto</c-><c- o>&amp;</c-> <c- p>[</c-><c- n>_</c-><c- p>,</c-> <c- n>data</c-><c- p>,</c-> <c- n>child</c-><c- p>]</c-> <c- o>=</c-> <c- n>out_sndr</c-><c- p>;</c->
+<c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>scheduler</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>data</c-><c- p>)</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+  <c- k>auto</c-> <c- n>orig_sch</c-> <c- o>=</c->
+    <em><c- n>query</c-><c- o>-</c-><c- n>with</c-><c- o>-</c-><c- k>default</c-></em><c- p>(</c-><c- n>get_scheduler</c-><c- p>,</c-> <c- n>env</c-><c- p>,</c-> <em><c- k>not</c-><c- o>-</c-><c- n>a</c-><c- o>-</c-><c- n>scheduler</c-></em><c- p>());</c->
+
+  <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>same_as</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>orig_sch</c-><c- p>),</c-> <em><c- k>not</c-><c- o>-</c-><c- n>a</c-><c- o>-</c-><c- n>scheduler</c-></em><c- o>></c-><c- p>)</c-> <c- p>{</c->
+    <c- k>return</c-> <em><c- k>not</c-><c- o>-</c-><c- n>a</c-><c- o>-</c-><c- n>sender</c-></em><c- p>{};</c->
+  <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+    <c- k>return</c-> <c- n>continues_on</c-><c- p>(</c->
+      <c- n>starts_on</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- n>OutSndr</c-><c- o>></c-><c- p>(</c-><c- n>data</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- n>OutSndr</c-><c- o>></c-><c- p>(</c-><c- n>child</c-><c- p>)),</c->
+      <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>orig_sch</c-><c- p>));</c->
+  <c- p>}</c->
+<c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+  <c- k>auto</c-><c- o>&amp;</c-> <c- p>[</c-><c- n>sch</c-><c- p>,</c-> <c- n>closure</c-><c- p>]</c-> <c- o>=</c-> <c- n>data</c-><c- p>;</c->
+  <c- k>auto</c-> <c- n>orig_sch</c-> <c- o>=</c-> <em><c- n>query</c-><c- o>-</c-><c- n>with</c-><c- o>-</c-><c- k>default</c-></em><c- p>(</c->
+    <c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- o>></c-><c- p>,</c->
+    <c- n>get_env</c-><c- p>(</c-><c- n>child</c-><c- p>),</c->
+    <em><c- n>query</c-><c- o>-</c-><c- n>with</c-><c- o>-</c-><c- k>default</c-></em><c- p>(</c-><c- n>get_scheduler</c-><c- p>,</c-> <c- n>env</c-><c- p>,</c-> <em><c- k>not</c-><c- o>-</c-><c- n>a</c-><c- o>-</c-><c- n>scheduler</c-></em><c- p>()));</c->
+
+  <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>same_as</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>orig_sch</c-><c- p>),</c-> <em><c- k>not</c-><c- o>-</c-><c- n>a</c-><c- o>-</c-><c- n>scheduler</c-></em><c- o>></c-><c- p>)</c-> <c- p>{</c->
+    <c- k>return</c-> <em><c- k>not</c-><c- o>-</c-><c- n>a</c-><c- o>-</c-><c- n>sender</c-></em><c- p>{};</c->
+  <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+    <c- k>return</c-> <em><c- n>write</c-><c- o>-</c-><c- n>env</c-></em><c- p>(</c->
+      <c- n>continues_on</c-><c- p>(</c->
+        <c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- n>OutSndr</c-><c- o>></c-><c- p>(</c-><c- n>closure</c-><c- p>)(</c->
+          <c- n>continues_on</c-><c- p>(</c->
+            <em><c- n>write</c-><c- o>-</c-><c- n>env</c-></em><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- n>OutSndr</c-><c- o>></c-><c- p>(</c-><c- n>child</c-><c- p>),</c-> <em><c- n>SCHED</c-><c- o>-</c-><c- n>ENV</c-></em><c- p>(</c-><c- n>orig_sch</c-><c- p>)),</c->
+            <c- n>sch</c-><c- p>)),</c->
+        <c- n>orig_sch</c-><c- p>),</c->
+      <em><c- n>SCHED</c-><c- o>-</c-><c- n>ENV</c-></em><c- p>(</c-><c- n>sch</c-><c- p>));</c->
+  <c- p>}</c->
+<c- p>}</c->
+</pre>
+        <li data-md>
+         <p><em>Recommended practice:</em> Implementations should use the return type
+of <code class="highlight"><em><c- k>not</c-><c- o>-</c-><c- n>a</c-><c- o>-</c-><c- n>sender</c-></em><c- o>::</c-><c- n>get_completion_signatures</c-></code> to
+inform users that their usage of <code class="highlight"><c- n>on</c-></code> is incorrect because there is no
+available scheduler onto which to restore execution.</p>
+       </ol>
+     </ol>
+     <p><span class="ed-note">LEWG is uncomfortable with specifying the semantic
+requirements of <code class="highlight"><c- n>on</c-></code> customizations in terms of "semantic equivalence" to the
+lowered expressions. LEWG would like to clarify what effects are considered
+salient when determining semantic equivalence. The author thinks this is a fair
+request but has no recommendataions at present.</span></p>
+     <ol start="6">
+      <li data-md>
+       <p>Let the subexpression <code class="highlight"><c- n>out_sndr</c-></code> denote the result of the invocation <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> or an object equal to such, let <code class="highlight"><c- n>OutSndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr</c-><c- p>))</c-></code>,
+let the subexpression <code class="highlight"><c- n>rcvr</c-></code> denote a receiver such that <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr</c-><c- p>)),</c-> <c- k>decltype</c-><c- p>((</c-><c- n>rcvr</c-><c- p>))</c-><c- o>></c-></code> is <code class="highlight">true</code>, and let <code class="highlight"><c- n>sch_copy</c-></code> and <code class="highlight"><c- n>sndr_copy</c-></code> be lvalue subexpressions refering to objects
+decay-copied from <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>sndr</c-></code> respectively.</p>
+       <p>The expression <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>out_sndr</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code> has undefined behavior unless it
+creates an asynchronous operation as if by calling <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>S</c-><c- p>,</c-> <c- n>rcvr</c-><c- p>)</c-></code>, where <code class="highlight"><c- n>S</c-></code> is a sender expression semantically equivalent to:</p>
+<pre class="highlight"><c- n>continues_on</c-><c- p>(</c->
+  <c- n>starts_on</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- n>OutSndr</c-><c- o>></c-><c- p>(</c-><c- n>sch_copy</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- n>OutSndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr_copy</c-><c- p>)),</c->
+  <c- n>orig_sch</c-><c- p>)</c->
+</pre>
+       <p>where <code class="highlight"><c- n>orig_sch</c-></code> is <code class="highlight"><c- n>get_scheduler</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))</c-></code>.</p>
+      <li data-md>
+       <p>Let the subexpression <code class="highlight"><c- n>out_sndr2</c-></code> denote the result of the invocation <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>closure</c-><c- p>)</c-></code> or an object copied or moved from such, let <code class="highlight"><c- n>OutSndr2</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr2</c-><c- p>))</c-></code>, let the subexpression <code class="highlight"><c- n>rcvr2</c-></code> denote
+a receiver such that <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr2</c-><c- p>)),</c-> <c- k>decltype</c-><c- p>((</c-><c- n>rcvr2</c-><c- p>))</c-><c- o>></c-></code> is <code class="highlight">true</code>, and let <code class="highlight"><c- n>sndr_copy</c-></code>, <code class="highlight"><c- n>sch_copy</c-></code>, and <code class="highlight"><c- n>closure_copy</c-></code> be lvalue
+subexpressions refering to objects decay-copied from <code class="highlight"><c- n>sndr</c-></code>, <code class="highlight"><c- n>sch</c-></code>, and <code class="highlight"><c- n>closure</c-></code> respectively.</p>
+       <p>The expression <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>out_sndr2</c-><c- p>,</c-> <c- n>rcvr2</c-><c- p>)</c-></code> has undefined behavior unless it
+creates an asynchronous operation as if by calling <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>S2</c-><c- p>,</c-> <c- n>rcvr2</c-><c- p>)</c-></code>, where <code class="highlight"><c- n>S2</c-></code> is a sender expression semantically equivalent to:</p>
+<pre class="highlight" style="white-space: pre-wrap; font-size: 85%; text-align: left;"><em><c- n>write</c-><c- o>-</c-><c- n>env</c-></em><c- p>(</c->
+  <c- n>continues_on</c-><c- p>(</c->
+    <c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- n>OutSndr2</c-><c- o>></c-><c- p>(</c-><c- n>closure_copy</c-><c- p>)(</c->
+      <c- n>continues_on</c-><c- p>(</c->
+        <em><c- n>write</c-><c- o>-</c-><c- n>env</c-></em><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- n>OutSndr2</c-><c- o>></c-><c- p>(</c-><c- n>sndr_copy</c-><c- p>),</c-> <em><c- n>SCHED</c-><c- o>-</c-><c- n>ENV</c-></em><c- p>(</c-><c- n>orig_sch</c-><c- p>)),</c->
+        <c- n>sch_copy</c-><c- p>)),</c->
+    <c- n>orig_sch</c-><c- p>),</c->
+  <em><c- n>SCHED</c-><c- o>-</c-><c- n>ENV</c-></em><c- p>(</c-><c- n>sch_copy</c-><c- p>))</c->
+</pre>
+       <p>where <code class="highlight"><c- n>orig_sch</c-></code> is an lvalue refering to an object decay-copied from <code class="highlight"><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- o>></c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>sndr_copy</c-><c- p>))</c-></code> if that
+expression is well-formed; otherwise, <code class="highlight"><c- n>get_scheduler</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr2</c-><c- p>))</c-></code>.</p>
+     </ol>
+     <h5 class="heading settled" data-level="34.9.11.7" id="spec-execution.senders.adaptor.then"><span class="secno">34.9.11.7. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>then</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_stopped</c-></code> <b>[exec.then]</b></span><a class="self-link" href="#spec-execution.senders.adaptor.then"></a></h5>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>then</c-></code> attaches an invocable as a continuation for an input sender’s value
@@ -9793,7 +9954,7 @@ completion, and</p>
          <p>Forwards all other completion operations unchanged.</p>
        </ol>
      </ol>
-     <h5 class="heading settled" data-level="34.9.11.7" id="spec-execution.senders.adapt.let"><span class="secno">34.9.11.7. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_value</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_stopped</c-></code>, <b>[exec.let]</b></span><a class="self-link" href="#spec-execution.senders.adapt.let"></a></h5>
+     <h5 class="heading settled" data-level="34.9.11.8" id="spec-execution.senders.adapt.let"><span class="secno">34.9.11.8. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_value</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_stopped</c-></code>, <b>[exec.let]</b></span><a class="self-link" href="#spec-execution.senders.adapt.let"></a></h5>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>let_value</c-></code>, <code class="highlight"><c- n>let_error</c-></code>, and <code class="highlight"><c- n>let_stopped</c-></code> transform a sender’s value,
@@ -9939,7 +10100,7 @@ and let the subexpression <code class="highlight"><c- n>rcvr</c-></code> denote 
          <p>propagates the other completion operations sent by <code class="highlight"><c- n>sndr</c-></code>.</p>
        </ul>
      </ol>
-     <h5 class="heading settled" data-level="34.9.11.8" id="spec-execution.senders.adapt.bulk"><span class="secno">34.9.11.8. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>bulk</c-></code> <b>[exec.bulk]</b></span><a class="self-link" href="#spec-execution.senders.adapt.bulk"></a></h5>
+     <h5 class="heading settled" data-level="34.9.11.9" id="spec-execution.senders.adapt.bulk"><span class="secno">34.9.11.9. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>bulk</c-></code> <b>[exec.bulk]</b></span><a class="self-link" href="#spec-execution.senders.adapt.bulk"></a></h5>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>bulk</c-></code> runs a task repeatedly for every index in an index space.</p>
@@ -10001,7 +10162,7 @@ and let the subexpression <code class="highlight"><c- n>rcvr</c-></code> denote 
          <p>propagates all completion operations sent by <code class="highlight"><c- n>sndr</c-></code>.</p>
        </ul>
      </ol>
-     <h5 class="heading settled" data-level="34.9.11.9" id="spec-execution.senders.adapt.split"><span class="secno">34.9.11.9. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>split</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>ensure_started</c-></code> <b>[exec.split]</b></span><a class="self-link" href="#spec-execution.senders.adapt.split"></a></h5>
+     <h5 class="heading settled" data-level="34.9.11.10" id="spec-execution.senders.adapt.split"><span class="secno">34.9.11.10. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>split</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>ensure_started</c-></code> <b>[exec.split]</b></span><a class="self-link" href="#spec-execution.senders.adapt.split"></a></h5>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>split</c-></code> adapts an arbitrary sender into a sender that can be connected
@@ -10334,7 +10495,7 @@ completed.</p>
        </div>
        <p></p>
      </ol>
-     <h5 class="heading settled" data-level="34.9.11.10" id="spec-execution.senders.adaptor.when_all"><span class="secno">34.9.11.10. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>when_all</c-></code> <b>[exec.when.all]</b></span><a class="self-link" href="#spec-execution.senders.adaptor.when_all"></a></h5>
+     <h5 class="heading settled" data-level="34.9.11.11" id="spec-execution.senders.adaptor.when_all"><span class="secno">34.9.11.11. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>when_all</c-></code> <b>[exec.when.all]</b></span><a class="self-link" href="#spec-execution.senders.adaptor.when_all"></a></h5>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>when_all</c-></code> and <code class="highlight"><c- n>when_all_with_variant</c-></code> both adapt multiple input senders into
@@ -10568,7 +10729,7 @@ ill-formed; otherwise, the body of the <code class="highlight"><c- n>transform_s
 to become <code class="highlight"><c- n>when_all</c-><c- p>(</c-><c- n>into_variant</c-><c- p>(</c-><c- n>sndr</c-><c- p>)...)</c-></code> when it is connected with a
 receiver with an execution domain that does not customize <code class="highlight"><c- n>when_all_with_variant</c-></code>.</span></p>
      </ol>
-     <h5 class="heading settled" data-level="34.9.11.11" id="spec-execution.senders.adapt.into_variant"><span class="secno">34.9.11.11. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>into_variant</c-></code> <b>[exec.into.variant]</b></span><a class="self-link" href="#spec-execution.senders.adapt.into_variant"></a></h5>
+     <h5 class="heading settled" data-level="34.9.11.12" id="spec-execution.senders.adapt.into_variant"><span class="secno">34.9.11.12. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>into_variant</c-></code> <b>[exec.into.variant]</b></span><a class="self-link" href="#spec-execution.senders.adapt.into_variant"></a></h5>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>into_variant</c-></code> adapts a sender with multiple value completion signatures into
@@ -10634,7 +10795,7 @@ initialized with a callable object equivalent to the following lambda:</p>
 </pre>
        </ol>
      </ol>
-     <h5 class="heading settled" data-level="34.9.11.12" id="spec-execution.senders.adapt.stopped_as_optional"><span class="secno">34.9.11.12. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>stopped_as_optional</c-></code> <b>[exec.stopped.as.optional]</b></span><a class="self-link" href="#spec-execution.senders.adapt.stopped_as_optional"></a></h5>
+     <h5 class="heading settled" data-level="34.9.11.13" id="spec-execution.senders.adapt.stopped_as_optional"><span class="secno">34.9.11.13. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>stopped_as_optional</c-></code> <b>[exec.stopped.as.optional]</b></span><a class="self-link" href="#spec-execution.senders.adapt.stopped_as_optional"></a></h5>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>stopped_as_optional</c-></code> maps an input sender’s stopped completion operation into the value completion operation as an empty optional. The input sender’s value completion operation is also converted into an optional. The result is a sender that never completes with stopped, reporting cancellation by completing with an empty optional.</p>
@@ -10656,7 +10817,7 @@ If either <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- k>for</c->
     <c- p>[]()</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>return</c-> <c- n>just</c-><c- p>(</c-><c- n>optional</c-><v><c- p>());</c-> <c- p>});</c->
 </v></t></v></pre>
      </ol>
-     <h5 class="heading settled" data-level="34.9.11.13" id="spec-execution.senders.adapt.stopped_as_error"><span class="secno">34.9.11.13. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>stopped_as_error</c-></code> <b>[exec.stopped.as.error]</b></span><a class="self-link" href="#spec-execution.senders.adapt.stopped_as_error"></a></h5>
+     <h5 class="heading settled" data-level="34.9.11.14" id="spec-execution.senders.adapt.stopped_as_error"><span class="secno">34.9.11.14. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>stopped_as_error</c-></code> <b>[exec.stopped.as.error]</b></span><a class="self-link" href="#spec-execution.senders.adapt.stopped_as_error"></a></h5>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>stopped_as_error</c-></code> maps an input sender’s stopped completion operation into
@@ -11951,7 +12112,7 @@ let dfnPanelData = {
 "complete": {"dfnID":"complete","dfnText":"completes","external":false,"refSections":[],"url":"#complete"},
 "completion-function": {"dfnID":"completion-function","dfnText":"completion\nfunction","external":false,"refSections":[],"url":"#completion-function"},
 "completion-operation": {"dfnID":"completion-operation","dfnText":"completion operation","external":false,"refSections":[],"url":"#completion-operation"},
-"completion-scheduler": {"dfnID":"completion-scheduler","dfnText":"completion\nscheduler","external":false,"refSections":[{"refs":[{"id":"ref-for-completion-scheduler"}],"title":"4.5. Senders can propagate completion schedulers"},{"refs":[{"id":"ref-for-completion-scheduler\u2460"}],"title":"4.6. Execution resource transitions are explicit"},{"refs":[{"id":"ref-for-completion-scheduler\u2461"}],"title":"4.19.2. execution::just"},{"refs":[{"id":"ref-for-completion-scheduler\u2462"}],"title":"4.19.3. execution::just_error"},{"refs":[{"id":"ref-for-completion-scheduler\u2463"}],"title":"4.19.4. execution::just_stopped"},{"refs":[{"id":"ref-for-completion-scheduler\u2464"}],"title":"4.20.5. execution::on"},{"refs":[{"id":"ref-for-completion-scheduler\u2465"}],"title":"4.20.11. execution::when_all"},{"refs":[{"id":"ref-for-completion-scheduler\u2466"}],"title":"5.4. Sender algorithms are customizable"}],"url":"#completion-scheduler"},
+"completion-scheduler": {"dfnID":"completion-scheduler","dfnText":"completion\nscheduler","external":false,"refSections":[{"refs":[{"id":"ref-for-completion-scheduler"}],"title":"4.5. Senders can propagate completion schedulers"},{"refs":[{"id":"ref-for-completion-scheduler\u2460"}],"title":"4.6. Execution resource transitions are explicit"},{"refs":[{"id":"ref-for-completion-scheduler\u2461"}],"title":"4.19.2. execution::just"},{"refs":[{"id":"ref-for-completion-scheduler\u2462"}],"title":"4.19.3. execution::just_error"},{"refs":[{"id":"ref-for-completion-scheduler\u2463"}],"title":"4.19.4. execution::just_stopped"},{"refs":[{"id":"ref-for-completion-scheduler\u2464"}],"title":"4.20.5. execution::starts_on"},{"refs":[{"id":"ref-for-completion-scheduler\u2465"}],"title":"4.20.11. execution::when_all"},{"refs":[{"id":"ref-for-completion-scheduler\u2466"}],"title":"5.4. Sender algorithms are customizable"}],"url":"#completion-scheduler"},
 "completion-signature": {"dfnID":"completion-signature","dfnText":"completion signature","external":false,"refSections":[],"url":"#completion-signature"},
 "completion-tag": {"dfnID":"completion-tag","dfnText":"completion tag","external":false,"refSections":[],"url":"#completion-tag"},
 "connect": {"dfnID":"connect","dfnText":"Connecting","external":false,"refSections":[{"refs":[{"id":"ref-for-connect"}],"title":"4.20.12. execution::ensure_started"},{"refs":[{"id":"ref-for-connect\u2460"}],"title":"5.3. execution::connect"}],"url":"#connect"},
