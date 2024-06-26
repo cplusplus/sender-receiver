@@ -7233,22 +7233,24 @@ namespace std::execution {
 
 1. `get_completion_signatures` is a customization point object. Let `sndr` be an
     expression such that `decltype((sndr))` is `Sndr`, and let `env` be an
-    expression such that `decltype((env))` is `Env`. Then
-    `get_completion_signatures(sndr, env)` is expression-equivalent to
+    expression such that `decltype((env))` is `Env`. Let `new_sndr` be the
+    expression <code>transform_sender(decltype(<i>get-domain-late</i>(sndr,
+    env)){}, sndr, env)</code>, and let `NewSndr` be `decltype((new_sndr))`.
+    Then `get_completion_signatures(sndr, env)` is expression-equivalent to
     <code>(void(sndr), void(env), <i>CS</i>())</code> except that `void(sndr)`
     and `void(env)` are indeterminately sequenced, where <i>`CS`</i> is:
 
-    1. `decltype(sndr.get_completion_signatures(env))` if that
+    1. `decltype(new_sndr.get_completion_signatures(env))` if that
         type is well-formed,
 
-    2. Otherwise, `remove_cvref_t<Sndr>::completion_signatures` if that type is well-formed,
+    2. Otherwise, `remove_cvref_t<NewSndr>::completion_signatures` if that type is well-formed,
 
-    3. Otherwise, if <code><i>is-awaitable</i>&lt;Sndr, <i>env-promise</i>&lt;Env>></code>
+    3. Otherwise, if <code><i>is-awaitable</i>&lt;NewSndr, <i>env-promise</i>&lt;Env>></code>
         is `true`, then:
 
             <pre highlight="c++">
             completion_signatures<
-              <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;Sndr,
+              <i>SET-VALUE-SIG</i>(<i>await-result-type</i>&lt;NewSndr,
                             <i>env-promise</i>&lt;Env>>), <i>// see [exec.snd.concepts]</i>
               set_error_t(exception_ptr),
               set_stopped_t()>
@@ -7274,8 +7276,10 @@ namespace std::execution {
 
 2. The name `connect` denotes a customization point object. For subexpressions
     `sndr` and `rcvr`, let `Sndr` be `decltype((sndr))` and `Rcvr` be
-    `decltype((rcvr))`, and let `DS` and `DR` be `decay_t<Sndr>` and
-    `decay_t<Rcvr>`, respectively.
+    `decltype((rcvr))`, let `new_sndr` be the expression
+    <code>transform_sender(decltype(<i>get-domain-late</i>(sndr,
+    get_env(rcvr))){}, sndr, get_env(rcvr))</code>, and let `DS` and `DR` be
+    `decay_t<decltype((new_sndr))>` and `decay_t<Rcvr>`, respectively.
 
 3. Let <i>`connect-awaitable-promise`</i> be the following exposition-only class:
 
@@ -7383,12 +7387,12 @@ namespace std::execution {
 6. The expression `connect(sndr, rcvr)` is
     expression-equivalent to:
 
-    1. `sndr.connect(rcvr)` if that expression is well-formed.
+    1. `new_sndr.connect(rcvr)` if that expression is well-formed.
 
         * <i>Mandates:</i> The type of the expression above satisfies
             `operation_state`.
 
-    2. Otherwise, <code><i>connect-awaitable</i>(sndr, rcvr)</code>.
+    2. Otherwise, <code><i>connect-awaitable</i>(new_sndr, rcvr)</code>.
 
     3. *Mandates:* `sender<Sndr> && receiver<Rcvr>` is `true`.
 
