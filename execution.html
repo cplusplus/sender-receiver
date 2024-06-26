@@ -9799,7 +9799,7 @@ execution back to the execution resource on which <code class="highlight"><c- n>
 adaptor closure object ([exec.adapt.objects]), the expression <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>closure</c-><c- p>)</c-></code> is ill-formed; otherwise, it is expression-equivalent to:</p>
 <pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
   <em><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>early</c-></em><c- p>(</c-><c- n>sndr</c-><c- p>),</c->
-  <em><c- n>make</c-><c- o>-</c-><c- n>sender</c-></em><c- p>(</c-><c- n>on</c-><c- p>,</c-> <c- n>pair</c-><c- p>{</c-><c- n>sch</c-><c- p>,</c-> <c- n>closure</c-><c- p>},</c-> <c- n>sndr</c-><c- p>));</c->
+  <em><c- n>make</c-><c- o>-</c-><c- n>sender</c-></em><c- p>(</c-><c- n>on</c-><c- p>,</c-> <i><c- n>product</c-><c- o>-</c-><c- n>type</c-></i><c- p>{</c-><c- n>sch</c-><c- p>,</c-> <c- n>closure</c-><c- p>},</c-> <c- n>sndr</c-><c- p>));</c->
 </pre>
       <li data-md>
        <p>Let <code class="highlight"><c- n>out_sndr</c-></code> and <code class="highlight"><c- n>env</c-></code> be subexpressions, let <code class="highlight"><c- n>OutSndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>out_sndr</c-><c- p>))</c-></code>, and let <code class="highlight"><c- n>Env</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>env</c-><c- p>))</c-></code>. If <code class="highlight"><em><c- n>sender</c-><c- o>-</c-><c- k>for</c-></em><c- o>&lt;</c-><c- n>OutSndr</c-><c- p>,</c-> <c- n>on_t</c-><c- o>></c-></code> is <code class="highlight">false</code>, then the
