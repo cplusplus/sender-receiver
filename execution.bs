@@ -290,7 +290,7 @@ sender auto async_inclusive_scan(scheduler auto sch,                          //
   partials[0] = init;                                                         // 4
 
   return just(std::move(partials))                                            // 5
-       | transfer(sch)
+       | continues_on(sch)
        | bulk(tile_count,                                                     // 6
            [ = ](std::size_t i, std::vector<double>& partials) {              // 7
              auto start = i * tile_size;                                      // 8
@@ -333,7 +333,7 @@ This example builds an asynchronous computation of an inclusive scan:
     we'll do with a `std::vector`, `partials`. We need one `double` of temporary
     storage for each execution agent we create.
 5. Next we'll create our initial sender with [[#design-sender-factory-just]] and
-    [[#design-sender-adaptor-transfer]]. These senders will send the temporary
+    [[#design-sender-adaptor-continues_on]]. These senders will send the temporary
     storage, which we've moved into the sender. The sender has a completion
     scheduler of `sch`, which means the next item in the chain will use `sch`.
 6. Senders and sender adaptors support composition via `operator|`, similar to
@@ -1173,7 +1173,7 @@ any of these steps to be completely asynchronous; the overall flow doesn't care.
 Regardless of the execution resource in which the steps, or part of the steps
 are executed in, the flow is still the same.
 
-### Moving between execution resources with `execution::on` and `execution::transfer` ### {#example-server-on}
+### Moving between execution resources with `execution::starts_on` and `execution::continues_on` ### {#example-server-on}
 
 Example context:
 - reading data from the socket before processing the request
@@ -1182,7 +1182,7 @@ Example context:
 
 Goals:
 - show how one can change the execution resource
-- exemplify the use of `on` and `transfer` algorithms
+- exemplify the use of `starts_on` and `continues_on` algorithms
 
 ```c++
 namespace stdexec = std::execution;
@@ -1198,9 +1198,9 @@ auto snd_read = stdexec::just(sock, buf, buf_len)
 // The entire flow
 auto snd =
     // start by reading data on the I/O thread
-    stdexec::on(io_sched, std::move(snd_read))
+    stdexec::starts_on(io_sched, std::move(snd_read))
     // do the processing on the worker threads pool
-    | stdexec::transfer(work_sched)
+    | stdexec::continues_on(work_sched)
     // process the incoming data (on worker threads)
     | stdexec::then([buf](int read_len) { process_read_data(buf, read_len); })
     // done
@@ -1217,19 +1217,19 @@ reasons, the reading from the socket needs to be done on the I/O thread, and all
 the processing needs to happen on a work-specific execution resource (i.e.,
 thread pool).
 
-Calling `execution::on` will ensure that the given sender will be started on the
+Calling `execution::starts_on` will ensure that the given sender will be started on the
 given scheduler. In our example, `snd_read` is going to be started on the I/O
 scheduler. This sender will just call the legacy code.
 
 The completion-signal will be issued in the I/O execution resource, so we have
 to move it to the work thread pool. This is achieved with the help of the
-`execution::transfer` algorithm. The rest of the processing (in our case, the
+`execution::continues_on` algorithm. The rest of the processing (in our case, the
 last call to `then`) will happen in the work thread pool.
 
-The reader should notice the difference between `execution::on` and
-`execution::transfer`. The `execution::on` algorithm will ensure that the given
+The reader should notice the difference between `execution::starts_on` and
+`execution::continues_on`. The `execution::starts_on` algorithm will ensure that the given
 sender will start in the specified context, and doesn't care where the
-completion-signal for that sender is sent. The `execution::transfer` algorithm
+completion-signal for that sender is sent. The `execution::continues_on` algorithm
 will not care where the given sender is going to be started, but will ensure
 that the completion-signal of will be transferred to the given context.
 
@@ -1802,7 +1802,7 @@ ex::sender auto task =
     ex::get_scheduler(), // Fetches scheduler from receiver.
     [](auto current_sched) {
       // Lauch some nested work on the current scheduler:
-      return ex::on(current_sched, <i>nested work...</i>);
+      return ex::starts_on(current_sched, <i>nested work...</i>);
     });
 
 std::this_thread::sync_wait(std::move(task));
@@ -1951,7 +1951,7 @@ The changes since R2 are as follows:
 
 <b>Fixes:</b>
 
-* Fix specification of the `on` algorithm to clarify lifetimes of intermediate
+* Fix specification of the `starts_on` algorithm to clarify lifetimes of intermediate
     operation states and properly scope the `get_scheduler` query.
 * Fix a memory safety bug in the implementation of
     <i>`connect-awaitable`</i>.
@@ -2186,7 +2186,7 @@ parallel runtimes, such as task frameworks (like
 \[HPX](https://github.com/STEllAR-GROUP/hpx)) or accelerator runtimes (like CUDA
 or SYCL).
 
-Therefore, in addition to the `on` sender algorithm from [[P1897R3]], we are
+Therefore, in addition to the `starts_on` sender algorithm from [[P1897R3]], we are
 proposing a way for senders to advertise what scheduler (and by extension what
 execution resource) they will complete on. Any given sender <b>may</b> have
 [=completion schedulers=] for some or all of the signals (value, error, or
@@ -2222,7 +2222,7 @@ execution::scheduler auto completion_sch1 =
   execution::get_completion_scheduler&lt;execution::set_value_t>(get_env(snd1));
 // completion_sch1 is equivalent to cpu_sched
 
-execution::sender auto snd2 = execution::transfer(snd1, gpu_sched);
+execution::sender auto snd2 = execution::continues_on(snd1, gpu_sched);
 execution::sender auto snd3 = execution::then(snd2, []{
     std::cout << "I am running on gpu_sched!\n";
 });
@@ -2245,7 +2245,7 @@ We propose that, for senders advertising their [=completion scheduler=], all
 execution resource transitions <b>must</b> be explicit; running user code
 anywhere but where they defined it to run <b>must</b> be considered a bug.
 
-The `execution::transfer` sender adaptor performs a transition from one
+The `execution::continues_on` sender adaptor performs a transition from one
 execution resource to another:
 
 <pre highlight="c++">
@@ -2257,7 +2257,7 @@ execution::sender auto then1 = execution::then(snd1, []{
     std::cout << "I am running on sch1!\n";
 });
 
-execution::sender auto snd2 = execution::transfer(then1, sch2);
+execution::sender auto snd2 = execution::continues_on(then1, sch2);
 execution::sender auto then2 = execution::then(snd2, []{
     std::cout << "I am running on sch2!\n";
 });
@@ -2778,9 +2778,9 @@ then back on the CPU thread pool:
 <th>Function call <br/> (nested)
 <td><pre highlight="c++">
 auto snd = execution::then(
-             execution::transfer(
+             execution::continues_on(
                execution::then(
-                 execution::transfer(
+                 execution::continues_on(
                    execution::then(
                      execution::schedule(thread_pool.scheduler())
                      []{ return 123; }),
@@ -2796,9 +2796,9 @@ auto [result] = this_thread::sync_wait(snd).value();
 <td><pre highlight="c++">
 auto snd0 = execution::schedule(thread_pool.scheduler());
 auto snd1 = execution::then(snd0, []{ return 123; });
-auto snd2 = execution::transfer(snd1, cuda::new_stream_scheduler());
+auto snd2 = execution::continues_on(snd1, cuda::new_stream_scheduler());
 auto snd3 = execution::then(snd2, [](int i){ return 123 * 5; })
-auto snd4 = execution::transfer(snd3, thread_pool.scheduler())
+auto snd4 = execution::continues_on(snd3, thread_pool.scheduler())
 auto snd5 = execution::then(snd4, [](int i){ return i - 5; });
 auto [result] = *this_thread::sync_wait(snd4);
 // result == 610
@@ -2808,9 +2808,9 @@ auto [result] = *this_thread::sync_wait(snd4);
 <td><pre highlight="c++">
 auto snd = execution::schedule(thread_pool.scheduler())
          | execution::then([]{ return 123; })
-         | execution::transfer(cuda::new_stream_scheduler())
+         | execution::continues_on(cuda::new_stream_scheduler())
          | execution::then([](int i){ return 123 * 5; })
-         | execution::transfer(thread_pool.scheduler())
+         | execution::continues_on(thread_pool.scheduler())
          | execution::then([](int i){ return i - 5; });
 auto [result] = this_thread::sync_wait(snd).value();
 // result == 610
@@ -2825,9 +2825,9 @@ following sender adaptors are not pipeable.
     sender adaptor takes a variadic pack of senders, a partially applied form
     would be ambiguous with a non partially applied form with an arity of one
     less.
-* `execution::on`: This sender adaptor changes how the sender passed to it is
+* `execution::starts_on`: This sender adaptor changes how the sender passed to it is
     executed, not what happens to its result, but allowing it in a pipeline makes
-    it read as if it performed a function more similar to `transfer`.
+    it read as if it performed a function more similar to `continues_on`.
 
 Sender consumers could be made pipeable, but we have chosen to not do so.
 However, since these are terminal nodes in a pipeline and nothing can be piped
@@ -3230,7 +3230,7 @@ onto it.
     execution::sender auto task =
       execution::get_scheduler()
         | execution::let_value([](auto sched) {
-            return execution::on(sched, <i>some nested work here</i>);
+            return execution::starts_on(sched, <i>some nested work here</i>);
         });
 
     this_thread::sync_wait( std::move(task) ); // wait for it to finish
@@ -3258,10 +3258,10 @@ consumers such as [[#design-sender-consumer-start_detached]] and
 For more implementer-centric description of starting senders, see
 [[#design-laziness]].
 
-### `execution::transfer` ### {#design-sender-adaptor-transfer}
+### `execution::continues_on` ### {#design-sender-adaptor-continues_on}
 
 <pre highlight="c++">
-execution::sender auto transfer(
+execution::sender auto continues_on(
     execution::sender auto input,
     execution::scheduler auto scheduler
 );
@@ -3278,7 +3278,7 @@ execution::scheduler auto gpu_sched = cuda::scheduler();
 execution::sender auto cpu_task = execution::schedule(cpu_sched);
 // cpu_task describes the creation of a new task on the system thread pool
 
-execution::sender auto gpu_task = execution::transfer(cpu_task, gpu_sched);
+execution::sender auto gpu_task = execution::continues_on(cpu_task, gpu_sched);
 // gpu_task describes the transition of the task graph described by cpu_task to the gpu
 </pre>
 
@@ -3363,10 +3363,10 @@ returned sender is started.
 works with values sent by the input sender, `let_error` works with errors, and
 `let_stopped` is invoked when the "stopped" signal is sent.
 
-### `execution::on` ### {#design-sender-adaptor-on}
+### `execution::starts_on` ### {#design-sender-adaptor-starts_on}
 
 <pre highlight="c++">
-execution::sender auto on(
+execution::sender auto starts_on(
     execution::scheduler auto sched,
     execution::sender auto snd
 );
@@ -3816,7 +3816,7 @@ together into a single submission of a GPU kernel.
 
 ## Execution resource transitions are two-step ## {#design-transition-details}
 
-Because `execution::transfer` takes a sender as its first argument, it is not
+Because `execution::continues_on` takes a sender as its first argument, it is not
 actually directly customizable by the target scheduler. This is by design: the
 target scheduler may not know how to transition <i>from</i> a scheduler such as
 a CUDA scheduler; transitioning away from a GPU in an efficient manner requires
@@ -3829,26 +3829,26 @@ any sender can be attached to it.
 
 This, however, is a problem: because customization of sender algorithms must be
 controlled by the scheduler they will run on (see [[#design-customization]]),
-the type of the sender returned from `transfer` must be controllable by the
+the type of the sender returned from `continues_on` must be controllable by the
 target scheduler. Besides, the target scheduler may itself represent a
 specialized execution resource, which requires additional work to be performed
 to transition <i>to</i> it. GPUs and remote node schedulers are once again good
 examples of such schedulers: executing code on their execution resources
 requires making runtime API calls for work submission, and quite possibly for
 the data movement of the values being sent by the input sender passed into
-`transfer`.
+`continues_on`.
 
 To allow for such customization from both ends, we propose the inclusion of a
 secondary transitioning sender adaptor, called `schedule_from`. This adaptor is
 a form of `schedule`, but takes an additional, second argument: the input
 sender. This adaptor is not meant to be invoked manually by the end users; they
-are always supposed to invoke `transfer`, to ensure that both schedulers have a
+are always supposed to invoke `continues_on`, to ensure that both schedulers have a
 say in how the transitions are made. Any scheduler that specializes
-`transfer(snd, sch)` shall ensure that the return value of their customization
+`continues_on(snd, sch)` shall ensure that the return value of their customization
 is equivalent to `schedule_from(sch, snd2)`, where `snd2` is a successor of
 `snd` that sends values equivalent to those sent by `snd`.
 
-The default implementation of `transfer(snd, sched)` is `schedule_from(sched,
+The default implementation of `continues_on(snd, sched)` is `schedule_from(sched,
 snd)`.
 
 ## All senders are typed ## {#design-typed}
@@ -5326,7 +5326,7 @@ template&lt;class Initializer>
     <td>
         <ul>
             <li>sender factories (e.g., `schedule`, `just`, `read`)</li>
-            <li>sender adaptors (e.g., `transfer`, `then`, `let_value`)</li>
+            <li>sender adaptors (e.g., `continues_on`, `then`, `let_value`)</li>
             <li>sender consumers (e.g., `start_detached`, `sync_wait`)</li>
         </ul>
     </td>
@@ -5809,8 +5809,9 @@ namespace std::execution {
   template&lt;<i>class-type</i> D>
     struct sender_adaptor_closure { };
 
+  struct starts_on_t { <i>see below</i> };
+  struct continues_on_t { <i>see below</i> };
   struct on_t { <i>see below</i> };
-  struct transfer_t { <i>see below</i> };
   struct schedule_from_t { <i>see below</i> };
   struct then_t { <i>see below</i> };
   struct upon_error_t { <i>see below</i> };
@@ -5827,8 +5828,9 @@ namespace std::execution {
   struct stopped_as_optional_t { <i>see below</i> };
   struct stopped_as_error_t { <i>see below</i> };
 
+  inline constexpr starts_on_t starts_on{};
+  inline constexpr continues_on_t continues_on{};
   inline constexpr on_t on{};
-  inline constexpr transfer_t transfer{};
   inline constexpr schedule_from_t schedule_from{};
   inline constexpr then_t then{};
   inline constexpr upon_error_t upon_error{};
@@ -6488,13 +6490,13 @@ namespace std::execution {
                 }();
                 </pre>
 
-                <span class="wg21note">The `transfer` algorithm works in tandem
+                <span class="wg21note">The `continues_on` algorithm works in tandem
                 with `schedule_from` ([exec.schedule.from])) to give scheduler
                 authors a way to customize both how to transition onto
-                (`transfer`) and off of (`schedule_from`) a given execution
-                context. Thus, `transfer` ignores the domain of the predecessor
+                (`continues_on`) and off of (`schedule_from`) a given execution
+                context. Thus, `continues_on` ignores the domain of the predecessor
                 and uses the domain of the destination scheduler to select a
-                customization, a property that is unique to `transfer`. That is
+                customization, a property that is unique to `continues_on`. That is
                 why it is given special treatment here.</span>
 
             - Otherwise, <code>return Domain();</code> where `Domain` is
@@ -6862,6 +6864,34 @@ namespace std::execution {
             implementations are encouraged to use the type denoted by
             <code><i>completion-signatures-for</i>&lt;Sndr, Env></code> to
             communicate to users why.
+
+    15. <pre highlight="c++">
+        template&lt;sender Sndr, queryable Env>
+          constexpr auto <i>write-env</i>(Sndr&& sndr, Env&& env); // exposition only
+        </pre>
+
+        1. <i>`write-env`</i> is an exposition-only sender adaptor that, when
+            connected with a receiver `rcvr`, connects the adapted sender with a
+            receiver whose execution environment is the result of joining the
+            `queryable` argument `env` to the result of `get_env(rcvr)`.
+
+        2. Let <i>`write-env-t`</i> be an exposition-only empty class type.
+
+        3. *Returns:* <code><i>make-sender</i>(<i>make-env-t</i>(), std::forward&lt;Env>(env), std::forward&lt;Sndr>(sndr))</code>.
+
+        4. *Remarks:* The exposition-only class template
+            <i>`impls-for`</i> ([exec.snd.general]) is specialized for
+            <i>`write-env-t`</i> as follows:
+
+            <pre style="white-space: pre-wrap; font-size: 85%; text-align: left;">
+            template&lt;>
+            struct <i>impls-for</i>&lt;<i>write-env-t</i>> : <i>default-impls</i> {
+              static constexpr auto <em>get-env</em> =
+                [](auto, const auto& state, const auto& rcvr) noexcept {
+                  return <em>JOIN-ENV</em>(state, get_env(rcvr));
+                };
+            };
+            </pre>
 
 ### Sender concepts <b>[exec.snd.concepts]</b> ### {#spec-execution.snd.concepts}
 
@@ -7592,38 +7622,38 @@ namespace std::execution {
     initializations of the bound argument entities of the result, as specified
     above, are all well-formed.
 
-#### `execution::on` <b>[exec.on]</b> #### {#spec-execution.senders.adapt.on}
+#### `execution::starts_on` <b>[exec.starts.on]</b> #### {#spec-execution.senders.adapt.starts.on}
 
-1. `on` adapts an input sender into a sender that will start on an execution
+1. `starts_on` adapts an input sender into a sender that will start on an execution
     agent belonging to a particular scheduler's associated execution resource.
 
-2. The name `on` denotes a customization point object. For subexpressions
+2. The name `starts_on` denotes a customization point object. For subexpressions
     `sch` and `sndr`, if `decltype((sch))` does not satisfy `scheduler`, or
-    `decltype((sndr))` does not satisfy `sender`, `on(sch, sndr)` is ill-formed.
+    `decltype((sndr))` does not satisfy `sender`, `starts_on(sch, sndr)` is ill-formed.
 
-3. Otherwise, the expression `on(sch, sndr)` is expression-equivalent to:
+3. Otherwise, the expression `starts_on(sch, sndr)` is expression-equivalent to:
 
         <pre highlight="c++">
         transform_sender(
           <i>query-or-default</i>(get_domain, sch, default_domain()),
-          <i>make-sender</i>(on, sch, sndr))
+          <i>make-sender</i>(starts_on, sch, sndr))
         </pre>
 
     except that `sch` is evaluated only once.
 
 4. Let `out_sndr` and `env` be subexpressions such that `OutSndr` is `decltype((out_sndr))`. If
-    <code><i>sender-for</i>&lt;OutSndr, on_t></code> is `false`, then the expressions
-    `on.transform_env(out_sndr, env)` and `on.transform_sender(out_sndr, env)` are ill-formed;
+    <code><i>sender-for</i>&lt;OutSndr, starts_on_t></code> is `false`, then the expressions
+    `starts_on.transform_env(out_sndr, env)` and `starts_on.transform_sender(out_sndr, env)` are ill-formed;
     otherwise:
 
-        - `on.transform_env(out_sndr, env)` is equivalent to:
+        - `starts_on.transform_env(out_sndr, env)` is equivalent to:
 
             <pre highlight="c++">
             auto&& [_, sch, _] = out_sndr;
             return <i>JOIN-ENV</i>(<i>SCHED-ENV</i>(sch), <i>FWD-ENV</i>(env));
             </pre>
 
-        - `on.transform_sender(out_sndr, env)` is equivalent to:
+        - `starts_on.transform_sender(out_sndr, env)` is equivalent to:
 
             <pre highlight="c++">
             auto&& [_, sch, sndr] = out_sndr;
@@ -7635,7 +7665,7 @@ namespace std::execution {
               });
             </pre>
 
-5. Let `out_sndr` be a subexpression denoting a sender returned from `on(sch, sndr)`
+5. Let `out_sndr` be a subexpression denoting a sender returned from `starts_on(sch, sndr)`
     or one equal to such, and let `OutSndr` be the type `decltype((out_sndr))`. Let
     `out_rcvr` be a subexpression denoting a receiver that has an environment of
     type `Env` such that `sender_in<OutSndr, Env>` is `true`. Let `op` be an lvalue
@@ -7644,21 +7674,21 @@ namespace std::execution {
     associated execution resource of `sch`. If scheduling onto `sch` fails, an error
     completion on `out_rcvr` shall be executed on an unspecified execution agent.
 
-#### `execution::transfer` <b>[exec.transfer]</b> #### {#spec-execution.senders.adapt.transfer}
+#### `execution::continues_on` <b>[exec.continues.on]</b> #### {#spec-execution.senders.adapt.continues.on}
 
-1. `transfer` adapts a sender into one that completes on the specified scheduler.
+1. `continues_on` adapts a sender into one that completes on the specified scheduler.
 
-2. The name `transfer` denotes a customization point object. For
+2. The name `continues_on` denotes a customization point object. For
     subexpressions `sch` and `sndr`, if `decltype((sch))` does not satisfy
     `scheduler`, or `decltype((sndr))` does not satisfy `sender`,
-    `transfer(sndr, sch)` is ill-formed.
+    `continues_on(sndr, sch)` is ill-formed.
 
-3. Otherwise, the expression `transfer(sndr, sch)` is expression-equivalent to:
+3. Otherwise, the expression `continues_on(sndr, sch)` is expression-equivalent to:
 
         <pre highlight="c++">
         transform_sender(
           <i>get-domain-early</i>(sndr),
-          <i>make-sender</i>(transfer, sch, sndr))
+          <i>make-sender</i>(continues_on, sch, sndr))
         </pre>
 
     except that `sndr` is evaluated only once.
@@ -7680,7 +7710,7 @@ namespace std::execution {
 
 5. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`. If
     <code><i>sender-for</i>&lt;Sndr, transfer_t></code> is `false`, then the expression
-    `transfer.transform_sender(sndr, env)` is ill-formed; otherwise, it
+    `continues_on.transform_sender(sndr, env)` is ill-formed; otherwise, it
     is equal to:
 
         <pre highlight="c++">
@@ -7688,12 +7718,12 @@ namespace std::execution {
         return schedule_from(std::move(data), std::move(child));
         </pre>
 
-    <span class="wg21note">This causes the `transfer(sndr, sch)` sender to become
+    <span class="wg21note">This causes the `continues_on(sndr, sch)` sender to become
     `schedule_from(sch, sndr)` when it is connected with a receiver whose
-    execution domain does not customize `transfer`.</span>
+    execution domain does not customize `continues_on`.</span>
 
 6. Let `out_sndr` be a subexpression denoting a sender returned from
-    `transfer(sndr, sch)` or one equal to such, and let `OutSndr` be the type
+    `continues_on(sndr, sch)` or one equal to such, and let `OutSndr` be the type
     `decltype((out_sndr))`. Let `out_rcvr` be a subexpression denoting a
     receiver that has an environment of type `Env` such that `sender_in<OutSndr,
     Env>` is `true`. Let `op` be an lvalue referring to the operation state that
@@ -7708,7 +7738,7 @@ namespace std::execution {
 1. `schedule_from` schedules work dependent on the completion of a sender onto a
     scheduler's associated execution resource. <span
     class="wg21note">`schedule_from` is not meant to be used in user code; it is
-    used in the implementation of `transfer`.</span>
+    used in the implementation of `continues_on`.</span>
 
 2. The name `schedule_from` denotes a customization point object. For some
     subexpressions `sch` and `sndr`, let `Sch` be `decltype((sch))` and `Sndr` be
@@ -7862,6 +7892,171 @@ namespace std::execution {
     operations on `out_rcvr` on an execution agent of the execution resource
     associated with `sch`. If scheduling onto `sch` fails, an error completion
     on `out_rcvr` shall be executed on an unspecified execution agent.
+
+#### `execution::on` <b>[exec.on]</b>  #### {#spec-execution.senders.adaptors.on}
+
+1. The `on` sender adaptor has two forms:
+
+    - `on(sch, sndr)`, which starts a sender `sndr` on an execution agent
+        belonging to a scheduler `sch`'s associated execution resource and that,
+        upon `sndr`'s completion, transfers execution back to the execution
+        resource on which the `on` sender was started.
+
+    - `on(sndr, sch, closure)`, which upon completion of a sender `sndr`,
+        transfers execution to an execution agent belonging to a scheduler `sch`'s
+        associated execution resource, then executes a sender adaptor closure
+        `closure` with the async results of the sender, and that then transfers
+        execution back to the execution resource on which `sndr` completed.
+
+2. The name `on` denotes a customization point object. For some subexpressions
+    `sch` and `sndr`, if `decltype((sch))` does not satisfy `scheduler`, or
+    `decltype((sndr))` does not satisfy `sender`, `on(sch, sndr)` is ill-formed.
+
+3. Otherwise, the expression `on(sch, sndr)` is expression-equivalent to:
+
+    <pre highlight="c++">
+    transform_sender(
+      <em>query-or-default</em>(get_domain, sch, default_domain()),
+      <em>make-sender</em>(on, sch, sndr));
+    </pre>
+
+4. For a subexpression `closure`, if `decltype((closure))` is not a sender
+    adaptor closure object ([exec.adapt.objects]), the expression `on(sndr, sch,
+    closure)` is ill-formed; otherwise, it is expression-equivalent to:
+
+    <pre highlight="c++">
+    transform_sender(
+      <em>get-domain-early</em>(sndr),
+      <em>make-sender</em>(on, pair{sch, closure}, sndr));
+    </pre>
+
+5. Let `out_sndr` and `env` be subexpressions, let `OutSndr` be
+    `decltype((out_sndr))`, and let `Env` be `decltype((env))`. If
+    <code><em>sender-for</em>&lt;OutSndr, on_t></code> is `false`, then the
+    expressions `on.transform_env(out_sndr, env)` and
+    `on.transform_sender(out_sndr, env)` are ill-formed; otherwise:
+
+    1. Let <i>`not-a-scheduler`</i> be an unspecified empty class type, and
+        let <i>`not-a-sender`</i> be the exposition-only type:
+
+        <pre highlight="c++">
+        struct <em>not-a-sender</em> {
+          using sender_concept = sender_t;
+
+          auto get_completion_signatures(auto&&) const {
+            return <em>see below</em>;
+          }
+        };
+        </pre>
+
+        ... where the member function `get_completion_signatures` returns an
+        object of a type that is not a specialization of the
+        `completion_signatures` class template.
+
+    2. `on.transform_env(out_sndr, env)` is equivalent to:
+
+        <pre highlight="c++">
+        auto& [_, data, _] = out_sndr;
+        if constexpr (scheduler&lt;decltype(data)>) {
+          return <em>JOIN-ENV</em>(<em>SCHED-ENV</em>(data), <em>FWD-ENV</em>(std::forward&lt;Env>(env)));
+        } else {
+          return std::forward&lt;Env>(env);
+        }
+        </pre>
+
+    3. `on.transform_sender(out_sndr, env)` is equivalent to:
+
+        <pre highlight="c++">
+        auto& [_, data, child] = out_sndr;
+        if constexpr (scheduler&lt;decltype(data)>) {
+          auto orig_sch =
+            <em>query-with-default</em>(get_scheduler, env, <em>not-a-scheduler</em>());
+
+          if constexpr (same_as&lt;decltype(orig_sch), <em>not-a-scheduler</em>>) {
+            return <em>not-a-sender</em>{};
+          } else {
+            return continues_on(
+              starts_on(std::forward_like&lt;OutSndr>(data), std::forward_like&lt;OutSndr>(child)),
+              std::move(orig_sch));
+          }
+        } else {
+          auto& [sch, closure] = data;
+          auto orig_sch = <em>query-with-default</em>(
+            get_completion_scheduler&lt;set_value_t>,
+            get_env(child),
+            <em>query-with-default</em>(get_scheduler, env, <em>not-a-scheduler</em>()));
+
+          if constexpr (same_as&lt;decltype(orig_sch), <em>not-a-scheduler</em>>) {
+            return <em>not-a-sender</em>{};
+          } else {
+            return <em>write-env</em>(
+              continues_on(
+                std::forward_like&lt;OutSndr>(closure)(
+                  continues_on(
+                    <em>write-env</em>(std::forward_like&lt;OutSndr>(child), <em>SCHED-ENV</em>(orig_sch)),
+                    sch)),
+                orig_sch),
+              <em>SCHED-ENV</em>(sch));
+          }
+        }
+        </pre>
+
+    4. <em>Recommended practice:</em> Implementations should use the return type
+        of <code><em>not-a-sender</em>::get_completion_signatures</code> to
+        inform users that their usage of `on` is incorrect because there is no
+        available scheduler onto which to restore execution.
+
+<span class="ed-note">LEWG is uncomfortable with specifying the semantic
+requirements of `on` customizations in terms of "semantic equivalence" to the
+lowered expressions. LEWG would like to clarify what effects are considered
+salient when determining semantic equivalence. The author thinks this is a fair
+request but has no recommendataions at present.</span>
+
+6. Let the subexpression `out_sndr` denote the result of the invocation `on(sch,
+    sndr)` or an object equal to such, let `OutSndr` be `decltype((out_sndr))`,
+    let the subexpression `rcvr` denote a receiver such that
+    `sender_to<decltype((out_sndr)), decltype((rcvr))>` is `true`, and let
+    `sch_copy` and `sndr_copy` be lvalue subexpressions refering to objects
+    decay-copied from `sch` and `sndr` respectively.
+    
+    The expression `connect(out_sndr, rcvr)` has undefined behavior unless it
+    creates an asynchronous operation as if by calling `connect(S, rcvr)`, where
+    `S` is a sender expression semantically equivalent to:
+
+    <pre highlight="c++">
+    continues_on(
+      starts_on(std::forward_like&lt;OutSndr>(sch_copy), std::forward_like&lt;OutSndr>(sndr_copy)),
+      orig_sch)
+    </pre>
+
+    where `orig_sch` is `get_scheduler(get_env(rcvr))`.
+
+7. Let the subexpression `out_sndr2` denote the result of the invocation
+    `on(sndr, sch, closure)` or an object copied or moved from such, let
+    `OutSndr2` be `decltype((out_sndr2))`, let the subexpression `rcvr2` denote
+    a receiver such that `sender_to<decltype((out_sndr2)), decltype((rcvr2))>`
+    is `true`, and let `sndr_copy`, `sch_copy`, and `closure_copy` be lvalue
+    subexpressions refering to objects decay-copied from `sndr`, `sch`, and
+    `closure` respectively.
+    
+    The expression `connect(out_sndr2, rcvr2)` has undefined behavior unless it
+    creates an asynchronous operation as if by calling `connect(S2, rcvr2)`, where
+    `S2` is a sender expression semantically equivalent to:
+
+    <pre style="white-space: pre-wrap; font-size: 85%; text-align: left;">
+    <em>write-env</em>(
+      continues_on(
+        std::forward_like&lt;OutSndr2>(closure_copy)(
+          continues_on(
+            <em>write-env</em>(std::forward_like&lt;OutSndr2>(sndr_copy), <em>SCHED-ENV</em>(orig_sch)),
+            sch_copy)),
+        orig_sch),
+      <em>SCHED-ENV</em>(sch_copy))
+    </pre>
+
+    where `orig_sch` is an lvalue refering to an object decay-copied from
+    `get_completion_scheduler<set_value_t>(get_env(sndr_copy))` if that
+    expression is well-formed; otherwise, `get_scheduler(get_env(rcvr2))`.
 
 #### `execution::then`, `execution::upon_error`, `execution::upon_stopped` <b>[exec.then]</b> #### {#spec-execution.senders.adaptor.then}
 
