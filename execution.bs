@@ -7927,7 +7927,7 @@ namespace std::execution {
     <pre highlight="c++">
     transform_sender(
       <em>get-domain-early</em>(sndr),
-      <em>make-sender</em>(on, pair{sch, closure}, sndr));
+      <em>make-sender</em>(on, <i>product-type</i>{sch, closure}, sndr));
     </pre>
 
 5. Let `out_sndr` and `env` be subexpressions, let `OutSndr` be
