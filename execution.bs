@@ -5808,7 +5808,6 @@ namespace std::execution {
   struct let_stopped_t { <i>see below</i> };
   struct bulk_t { <i>see below</i> };
   struct split_t { <i>see below</i> };
-  struct ensure_started_t { <i>see below</i> };
   struct when_all_t { <i>see below</i> };
   struct when_all_with_variant_t { <i>see below</i> };
   struct into_variant_t { <i>see below</i> };
@@ -5827,7 +5826,6 @@ namespace std::execution {
   inline constexpr let_stopped_t let_stopped{};
   inline constexpr bulk_t bulk{};
   inline constexpr split_t split{};
-  inline constexpr ensure_started_t ensure_started{};
   inline constexpr when_all_t when_all{};
   inline constexpr when_all_with_variant_t when_all_with_variant{};
   inline constexpr into_variant_t into_variant{};
@@ -8372,37 +8370,34 @@ request but has no recommendataions at present.</span>
 
       - propagates all completion operations sent by `sndr`.
 
-#### `execution::split` and `execution::ensure_started` <b>[exec.split]</b> #### {#spec-execution.senders.adapt.split}
+#### `execution::split` <b>[exec.split]</b> #### {#spec-execution.senders.adapt.split}
 
 1. `split` adapts an arbitrary sender into a sender that can be connected
-    multiple times. `ensure_started` eagerly starts the execution of a sender,
-    returning a sender that is usable as input to additional sender algorithms.
+    multiple times.
 
-2. Let <i>`shared-env`</i> be the type of an environment such that,
+2. Let <i>`split-env`</i> be the type of an environment such that,
     given an instance `env`, the expression `get_stop_token(env)` is well-formed
     and has type `inplace_stop_token`.
 
-3. The names `split` and `ensure_started` denote pipeable sender adaptor closure objects.
-    Let the expression <i>`shared-cpo`</i> be one of `split` or
-    `ensure_started`. For a subexpression `sndr`, let `Sndr` be
-    `decltype((sndr))`. If <code>sender_in&lt;Sndr, <i>shared-env</i>></code> is
-    `false`, <code><i>shared-cpo</i>(sndr)</code> is ill-formed.
+3. The name `split` denotes a pipeable sender adaptor closure object.
+    For a subexpression `sndr`, let `Sndr` be `decltype((sndr))`. 
+	If <code>sender_in&lt;Sndr, <i>split-env</i>></code> is
+    `false`, <code>split(sndr)</code> is ill-formed.
 
-4. Otherwise, the expression <code><i>shared-cpo</i>(sndr)</code> is
+4. Otherwise, the expression <code>split(sndr)</code> is
     expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
         <i>get-domain-early</i>(sndr),
-        <i>make-sender</i>(<i>shared-cpo</i>, {}, sndr))
+        <i>make-sender</i>(split, {}, sndr))
       </pre>
 
     except that `sndr` is evaluated only once.
 
     - <span class="wg21note">The default implementation of `transform_sender`
-        will have the effect of connecting the sender to a receiver and, in the
-        case of `ensure_started`, calling `start` on the resulting operation
-        state. It will return a sender with a different tag type.</span>
+        will have the effect of connecting the sender to a receiver.
+        It will return a sender with a different tag type.</span>
 
 5. Let <i>`local-state`</i> denote the following exposition-only class template:
 
@@ -8423,7 +8418,6 @@ request but has no recommendataions at present.</span>
         ~<i>local-state</i>();
 
         void <i>notify</i>() noexcept override;
-        void <i>detach</i>() noexcept override;
 
       private:
         optional&lt;<i>on-stop-callback</i>> on_stop; // exposition only
@@ -8451,7 +8445,6 @@ request but has no recommendataions at present.</span>
         1. *Effects:* Equivalent to:
 
             <pre highlight="c++">
-            <i>detach</i>();
             sh_state-><i>dec-ref</i>();
             </pre>
 
@@ -8470,39 +8463,28 @@ request but has no recommendataions at present.</span>
                   },
                   tupl);
               },
-              <i>QUAL</i>(sh_state->result));
+              as_const(sh_state->result));
             </pre>
 
-            where <i>`QUAL`</i> is `std::move` if
-            <code>same_as&lt;tag_of_t&lt;Sndr>,
-            <i>ensure-started-impl-tag</i>></code> is `true`, and `as_const`
-            otherwise.
-
-    4. <pre highlight="c++">
-        void <i>detach</i>() noexcept override;</pre>
-
-        1. *Effects:* Equivalent to <code>sh_state-><i>detach</i>()</code> if
-            <code>same_as&lt;tag_of_t&lt;Sndr>,
-            <i>ensure-started-impl-tag</i>></code> is `true`; otherwise,
-            nothing.
-
-6. Let <i>`shared-receiver`</i> denote the following exposition-only class
+6. Let <i>`split-receiver`</i> denote the following exposition-only class
     template:
 
     <pre highlight="c++">
     namespace std::execution {
       template&lt;class Sndr>
-      struct <i>shared-receiver</i> {
+      struct <i>split-receiver</i> {
         using receiver_concept = receiver_t;
 
         template&lt;class Tag, class... Args>
         void <i>complete</i>(Tag, Args&&... args) noexcept { <i>// exposition only</i>
+          using tuple_t = <i>decayed-tuple</i>&lt;Tag, Args...>;
           try {
-            using tuple_t = <i>decayed-tuple</i>&lt;Tag, Args...>;
             sh_state->result.template emplace&lt;tuple_t>(Tag(), std::forward&lt;Args>(args)...);
           } catch (...) {
-            using tuple_t = tuple&lt;set_error_t, exception_ptr>;
-            sh_state->result.template emplace&lt;tuple_t>(set_error, current_exception());
+			if constexpr (!is_nothrow_constructible_v&lt;tuple_t, Args...>) {
+              using err_tuple_t = tuple&lt;set_error_t, exception_ptr>;
+              sh_state->result.template emplace&lt;err_tuple_t>(set_error, current_exception());
+		    }
           }
           sh_state-><i>notify</i>();
         }
@@ -8552,7 +8534,6 @@ request but has no recommendataions at present.</span>
 
         void <i>start-op</i>() noexcept;  // exposition only
         void <i>notify</i>() noexcept;  // exposition only
-        void <i>detach</i>() noexcept;  // exposition only
         void <i>inc-ref</i>() noexcept; // exposition only
         void <i>dec-ref</i>() noexcept; // exposition only
 
@@ -8561,7 +8542,7 @@ request but has no recommendataions at present.</span>
         <i>state-list-type</i> waiting_states;    // exposition only
         atomic&lt;bool> completed{false};   // exposition only
         atomic&lt;size_t> ref_count{1};   // exposition only
-        connect_result_t&lt;Sndr, <i>shared-receiver</i>&lt;Sndr>> op_state;    // exposition only
+        connect_result_t&lt;Sndr, <i>split-receiver</i>&lt;Sndr>> op_state;    // exposition only
       };
     }
     </pre>
@@ -8584,7 +8565,7 @@ request but has no recommendataions at present.</span>
           explicit <i>shared-state</i>(Sndr&& sndr);</pre>
 
           1. *Effects:* Initializes `op_state` with the result of
-              <code>connect(std::forward&lt;Sndr>(sndr), <i>shared-receiver</i>{this})</code>.
+              <code>connect(std::forward&lt;Sndr>(sndr), <i>split-receiver</i>{this})</code>.
 
           2. *Postcondition:* `waiting_states` is empty, and `completed` is `false`.
 
@@ -8610,21 +8591,11 @@ request but has no recommendataions at present.</span>
               <code><i>dec-ref</i>()</code>.
 
       6. <pre highlight="c++">
-          void <i>detach</i>() noexcept;</pre>
-
-          1. *Effects:* If `completed` is `false` and `waiting_states` is empty,
-              calls `stop_src.request_stop()`. <span class="wg21note">This has
-              the effect of requesting early termination of any asynchronous
-              operation that was started as a result of a call to `ensure_started`,
-              but only if the resulting sender was never connected and started.
-              </span>
-
-      7. <pre highlight="c++">
           void <i>inc-ref</i>() noexcept;</pre>
 
           1. *Effects:* Increments `ref_count`.
 
-      8. <pre highlight="c++">
+      7. <pre highlight="c++">
           void <i>dec-ref</i>() noexcept;</pre>
 
           1. *Effects:* Decrements `ref_count`. If the new value of
@@ -8634,39 +8605,33 @@ request but has no recommendataions at present.</span>
               the `ref_count` to `0` then synchronizes with
               the call to <code><i>dec-ref</i>()</code> that decrements `ref_count` to `0`.
 
-8. For each type `split_t` and `ensure_started_t`, there is a different,
-    associated exposition-only implementation tag type, <i>`split-impl-tag`</i>
-    and <i>`ensure-started-impl-tag`</i>, respectively. Let
-    <i>`shared-impl-tag`</i> be the associated implementation tag type of
-    <i>`shared-cpo`</i>. Given an expression `sndr`, the expression
-    <code><i>shared-cpo</i>.transform_sender(sndr)</code> is equivalent to:
+8.  Given an expression `sndr`, the expression
+    <code>split.transform_sender(sndr)</code> is equivalent to:
 
       <pre highlight="c++">
       auto&& [tag, _, child] = sndr;
       auto* sh_state = new <i>shared-state</i>{std::forward_like&lt;decltype((sndr))>(child)};
-      return <i>make-sender</i>(<i>shared-impl-tag</i>(), <i>shared-wrapper</i>{sh_state, tag});
+      return <i>make-sender</i>(split, <i>shared-wrapper</i>{sh_state, tag});
       </pre>
 
     where <i>`shared-wrapper`</i> is an exposition-only class that manages the
     reference count of the <i>`shared-state`</i> object pointed to by `sh_state`.
     <i>`shared-wrapper`</i> models `movable` with move operations nulling out the
-    moved-from object. If `tag` is `split_t`, <i>`shared-wrapper`</i> models
+    moved-from object. `shared-wrapper`</i> models
     `copyable` with copy operations incrementing the reference count by calling
-    <code>sh_state-><i>inc-ref</i>()</code>. The constructor calls
-    <code>sh_state-><i>start-op</i>()</code> if `tag` is `ensure_started_t`. The
-    destructor has no effect if `sh_state` is null; otherwise, it calls
-    <code>sh_state-><i>detach</i>()</code> if `tag` is `ensure_started_t`;
-    and finally, it decrements the reference count by calling
+    <code>sh_state-><i>inc-ref</i>()</code>.  The
+    destructor has no effect if `sh_state` is null; otherwise, it
+    decrements the reference count by calling
     <code>sh_state-><i>dec-ref</i>()</code>.
 
 9. The exposition-only class template <i>`impls-for`</i>
-    ([exec.snd.general]) is specialized for <i>`shared-impl-tag`</i>
+    ([exec.snd.general]) is specialized for `split_t`
     as follows:
 
         <pre highlight="c++">
         namespace std::execution {
           template&lt;>
-          struct <i>impls-for</i>&lt;<i>shared-impl-tag</i>> : <i>default-impls</i> {
+          struct <i>impls-for</i>&lt;split_t> : <i>default-impls</i> {
             static constexpr auto <i>get-state</i> = <i>see below</i>;
             static constexpr auto <i>start</i> = <i>see below</i>;
           };
@@ -8674,7 +8639,7 @@ request but has no recommendataions at present.</span>
         </pre>
 
     1. The member
-        <code><i>impls-for</i>&lt;<i>shared-impl-tag</i>>::<i>get-state</i></code>
+        <code><i>impls-for</i>&lt;split_t>::<i>get-state</i></code>
         is initialized with a callable object equivalent to the following lambda
         expression:
 
@@ -8685,7 +8650,7 @@ request but has no recommendataions at present.</span>
           </pre>
 
     2. The member
-        <code><i>impls-for</i>&lt;<i>shared-impl-tag</i>>::<i>start</i></code>
+        <code><i>impls-for</i>&lt;split_t>::<i>start</i></code>
         is initialized with a callable object that has a call operator
         equivalent to the following:
 
@@ -8707,36 +8672,17 @@ request but has no recommendataions at present.</span>
                   <i>on-stop-request</i>{state.sh_state->stop_src})
                 </pre>
 
-            2. If <i>`shared-impl-tag`</i> is <i>`ensure-started-impl-tag`</i>,
-                and if `state.sh_state->stop_src.stop_requested()` is `true`,
-                calls `set_stopped(std::move(rcvr))` and returns.
+            2.  Then atomically does the following:
 
-            3.  Otherwise, atomically does the following:
+                  - Reads the value, `c`, of `state.sh_state->completed`.
 
-                  - Inserts `&state` into `state.sh_state->waiting_states`, and
+                  - If `c` is `false`, inserts `&state` into `state.sh_state->waiting_states`.
 
-                  - Reads the value of `state.sh_state->completed`.
+            3. If `c` is `true`, calls <code>state.<i>notify</i>()</code> and returns.
 
-            4. If the value read from `state.sh_state->completed` is `true`,
-                calls <code>state.<i>notify</i>()</code> and returns.
-
-            4. Otherwise, if <i>`shared-impl-tag`</i> is
-                <i>`split-impl-tag`</i>, and if `&state` is the first item added
+            4. Otherwise, if `&state` is the first item added
                 to `state.sh_state->waiting_states`, calls
                 <code>state.sh_state-><i>start-op</i>()</code>.
-
-10. <div class="wg21note">Under the following conditions, the results of the
-    child operation are discarded:
-
-    - When a sender returned from `ensure_started` is destroyed without being
-        connected to a receiver, or
-
-    - If the sender is connected to a receiver but the operation state
-        is destroyed without having been started, or
-
-    - If polling the receiver's stop token indicates that stop has been
-        requested when `start` is called, and the operation has not yet
-        completed.</div>
 
 #### `execution::when_all` <b>[exec.when.all]</b> #### {#spec-execution.senders.adaptor.when_all}
 
