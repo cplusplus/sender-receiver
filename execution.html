@@ -2548,7 +2548,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li><a href="#design-sender-factory-just"><span class="secno">4.19.2</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just</c-></code></span></a>
         <li><a href="#design-sender-factory-just_error"><span class="secno">4.19.3</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just_error</c-></code></span></a>
         <li><a href="#design-sender-factory-just_stopped"><span class="secno">4.19.4</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just_stopped</c-></code></span></a>
-        <li><a href="#design-sender-factory-read"><span class="secno">4.19.5</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-></code></span></a>
+        <li><a href="#design-sender-factory-read"><span class="secno">4.19.5</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read_env</c-></code></span></a>
        </ol>
       <li>
        <a href="#design-sender-adaptors"><span class="secno">4.20</span> <span class="content">User-facing sender adaptors</span></a>
@@ -2725,7 +2725,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
          <ol class="toc">
           <li><a href="#spec-execution.senders.schedule"><span class="secno">34.9.10.1</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>schedule</c-></code> <b>[exec.schedule]</b></span></a>
           <li><a href="#spec-execution.senders.just"><span class="secno">34.9.10.2</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>just_stopped</c-></code> <b>[exec.just]</b></span></a>
-          <li><a href="#spec-execution.senders.read"><span class="secno">34.9.10.3</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-></code> <b>[exec.read]</b></span></a>
+          <li><a href="#spec-execution.senders.read.env"><span class="secno">34.9.10.3</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read_env</c-></code> <b>[exec.read.env]</b></span></a>
          </ol>
         <li>
          <a href="#spec-execution.senders.adapt"><span class="secno">34.9.11</span> <span class="content">Sender adaptors <b>[exec.adapt]</b></span></a>
@@ -3002,7 +3002,7 @@ in our temporary storage <code class="highlight"><c- n>partials</c-></code>.</p>
 <c- n>sender_of</c-><c- o>&lt;</c-><c- n>dynamic_buffer</c-><c- o>></c-> <c- k>auto</c-> <c- n>async_read_array</c-><c- p>(</c-><c- k>auto</c-> <c- n>handle</c-><c- p>)</c-> <c- p>{</c->                <c- c1>// 2</c->
   <c- k>return</c-> <c- n>just</c-><c- p>(</c-><c- n>dynamic_buffer</c-><c- p>{})</c->                                               <c- c1>// 4</c->
        <c- o>|</c-> <c- n>let_value</c-><c- p>([</c-><c- n>handle</c-><c- p>]</c-> <c- p>(</c-><c- n>dynamic_buffer</c-><c- o>&amp;</c-> <c- n>buf</c-><c- p>)</c-> <c- p>{</c->                           <c- c1>// 5</c->
-           <c- k>return</c-> <c- n>just</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>as_writeable_bytes</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>span</c-><c- p>(</c-><c- o>&amp;</c-><c- n>buf</c-><c- p>.</c-><c- n>size</c-><c- p>,</c-> <c- mi>1</c-><c- p>))</c->       <c- c1>// 6</c->
+           <c- k>return</c-> <c- n>just</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>as_writeable_bytes</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>span</c-><c- p>(</c-><c- o>&amp;</c-><c- n>buf</c-><c- p>.</c-><c- n>size</c-><c- p>,</c-> <c- mi>1</c-><c- p>)))</c->      <c- c1>// 6</c->
                 <c- o>|</c-> <c- n>async_read</c-><c- p>(</c-><c- n>handle</c-><c- p>)</c->                                          <c- c1>// 7</c->
                 <c- o>|</c-> <c- n>then</c-><c- p>(</c->                                                       <c- c1>// 8</c->
                     <c- p>[</c-><c- o>&amp;</c-><c- n>buf</c-><c- p>]</c-> <c- p>(</c-><c- n>std</c-><c- o>::</c-><c- b>size_t</c-> <c- n>bytes_read</c-><c- p>)</c-> <c- p>{</c->                         <c- c1>// 9</c->
@@ -5551,32 +5551,19 @@ reference to it is sent to the receiver’s <code class="highlight"><c- n>set_er
 </pre>
    <p>Returns a sender with no <a data-link-type="dfn" href="#completion-scheduler" id="ref-for-completion-scheduler④">completion schedulers</a>, which
 completes immediately by calling the receiver’s <code class="highlight"><c- n>set_stopped</c-></code>.</p>
-   <h4 class="heading settled" data-level="4.19.5" id="design-sender-factory-read"><span class="secno">4.19.5. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-></code></span><a class="self-link" href="#design-sender-factory-read"></a></h4>
-<pre class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>read</c-><c- p>(</c-><c- k>auto</c-> <c- n>tag</c-><c- p>);</c->
-
-<c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>get_scheduler</c-><c- p>()</c-> <c- p>{</c->
-  <c- k>return</c-> <c- n>read</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_scheduler</c-><c- p>);</c->
-<c- p>}</c->
-<c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>get_delegation_scheduler</c-><c- p>()</c-> <c- p>{</c->
-  <c- k>return</c-> <c- n>read</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_delegation_scheduler</c-><c- p>);</c->
-<c- p>}</c->
-<c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>get_allocator</c-><c- p>()</c-> <c- p>{</c->
-  <c- k>return</c-> <c- n>read</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_allocator</c-><c- p>);</c->
-<c- p>}</c->
-<c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>get_stop_token</c-><c- p>()</c-> <c- p>{</c->
-  <c- k>return</c-> <c- n>read</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_stop_token</c-><c- p>);</c->
-<c- p>}</c->
+   <h4 class="heading settled" data-level="4.19.5" id="design-sender-factory-read"><span class="secno">4.19.5. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read_env</c-></code></span><a class="self-link" href="#design-sender-factory-read"></a></h4>
+<pre class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>read_env</c-><c- p>(</c-><c- k>auto</c-> <c- n>tag</c-><c- p>);</c->
 </pre>
    <p>Returns a sender that reaches into a receiver’s environment and pulls out the
 current value associated with the customization point denoted by <code class="highlight"><c- n>Tag</c-></code>. It then
 sends the value read back to the receiver through the value channel. For
-instance, <code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code> (with no arguments) is a sender that asks the
+instance, <code class="highlight"><c- n>read_env</c-><c- p>(</c-><c- n>get_scheduler</c-><c- p>)</c-></code> is a sender that asks the
 receiver for the currently suggested <code class="highlight"><c- n>scheduler</c-></code> and passes it to the receiver’s <code class="highlight"><c- n>set_value</c-></code> completion-signal.</p>
    <p>This can be useful when scheduling nested dependent work. The following sender
 pulls the current schduler into the value channel and then schedules more work
 onto it.</p>
 <pre class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>task</c-> <c- o>=</c->
-  <c- n>execution</c-><c- o>::</c-><c- n>get_scheduler</c-><c- p>()</c->
+  <c- n>execution</c-><c- o>::</c-><c- n>read_env</c-><c- p>(</c-><c- n>get_scheduler</c-><c- p>)</c->
     <c- o>|</c-> <c- n>execution</c-><c- o>::</c-><c- n>let_value</c-><c- p>([](</c-><c- k>auto</c-> <c- n>sched</c-><c- p>)</c-> <c- p>{</c->
         <c- k>return</c-> <c- n>execution</c-><c- o>::</c-><c- n>starts_on</c-><c- p>(</c-><c- n>sched</c-><c- p>,</c-> <i><c- n>some</c-> <c- n>nested</c-> <c- n>work</c-> <c- n>here</c-></i><c- p>);</c->
     <c- p>});</c->
@@ -5584,7 +5571,7 @@ onto it.</p>
 <c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-><c- p>(</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>task</c-><c- p>)</c-> <c- p>);</c-> <c- c1>// wait for it to finish</c->
 </pre>
    <p>This code uses the fact that <code class="highlight"><c- n>sync_wait</c-></code> associates a scheduler with the
-receiver that it connects with <code class="highlight"><c- n>task</c-></code>. <code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code> reads that scheduler
+receiver that it connects with <code class="highlight"><c- n>task</c-></code>. <code class="highlight"><c- n>read_env</c-><c- p>(</c-><c- n>get_scheduler</c-><c- p>)</c-></code> reads that scheduler
 out of the receiver, and passes it to <code class="highlight"><c- n>let_value</c-></code>’s receiver’s <code class="highlight"><c- n>set_value</c-></code> function, which in turn passes it to the lambda. That lambda returns a new
 sender that uses the scheduler to schedule some nested work onto <code class="highlight"><c- n>sync_wait</c-></code>’s
 scheduler.</p>
@@ -7460,7 +7447,7 @@ for execution control primitives as summarized in Table 1.</p>
         <td>allow the specialization of the provided sender algorithms
         <td>
          <ul>
-          <li>sender factories (e.g., <code class="highlight"><c- n>schedule</c-></code>, <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>read</c-></code>)
+          <li>sender factories (e.g., <code class="highlight"><c- n>schedule</c-></code>, <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>read_env</c-></code>)
           <li>sender adaptors (e.g., <code class="highlight"><c- n>continues_on</c-></code>, <code class="highlight"><c- n>then</c-></code>, <code class="highlight"><c- n>let_value</c-></code>)
           <li>sender consumers (e.g., <code class="highlight"><c- n>start_detached</c-></code>, <code class="highlight"><c- n>sync_wait</c-></code>)
          </ul>
@@ -8098,8 +8085,6 @@ constant expression if <code class="highlight"><c- n>q</c-></code> is a core con
        </ul>
       <li data-md>
        <p><code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>get_allocator</c-><c- p>)</c-></code> is a core constant expression and has value <code class="highlight">true</code>.</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>get_allocator</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>get_allocator</c-><c- p>)</c-></code> ([exec.read]).</p>
      </ol>
      <h4 class="heading settled" data-level="34.5.3" id="spec-execution.get_stop_token"><span class="secno">34.5.3. </span><span class="content"><code class="highlight"><c- n>get_stop_token</c-></code> <b>[exec.get.stop.token]</b></span><a class="self-link" href="#spec-execution.get_stop_token"></a></h4>
      <ol>
@@ -8120,8 +8105,6 @@ constant expression if <code class="highlight"><c- n>q</c-></code> is a core con
       <li data-md>
        <p><code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>get_stop_token</c-><c- p>)</c-></code> is a core constant
 expression and has value <code class="highlight">true</code>.</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>get_stop_token</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>get_stop_token</c-><c- p>)</c-></code> ([exec.read]).</p>
      </ol>
      <h4 class="heading settled" data-level="34.5.4" id="spec-execution.environment.get_env"><span class="secno">34.5.4. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_env</c-></code> <b>[exec.get.env]</b></span><a class="self-link" href="#spec-execution.environment.get_env"></a></h4>
      <ol>
@@ -8154,8 +8137,6 @@ receiver’s associated execution environment.</span></p>
       <li data-md>
        <p><code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_domain</c-><c- p>)</c-></code> is a core constant
 expression and has value <code class="highlight">true</code>.</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>get_domain</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>get_domain</c-><c- p>)</c-></code> ([exec.read]).</p>
      </ol>
      <h4 class="heading settled" data-level="34.5.6" id="spec-execution.get_scheduler"><span class="secno">34.5.6. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_scheduler</c-></code> <b>[exec.get.scheduler]</b></span><a class="self-link" href="#spec-execution.get_scheduler"></a></h4>
      <ol>
@@ -8172,8 +8153,6 @@ subexpression <code class="highlight"><c- n>env</c-></code>, <code class="highli
       <li data-md>
        <p><code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_scheduler</c-><c- p>)</c-></code> is a core constant
 expression and has value <code class="highlight">true</code>.</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>get_scheduler</c-><c- p>)</c-></code> ([exec.read]).</p>
      </ol>
      <h4 class="heading settled" data-level="34.5.7" id="spec-execution.get_delegation_scheduler"><span class="secno">34.5.7. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_delegation_scheduler</c-></code> <b>[exec.get.delegation.scheduler]</b></span><a class="self-link" href="#spec-execution.get_delegation_scheduler"></a></h4>
      <ol>
@@ -8192,8 +8171,6 @@ subexpression <code class="highlight"><c- n>env</c-></code>, <code class="highli
       <li data-md>
        <p><code class="highlight"><c- n>forwarding_query</c-><c- p>(</c-><c- n>execution</c-><c- o>::</c-><c- n>get_delegation_scheduler</c-><c- p>)</c-></code> is a core
 constant expression and has value <code class="highlight">true</code>.</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>get_delegation_scheduler</c-><c- p>()</c-></code> (with no arguments) is expression-equivalent to <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-><c- p>(</c-><c- n>get_delegation_scheduler</c-><c- p>)</c-></code> ([exec.read]).</p>
      </ol>
      <h4 class="heading settled" data-level="34.5.8" id="spec-execution.get_forward_progress_guarantee"><span class="secno">34.5.8. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_forward_progress_guarantee</c-></code> <b>[exec.get.forward.progress.guarantee]</b></span><a class="self-link" href="#spec-execution.get_forward_progress_guarantee"></a></h4>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
@@ -9458,21 +9435,21 @@ follows:</p>
 <c- p>}</c->
 </pre>
      </ol>
-     <h5 class="heading settled" data-level="34.9.10.3" id="spec-execution.senders.read"><span class="secno">34.9.10.3. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read</c-></code> <b>[exec.read]</b></span><a class="self-link" href="#spec-execution.senders.read"></a></h5>
+     <h5 class="heading settled" data-level="34.9.10.3" id="spec-execution.senders.read.env"><span class="secno">34.9.10.3. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>read_env</c-></code> <b>[exec.read.env]</b></span><a class="self-link" href="#spec-execution.senders.read.env"></a></h5>
      <ol>
       <li data-md>
-       <p><code class="highlight"><c- n>read</c-></code> is a sender factory for a sender whose asynchronous operation
+       <p><code class="highlight"><c- n>read_env</c-></code> is a sender factory for a sender whose asynchronous operation
 completes synchronously in its start operation with a value completion
 result equal to a value read from the receiver’s associated environment.</p>
       <li data-md>
-       <p><code class="highlight"><c- n>read</c-></code> is a customization point object. For some query object <code class="highlight"><c- n>q</c-></code>,
-the expression <code class="highlight"><c- n>read</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>read</c-><c- p>,</c-> <c- n>q</c-><c- p>)</c-></code>.</p>
+       <p><code class="highlight"><c- n>read_env</c-></code> is a customization point object. For some query object <code class="highlight"><c- n>q</c-></code>,
+the expression <code class="highlight"><c- n>read_env</c-><c- p>(</c-><c- n>q</c-><c- p>)</c-></code> is expression-equivalent to <code class="highlight"><i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>read_env</c-><c- p>,</c-> <c- n>q</c-><c- p>)</c-></code>.</p>
       <li data-md>
        <p>The exposition-only class template <i><code class="highlight"><c- n>impls</c-><c- o>-</c-><c- k>for</c-></code></i> ([exec.snd.general])
-is specialized for <code class="highlight"><c- n>read</c-></code> as follows:</p>
+is specialized for <code class="highlight"><c- n>read_env</c-></code> as follows:</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
   <c- k>template</c-><c- o>&lt;></c->
-  <c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>decayed</c-><c- o>-</c-><c- n>typeof</c-></i><c- o>&lt;</c-><c- n>read</c-><c- o>>></c-> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->
+  <c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>decayed</c-><c- o>-</c-><c- n>typeof</c-></i><c- o>&lt;</c-><c- n>read_env</c-><c- o>>></c-> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->
     <c- k>static</c-> <c- k>constexpr</c-> <c- k>auto</c-> <em><c- n>start</c-></em> <c- o>=</c->
       <c- p>[](</c-><c- k>auto</c-> <c- n>query</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
         <i><c- n>TRY</c-><c- o>-</c-><c- n>SET</c-><c- o>-</c-><c- n>VALUE</c-></i><c- p>(</c-><c- n>rcvr</c-><c- p>,</c-> <c- n>query</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)));</c->
