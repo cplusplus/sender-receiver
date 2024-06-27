@@ -6169,7 +6169,7 @@ namespace std::execution {
     namespace std::execution {
       template&lt;class Sch>
         concept scheduler =
-          derived_from&lt;typename Sch::scheduler_concept, scheduler_t> &&
+          derived_from&lt;typename remove_cvref_t&lt;Sch>::scheduler_concept, scheduler_t> &&
           <i>queryable</i>&lt;Sch> &&
           requires(Sch&& sch) {
             { schedule(std::forward&lt;Sch>(sch)) } -> sender;
@@ -6227,7 +6227,7 @@ namespace std::execution {
     namespace std::execution {
       template&lt;class Rcvr>
         concept receiver =
-          derived_from&lt;typename Rcvr::receiver_concept, receiver_t> &&
+          derived_from&lt;typename remove_cvref_t&lt;Rcvr>::receiver_concept, receiver_t> &&
           requires(const remove_cvref_t&lt;Rcvr>& rcvr) {
             { get_env(rcvr) } -> <i>queryable</i>;
           } &&
