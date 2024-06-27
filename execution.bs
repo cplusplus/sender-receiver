@@ -5726,12 +5726,6 @@ namespace std::execution {
   template&lt;class... Ts>
     struct <i>type-list</i>; // exposition only
 
-  template&lt;class Sndr, class Env = empty_env>
-    using <i>single-sender-value-type</i> = <i>see below</i>; // exposition only
-
-  template&lt;class Sndr, class Env = empty_env>
-    concept <i>single-sender</i> = <i>see below</i>; // exposition only
-
   // [exec.getcomplsigs], completion signatures
   struct get_completion_signatures_t { <i>see below</i> };
   inline constexpr get_completion_signatures_t get_completion_signatures {};
@@ -5762,6 +5756,12 @@ namespace std::execution {
   template&lt;class Sndr, class Env = empty_env>
       requires sender_in&lt;Sndr, Env>
     inline constexpr bool sends_stopped = <i>see below</i>;
+
+  template&lt;class Sndr, class Env>
+    using <i>single-sender-value-type</i> = <i>see below</i>; // exposition only
+
+  template&lt;class Sndr, class Env>
+    concept <i>single-sender</i> = <i>see below</i>; // exposition only
 
   template&lt;sender Sndr>
     using tag_of_t = <i>see below</i>;
@@ -5935,6 +5935,35 @@ namespace std::execution {
           };
         }
         </pre>
+
+2. For types `Sndr` and `Env`,
+    <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is
+    an alias for:
+
+    1. `value_types_of_t<Sndr, Env, decay_t, type_identity_t>`
+        if that type is well-formed,
+
+    2. Otherwise, `void` if `value_types_of_t<Sndr, Env, tuple, variant>`
+        is `variant<tuple<>>` or `variant<>`,
+
+    3. Otherwise, <code>value_types_of_t&lt;Sndr, Env, <i>decayed-tuple</i>,
+        type_identity_t></code> if that type is well-formed,
+
+    4. Otherwise, <code><i>single-sender-value-type</i>&lt;Sndr, Env></code>
+        is ill-formed.
+
+3. The exposition-only concept <i>`single-sender`</i> is defined as follows:
+
+    <pre highlight="c++">
+    namespace std::execution {
+      template&lt;class Sndr, class Env>
+        concept <i>single-sender</i> =
+          sender_in&lt;Sndr, Env> &&
+          requires {
+            typename <i>single-sender-value-type</i>&lt;Sndr, Env>;
+          };
+    }
+    </pre>
 
 ## Queries <b>[exec.queries]</b> ## {#spec-execution.queries}
 
@@ -6404,15 +6433,15 @@ namespace std::execution {
         expression-equivalent to <code>sch.query(get_domain)</code>.
 
     6. For two subexpressions `rcvr` and `expr`, <code><i>SET-VALUE</i>(rcvr,
-        expr)</code> is expression-equivalent to `(expr, set_value(rcvr))` if
-        the type of `expr` is `void`; otherwise, `set_value(rcvr, expr)`.
+        expr)</code> is expression-equivalent to `(expr, set_value(std::move(rcvr)))` if
+        the type of `expr` is `void`; otherwise, `set_value(std::move(rcvr), expr)`.
         <code><i>TRY-EVAL</i>(rcvr, expr)</code> is equivalent to:
 
             <pre highlight="c++">
             try {
               expr;
             } catch(...) {
-              set_error(rcvr, current_exception());
+              set_error(std::move(rcvr), current_exception());
             }
             </pre>
 
@@ -6558,11 +6587,16 @@ namespace std::execution {
         };
         </pre>
 
-        1. <span class="wg21note">An expression of type
+        1. <span class="wg21note"><i>`product-type`</i> is presented here in
+            pseudo-code form for the sake of exposition. It can be approximated in
+            standard C++ with a `tuple`-like implementation that takes care
+            to keep the type structural.</span>
+
+        2. <span class="wg21note">An expression of type
             <i>`product-type`</i> is usable as the initializer of a
             structured binding declaration [dcl.struct.bind].</span>
 
-        2.  <pre highlight="c++">
+        3.  <pre highlight="c++">
             template&lt;size_t I, class Self>
             constexpr decltype(auto) <i>get</i>(this Self&& self) noexcept;
             </pre>
@@ -6574,7 +6608,7 @@ namespace std::execution {
                 return std::forward_like&lt;Self>(ts...\[I]);
                 </pre>
 
-        3.  <pre highlight="c++">
+        4.  <pre highlight="c++">
             template&lt;class Self, class Fn>
             constexpr decltype(auto) <i>apply</i>(this Self&& self, Fn&& fn) noexcept(<i>see below</i>);
             </pre>
@@ -6594,7 +6628,7 @@ namespace std::execution {
 
     14. <pre highlight="c++">
         template&lt;class Tag, class Data = <i>see below</i>, class... Child>
-          constexpr auto <i>make-sender</i>(Tag, Data&& data, Child&&... child);
+          constexpr auto <i>make-sender</i>(Tag tag, Data&& data, Child&&... child);
         </pre>
 
         1. *Mandates:* The following expressions are `true`:
@@ -7506,7 +7540,7 @@ namespace std::execution {
       struct <i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;read>> : <i>default-impls</i> {
         static constexpr auto <em>start</em> =
           [](auto query, auto& rcvr) noexcept -> void {
-            <i>TRY-SET-VALUE</i>(std::move(rcvr), query(get_env(rcvr)));
+            <i>TRY-SET-VALUE</i>(rcvr, query(get_env(rcvr)));
           };
       };
     }
@@ -7540,7 +7574,7 @@ namespace std::execution {
         to connect a child sender has an associated environment equal to
         <code><i>FWD-ENV</i>(get_env(rcvr))</code>.
 
-    These requirement apply to any function that is selected by the implementation
+    These requirements apply to any function that is selected by the implementation
     of the sender adaptor.
 
 4. If a sender returned from a sender adaptor specified in [exec.adapt] is
@@ -7678,7 +7712,7 @@ namespace std::execution {
 
 1. `continues_on` adapts a sender into one that completes on the specified scheduler.
 
-2. The name `continues_on` denotes a customization point object. For
+2. The name `continues_on` denotes a pipeable sender adaptor object. For
     subexpressions `sch` and `sndr`, if `decltype((sch))` does not satisfy
     `scheduler`, or `decltype((sndr))` does not satisfy `sender`,
     `continues_on(sndr, sch)` is ill-formed.
@@ -7789,19 +7823,19 @@ namespace std::execution {
 
             auto& [_, sch, child] = sndr;
 
-            using <i>sched-t</i> = decltype(auto(sch));
-            using <i>variant-type</i> = <i>see below</i>;
-            using <i>receiver-type</i> = <i>see below</i>;
-            using <i>operation-type</i> = connect_result_t&lt;schedule_result_t&lt;<i>sched-t</i>>, <i>receiver-type</i>>;
-            constexpr bool nothrow = noexcept(connect(schedule(sch), <i>receiver-type</i>{nullptr}));
+            using sched_t = decltype(auto(sch));
+            using variant_t = <i>see below</i>;
+            using receiver_t = <i>see below</i>;
+            using operation_t = connect_result_t&lt;schedule_result_t&lt;sched_t>, receiver_t>;
+            constexpr bool nothrow = noexcept(connect(schedule(sch), receiver_t{nullptr}));
 
             struct <i>state-type</i> {
-              Rcvr& <i>rcvr</i>;
-              <i>variant-type</i> <i>async-result</i>;
-              <i>operation-type</i> <i>op-state</i>;
+              Rcvr& <i>rcvr</i>;          // exposition only
+              variant_t <i>async-result</i>; // exposition only
+              operation_t <i>op-state</i>;   // exposition only
 
-              explicit <i>state-type</i>(<i>sched-t</i> sch, Rcvr& rcvr) noexcept(nothrow)
-                : <i>rcvr</i>(rcvr), <i>op-state</i>(connect(schedule(sch), <i>receiver-type</i>{this})) {}
+              explicit <i>state-type</i>(sched_t sch, Rcvr& rcvr) noexcept(nothrow)
+                : <i>rcvr</i>(rcvr), <i>op-state</i>(connect(schedule(sch), receiver_t{this})) {}
             };
 
             return <i>state-type</i>{sch, rcvr};
@@ -7813,15 +7847,15 @@ namespace std::execution {
 
           2. Let `Sigs` be a pack of the arguments to the
               `completion_signatures` specialization named by
-              `completion_signatures_of_t<Child, env_of_t<Rcvr>>`. Let
+              <code>completion_signatures_of_t&lt;<i>child-type</i>&lt;Sndr>, env_of_t&lt;Rcvr>></code>. Let
               <i>`as-tuple`</i> be an alias template that transforms a
               completion signature `Tag(Args...)` into the `tuple`
               specialization <code><i>decayed-tuple</i>&lt;Tag, Args...></code>.
-              Then <i>`variant-type`</i> denotes the type
+              Then `variant_t` denotes the type
               <code>variant&lt;monostate, <i>as-tuple</i>&lt;Sigs>...></code>,
               except with duplicate types removed.
 
-          3. Let <i>`receiver-type`</i> denote the following exposition-only
+          3. `receiver_t` is an alias for the following exposition-only
               class:
 
                 <pre highlight="c++">
@@ -7869,7 +7903,7 @@ namespace std::execution {
             using result_t = <i>decayed-tuple</i>&lt;Tag, Args...>;
             constexpr bool nothrow = is_nothrow_constructible_v&lt;result_t, Tag, Args...>;
 
-            <i>TRY-EVAL</i>(std::move(rcvr), [&]() noexcept(nothrow) {
+            <i>TRY-EVAL</i>(rcvr, [&]() noexcept(nothrow) {
               state.<i>async-result</i>.template emplace&lt;result_t>(Tag(), std::forward&lt;Args>(args)...);
             }());
 
@@ -8065,10 +8099,10 @@ request but has no recommendataions at present.</span>
     error and stopped completion operations respectively, sending the result
     of the invocable as a value completion.
 
-2. The names `then`, `upon_error`, and `upon_stopped` denote customization point
-    objects. Let the expression <i>`then-cpo`</i> be one of `then`,
+2. The names `then`, `upon_error`, and `upon_stopped` denote pipeable sender
+    adaptor objects. Let the expression <i>`then-cpo`</i> be one of `then`,
     `upon_error`, or `upon_stopped`. For subexpressions `sndr` and `f`, if
-    `decltype(sndr)` does not satisfy `sender`, or `decltype(f)` does not
+    `decltype((sndr))` does not satisfy `sender`, or `decltype((f))` does not
     satisfy <i>`movable-value`</i>,
     <code><i>then-cpo</i>(sndr, f)</code> is ill-formed.
 
@@ -8096,7 +8130,7 @@ request but has no recommendataions at present.</span>
               []&lt;class Tag, class... Args>
                 (auto, auto& fn, auto& rcvr, Tag, Args&&... args) noexcept -> void {
                   if constexpr (same_as&lt;Tag, <i>decayed-typeof</i>&lt;<i>set-cpo</i>>>) {
-                    <i>TRY-SET-VALUE</i>(std::move(rcvr),
+                    <i>TRY-SET-VALUE</i>(rcvr,
                                   invoke(std::move(fn), std::forward&lt;Args>(args)...));
                   } else {
                     Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
@@ -8136,10 +8170,10 @@ request but has no recommendataions at present.</span>
 
       - `(void(sndr), empty_env{})`
 
-3. The names `let_value`, `let_error`, and `let_stopped` denote customization
-    point objects. For subexpressions `sndr` and `f`, let `F` be the decayed
-    type of `f`. If `decltype(sndr)` does not satisfy `sender` or if
-    `decltype(f)` does not satisfy <i>`movable-value`</i>, the expression
+3. The names `let_value`, `let_error`, and `let_stopped` denote pipeable sender
+    adaptor objects. For subexpressions `sndr` and `f`, let `F` be the decayed
+    type of `f`. If `decltype((sndr))` does not satisfy `sender` or if
+    `decltype((f))` does not satisfy <i>`movable-value`</i>, the expression
     <code><i>let-cpo</i>(sndr, f)</code> is ill-formed. If `F` does not satisfy
     `invocable`, the expression `let_stopped(sndr, f)` is ill-formed.
 
@@ -8209,16 +8243,16 @@ request but has no recommendataions at present.</span>
             <pre highlight="c++">
             []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) requires <i>see below</i> {
               auto& [_, fn, child] = sndr;
-              using <i>fn-t</i> = decay_t&lt;decltype(fn)>;
-              using <i>env-t</i> = decltype(<i>let-env</i>(child));
-              using <i>args-variant-type</i> = <i>see below</i>;
-              using <i>ops2-variant-type</i> = <i>see below</i>;
+              using fn_t = decay_t&lt;decltype(fn)>;
+              using env_t = decltype(<i>let-env</i>(child));
+              using args_variant_t = <i>see below</i>;
+              using ops2_variant_t = <i>see below</i>;
 
               struct <i>state-type</i> {
-                Fn fn;
-                Env env;
-                <i>args-variant-type</i> args;
-                <i>ops2-variant-type</i> ops2;
+                fn_t fn;    // exposition only
+                env_t env;    // exposition only
+                args_variant_t args;    // exposition only
+                ops2_variant_t ops2;    // exposition only
               };
               return <i>state-type</i>{std::forward_like&lt;Sndr>(fn), <i>let-env</i>(child), {}, {}};
             }
@@ -8232,20 +8266,20 @@ request but has no recommendataions at present.</span>
                 <i>`as-tuple`</i> be an alias template such that
                 <code><i>as-tuple</i>&lt;Tag(Args...)></code> denotes the type
                 <code><i>decayed-tuple</i>&lt;Args...></code>. Then
-                <i>`args-variant-type`</i> denotes the type <code>variant&lt;monostate,
+                `args_variant_t` denotes the type <code>variant&lt;monostate,
                 <i>as-tuple</i>&lt;LetSigs>...></code> except with duplicate types removed.
 
-            2. Let <i>`as-sndr2`</i> be an alias template such that
+            2. Given a type `Tag` and a pack `Args`, let <i>`as-sndr2`</i> be an alias template such that
                 <code><i>as-sndr2</i>&lt;Tag(Args...)></code> denotes the type
                 <code><i>call-result-t</i>&lt;Fn, decay_t&lt;Args>&...></code>.
-                Then <i>`ops2-variant-type`</i> denotes the type
+                Then `ops2_variant_t` denotes the type
                 <code>variant&lt;monostate,
                 connect_result_t&lt;<i>as-sndr2</i>&lt;LetSigs>,
                 <i>receiver2</i>&lt;Rcvr, Env>>...></code> except with duplicate types removed.
 
             3. The <i>requires-clause</i> constraining the above lambda is
-                satisfied if and only if the types <i>`args-variant-type`</i>
-                and <i>`ops2-variant-type`</i> are well-formed.
+                satisfied if and only if the types `args_variant_t`
+                and `ops2_variant_t` are well-formed.
 
         3. The exposition-only function template <i>`let-bind`</i> has effects equivalent to:
 
@@ -8253,10 +8287,11 @@ request but has no recommendataions at present.</span>
             using args_t = <i>decayed-tuple</i>&lt;Args...>;
             auto mkop2 = [&] {
               return connect(
-                apply(std::move(state.fn), state.args.emplace&lt;args_t>(std::forward&lt;Args>(args)...)),
+                apply(std::move(state.fn),
+                      state.args.template emplace&lt;args_t>(std::forward&lt;Args>(args)...)),
                 <i>receiver2</i>{rcvr, std::move(state.env)});
             };
-            start(state.ops2.emplace&lt;decltype(mkop2())>(<i>emplace-from</i>{mkop2}));
+            start(state.ops2.template emplace&lt;decltype(mkop2())>(<i>emplace-from</i>{mkop2}));
             </pre>
 
         4. <code><i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;<i>let-cpo</i>>>::<i>complete</i></code> is
@@ -8266,7 +8301,7 @@ request but has no recommendataions at present.</span>
             []&lt;class Tag, class... Args>
               (auto, auto& state, auto& rcvr, Tag, Args&&... args) noexcept -> void {
                 if constexpr (same_as&lt;Tag, <i>decayed-typeof</i>&lt;<i>set-cpo</i>>>) {
-                  <i>TRY-EVAL</i>(std::move(rcvr), <i>let-bind</i>(state, rcvr, std::forward&lt;Args>(args)...));
+                  <i>TRY-EVAL</i>(rcvr, <i>let-bind</i>(state, rcvr, std::forward&lt;Args>(args)...));
                 } else {
                   Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
                 }
@@ -8298,7 +8333,7 @@ request but has no recommendataions at present.</span>
 
 1. `bulk` runs a task repeatedly for every index in an index space.
 
-2. The name `bulk` denotes a customization point object. For subexpressions
+2. The name `bulk` denotes a pipeable sender adaptor object. For subexpressions
     `sndr`, `shape`, and `f`, let `Shape` be `decltype(auto(shape))`. If
     `decltype((sndr))` does not satisfy `sender`, or if `Shape` does not
     satisfy `integral`, or if `decltype((f))` does not satisfy <i>`movable-value`</i>,
@@ -8336,7 +8371,7 @@ request but has no recommendataions at present.</span>
               if constexpr (same_as&lt;Tag, set_value_t>) {
                 auto& [shape, f] = state;
                 constexpr bool nothrow = noexcept(f(auto(shape), args...));
-                <i>TRY-EVAL</i>(std::move(rcvr), [&]() noexcept(nothrow) {
+                <i>TRY-EVAL</i>(rcvr, [&]() noexcept(nothrow) {
                   for (decltype(auto(shape)) i = 0; i < shape; ++i) {
                     f(auto(i), args...);
                   }
@@ -8366,8 +8401,6 @@ request but has no recommendataions at present.</span>
 
       - propagates all completion operations sent by `sndr`.
 
-<!-- LWG stopped here -->
-
 #### `execution::split` and `execution::ensure_started` <b>[exec.split]</b> #### {#spec-execution.senders.adapt.split}
 
 1. `split` adapts an arbitrary sender into a sender that can be connected
@@ -8378,18 +8411,11 @@ request but has no recommendataions at present.</span>
     given an instance `env`, the expression `get_stop_token(env)` is well-formed
     and has type `inplace_stop_token`.
 
-3. The names `split` and `ensure_started` denote customization point objects.
+3. The names `split` and `ensure_started` denote pipeable sender adaptor closure objects.
     Let the expression <i>`shared-cpo`</i> be one of `split` or
     `ensure_started`. For a subexpression `sndr`, let `Sndr` be
-    `decltype((sndr))`. If <code>sender_in&lt;Sndr, <i>shared-env</i>></code> <del>or
-    `constructible_from<decay_t<env_of_t<Sndr>>, env_of_t<Sndr>>`</del> is `false`,
-    <code><i>shared-cpo</i>(sndr)</code> is ill-formed.
-
-    <span class="ed-note">Although it has not yet been approved by LEWG, there
-    is a bug in the current wording that makes it impossible to safely copy the
-    attributes of a sender; it may have reference semantics, leading to a
-    dangling reference. I am striking this part for now and will bring a fix to
-    LEWG.</span>
+    `decltype((sndr))`. If <code>sender_in&lt;Sndr, <i>shared-env</i>></code> is
+    `false`, <code><i>shared-cpo</i>(sndr)</code> is ill-formed.
 
 4. Otherwise, the expression <code><i>shared-cpo</i>(sndr)</code> is
     expression-equivalent to:
@@ -8397,29 +8423,30 @@ request but has no recommendataions at present.</span>
       <pre highlight="c++">
       transform_sender(
         <i>get-domain-early</i>(sndr),
-        <i>make-sender</i>(<i>shared-cpo</i>, {}, sndr));
+        <i>make-sender</i>(<i>shared-cpo</i>, {}, sndr))
       </pre>
+
+    except that `sndr` is evaluated only once.
 
     - <span class="wg21note">The default implementation of `transform_sender`
         will have the effect of connecting the sender to a receiver and, in the
         case of `ensure_started`, calling `start` on the resulting operation
         state. It will return a sender with a different tag type.</span>
 
-5. Let <i>`local-state`</i> denote the following exposition-only class:
+5. Let <i>`local-state`</i> denote the following exposition-only class template:
 
     <pre highlight="c++">
     namespace std::execution {
-      struct <i>local-state-base</i> {
+      struct <i>local-state-base</i> {          // exposition only
         virtual ~<i>local-state-base</i>() = default;
-        virtual void <i>notify</i>() noexcept = 0;
-        virtual void <i>detach</i>() noexcept = 0;
+        virtual void <i>notify</i>() noexcept = 0; // exposition only
+        virtual void <i>detach</i>() noexcept = 0; // exposition only
       };
 
       template&lt;class Sndr, class Rcvr>
-      struct <i>local-state</i> : <i>local-state-base</i> {
-        using <i>on-stop-request</i> = <i>see below</i>;
-        using <i>on-stop-callback</i> = stop_token_of_t&lt;env_of_t&lt;Rcvr>>::
-                                    template callback_type&lt;<i>on-stop-request</i>>;
+      struct <i>local-state</i> : <i>local-state-base</i> { // exposition only
+        using <i>on-stop-callback</i> =     // exposition only
+          stop_callback_of_t&lt;stop_token_of_t&lt;env_of_t&lt;Rcvr>>, <i>on-stop-request</i>>;
 
         <i>local-state</i>(Sndr&& sndr, Rcvr& rcvr) noexcept;
         ~<i>local-state</i>();
@@ -8427,9 +8454,10 @@ request but has no recommendataions at present.</span>
         void <i>notify</i>() noexcept override;
         void <i>detach</i>() noexcept override;
 
-        optional&lt;<i>on-stop-callback</i>> on_stop;
-        <i>shared-state</i>&lt;Sndr>* sh_state;
-        Rcvr* rcvr;
+      private:
+        optional&lt;<i>on-stop-callback</i>> on_stop; // exposition only
+        <i>shared-state</i>&lt;Sndr>* sh_state; // exposition only
+        Rcvr* rcvr; // exposition only
       };
     }
     </pre>
@@ -8440,10 +8468,10 @@ request but has no recommendataions at present.</span>
         1. *Effects:* Equivalent to:
 
             <pre highlight="c++">
-            auto&& [tag, data, child] = std::forward&lt;Sndr>(sndr);
+            auto& [_, data, _] = sndr;
             this->sh_state = data.sh_state.get();
             this->sh_state-><i>inc-ref</i>();
-            this->rcvr = &rcvr;
+            this->rcvr = addressof(rcvr);
             </pre>
 
     2. <pre highlight="c++">
@@ -8472,7 +8500,6 @@ request but has no recommendataions at present.</span>
                   tupl);
               },
               <i>QUAL</i>(sh_state->result));
-            );
             </pre>
 
             where <i>`QUAL`</i> is `std::move` if
@@ -8526,7 +8553,7 @@ request but has no recommendataions at present.</span>
         struct <i>env</i> { <i>// exposition only</i>
           <i>shared-state</i>&lt;Sndr>* <i>sh-state</i>; <i>// exposition only</i>
 
-          inplace_stop_source query(get_stop_token_t) const noexcept {
+          inplace_stop_token query(get_stop_token_t) const noexcept {
             return <i>sh-state</i>->stop_src.get_token();
           }
         };
@@ -8535,7 +8562,7 @@ request but has no recommendataions at present.</span>
           return <i>env</i>{sh_state};
         }
 
-        <i>shared-state</i>&lt;Sndr>* sh_state;
+        <i>shared-state</i>&lt;Sndr>* sh_state; // exposition only
       };
     }
     </pre>
@@ -8547,32 +8574,31 @@ request but has no recommendataions at present.</span>
     namespace std::execution {
       template&lt;class Sndr>
       struct <i>shared-state</i> {
-        using <i>variant-type</i> = <i>see below</i>;
-        using <i>state-list-type</i> = <i>see below</i>;
-        using <i>state-flag-type</i> = <i>see below</i>;
+        using <i>variant-type</i> = <i>see below</i>;   // exposition only
+        using <i>state-list-type</i> = <i>see below</i>;    // exposition only
 
         explicit <i>shared-state</i>(Sndr&& sndr);
 
-        void <i>start-op</i>() noexcept;
-        void <i>notify</i>() noexcept;
-        void <i>detach</i>() noexcept;
-        void <i>inc-ref</i>() noexcept;
-        void <i>dec-ref</i>() noexcept;
+        void <i>start-op</i>() noexcept;  // exposition only
+        void <i>notify</i>() noexcept;  // exposition only
+        void <i>detach</i>() noexcept;  // exposition only
+        void <i>inc-ref</i>() noexcept; // exposition only
+        void <i>dec-ref</i>() noexcept; // exposition only
 
-        inplace_stop_source stop_src{};
-        <i>variant-type</i> result{};
-        <i>state-list-type</i> waiting_states;
-        <i>state-flag-type</i> completed;
-        atomic&lt;size_t> ref_count{1};
-        connect_result_t&lt;Sndr, <i>shared-receiver</i>&lt;Sndr>> op_state;
+        inplace_stop_source stop_src{};   // exposition only
+        <i>variant-type</i> result{};   // exposition only
+        <i>state-list-type</i> waiting_states;    // exposition only
+        atomic&lt;bool> completed{false};   // exposition only
+        atomic&lt;size_t> ref_count{1};   // exposition only
+        connect_result_t&lt;Sndr, <i>shared-receiver</i>&lt;Sndr>> op_state;    // exposition only
       };
     }
     </pre>
 
       1. Let `Sigs` be a pack of the arguments to the
           `completion_signatures` specialization named by
-          `completion_signatures_of_t<Sndr>`. Let <i>`as-tuple`</i> be an
-          alias template such that
+          `completion_signatures_of_t<Sndr>`. For type `Tag` and pack `Args`,
+          let <i>`as-tuple`</i> be an alias template such that
           <code><i>as-tuple</i>&lt;Tag(Args...)></code> denotes the type
           <code><i>decayed-tuple</i>&lt;Tag, Args...></code>. Then
           <i>`variant-type`</i> denotes the type
@@ -8582,8 +8608,6 @@ request but has no recommendataions at present.</span>
 
       2. Let <i>`state-list-type`</i> be a type that stores a list of pointers
           to <i>`local-state-base`</i> objects and that permits atomic insertion.
-          Let <i>`state-flag-type`</i> be a type that can be atomically toggled
-          between `true` and `false`.
 
       3. <pre highlight="c++">
           explicit <i>shared-state</i>(Sndr&& sndr);</pre>
@@ -8596,7 +8620,7 @@ request but has no recommendataions at present.</span>
       4. <pre highlight="c++">
           void <i>start-op</i>() noexcept;</pre>
 
-          1. *Effects:* <code><i>inc-ref</i>()</code>. If
+          1. *Effects:* Calls <code><i>inc-ref</i>()</code>. If
               `stop_src.stop_requested()` is `true`, calls
               <code><i>notify</i>()</code>; otherwise, calls `start(op_state)`.
 
@@ -8608,9 +8632,11 @@ request but has no recommendataions at present.</span>
                 - Sets `completed` to `true`, and
 
                 - Exchanges `waiting_states` with an empty list, storing the old
-                    value in a local `prior_states`. For each pointer `p` in
-                    `prior_states`, calls <code>p-><i>notify</i>()</code>.
-                    Finally, calls <code><i>dec-ref</i>()</code>.
+                    value in a local `prior_states`.
+                    
+              Then, for each pointer `p` in `prior_states`, calls
+              <code>p-><i>notify</i>()</code>. Finally, calls
+              <code><i>dec-ref</i>()</code>.
 
       6. <pre highlight="c++">
           void <i>detach</i>() noexcept;</pre>
@@ -8632,8 +8658,10 @@ request but has no recommendataions at present.</span>
 
           1. *Effects:* Decrements `ref_count`. If the new value of
               `ref_count` is `0`, calls `delete this`.
-          2. *Synchronization:* If `dec_ref()` does not decrement the `ref_count` to `0` then synchronizes with
-              the call to `dec_ref()` that decrements `ref_count` to `0`.
+
+          2. *Synchronization:* If <code><i>dec-ref</i>()</code> does not decrement
+              the `ref_count` to `0` then synchronizes with
+              the call to <code><i>dec-ref</i>()</code> that decrements `ref_count` to `0`.
 
 8. For each type `split_t` and `ensure_started_t`, there is a different,
     associated exposition-only implementation tag type, <i>`split-impl-tag`</i>
@@ -8643,13 +8671,13 @@ request but has no recommendataions at present.</span>
     <code><i>shared-cpo</i>.transform_sender(sndr)</code> is equivalent to:
 
       <pre highlight="c++">
-      auto&& [tag, data, child] = sndr;
+      auto&& [tag, _, child] = sndr;
       auto* sh_state = new <i>shared-state</i>{std::forward_like&lt;decltype((sndr))>(child)};
       return <i>make-sender</i>(<i>shared-impl-tag</i>(), <i>shared-wrapper</i>{sh_state, tag});
       </pre>
 
     where <i>`shared-wrapper`</i> is an exposition-only class that manages the
-    reference count of the `shared-state` object pointed to by `sh_state`.
+    reference count of the <i>`shared-state`</i> object pointed to by `sh_state`.
     <i>`shared-wrapper`</i> models `movable` with move operations nulling out the
     moved-from object. If `tag` is `split_t`, <i>`shared-wrapper`</i> models
     `copyable` with copy operations incrementing the reference count by calling
@@ -8695,12 +8723,12 @@ request but has no recommendataions at present.</span>
         void operator()(<i>local-state</i>&lt;Sndr, Rcvr>& state, Rcvr& rcvr) const noexcept;
         </pre>
 
-        1. *Effects:*
+        1. *Effects:* If `state.sh_state->completed` is `true`, calls
+            <code>state.<i>notify</i>()</code> and returns. Otherwise,
+            does the following in order:
 
-            1. If `state.sh_state->completed` is `true`, calls
-                <code>state.<i>notify</i>()</code> and returns.
 
-            2. Otherwise, calls:
+            1. Calls:
 
                 <pre highlight="c++">
                 state.on_stop.emplace(
@@ -8708,24 +8736,22 @@ request but has no recommendataions at present.</span>
                   <i>on-stop-request</i>{state.sh_state->stop_src})
                 </pre>
 
-                If <i>`shared-impl-tag`</i> is
-                <i>`ensure-started-impl-tag`</i>, and if
-                `state.sh_state->stop_src.stop_requested()`
-                is `true`, calls `set_stopped(std::move(rcvr))`
-                and returns.
+            2. If <i>`shared-impl-tag`</i> is <i>`ensure-started-impl-tag`</i>,
+                and if `state.sh_state->stop_src.stop_requested()` is `true`,
+                calls `set_stopped(std::move(rcvr))` and returns.
 
-            3. Then atomically does the following:
+            3.  Otherwise, atomically does the following:
 
                   - Inserts `&state` into `state.sh_state->waiting_states`, and
 
                   - Reads the value of `state.sh_state->completed`.
 
-                If the value is `true`, calls <code>state.<i>notify</i>()</code>
-                and returns.
+            4. If the value read from `state.sh_state->completed` is `true`,
+                calls <code>state.<i>notify</i>()</code> and returns.
 
-            4. If <i>`shared-impl-tag`</i> is <i>`split-impl-tag`</i>, and if
-                `&state` is the first item added to
-                `state.sh_state->waiting_states`, calls
+            4. Otherwise, if <i>`shared-impl-tag`</i> is
+                <i>`split-impl-tag`</i>, and if `&state` is the first item added
+                to `state.sh_state->waiting_states`, calls
                 <code>state.sh_state-><i>start-op</i>()</code>.
 
 10. <div class="wg21note">Under the following conditions, the results of the
@@ -8749,33 +8775,29 @@ request but has no recommendataions at present.</span>
     concatenates all the input senders' value result datums into its own value
     completion operation. `when_all_with_variant(sndrs...)` is semantically
     equivalent to `when_all(into_variant(sndrs)...)`, where `sndrs` is a pack of
-    subexpressions of sender types.
+    subexpressions whose types model `sender`.
 
 2. The names `when_all` and `when_all_with_variant` denote customization point
-    objects. For some subexpressions <code>sndr<i><sub>i</sub></i>...</code>, let
-    <code>Sndr<i><sub>i</sub></i>...</code> be
-    <code>decltype((sndr<i><sub>i</sub></i>))...</code>. The expressions
-    <code>when_all(sndr<i><sub>i</sub></i>...)</code> and
-    <code>when_all_with_variant(sndr<i><sub>i</sub></i>...)</code> are ill-formed if
+    objects. Let `sndrs` be a pack of subexpressions, let `Sndrs` be a pack of
+    the types `decltype((sndrs))...`, and let <i>`CD`</i> be the type
+    <code>common_type_t&lt;<i>DOMAIN-OF</i>(sndrs)...></code>, where
+    <code><i>DOMAIN-OF</i>(sndr)</code> is the type of
+    <code><i>get-domain-early</i>(sndr)</code>. The expressions `when_all(sndrs...)` and
+    `when_all_with_variant(sndrs...)` are ill-formed if
     any of the following is true:
 
-      * If the number of subexpressions in <code>sndr<i><sub>i</sub></i>...</code> is 0, or
+      * `sizeof...(sndrs)` is 0, or
 
-      * If any type <code>Sndr<i><sub>i</sub></i></code> does not satisfy `sender`.
+      * `(sender<Sndrs> && ...)` is `false`, or
 
-      * If the types of the expressions
-        <code><i>get-domain-early</i>(sndr<sub><i>i</i></sub>)</code> do not share
-        a common type ([meta.trans.other]) for all values of <i>`i`</i>.
+      * <i>`CD`</i> is ill-formed.
 
-    Otherwise, let <i>`CD`</i> be the common type of the input senders' domains.
-
-3. The expression <code>when_all(sndr<i><sub>i</sub></i>...)</code> is
-    expression-equivalent to:
+3. The expression `when_all(sndrs...)` is expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
         <i>CD</i>(),
-        <i>make-sender</i>(when_all, {}, sndr<sub><i>0</i></sub>, ... sndr<sub><i>n-1</i></sub>));
+        <i>make-sender</i>(when_all, {}, sndrs...));
       </pre>
 
 4. The exposition-only class template <i>`impls-for`</i>
@@ -8800,12 +8822,10 @@ request but has no recommendataions at present.</span>
 
           <pre highlight="c++">
           [](auto&&, auto&&... child) noexcept {
-            auto domain_fn = []&lt;class... Ds>(Ds...) noexcept { return common_type_t&lt;Ds...>(); };
-            using domain_type = decltype(domain_fn(<i>get-domain-early</i>(child)...));
-            if constexpr (same_as&lt;domain_type, default_domain>) {
+            if constexpr (same_as&lt;<i>CD</i>, default_domain>) {
               return empty_env();
             } else {
-              return <i>MAKE-ENV</i>(get_domain, domain_type());
+              return <i>MAKE-ENV</i>(get_domain, <i>CD</i>());
             }
           }
           </pre>
@@ -8826,21 +8846,25 @@ request but has no recommendataions at present.</span>
         expression:
 
           <pre highlight="c++">
-          <span class="ed-note">BUG: `apply` isn't constrained</span>
-          []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr)
-            -> decltype(apply(<i>make-state</i>&lt;Rcvr>{get_env(rcvr)}, std::forward&lt;Sndr>(sndr))) {
-            return apply(<i>make-state</i>&lt;Rcvr>{get_env(rcvr)}, std::forward&lt;Sndr>(sndr));
+          []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) noexcept(<i>e</i>) -> decltype(<i>e</i>) {
+            return <i>e</i>;
           }
           </pre>
 
-        where <i>`make-state`</i> is the following exposition-only class type:
+        where <i>`e`</i> is the expression:
+        
+          <pre highlight="c++">
+          std::forward&lt;Sndr>(sndr).<i>apply</i>(<i>make-state</i>&lt;Rcvr>{get_env(rcvr)})
+          </pre>
+
+        and where <i>`make-state`</i> is the following exposition-only class template:
 
           <pre highlight="c++">
           template&lt;class Sndr, class Env>
-          concept <i>max-1-sender-in</i> = sender_in&lt;Sndr, Env> &&
+          concept <i>max-1-sender-in</i> = sender_in&lt;Sndr, Env> && // exposition only
             (tuple_size_v&lt;value_types_of_t&lt;Sndr, Env, tuple, tuple>> &lt;= 1);
 
-          enum class <i>disposition</i> { <i>started</i>, <i>error</i>, <i>stopped</i> };
+          enum class <i>disposition</i> { <i>started</i>, <i>error</i>, <i>stopped</i> }; // exposition only
 
           template&lt;class Rcvr>
           struct <i>make-state</i> {
@@ -8850,10 +8874,9 @@ request but has no recommendataions at present.</span>
             auto operator()(auto, auto, Sndrs&&... sndrs) const {
               using values_tuple = <i>see below</i>;
               using errors_variant = <i>see below</i>;
-              using stop_token = stop_token_of_t&lt;env_of_t&lt;Rcvr>>;
-              using stop_callback = stop_token::template callback_type&lt;<i>on-stop-request</i>>;
+              using stop_callback = stop_callback_of_t&lt;stop_token_of_t&lt;env_of_t&lt;Rcvr>>, <i>on-stop-request</i>>;
 
-              struct <i>state</i> {
+              struct <i>state-type</i> {
                 void <i>arrive</i>(Rcvr& rcvr) noexcept {
                   if (0 == --count) {
                     <i>complete</i>(rcvr);
@@ -8862,21 +8885,21 @@ request but has no recommendataions at present.</span>
 
                 void <i>complete</i>(Rcvr& rcvr) noexcept; // see below
 
-                atomic&lt;size_t> count{sizeof...(sndrs)};
-                inplace_stop_source stop_src{};
-                atomic&lt;<i>disposition</i>> disp{<i>disposition</i>::<i>started</i>};
-                errors_variant errors{};
-                values_tuple values{};
-                optional&lt;stop_callback> on_stop{nullopt};
+                atomic&lt;size_t> count{sizeof...(sndrs)};   // exposition only
+                inplace_stop_source stop_src{};   // exposition only
+                atomic&lt;<i>disposition</i>> disp{<i>disposition</i>::<i>started</i>};   // exposition only
+                errors_variant errors{};   // exposition only
+                values_tuple values{};   // exposition only
+                optional&lt;stop_callback> on_stop{nullopt};   // exposition only
               };
 
-              return <i>state</i>{};
+              return <i>state-type</i>{};
             }
           };
           </pre>
 
           1. Let <i>copy-fail</i> be `exception_ptr` if decay-copying any of the
-              input senders' result datums can potentially throw; otherwise,
+              child senders' result datums can potentially throw; otherwise,
               <i>`none-such`</i>, where <i>`none-such`</i> is an unspecified
               empty class type.
 
@@ -8889,7 +8912,7 @@ request but has no recommendataions at present.</span>
               <code>variant&lt;<i>none-such</i>, <i>copy-fail</i>,
               <i>Es</i>...></code> with duplicate types removed, where
               <i>`Es`</i> is the pack of the decayed types of all the
-              input senders' possible error result datums.
+              child senders' possible error result datums.
 
           4. The member <code>void <i>state</i>::<i>complete</i>(Rcvr& rcvr)
               noexcept</code> behaves as follows:
@@ -9003,58 +9026,47 @@ request but has no recommendataions at present.</span>
         if the expression <code><i>decayed-tuple</i>&lt;decltype(as)...>{as...}</code>
         is potentially throwing; otherwise, `o.emplace(as...)`.
 
-5. The expression <code>when_all_with_variant(sndr<sub><i>i</i></sub>...)</code> is
+5. The expression <code>when_all_with_variant(sndrs...)</code> is
     expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
         <i>CD</i>(),
-        <i>make-sender</i>(when_all_with_variant, {}, sndr<sub><i>0</i></sub>, ... sndr<sub><i>n-1</i></sub>));
+        <i>make-sender</i>(when_all_with_variant, {}, sndrs...));
       </pre>
 
 6. Given subexpressions `sndr` and `env`, if
     <code><i>sender-for</i>&lt;decltype((sndr)), when_all_with_variant_t></code> is `false`,
     then the expression `when_all_with_variant.transform_sender(sndr, env)` is
-    ill-formed; otherwise, the body of the `transform_sender` member-function is equivalent to:
+    ill-formed; otherwise, it is equivalent to:
 
       <pre highlight="c++">
-        auto [tag, data, ...child] = sndr;
-        return when_all(into_variant(std::move(child))...);
+      auto&& [_, _, ...child] = sndr;
+      return when_all(into_variant(std::forward_like&lt;decltype((sndr))>(child))...);
       </pre>
 
-    <span class="wg21note">This causes the `when_all_with_variant(sndr...)` sender
-    to become `when_all(into_variant(sndr)...)` when it is connected with a
-    receiver with an execution domain that does not customize
-    `when_all_with_variant`.</span>
+    <span class="wg21note">This causes the `when_all_with_variant(sndrs...)` sender
+    to become `when_all(into_variant(sndrs)...)` when it is connected with a
+    receiver whose execution domain does not customize `when_all_with_variant`.</span>
 
 #### `execution::into_variant` <b>[exec.into.variant]</b> #### {#spec-execution.senders.adapt.into_variant}
 
 1. `into_variant` adapts a sender with multiple value completion signatures into
-    a sender with just one consisting of a `variant` of `tuple`s.
+    a sender with just one value completion signature consisting of a `variant` of `tuple`s.
 
-2. The template <i>`into-variant-type`</i> computes the type sent by
-    a sender returned from `into_variant`.
-
-    <pre highlight="c++">
-    namespace std::execution {
-      template&lt;class Sndr, class Env>
-          requires sender_in&lt;Sndr, Env>
-        using <i>into-variant-type</i> =
-          value_types_of_t&lt;Sndr, Env>;
-    }
-    </pre>
-
-3. The name `into_variant` denotes a customization point object. For a
+2. The name `into_variant` denotes a pipeable sender adaptor closure object. For a
     subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If `Sndr` does not
     satisfy `sender`, `into_variant(sndr)` is ill-formed.
 
-4. Otherwise, the expression `into_variant(sndr)` is expression-equivalent to:
+3. Otherwise, the expression `into_variant(sndr)` is expression-equivalent to:
 
       <pre highlight="c++">
       transform_sender(
         <i>get-domain-early</i>(sndr),
         <i>make-sender</i>(into_variant, {}, sndr))
       </pre>
+
+    except that `sndr` is only evaluated once.
 
 5. The exposition-only class template <i>`impls-for`</i> ([exec.snd.general]) is
     specialized for `into_variant` as follows:
@@ -9075,7 +9087,7 @@ request but has no recommendataions at present.</span>
 
           <pre highlight="c++">
           []&lt;class Sndr, class Rcvr>(Sndr&& sndr, Rcvr& rcvr) noexcept
-            -> type_identity&lt;<i>into-variant-type</i>&lt;<i>child-type</i>&lt;Sndr>, env_of_t&lt;Rcvr>>> {
+            -> type_identity&lt;value_types_of_t&lt;<i>child-type</i>&lt;Sndr>, env_of_t&lt;Rcvr>>> {
             return {};
           }
           </pre>
@@ -9085,17 +9097,10 @@ request but has no recommendataions at present.</span>
 
           <pre highlight="c++">
           []&lt;class State, class Rcvr, class Tag, class... Args>(
-              auto, State, Rcvr& rcvr, Tag, Args&&... args) noexcept {
+              auto, State, Rcvr& rcvr, Tag, Args&&... args) noexcept -> void {
             if constexpr (same_as&lt;Tag, set_value_t>) {
               using variant_type = typename State::type;
-              using tuple_type = <i>decayed-tuple</i>&lt;Args...>;
-              try {
-                set_value(std::move(rcvr),
-                          variant_type(tuple_type(std::forward&lt;Args>(args)...)));
-              }
-              catch (...) {
-                set_error(std::move(rcvr), current_exception());
-              }
+              <i>TRY-SET-VALUE</i>(rcvr, variant_type(<i>decayed-tuple</i>&lt;Args...>{std::forward&lt;Args>(args)...}));
             } else {
               Tag()(std::move(rcvr), std::forward&lt;Args>(args)...);
             }
@@ -9105,10 +9110,15 @@ request but has no recommendataions at present.</span>
 
 #### `execution::stopped_as_optional` <b>[exec.stopped.as.optional]</b> #### {#spec-execution.senders.adapt.stopped_as_optional}
 
-1. `stopped_as_optional` maps an input sender's stopped completion operation into the value completion operation as an empty optional. The input sender's value completion operation is also converted into an optional. The result is a sender that never completes with stopped, reporting cancellation by completing with an empty optional.
+1. `stopped_as_optional` maps a sender's stopped completion operation into a
+    value completion operation as an disengaged `optional`. The sender's value
+    completion operation is also converted into an `optional`. The result is a
+    sender that never completes with stopped, reporting cancellation by
+    completing with an disengaged `optional`.
 
-2. The name `stopped_as_optional` denotes a customization point object. For a subexpression `sndr`, let `Sndr` be `decltype((sndr))`.
-    The expression `stopped_as_optional(sndr)` is expression-equivalent to:
+2. The name `stopped_as_optional` denotes a pipeable sender adaptor closure
+    object. For a subexpression `sndr`, let `Sndr` be `decltype((sndr))`. The
+    expression `stopped_as_optional(sndr)` is expression-equivalent to:
 
     <pre highlight="c++">
     transform_sender(
@@ -9116,17 +9126,24 @@ request but has no recommendataions at present.</span>
       <i>make-sender</i>(stopped_as_optional, {}, sndr))
     </pre>
 
-3. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))` and `Env` is `decltype((env))`.
-    If either <code><i>sender-for</i>&lt;Sndr, stopped_as_optional_t></code> or <code><i>single-sender</i>&lt;Sndr, Env></code> is `false`
-    then the expression `stopped_as_optional.transform_sender(sndr, env)` is ill-formed; otherwise, it is equal to:
+    except that `sndr` is only evaluated once.
+
+3. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))`
+    and `Env` is `decltype((env))`. If <code><i>sender-for</i>&lt;Sndr,
+    stopped_as_optional_t></code> is `false`, or if the type
+    <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is ill-formed or
+    `void`, then the expression `stopped_as_optional.transform_sender(sndr,
+    env)` is ill-formed; otherwise, it is equivalent to:
 
     <pre highlight="c++">
-    auto [tag, data, child] = sndr;
+    auto&& [_, _, child] = sndr;
     using V = <i>single-sender-value-type</i>&lt;Sndr, Env>;
     return let_stopped(
-        then(std::move(child),
-                  []&lt;class T>(T&& t) { return optional<V>(std::forward<T>(t)); }),
-        []() noexcept { return just(optional<V>()); });
+        then(std::forward_like&lt;Sndr>(child),
+             []&lt;class... Ts>(Ts&&... ts) noexcept(is_nothrow_constructible_v&lt;V, Ts...>) {
+               return optional&lt;V>(in_place, std::forward&lt;Ts>(ts)...);
+             }),
+        []() noexcept { return just(optional&lt;V>()); });
     </pre>
 
 #### `execution::stopped_as_error` <b>[exec.stopped.as.error]</b> #### {#spec-execution.senders.adapt.stopped_as_error}
@@ -9136,7 +9153,12 @@ request but has no recommendataions at present.</span>
     that never completes with stopped, reporting cancellation by completing with
     an error.
 
-2. The name `stopped_as_error` denotes a customization point object. For some subexpressions `sndr` and `err`, let `Sndr` be `decltype((sndr))` and let `Err` be `decltype((err))`. If the type `Sndr` does not satisfy `sender` or if the type `Err` doesn't satisfy <i>`movable-value`</i>, `stopped_as_error(sndr, err)` is ill-formed. Otherwise, the expression `stopped_as_error(sndr, err)` is expression-equivalent to:
+2. The name `stopped_as_error` denotes a pipeable sender adaptor closure object.
+    For some subexpressions `sndr` and `err`, let `Sndr` be `decltype((sndr))`
+    and let `Err` be `decltype((err))`. If the type `Sndr` does not satisfy
+    `sender` or if the type `Err` doesn't satisfy <i>`movable-value`</i>,
+    `stopped_as_error(sndr, err)` is ill-formed. Otherwise, the expression
+    `stopped_as_error(sndr, err)` is expression-equivalent to:
 
     <pre highlight="c++">
     transform_sender(
@@ -9144,15 +9166,20 @@ request but has no recommendataions at present.</span>
       <i>make-sender</i>(stopped_as_error, err, sndr))
     </pre>
 
+    except that `sndr` is only evaluated once.
+
 3. Let `sndr` and `env` be subexpressions such that `Sndr` is `decltype((sndr))` and `Env` is `decltype((env))`.
     If <code><i>sender-for</i>&lt;Sndr, stopped_as_error_t></code> is `false`, then the expression
-    `stopped_as_error.transform_sender(sndr, env)` is ill-formed; otherwise, it is equal to:
+    `stopped_as_error.transform_sender(sndr, env)` is ill-formed; otherwise, it is equivalent to:
 
     <pre highlight="c++">
-    auto [tag, data, child] = sndr;
+    auto&& [_, err, child] = sndr;
+    using E = decltype(auto(err));
     return let_stopped(
-        std::move(child),
-        [err = std::move(data)]() mutable { return just_error(std::move(err)); });
+        std::forward_like&lt;Sndr>(child),
+        [err = std::forward_like&lt;Sndr>(err)]() mutable noexcept(is_nothrow_move_constructible_v&lt;E>) {
+          return just_error(std::move(err));
+        });
     </pre>
 
 ### Sender consumers <b>[exec.consumers]</b> ### {#spec-execution.senders.consumers}
@@ -9190,7 +9217,7 @@ request but has no recommendataions at present.</span>
       template&lt;class Sndr>
       struct <i>detached-receiver</i> {
         using receiver_concept = receiver_t;
-        <i>detached-operation</i>&lt;Sndr>* <i>op</i>; // <i>exposition only</i>
+        <i>detached-operation</i>&lt;Sndr>* <i>op</i>; <i>// exposition only</i>
 
         void set_value() && noexcept { delete op; }
         void set_error() && noexcept { terminate(); }
@@ -9200,7 +9227,7 @@ request but has no recommendataions at present.</span>
 
       template&lt;class Sndr>
       struct <i>detached-operation</i> {
-        connect_result_t&lt;Sndr, <i>detached-receiver</i>&lt;Sndr>> <i>op</i>; // <i>exposition only</i>
+        connect_result_t&lt;Sndr, <i>detached-receiver</i>&lt;Sndr>> <i>op</i>; <i>// exposition only</i>
 
         explicit <i>detached-operation</i>(Sndr&& sndr)
           : <i>op</i>(connect(std::forward&lt;Sndr>(sndr), <i>detached-receiver</i>&lt;Sndr>{this}))
@@ -9227,17 +9254,22 @@ request but has no recommendataions at present.</span>
     <pre highlight="c++">
     namespace std::this_thread {
       struct <em>sync-wait-env</em> {
-        execution::run_loop* <em>loop</em>; // <i>exposition only</i>
+        execution::run_loop* <em>loop</em>; <i>// exposition only</i>
 
-        auto query(execution::get_scheduler_t) const noexcept { <em>loop</em>->get_scheduler(); }
-        auto query(execution::get_delegation_scheduler_t) const noexcept { <em>loop</em>->get_scheduler(); }
+        auto query(execution::get_scheduler_t) const noexcept {
+          return <em>loop</em>->get_scheduler();
+        }
+
+        auto query(execution::get_delegation_scheduler_t) const noexcept {
+          return <em>loop</em>->get_scheduler();
+        }
       };
     }
     </pre>
 
 3. Let <i>`sync-wait-result-type`</i> and
     <i>`sync-wait-with-variant-result-type`</i> be exposition-only
-    template aliases defined as follows:
+    alias templates defined as follows:
 
     <pre highlight="c++">
     namespace std::this_thread {
@@ -9247,7 +9279,7 @@ request but has no recommendataions at present.</span>
 
       template&lt;execution::sender_in&lt;<i>sync-wait-env</i>> Sndr>
         using <i>sync-wait-with-variant-result-type</i> =
-          optional&lt;<i>execution::into-variant-type</i>&lt;Sndr, <i>sync-wait-env</i>>>; <i>// see [exec.into.variant]</i>
+          optional&lt;execution::value_types_of_t&lt;Sndr, <i>sync-wait-env</i>>>;
     }
     </pre>
 
@@ -9278,13 +9310,13 @@ request but has no recommendataions at present.</span>
     namespace std::this_thread {
       template&lt;class Sndr>
       struct <i>sync-wait-state</i> { <i>// exposition only</i>
-        execution::run_loop loop;
-        exception_ptr error;
-        <i>sync-wait-result-type</i>&lt;Sndr> result;
+        execution::run_loop <i>loop</i>;  <i>// exposition only</i>
+        exception_ptr <i>error</i>; <i>// exposition only</i>
+        <i>sync-wait-result-type</i>&lt;Sndr> <i>result</i>;  <i>// exposition only</i>
       };
 
       template&lt;class Sndr>
-      struct <i>sync-wait-receiver</i> {
+      struct <i>sync-wait-receiver</i> { <i>// exposition only</i>
         using receiver_concept = execution::receiver_t;
         <i>sync-wait-state</i>&lt;Sndr>* <i>state</i>; <i>// exposition only</i>
 
@@ -9296,7 +9328,7 @@ request but has no recommendataions at present.</span>
 
         void set_stopped() && noexcept;
 
-        <i>sync-wait-env</i> get_env() const noexcept { return {&<i>state</i>->loop}; }
+        <i>sync-wait-env</i> get_env() const noexcept { return {&<i>state</i>-><i>loop</i>}; }
       };
     }
     </pre>
@@ -9310,11 +9342,11 @@ request but has no recommendataions at present.</span>
 
             <pre highlight="c++">
             try {
-              <i>state</i>->result.emplace(std::forward&lt;Args>(args)...);
+              <i>state</i>-><i>result</i>.emplace(std::forward&lt;Args>(args)...);
             } catch (...) {
-              <i>state</i>->error = current_exception();
+              <i>state</i>-><i>error</i> = current_exception();
             }
-            <i>state</i>->loop.finish();
+            <i>state</i>-><i>loop</i>.finish();
             </pre>
 
     2. <pre highlight="c++">
@@ -9325,16 +9357,15 @@ request but has no recommendataions at present.</span>
         1. *Effects:* Equivalent to:
 
             <pre highlight="c++">
-            <i>state</i>->error = <i>AS-EXCEPT-PTR</i>(std::forward&lt;Error>(err)); <i>// see [exec.general]</i>
-            <i>state</i>->loop.finish();
+            <i>state</i>-><i>error</i> = <i>AS-EXCEPT-PTR</i>(std::forward&lt;Error>(err)); <i>// see [exec.general]</i>
+            <i>state</i>-><i>loop</i>.finish();
             </pre>
 
     3. <pre highlight="c++">
-        template&lt;class Error>
         void set_stopped() && noexcept;
         </pre>
 
-        1. *Effects:* Equivalent to <code><i>state</i>->loop.finish()</code>.
+        1. *Effects:* Equivalent to <code><i>state</i>-><i>loop</i>.finish()</code>.
 
 
 6. For a subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
@@ -9369,14 +9400,13 @@ request but has no recommendataions at present.</span>
         1. For a value completion, the result datums are returned
             in a `tuple` in an engaged `optional` object.
 
-        2. For an error completion, the result datum is rethrown.
+        2. For an error completion, an exception is thrown.
 
         3. For a stopped completion, a disengaged `optional` object is returned.
 
 8. The name `this_thread::sync_wait_with_variant` denotes a customization point
-    object. For a subexpression `sndr`, let `Sndr` be the type of
-    `into_variant(sndr)`. If <code>sender_in&lt;Sndr,
-    <i>sync-wait-env</i>></code> is `false`,
+    object. For a subexpression `sndr`, let `Sndr` be `decltype(into_variant(sndr))`.
+    If <code>sender_in&lt;Sndr, <i>sync-wait-env</i>></code> is `false`,
     `this_thread::sync_wait_with_variant(sndr)` is ill-formed. Otherwise, it is
     expression-equivalent to the following, except `sndr` is evaluated only
     once:
@@ -9392,7 +9422,7 @@ request but has no recommendataions at present.</span>
 
       - <code>same_as&lt;decltype(<i>e</i>),
         <i>sync-wait-with-variant-result-type</i>&lt;Sndr>></code> is `true`,
-        where <i>`e`</i> is the expression above.
+        where <i>`e`</i> is the `apply_sender` expression above.
 
 9. If <code><i>callable</i>&lt;sync_wait_t, Sndr></code> is `false`, the
     expression `sync_wait_with_variant.apply_sender(sndr)` is ill-formed.
@@ -9420,7 +9450,7 @@ request but has no recommendataions at present.</span>
         1. For a value completion, the result datums are returned in an engaged
             `optional` object that contains a `variant` of `tuple`s.
 
-        2. For an error completion, the result datum is rethrown.
+        2. For an error completion, an exception is thrown.
 
         3. For a stopped completion, a disengaged `optional` object is returned.
 
@@ -9456,9 +9486,10 @@ request but has no recommendataions at present.</span>
 
 2. [<i>Example:</i>
      <pre highlight="c++">
-      class my_sender {
+      struct my_sender {
+        using sender_concept = sender_t;
         using completion_signatures =
-          completion_signatures&lt;
+          execution::completion_signatures&lt;
             set_value_t(),
             set_value_t(int, float),
             set_error_t(exception_ptr),
@@ -9476,7 +9507,7 @@ request but has no recommendataions at present.</span>
      </pre>
      -- <i>end example</i>]
 
-3. This subclause makes use of the following exposition-only entities:
+3. [exec.utils.cmplsigs] makes use of the following exposition-only entities:
 
     <pre highlight="c++">
     template&lt;class Fn>
@@ -9496,9 +9527,9 @@ request but has no recommendataions at present.</span>
         only if it is a function type with one of the following forms:
 
         * <code>set_value_t(<i>Vs</i>...)</code>, where <i>`Vs`</i>
-            is an arbitrary parameter pack.
+            is an parameter pack of object or reference types.
         * <code>set_error_t(<i>Err</i>)</code>, where <i>`Err`</i> is
-            an arbitrary type.
+            an object or reference type.
         * `set_stopped_t()`
 
     <pre highlight="c++">
@@ -9563,6 +9594,9 @@ request but has no recommendataions at present.</span>
               <i>gather-signatures</i>&lt;set_stopped_t, completion_signatures_of_t&lt;Sndr, Env>, <i>type-list</i>, <i>type-list</i>>>;
     }
     </pre>
+
+
+<!-- LWG stopped here -->
 
 ### `execution::transform_completion_signatures` <b>[exec.utils.tfxcmplsigs]</b> ### {#spec-execution.snd_rec_utils.transform_completion_sigs}
 
@@ -9895,14 +9929,6 @@ void finish();
 
     <pre highlight="c++">
     namespace std::execution {
-      template&lt;class Sndr, class Env>
-        using <i>single-sender-value-type</i> = <i>see below</i>;
-
-      template&lt;class Sndr, class Env>
-        concept <i>single-sender</i> =
-          sender_in&lt;Sndr, Env> &&
-          requires { typename <i>single-sender-value-type</i>&lt;Sndr, Env>; };
-
       template&lt;class Sndr, class Promise>
         concept <i>awaitable-sender</i> =
           <i>single-sender</i>&lt;Sndr, env_of_t<Promise>> &&
@@ -9915,26 +9941,6 @@ void finish();
         class <i>sender-awaitable</i>;
     }
     </pre>
-
-    1. Alias template <i>single-sender-value-type</i> is defined as follows:
-
-        1. If `value_types_of_t<Sndr, Env, Tuple, Variant>` would have the form
-            `Variant<Tuple<T>>`, then
-            <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is an
-            alias for type `decay_t<T>`.
-
-        2. Otherwise, if `value_types_of_t<Sndr, Env, Tuple, Variant>` would
-            have the form `Variant<Tuple<>>` or `Variant<>`, then
-            <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is an
-            alias for type `void`.
-
-        3. Otherwise, if `value_types_of_t<Sndr, Env, Tuple, Variant>` would
-            have the form `Variant<Tuple<Ts...>>` where `Ts` is a parameter pack,
-            then <code><i>single-sender-value-type</i>&lt;Sndr, Env></code> is an
-            alias for type `std::tuple<decay_t<Ts>...>`.
-
-        4. Otherwise, <code><i>single-sender-value-type</i>&lt;Sndr, Env></code>
-            is ill-formed.
 
     2. The type <code><i>sender-awaitable</i>&lt;Sndr, Promise></code> is
         equivalent to the following:
