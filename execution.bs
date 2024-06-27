@@ -1670,7 +1670,7 @@ object, obtainable from a receiver with a `get_env` accessor. In R6, the
 sender queries are given similar treatment, relocating to a "attributes"
 object obtainable from a sender with a `get_attrs` accessor. This was done
 to solve a number of design problems with the `split` and `ensure_started`
-algorithms; _e.g._, see
+algorithms; e.g., see
 [NVIDIA/stdexec#466](https://github.com/NVIDIA/stdexec/issues/466).
 
 Schedulers, however, remain directly queryable. As lightweight handles
@@ -2625,7 +2625,7 @@ particularly satisfactory:
     work in some circumstances for some kinds of applications, in general it is
     also pretty user-hostile; it makes it difficult to reason about the safe
     destruction of resources used by these eager operations. In general,
-    detached work necessitates some kind of garbage collection; <i>e.g.</i>,
+    detached work necessitates some kind of garbage collection; e.g.,
     `std::shared_ptr`, to ensure resources are kept alive until the operations
     complete, and can make clean shutdown nigh impossible.
 
