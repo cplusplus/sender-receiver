@@ -388,7 +388,7 @@ struct dynamic_buffer {                                                       //
 sender_of<dynamic_buffer> auto async_read_array(auto handle) {                // 2
   return just(dynamic_buffer{})                                               // 4
        | let_value([handle] (dynamic_buffer& buf) {                           // 5
-           return just(std::as_writeable_bytes(std::span(&buf.size, 1))       // 6
+           return just(std::as_writeable_bytes(std::span(&buf.size, 1)))      // 6
                 | async_read(handle)                                          // 7
                 | then(                                                       // 8
                     [&buf] (std::size_t bytes_read) {                         // 9
@@ -3196,29 +3196,16 @@ execution::sender auto just_stopped();
 Returns a sender with no [=completion scheduler|completion schedulers=], which
 completes immediately by calling the receiver's `set_stopped`.
 
-### `execution::read` ### {#design-sender-factory-read}
+### `execution::read_env` ### {#design-sender-factory-read}
 
 <pre highlight="c++">
-execution::sender auto read(auto tag);
-
-execution::sender auto get_scheduler() {
-  return read(execution::get_scheduler);
-}
-execution::sender auto get_delegation_scheduler() {
-  return read(execution::get_delegation_scheduler);
-}
-execution::sender auto get_allocator() {
-  return read(execution::get_allocator);
-}
-execution::sender auto get_stop_token() {
-  return read(execution::get_stop_token);
-}
+execution::sender auto read_env(auto tag);
 </pre>
 
 Returns a sender that reaches into a receiver's environment and pulls out the
 current value associated with the customization point denoted by `Tag`. It then
 sends the value read back to the receiver through the value channel. For
-instance, `get_scheduler()` (with no arguments) is a sender that asks the
+instance, `read_env(get_scheduler)` is a sender that asks the
 receiver for the currently suggested `scheduler` and passes it to the receiver's
 `set_value` completion-signal.
 
@@ -3228,7 +3215,7 @@ onto it.
 
     <pre highlight="c++">
     execution::sender auto task =
-      execution::get_scheduler()
+      execution::read_env(get_scheduler)
         | execution::let_value([](auto sched) {
             return execution::starts_on(sched, <i>some nested work here</i>);
         });
@@ -3237,7 +3224,7 @@ onto it.
     </pre>
 
 This code uses the fact that `sync_wait` associates a scheduler with the
-receiver that it connects with `task`. `get_scheduler()` reads that scheduler
+receiver that it connects with `task`. `read_env(get_scheduler)` reads that scheduler
 out of the receiver, and passes it to `let_value`'s receiver's `set_value`
 function, which in turn passes it to the lambda. That lambda returns a new
 sender that uses the scheduler to schedule some nested work onto `sync_wait`'s
@@ -5325,7 +5312,7 @@ template&lt;class Initializer>
     <td>allow the specialization of the provided sender algorithms</td>
     <td>
         <ul>
-            <li>sender factories (e.g., `schedule`, `just`, `read`)</li>
+            <li>sender factories (e.g., `schedule`, `just`, `read_env`)</li>
             <li>sender adaptors (e.g., `continues_on`, `then`, `let_value`)</li>
             <li>sender consumers (e.g., `start_detached`, `sync_wait`)</li>
         </ul>
@@ -6001,10 +5988,6 @@ namespace std::execution {
 3. `forwarding_query(get_allocator)` is a core constant expression and has value
     `true`.
 
-4. `get_allocator()` (with no arguments) is expression-equivalent to
-    `execution::read(get_allocator)` ([exec.read]).
-
-
 
 ### `get_stop_token` <b>[exec.get.stop.token]</b> ### {#spec-execution.get_stop_token}
 
@@ -6023,9 +6006,6 @@ namespace std::execution {
 
 3. `forwarding_query(get_stop_token)` is a core constant
     expression and has value `true`.
-
-4. `get_stop_token()` (with no arguments) is expression-equivalent to
-    `execution::read(get_stop_token)` ([exec.read]).
 
 ### `execution::get_env` <b>[exec.get.env]</b> ### {#spec-execution.environment.get_env}
 
@@ -6057,9 +6037,6 @@ namespace std::execution {
 3. `forwarding_query(execution::get_domain)` is a core constant
     expression and has value `true`.
 
-4. `get_domain()` (with no arguments) is expression-equivalent to
-    `execution::read(get_domain)` ([exec.read]).
-
 ### `execution::get_scheduler` <b>[exec.get.scheduler]</b> ### {#spec-execution.get_scheduler}
 
 1. `get_scheduler` asks a queryable object for its associated scheduler.
@@ -6073,9 +6050,6 @@ namespace std::execution {
 
 3. `forwarding_query(execution::get_scheduler)` is a core constant
     expression and has value `true`.
-
-4. `get_scheduler()` (with no arguments) is expression-equivalent to
-    `execution::read(get_scheduler)` ([exec.read]).
 
 ### `execution::get_delegation_scheduler` <b>[exec.get.delegation.scheduler]</b> ### {#spec-execution.get_delegation_scheduler}
 
@@ -6092,9 +6066,6 @@ namespace std::execution {
 
 3. `forwarding_query(execution::get_delegation_scheduler)` is a core
     constant expression and has value `true`.
-
-4. `get_delegation_scheduler()` (with no arguments) is expression-equivalent to
-    `execution::read(get_delegation_scheduler)` ([exec.read]).
 
 ### `execution::get_forward_progress_guarantee` <b>[exec.get.forward.progress.guarantee]</b> ### {#spec-execution.get_forward_progress_guarantee}
 
@@ -7521,23 +7492,23 @@ namespace std::execution {
         }
         </pre>
 
-#### `execution::read` <b>[exec.read]</b> #### {#spec-execution.senders.read}
+#### `execution::read_env` <b>[exec.read.env]</b> #### {#spec-execution.senders.read.env}
 
-1. `read` is a sender factory for a sender whose asynchronous operation
+1. `read_env` is a sender factory for a sender whose asynchronous operation
     completes synchronously in its start operation with a value completion
     result equal to a value read from the receiver's associated environment.
 
-2. `read` is a customization point object. For some query object `q`,
-    the expression `read(q)` is expression-equivalent to
-    <code><i>make-sender</i>(read, q)</code>.
+2. `read_env` is a customization point object. For some query object `q`,
+    the expression `read_env(q)` is expression-equivalent to
+    <code><i>make-sender</i>(read_env, q)</code>.
 
 3. The exposition-only class template <i>`impls-for`</i> ([exec.snd.general])
-    is specialized for `read` as follows:
+    is specialized for `read_env` as follows:
 
     <pre highlight="c++">
     namespace std::execution {
       template&lt;>
-      struct <i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;read>> : <i>default-impls</i> {
+      struct <i>impls-for</i>&lt;<i>decayed-typeof</i>&lt;read_env>> : <i>default-impls</i> {
         static constexpr auto <em>start</em> =
           [](auto query, auto& rcvr) noexcept -> void {
             <i>TRY-SET-VALUE</i>(rcvr, query(get_env(rcvr)));
