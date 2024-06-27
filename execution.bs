@@ -8372,7 +8372,6 @@ request but has no recommendataions at present.</span>
       struct <i>local-state-base</i> {          // exposition only
         virtual ~<i>local-state-base</i>() = default;
         virtual void <i>notify</i>() noexcept = 0; // exposition only
-        virtual void <i>detach</i>() noexcept = 0; // exposition only
       };
 
       template&lt;class Sndr, class Rcvr>
@@ -8422,14 +8421,14 @@ request but has no recommendataions at present.</span>
             <pre highlight="c++">
             on_stop.reset();
             visit(
-              [this]&lt;class Tuple>(Tuple&& tupl) noexcept -> void {
+              [this](const auto& tupl) noexcept -> void {
                 apply(
-                  [this](auto tag, auto&... args) noexcept -> void {
-                    tag(std::move(*rcvr), std::forward_like&lt;Tuple>(args)...);
+                  [this](auto tag, const auto&... args) noexcept -> void {
+                    tag(std::move(*rcvr), args...);
                   },
                   tupl);
               },
-              as_const(sh_state->result));
+              sh_state->result);
             </pre>
 
 6. Let <i>`split-receiver`</i> denote the following exposition-only class
@@ -8447,10 +8446,8 @@ request but has no recommendataions at present.</span>
           try {
             sh_state->result.template emplace&lt;tuple_t>(Tag(), std::forward&lt;Args>(args)...);
           } catch (...) {
-			if constexpr (!is_nothrow_constructible_v&lt;tuple_t, Args...>) {
-              using err_tuple_t = tuple&lt;set_error_t, exception_ptr>;
-              sh_state->result.template emplace&lt;err_tuple_t>(set_error, current_exception());
-		    }
+            using err_tuple_t = tuple&lt;set_error_t, exception_ptr>;
+            sh_state->result.template emplace&lt;err_tuple_t>(set_error, current_exception());
           }
           sh_state-><i>notify</i>();
         }
@@ -8571,33 +8568,34 @@ request but has no recommendataions at present.</span>
               the `ref_count` to `0` then synchronizes with
               the call to <code><i>dec-ref</i>()</code> that decrements `ref_count` to `0`.
 
-8.  Given an expression `sndr`, the expression
+8. Let <i>`split-impl-tag`</i> be an empty exposition-only class type.
+    Given an expression `sndr`, the expression
     <code>split.transform_sender(sndr)</code> is equivalent to:
 
       <pre highlight="c++">
       auto&& [tag, _, child] = sndr;
       auto* sh_state = new <i>shared-state</i>{std::forward_like&lt;decltype((sndr))>(child)};
-      return <i>make-sender</i>(split, <i>shared-wrapper</i>{sh_state, tag});
+      return <i>make-sender</i>(<i>split-impl-tag</i>(), <i>shared-wrapper</i>{sh_state, tag});
       </pre>
 
     where <i>`shared-wrapper`</i> is an exposition-only class that manages the
     reference count of the <i>`shared-state`</i> object pointed to by `sh_state`.
-    <i>`shared-wrapper`</i> models `movable` with move operations nulling out the
-    moved-from object. `shared-wrapper`</i> models
-    `copyable` with copy operations incrementing the reference count by calling
-    <code>sh_state-><i>inc-ref</i>()</code>.  The
+    <i>`shared-wrapper`</i> models `copyable` with move operations nulling out the
+    moved-from object, copy operations incrementing the reference count by calling
+    <code>sh_state-><i>inc-ref</i>()</code>, and assignment operations performing
+    a copy-and-swap operation. The
     destructor has no effect if `sh_state` is null; otherwise, it
     decrements the reference count by calling
     <code>sh_state-><i>dec-ref</i>()</code>.
 
 9. The exposition-only class template <i>`impls-for`</i>
-    ([exec.snd.general]) is specialized for `split_t`
+    ([exec.snd.general]) is specialized for _`split-impl-tag`_
     as follows:
 
         <pre highlight="c++">
         namespace std::execution {
           template&lt;>
-          struct <i>impls-for</i>&lt;split_t> : <i>default-impls</i> {
+          struct <i>impls-for</i>&lt;<i>split-impl-tag</i>> : <i>default-impls</i> {
             static constexpr auto <i>get-state</i> = <i>see below</i>;
             static constexpr auto <i>start</i> = <i>see below</i>;
           };
@@ -8605,7 +8603,7 @@ request but has no recommendataions at present.</span>
         </pre>
 
     1. The member
-        <code><i>impls-for</i>&lt;split_t>::<i>get-state</i></code>
+        <code><i>impls-for</i>&lt;<i>split-impl-tag</i>>::<i>get-state</i></code>
         is initialized with a callable object equivalent to the following lambda
         expression:
 
@@ -8616,7 +8614,7 @@ request but has no recommendataions at present.</span>
           </pre>
 
     2. The member
-        <code><i>impls-for</i>&lt;split_t>::<i>start</i></code>
+        <code><i>impls-for</i>&lt;<i>split-impl-tag</i>>::<i>start</i></code>
         is initialized with a callable object that has a function call operator
         equivalent to the following:
 
@@ -8640,9 +8638,9 @@ request but has no recommendataions at present.</span>
 
             2.  Then atomically does the following:
 
-                  - Reads the value, `c`, of `state.sh_state->completed`.
+                  - Inserts `&state` into `state.sh_state->waiting_states`, and
 
-                  - If `c` is `false`, inserts `addressof(state)` into `state.sh_state->waiting_states`.
+                  - Reads the value `c` of `state.sh_state->completed`.
 
             3. If `c` is `true`, calls <code>state.<i>notify</i>()</code> and returns.
 
