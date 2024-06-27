@@ -4229,7 +4229,7 @@ queryable. In R4, receiver queries were moved into a separate "environment"
 object, obtainable from a receiver with a <code class="highlight"><c- n>get_env</c-></code> accessor. In R6, the
 sender queries are given similar treatment, relocating to a "attributes"
 object obtainable from a sender with a <code class="highlight"><c- n>get_attrs</c-></code> accessor. This was done
-to solve a number of design problems with the <code class="highlight"><c- n>split</c-></code> and <code class="highlight"><c- n>ensure_started</c-></code> algorithms; _e.g._, see <a href="https://github.com/NVIDIA/stdexec/issues/466">NVIDIA/stdexec#466</a>.</p>
+to solve a number of design problems with the <code class="highlight"><c- n>split</c-></code> and <code class="highlight"><c- n>ensure_started</c-></code> algorithms; e.g., see <a href="https://github.com/NVIDIA/stdexec/issues/466">NVIDIA/stdexec#466</a>.</p>
    <p>Schedulers, however, remain directly queryable. As lightweight handles
 that are required to be movable and copyable, there is little reason to
 want to dispose of a scheduler and yet persist the scheduler’s queries.</p>
@@ -5081,7 +5081,7 @@ like an implicit call to <code class="highlight"><c- n>std</c-><c- o>::</c-><c- 
 work in some circumstances for some kinds of applications, in general it is
 also pretty user-hostile; it makes it difficult to reason about the safe
 destruction of resources used by these eager operations. In general,
-detached work necessitates some kind of garbage collection; <i>e.g.</i>, <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>shared_ptr</c-></code>, to ensure resources are kept alive until the operations
+detached work necessitates some kind of garbage collection; e.g., <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>shared_ptr</c-></code>, to ensure resources are kept alive until the operations
 complete, and can make clean shutdown nigh impossible.</p>
     <li data-md>
      <p>Block in the destructor until the operation completes. This approach is
