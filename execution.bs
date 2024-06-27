@@ -5284,7 +5284,6 @@ template&lt;class Initializer>
 <tr style="border-bottom-style: hidden;"><td><a href="#spec-execution.receivers">[exec.recv]</a></td><td>Receivers</td><td></td></tr>
 <tr style="border-bottom-style: hidden;"><td><a href="#spec-execution.opstate">[exec.opstate]</a></td><td>Operation states</td><td></td></tr>
 <tr style="border-bottom-style: hidden;"><td><a href="#spec-execution.senders">[exec.snd]</a></td><td>Senders</td><td></td></tr>
-<tr><td><a href="#spec-execution.execute">[exec.execute]</a></td><td>One-way execution</td><td></td></tr>
 </table>
 
 3. Table 2 shows the types of customization point objects
@@ -5300,7 +5299,7 @@ template&lt;class Initializer>
 <tr>
     <td>core</td>
     <td>provide core execution functionality, and connection between core components</td>
-    <td>e.g., `connect`, `start`, `execute`</td>
+    <td>e.g., `connect`, `start`</td>
 </tr>
 <tr>
     <td>completion functions</td>
@@ -5314,7 +5313,7 @@ template&lt;class Initializer>
         <ul>
             <li>sender factories (e.g., `schedule`, `just`, `read_env`)</li>
             <li>sender adaptors (e.g., `continues_on`, `then`, `let_value`)</li>
-            <li>sender consumers (e.g., `start_detached`, `sync_wait`)</li>
+            <li>sender consumers (e.g., `sync_wait`)</li>
         </ul>
     </td>
 </tr>
@@ -5325,7 +5324,7 @@ template&lt;class Initializer>
         <ul>
             <li>general queries (e.g., `get_allocator`, `get_stop_token`)</li>
             <li>environment queries (e.g., `get_scheduler`, `get_delegation_scheduler`)</li>
-            <li>scheduler queries (e.g., `get_forward_progress_guarantee`, `execute_may_block_caller`)</li>
+            <li>scheduler queries (e.g., `get_forward_progress_guarantee`)</li>
             <li>sender attribute queries (e.g., `get_completion_scheduler`)</li>
         </ul>
     </td>
@@ -5832,10 +5831,6 @@ namespace std::execution {
   inline constexpr stopped_as_optional_t stopped_as_optional{};
   inline constexpr stopped_as_error_t stopped_as_error{};
 
-  // [exec.consumers], sender consumers
-  struct start_detached_t { <i>see below</i> };
-  inline constexpr start_detached_t start_detached{};
-
   // [exec.utils], sender and receiver utilities
   // [exec.utils.cmplsigs]
   template&lt;class Fn>
@@ -5876,10 +5871,7 @@ namespace std::execution {
 }
 
 namespace std::this_thread {
-  // [exec.queries], queries
-  struct execute_may_block_caller_t { <i>see below</i> };
-  inline constexpr execute_may_block_caller_t execute_may_block_caller{};
-
+  // [exec.consumers], consumers
   struct sync_wait_t { <i>see below</i> };
   struct sync_wait_with_variant_t { <i>see below</i> };
 
@@ -5888,10 +5880,6 @@ namespace std::this_thread {
 }
 
 namespace std::execution {
-  // [exec.execute], one-way execution
-  struct execute_t { <i>see below</i> };
-  inline constexpr execute_t execute{};
-
   // [exec.as.awaitable]
   struct as_awaitable_t { <i>see below</i> };
   inline constexpr as_awaitable_t as_awaitable{};
@@ -6101,29 +6089,6 @@ namespace std::execution {
     forward progress guarantee. If it returns
     `forward_progress_guarantee::parallel`, all such execution agents shall
     provide at least the parallel forward progress guarantee.
-
-### `this_thread::execute_may_block_caller` <b>[exec.execute.may.block.caller]</b> ### {#spec-execution.execute_may_block_caller}
-
-1. `execute_may_block_caller` asks a scheduler `sch` whether any invocation of
-    the `execute` algorithm ([exec.execute]) with `sch` may block the current
-    thread of execution ([defns.block]).
-
-2. The name `execute_may_block_caller` denotes a query object. For
-    a subexpression `sch`, let `Sch` be `decltype((sch))`. If `Sch` does not
-    satisfy `scheduler`, `execute_may_block_caller(sch)` is ill-formed.
-    Otherwise, `execute_may_block_caller(sch)` is
-    expression-equivalent to:
-
-    1. <code><i>MANDATE-NOTHROW</i>(as_const(sch).query(execute_may_block_caller))</code>,
-        if that expression is well-formed.
-
-        * <i>Mandates:</i> The type of the expression above is `bool`.
-
-    2. Otherwise, `true`.
-
-3. If `execute_may_block_caller(sch)` returns `false` for some scheduler `sch`,
-    no invocation of the `execute` algorithm with `sch` shall block the calling
-    thread.
 
 ### `execution::get_completion_scheduler` <b>[exec.completion.scheduler]</b> ### {#spec-execution.get_completion_scheduler}
 
@@ -9101,63 +9066,6 @@ request but has no recommendataions at present.</span>
 
 ### Sender consumers <b>[exec.consumers]</b> ### {#spec-execution.senders.consumers}
 
-#### `execution::start_detached` <b>[exec.start.detached]</b> #### {#spec-execution.senders.consumers.start_detached}
-
-1. `start_detached` eagerly starts a sender without the caller needing to manage
-    the lifetimes of any objects.
-
-2. The name `start_detached` denotes a customization point object. For a
-    subexpression `sndr`, let `Sndr` be `decltype((sndr))`. If
-    `sender_in<Sndr, empty_env>` is `false`, `start_detached` is ill-formed.
-    Otherwise, the expression `start_detached(sndr)` is expression-equivalent to
-    the following except that `sndr` is evaluated only once:
-
-    <pre highlight="c++">
-    apply_sender(<i>get-domain-early</i>(sndr), start_detached, sndr)
-    </pre>
-
-    * <i>Mandates:</i> <code>same_as&lt;decltype(<em>e</em>), void></code> is
-        `true` where <code><em>e</em></code> is the expression above.
-
-    If the expression above does not eagerly start the sender `sndr` after
-    connecting it with a receiver that ignores value and stopped completion
-    operations and calls `terminate()` on error completions, the behavior of
-    calling `start_detached(sndr)` is undefined.
-
-3. Let `sndr` be a subexpression such that `Sndr` is `decltype((sndr))`, and let
-    <i>`detached-receiver`</i> and
-    <i>`detached-operation`</i> be the following exposition-only
-    class templates:
-
-    <pre highlight="c++">
-    namespace std::execution {
-      template&lt;class Sndr>
-      struct <i>detached-receiver</i> {
-        using receiver_concept = receiver_t;
-        <i>detached-operation</i>&lt;Sndr>* <i>op</i>; <i>// exposition only</i>
-
-        void set_value() && noexcept { delete op; }
-        void set_error() && noexcept { terminate(); }
-        void set_stopped() && noexcept { delete op; }
-        empty_env get_env() const noexcept { return {}; }
-      };
-
-      template&lt;class Sndr>
-      struct <i>detached-operation</i> {
-        connect_result_t&lt;Sndr, <i>detached-receiver</i>&lt;Sndr>> <i>op</i>; <i>// exposition only</i>
-
-        explicit <i>detached-operation</i>(Sndr&& sndr)
-          : <i>op</i>(connect(std::forward&lt;Sndr>(sndr), <i>detached-receiver</i>&lt;Sndr>{this}))
-        {}
-      };
-    }
-    </pre>
-
-4. If <code>sender_to&lt;Sndr, <i>detached-receiver</i>&lt;Sndr>></code> is `false`, the
-    expression `start_detached.apply_sender(sndr)` is ill-formed; otherwise, it is
-    expression-equivalent to <code>start((new
-    <i>detached-operation</i>&lt;Sndr>(sndr))-><i>op</i>)</code>.
-
 #### `this_thread::sync_wait` <b>[exec.sync.wait]</b> #### {#spec-execution.senders.consumers.sync_wait}
 
 1. `this_thread::sync_wait` and `this_thread::sync_wait_with_variant` are used
@@ -9370,29 +9278,6 @@ request but has no recommendataions at present.</span>
         2. For an error completion, an exception is thrown.
 
         3. For a stopped completion, a disengaged `optional` object is returned.
-
-## `execution::execute` <b>[exec.execute]</b> ## {#spec-execution.execute}
-
-1. `execute` executes a specified callable object on a specified scheduler.
-
-2. The name `execute` denotes a customization point object. For some
-    subexpressions `sch` and `f`, let `Sch` be `decltype((sch))` and `F` be the
-    decayed type of `f`. If `Sch` does not satisfy `scheduler` or `F` does not
-    satisfy `invocable`, `execute(sch, f)` is ill-formed. Otherwise,
-    `execute(sch, f)` is expression-equivalent to:
-
-    <pre highlight="c++">
-    apply_sender(
-      <i>query-or-default</i>(get_domain, sch, default_domain()),
-      execute, schedule(sch), f)
-    </pre>
-
-    * <i>Mandates:</i> The type of the expression above is `void`.
-
-3. For some subexpressions `sndr` and `f` where `F` is the decayed type of `f`,
-    if `F` does not satisfy `invocable`, the expression
-    `execute.apply_sender(sndr, f)` is ill-formed; otherwise it is
-    expression-equivalent to `start_detached(then(sndr, f))`.
 
 ## Sender/receiver utilities <b>[exec.utils]</b> ## {#spec-execution.snd_rec_utils}
 
