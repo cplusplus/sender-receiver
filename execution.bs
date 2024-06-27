@@ -2625,7 +2625,7 @@ particularly satisfactory:
     work in some circumstances for some kinds of applications, in general it is
     also pretty user-hostile; it makes it difficult to reason about the safe
     destruction of resources used by these eager operations. In general,
-    detached work necessitates some kind of garbage collection; <i>e.g.</i>,
+    detached work necessitates some kind of garbage collection; e.g.,
     `std::shared_ptr`, to ensure resources are kept alive until the operations
     complete, and can make clean shutdown nigh impossible.
 
