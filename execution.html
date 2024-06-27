@@ -2386,7 +2386,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-26">2024-06-26</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-27">2024-06-27</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -8270,7 +8270,7 @@ scheduler. A valid invocation of <code class="highlight"><c- n>schedule</c-></co
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sch</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>scheduler</c-> <c- o>=</c->
-      <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>Sch</c-><c- o>::</c-><c- n>scheduler_concept</c-><c- p>,</c-> <c- n>scheduler_t</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+      <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>>::</c-><c- n>scheduler_concept</c-><c- p>,</c-> <c- n>scheduler_t</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <i><c- n>queryable</c-></i><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <c- k>requires</c-><c- p>(</c-><c- n>Sch</c-><c- o>&amp;&amp;</c-> <c- n>sch</c-><c- p>)</c-> <c- p>{</c->
         <c- p>{</c-> <c- n>schedule</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sch</c-><c- o>></c-><c- p>(</c-><c- n>sch</c-><c- p>))</c-> <c- p>}</c-> <c- o>-></c-> <c- n>sender</c-><c- p>;</c->
@@ -8317,7 +8317,7 @@ environment.</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
     <c- k>concept</c-> <c- nc>receiver</c-> <c- o>=</c->
-      <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>Rcvr</c-><c- o>::</c-><c- n>receiver_concept</c-><c- p>,</c-> <c- n>receiver_t</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+      <c- n>derived_from</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>::</c-><c- n>receiver_concept</c-><c- p>,</c-> <c- n>receiver_t</c-><c- o>></c-> <c- o>&amp;&amp;</c->
       <c- k>requires</c-><c- p>(</c-><c- k>const</c-> <c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- p>{</c->
         <c- p>{</c-> <c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)</c-> <c- p>}</c-> <c- o>-></c-> <i><c- n>queryable</c-></i><c- p>;</c->
       <c- p>}</c-> <c- o>&amp;&amp;</c->
@@ -8619,7 +8619,8 @@ types.</span></p>
            <p><span class="wg21note"><i><code class="highlight"><c- n>product</c-><c- o>-</c-><c- n>type</c-></code></i> is presented here in
 pseudo-code form for the sake of exposition. It can be approximated in
 standard C++ with a <code class="highlight"><c- n>tuple</c-></code>-like implementation that takes care
-to keep the type structural.</span></p>
+to keep the type an aggregate that can be used as the initializer of a
+structured binding declaration.</span></p>
           <li data-md>
            <p><span class="wg21note">An expression of type <i><code class="highlight"><c- n>product</c-><c- o>-</c-><c- n>type</c-></code></i> is usable as the initializer of a
 structured binding declaration [dcl.struct.bind].</span></p>
@@ -9409,7 +9410,7 @@ with a value completion operation, an error completion operation, or a
 stopped completion operation respectively.</p>
       <li data-md>
        <p>The names <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>just_error</c-></code>, and <code class="highlight"><c- n>just_stopped</c-></code> denote customization
-point objects. Let <i><code class="highlight"><c- n>just</c-><c- o>-</c-><c- n>cpo</c-></code></i> be one of <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>just_error</c-></code>, or <code class="highlight"><c- n>just_stopped</c-></code>. For a pack of subexpressions <code class="highlight"><c- n>ts</c-></code>, let <code class="highlight"><c- n>Ts</c-></code> be the template parameter pack <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>ts</c-><c- p>))</c-></code>. The expression <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>ts</c-><c- p>...)</c-></code> is ill-formed if:</p>
+point objects. Let <i><code class="highlight"><c- n>just</c-><c- o>-</c-><c- n>cpo</c-></code></i> be one of <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>just_error</c-></code>, or <code class="highlight"><c- n>just_stopped</c-></code>. For a pack of subexpressions <code class="highlight"><c- n>ts</c-></code>, let <code class="highlight"><c- n>Ts</c-></code> be the pack of types <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>ts</c-><c- p>))</c-></code>. The expression <code class="highlight"><i><c- n>just</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>ts</c-><c- p>...)</c-></code> is ill-formed if:</p>
        <ul>
         <li data-md>
          <p><code class="highlight"><c- p>(</c-><i><c- n>movable</c-><c- o>-</c-><c- n>value</c-></i><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-> <c- o>&amp;&amp;</c-><c- p>...)</c-></code> is <code class="highlight">false</code>, or</p>
@@ -10180,7 +10181,7 @@ returning a sender that is usable as input to additional sender algorithms.</p>
 given an instance <code class="highlight"><c- n>env</c-></code>, the expression <code class="highlight"><c- n>get_stop_token</c-><c- p>(</c-><c- n>env</c-><c- p>)</c-></code> is well-formed
 and has type <code class="highlight"><c- n>inplace_stop_token</c-></code>.</p>
       <li data-md>
-       <p>The names <code class="highlight"><c- n>split</c-></code> and <code class="highlight"><c- n>ensure_started</c-></code> denote pipeable sender adaptor closure objects.
+       <p>The names <code class="highlight"><c- n>split</c-></code> and <code class="highlight"><c- n>ensure_started</c-></code> denote pipeable sender adaptor objects.
 Let the expression <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>cpo</c-></code></i> be one of <code class="highlight"><c- n>split</c-></code> or <code class="highlight"><c- n>ensure_started</c-></code>. For a subexpression <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>shared</c-><c- o>-</c-><c- n>env</c-></i><c- o>></c-></code> is <code class="highlight">false</code>, <code class="highlight"><i><c- n>shared</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is ill-formed.</p>
       <li data-md>
        <p>Otherwise, the expression <code class="highlight"><i><c- n>shared</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is
@@ -10440,7 +10441,7 @@ expression:</p>
 <c- p>}</c->
 </pre>
         <li data-md>
-         <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>>::</c-><i><c- n>start</c-></i></code> is initialized with a callable object that has a call operator
+         <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>>::</c-><i><c- n>start</c-></i></code> is initialized with a callable object that has a function call operator
 equivalent to the following:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
 <c- b>void</c-> <c- k>operator</c-><c- p>()(</c-><i><c- n>local</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c->
@@ -10454,7 +10455,7 @@ does the following in order:</p>
              <p>Calls:</p>
 <pre class="highlight"><c- n>state</c-><c- p>.</c-><c- n>on_stop</c-><c- p>.</c-><c- n>emplace</c-><c- p>(</c->
   <c- n>get_stop_token</c-><c- p>(</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)),</c->
-  <i><c- n>on</c-><c- o>-</c-><c- n>stop</c-><c- o>-</c-><c- n>request</c-></i><c- p>{</c-><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>stop_src</c-><c- p>})</c->
+  <i><c- n>on</c-><c- o>-</c-><c- n>stop</c-><c- o>-</c-><c- n>request</c-></i><c- p>{</c-><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>stop_src</c-><c- p>});</c->
 </pre>
             <li data-md>
              <p>If <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i> is <i><code class="highlight"><c- n>ensure</c-><c- o>-</c-><c- n>started</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i>,
@@ -10464,7 +10465,7 @@ calls <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>std</c-><c
              <p>Otherwise, atomically does the following:</p>
              <ul>
               <li data-md>
-               <p>Inserts <code class="highlight"><c- o>&amp;</c-><c- n>state</c-></code> into <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>waiting_states</c-></code>, and</p>
+               <p>Inserts <code class="highlight"><c- n>addressof</c-><c- p>(</c-><c- n>state</c-><c- p>)</c-></code> into <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>waiting_states</c-></code>, and</p>
               <li data-md>
                <p>Reads the value of <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>completed</c-></code>.</p>
              </ul>
@@ -10472,7 +10473,7 @@ calls <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>std</c-><c
              <p>If the value read from <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>completed</c-></code> is <code class="highlight">true</code>,
 calls <code class="highlight"><c- n>state</c-><c- p>.</c-><i><c- n>notify</c-></i><c- p>()</c-></code> and returns.</p>
             <li data-md>
-             <p>Otherwise, if <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i> is <i><code class="highlight"><c- n>split</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i>, and if <code class="highlight"><c- o>&amp;</c-><c- n>state</c-></code> is the first item added
+             <p>Otherwise, if <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i> is <i><code class="highlight"><c- n>split</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i>, and if <code class="highlight"><c- n>addressof</c-><c- p>(</c-><c- n>state</c-><c- p>)</c-></code> is the first item added
 to <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>waiting_states</c-></code>, calls <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><i><c- n>start</c-><c- o>-</c-><c- n>op</c-></i><c- p>()</c-></code>.</p>
            </ol>
          </ol>
@@ -10508,7 +10509,8 @@ subexpressions whose types model <code class="highlight"><c- n>sender</c-></code
       <li data-md>
        <p>The names <code class="highlight"><c- n>when_all</c-></code> and <code class="highlight"><c- n>when_all_with_variant</c-></code> denote customization point
 objects. Let <code class="highlight"><c- n>sndrs</c-></code> be a pack of subexpressions, let <code class="highlight"><c- n>Sndrs</c-></code> be a pack of
-the types <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndrs</c-><c- p>))...</c-></code>, and let <i><code class="highlight"><c- n>CD</c-></code></i> be the type <code class="highlight"><c- n>common_type_t</c-><c- o>&lt;</c-><i><c- n>DOMAIN</c-><c- o>-</c-><c- n>OF</c-></i><c- p>(</c-><c- n>sndrs</c-><c- p>)...</c-><c- o>></c-></code>, where <code class="highlight"><i><c- n>DOMAIN</c-><c- o>-</c-><c- n>OF</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is the type of <code class="highlight"><i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>early</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code>. The expressions <code class="highlight"><c- n>when_all</c-><c- p>(</c-><c- n>sndrs</c-><c- p>...)</c-></code> and <code class="highlight"><c- n>when_all_with_variant</c-><c- p>(</c-><c- n>sndrs</c-><c- p>...)</c-></code> are ill-formed if
+the types <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndrs</c-><c- p>))...</c-></code>, and let <i><code class="highlight"><c- n>CD</c-></code></i> be the type <code class="highlight"><c- n>common_type_t</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>early</c-></i><c- p>(</c-><c- n>sndrs</c-><c- p>))...</c-><c- o>></c-></code>.
+The expressions <code class="highlight"><c- n>when_all</c-><c- p>(</c-><c- n>sndrs</c-><c- p>...)</c-></code> and <code class="highlight"><c- n>when_all_with_variant</c-><c- p>(</c-><c- n>sndrs</c-><c- p>...)</c-></code> are ill-formed if
 any of the following is true:</p>
        <ul>
         <li data-md>
@@ -10522,7 +10524,7 @@ any of the following is true:</p>
        <p>The expression <code class="highlight"><c- n>when_all</c-><c- p>(</c-><c- n>sndrs</c-><c- p>...)</c-></code> is expression-equivalent to:</p>
 <pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
   <i><c- n>CD</c-></i><c- p>(),</c->
-  <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>when_all</c-><c- p>,</c-> <c- p>{},</c-> <c- n>sndrs</c-><c- p>...));</c->
+  <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>when_all</c-><c- p>,</c-> <c- p>{},</c-> <c- n>sndrs</c-><c- p>...))</c->
 </pre>
       <li data-md>
        <p>The exposition-only class template <i><code class="highlight"><c- n>impls</c-><c- o>-</c-><c- k>for</c-></code></i> ([exec.snd.general]) is specialized for <code class="highlight"><c- n>when_all_t</c-></code> as follows:</p>
@@ -10565,7 +10567,7 @@ expression:</p>
 <c- p>}</c->
 </pre>
          <p>where <i><code class="highlight"><c- n>e</c-></code></i> is the expression:</p>
-<pre class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>).</c-><i><c- n>apply</c-></i><c- p>(</c-><i><c- n>make</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>></c-><c- p>{</c-><c- n>get_env</c-><c- p>(</c-><c- n>rcvr</c-><c- p>)})</c->
+<pre class="highlight"><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>).</c-><i><c- n>apply</c-></i><c- p>(</c-><i><c- n>make</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>></c-><c- p>())</c->
 </pre>
          <p>and where <i><code class="highlight"><c- n>make</c-><c- o>-</c-><c- n>state</c-></code></i> is the following exposition-only class template:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Env</c-><c- o>></c->
@@ -10576,8 +10578,6 @@ expression:</p>
 
 <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
 <c- k>struct</c-> <i><c- nc>make</c-><c- o>-</c-><c- n>state</c-></i> <c- p>{</c->
-  <c- k>const</c-> <c- n>env_of_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>&amp;</c-> <c- n>env</c-><c- p>;</c->
-
   <c- k>template</c-><c- o>&lt;</c-><i><c- n>max</c-><c- mi>-1</c-><c- o>-</c-><c- n>sender</c-><c- o>-</c-><c- n>in</c-></i><c- o>&lt;</c-><c- n>env_of_t</c-><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>>></c-><c- p>...</c-> <c- n>Sndrs</c-><c- o>></c->
   <c- k>auto</c-> <c- k>operator</c-><c- p>()(</c-><c- k>auto</c-><c- p>,</c-> <c- k>auto</c-><c- p>,</c-> <c- n>Sndrs</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>sndrs</c-><c- p>)</c-> <c- k>const</c-> <c- p>{</c->
     <c- k>using</c-> <c- n>values_tuple</c-> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
@@ -10732,7 +10732,7 @@ receiver whose execution domain does not customize <code class="highlight"><c- n
        <p><code class="highlight"><c- n>into_variant</c-></code> adapts a sender with multiple value completion signatures into
 a sender with just one value completion signature consisting of a <code class="highlight"><c- n>variant</c-></code> of <code class="highlight"><c- n>tuple</c-></code>s.</p>
       <li data-md>
-       <p>The name <code class="highlight"><c- n>into_variant</c-></code> denotes a pipeable sender adaptor closure object. For a
+       <p>The name <code class="highlight"><c- n>into_variant</c-></code> denotes a pipeable sender adaptor object. For a
 subexpression <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>Sndr</c-></code> does not
 satisfy <code class="highlight"><c- n>sender</c-></code>, <code class="highlight"><c- n>into_variant</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is ill-formed.</p>
       <li data-md>
@@ -10785,7 +10785,7 @@ completion operation is also converted into an <code class="highlight"><c- n>opt
 sender that never completes with stopped, reporting cancellation by
 completing with an disengaged <code class="highlight"><c- n>optional</c-></code>.</p>
       <li data-md>
-       <p>The name <code class="highlight"><c- n>stopped_as_optional</c-></code> denotes a pipeable sender adaptor closure
+       <p>The name <code class="highlight"><c- n>stopped_as_optional</c-></code> denotes a pipeable sender adaptor
 object. For a subexpression <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. The
 expression <code class="highlight"><c- n>stopped_as_optional</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to:</p>
 <pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
@@ -10813,7 +10813,7 @@ an error completion operation as a custom error type. The result is a sender
 that never completes with stopped, reporting cancellation by completing with
 an error.</p>
       <li data-md>
-       <p>The name <code class="highlight"><c- n>stopped_as_error</c-></code> denotes a pipeable sender adaptor closure object.
+       <p>The name <code class="highlight"><c- n>stopped_as_error</c-></code> denotes a pipeable sender adaptor object.
 For some subexpressions <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>err</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> and let <code class="highlight"><c- n>Err</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>err</c-><c- p>))</c-></code>. If the type <code class="highlight"><c- n>Sndr</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code> or if the type <code class="highlight"><c- n>Err</c-></code> doesn’t satisfy <i><code class="highlight"><c- n>movable</c-><c- o>-</c-><c- n>value</c-></code></i>, <code class="highlight"><c- n>stopped_as_error</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>err</c-><c- p>)</c-></code> is ill-formed. Otherwise, the expression <code class="highlight"><c- n>stopped_as_error</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>err</c-><c- p>)</c-></code> is expression-equivalent to:</p>
 <pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
   <i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>early</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>),</c->
@@ -11150,7 +11150,7 @@ expression-equivalent to <code class="highlight"><c- n>start_detached</c-><c- p>
 only if it is a function type with one of the following forms:</p>
          <ul>
           <li data-md>
-           <p><code class="highlight"><c- n>set_value_t</c-><c- p>(</c-><i><c- n>Vs</c-></i><c- p>...)</c-></code>, where <i><code class="highlight"><c- n>Vs</c-></code></i> is an parameter pack of object or reference types.</p>
+           <p><code class="highlight"><c- n>set_value_t</c-><c- p>(</c-><i><c- n>Vs</c-></i><c- p>...)</c-></code>, where <i><code class="highlight"><c- n>Vs</c-></code></i> is a pack of object or reference types.</p>
           <li data-md>
            <p><code class="highlight"><c- n>set_error_t</c-><c- p>(</c-><i><c- n>Err</c-></i><c- p>)</c-></code>, where <i><code class="highlight"><c- n>Err</c-></code></i> is
 an object or reference type.</p>
@@ -11166,9 +11166,9 @@ an object or reference type.</p>
 </pre>
        <ol start="2">
         <li data-md>
-         <p>Let <code class="highlight"><c- n>Fns</c-><c- p>...</c-></code> be a template parameter pack of the arguments of the <code class="highlight"><c- n>completion_signatures</c-></code> specialization named by <code class="highlight"><c- n>Completions</c-></code>, let <i><code class="highlight"><c- n>TagFns</c-></code></i> be a template parameter pack of the function
-types in <code class="highlight"><c- n>Fns</c-></code> whose return types are <code class="highlight"><c- n>Tag</c-></code>, and let <code class="highlight"><i><c- n>Ts</c-><i><sub><c- n>n</c-></sub></i></i></code> be a template parameter pack
-of the function argument types in the <i><code class="highlight"><c- n>n</c-></code></i>-th type in <i><code class="highlight"><c- n>TagFns</c-></code></i>. Then, given two variadic templates <i><code class="highlight"><c- n>Tuple</c-></code></i> and <i><code class="highlight"><c- n>Variant</c-></code></i>, the type <code class="highlight"><i><c- n>gather</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Completions</c-><c- p>,</c-> <i><c- n>Tuple</c-></i><c- p>,</c-> <i><c- n>Variant</c-></i><c- o>></c-></code> names the type <code class="highlight"><i><c- n>META</c-><c- o>-</c-><c- n>APPLY</c-></i><c- p>(</c-><i><c- n>Variant</c-></i><c- p>,</c-> <i><c- n>META</c-><c- o>-</c-><c- n>APPLY</c-></i><c- p>(</c-><i><c- n>Tuple</c-></i><c- p>,</c-> <i><c- n>Ts</c-><i><sub><c- n>0</c-></sub></i></i><c- p>...),</c-> <i><c- n>META</c-><c- o>-</c-><c- n>APPLY</c-></i><c- p>(</c-><i><c- n>Tuple</c-></i><c- p>,</c-> <i><c- n>Ts</c-><i><sub><c- n>1</c-></sub></i></i><c- p>...),</c-> <c- p>...</c-> <i><c- n>META</c-><c- o>-</c-><c- n>APPLY</c-></i><c- p>(</c-><i><c- n>Tuple</c-></i><c- p>,</c-> <i><c- n>Ts</c-><i><sub><c- n>m</c-><c- mf>-1</c-></sub></i></i><c- mf>.</c-><c- p>..))</c-></code>, where <i><code class="highlight"><c- n>m</c-></code></i> is the size of the parameter pack <i><code class="highlight"><c- n>TagFns</c-></code></i> and <code class="highlight"><i><c- n>META</c-><c- o>-</c-><c- n>APPLY</c-></i><c- p>(</c-><i><c- n>T</c-></i><c- p>,</c-> <i><c- n>As</c-></i><c- p>...)</c-></code> is equivalent to:</p>
+         <p>Let <code class="highlight"><c- n>Fns</c-></code> be a pack of the arguments of the <code class="highlight"><c- n>completion_signatures</c-></code> specialization named by <code class="highlight"><c- n>Completions</c-></code>, let <i><code class="highlight"><c- n>TagFns</c-></code></i> be a pack of the function
+types in <code class="highlight"><c- n>Fns</c-></code> whose return types are <code class="highlight"><c- n>Tag</c-></code>, and let <code class="highlight"><i><c- n>Ts</c-><sub><c- n>n</c-></sub></i></code> be a pack
+of the function argument types in the <i><code class="highlight"><c- n>n</c-></code></i>-th type in <i><code class="highlight"><c- n>TagFns</c-></code></i>. Then, given two variadic templates <i><code class="highlight"><c- n>Tuple</c-></code></i> and <i><code class="highlight"><c- n>Variant</c-></code></i>, the type <code class="highlight"><i><c- n>gather</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Completions</c-><c- p>,</c-> <i><c- n>Tuple</c-></i><c- p>,</c-> <i><c- n>Variant</c-></i><c- o>></c-></code> names the type <code class="highlight"><i><c- n>META</c-><c- o>-</c-><c- n>APPLY</c-></i><c- p>(</c-><i><c- n>Variant</c-></i><c- p>,</c-> <i><c- n>META</c-><c- o>-</c-><c- n>APPLY</c-></i><c- p>(</c-><i><c- n>Tuple</c-></i><c- p>,</c-> <i><c- n>Ts</c-><i><sub><c- n>0</c-></sub></i></i><c- p>...),</c-> <i><c- n>META</c-><c- o>-</c-><c- n>APPLY</c-></i><c- p>(</c-><i><c- n>Tuple</c-></i><c- p>,</c-> <i><c- n>Ts</c-><i><sub><c- n>1</c-></sub></i></i><c- p>...),</c-> <c- p>...</c-> <i><c- n>META</c-><c- o>-</c-><c- n>APPLY</c-></i><c- p>(</c-><i><c- n>Tuple</c-></i><c- p>,</c-> <i><c- n>Ts</c-><i><sub><c- n>m</c-><c- mf>-1</c-></sub></i></i><c- mf>.</c-><c- p>..))</c-></code>, where <i><code class="highlight"><c- n>m</c-></code></i> is the size of the pack <i><code class="highlight"><c- n>TagFns</c-></code></i> and <code class="highlight"><i><c- n>META</c-><c- o>-</c-><c- n>APPLY</c-></i><c- p>(</c-><i><c- n>T</c-></i><c- p>,</c-> <i><c- n>As</c-></i><c- p>...)</c-></code> is equivalent to:</p>
 <pre class="highlight"><c- k>typename</c-> <i><c- nc>indirect</c-><c- o>-</c-><c- n>meta</c-><c- o>-</c-><c- n>apply</c-></i><c- o>&lt;</c-><i><c- n>always</c-><c- o>-</c->true</i><c- o>&lt;</c-><i><c- n>As</c-></i><c- p>...</c-><c- o>>>::</c-><c- k>template</c-> <i><c- n>meta</c-><c- o>-</c-><c- n>apply</c-></i><c- o>&lt;</c-><i><c- n>T</c-></i><c- p>,</c-> <i><c- n>As</c-></i><c- p>...</c-><c- o>></c-><c- p>;</c->
 </pre>
         <li data-md>
@@ -11230,7 +11230,7 @@ each completion signature in the set to generate a new specialization of <code c
 </pre>
        <p>-- <i>end example</i>]</p>
       <li data-md>
-       <p>This subclause makes use of the following exposition-only entities:</p>
+       <p>[exec.utils.tfxcmplsigs] makes use of the following exposition-only entities:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-><c- p>...</c-> <c- n>As</c-><c- o>></c->
   <c- k>using</c-> <i><c- k>default</c-><c- o>-</c-><c- n>set</c-><c- o>-</c-><c- n>value</c-></i> <c- o>=</c->
     <c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>(</c-><c- n>As</c-><c- p>...)</c-><c- o>></c-><c- p>;</c->
@@ -11254,8 +11254,8 @@ each completion signature in the set to generate a new specialization of <code c
 </pre>
        <ol>
         <li data-md>
-         <p><code class="highlight"><c- n>SetValue</c-></code> shall name an alias template such that for any template
-parameter pack <code class="highlight"><c- n>As</c-><c- p>...</c-></code>, the type <code class="highlight"><c- n>SetValue</c-><c- o>&lt;</c-><c- n>As</c-><c- p>...</c-><c- o>></c-></code> is either ill-formed
+         <p><code class="highlight"><c- n>SetValue</c-></code> shall name an alias template such that for any
+pack of types <code class="highlight"><c- n>As</c-></code>, the type <code class="highlight"><c- n>SetValue</c-><c- o>&lt;</c-><c- n>As</c-><c- p>...</c-><c- o>></c-></code> is either ill-formed
 or else <code class="highlight"><i><c- n>valid</c-><c- o>-</c-><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>SetValue</c-><c- o>&lt;</c-><c- n>As</c-><c- p>...</c-><c- o>>></c-></code> is satisfied.</p>
         <li data-md>
          <p><code class="highlight"><c- n>SetError</c-></code> shall name an alias template such that for any type <code class="highlight"><c- n>Err</c-></code>, <code class="highlight"><c- n>SetError</c-><c- o>&lt;</c-><c- n>Err</c-><c- o>></c-></code> is either ill-formed or else <code class="highlight"><i><c- n>valid</c-><c- o>-</c-><c- n>completion</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>SetError</c-><c- o>&lt;</c-><c- n>Err</c-><c- o>>></c-></code> is
@@ -11266,71 +11266,68 @@ satisfied.</p>
         <li data-md>
          <p>Let <code class="highlight"><c- n>Vs</c-><c- p>...</c-></code> be a pack of the types in the <i><code class="highlight"><c- n>type</c-><c- o>-</c-><c- n>list</c-></code></i> named by <code class="highlight"><i><c- n>gather</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>,</c-> <c- n>InputSignatures</c-><c- p>,</c-> <c- n>SetValue</c-><c- p>,</c-> <i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- o>></c-></code>.</p>
         <li data-md>
-         <p>Let <code class="highlight"><c- n>Es</c-><c- p>...</c-></code> be a pack of the types in the <i><code class="highlight"><c- n>type</c-><c- o>-</c-><c- n>list</c-></code></i> named by <code class="highlight"><i><c- n>gather</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>set_error_t</c-><c- p>,</c-> <c- n>InputSignatures</c-><c- p>,</c-> <c- n>type_identity_t</c-><c- p>,</c-> <i><c- n>error</c-><c- o>-</c-><c- n>list</c-></i><c- o>></c-></code>, where <i><code class="highlight"><c- n>error</c-><c- o>-</c-><c- n>list</c-></code></i> is an alias template such that <code class="highlight"><i><c- n>error</c-><c- o>-</c-><c- n>list</c-></i><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></code> names <code class="highlight"><i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- o>&lt;</c-><c- n>SetError</c-><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-><c- p>...</c-><c- o>></c-></code>.</p>
+         <p>Let <code class="highlight"><c- n>Es</c-><c- p>...</c-></code> be a pack of the types in the <i><code class="highlight"><c- n>type</c-><c- o>-</c-><c- n>list</c-></code></i> named by <code class="highlight"><i><c- n>gather</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>set_error_t</c-><c- p>,</c-> <c- n>InputSignatures</c-><c- p>,</c-> <c- n>type_identity_t</c-><c- p>,</c-> <i><c- n>error</c-><c- o>-</c-><c- n>list</c-></i><c- o>></c-></code>, where <i><code class="highlight"><c- n>error</c-><c- o>-</c-><c- n>list</c-></code></i> is an alias template such that <code class="highlight"><i><c- n>error</c-><c- o>-</c-><c- n>list</c-></i><c- o>&lt;</c-><c- n>Ts</c-><c- p>...</c-><c- o>></c-></code> is <code class="highlight"><i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- o>&lt;</c-><c- n>SetError</c-><c- o>&lt;</c-><c- n>Ts</c-><c- o>></c-><c- p>...</c-><c- o>></c-></code>.</p>
         <li data-md>
          <p>Let <code class="highlight"><c- n>Ss</c-></code> name the type <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;></c-></code> if <code class="highlight"><i><c- n>gather</c-><c- o>-</c-><c- n>signatures</c-></i><c- o>&lt;</c-><c- n>set_stopped_t</c-><c- p>,</c-> <c- n>InputSignatures</c-><c- p>,</c-> <i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- p>,</c-> <i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- o>></c-></code> is an alias for the type <code class="highlight"><i><c- n>type</c-><c- o>-</c-><c- n>list</c-></i><c- o>&lt;></c-></code>; otherwise, <code class="highlight"><c- n>SetStopped</c-></code>.</p>
        </ol>
        <p>Then:</p>
        <ol start="6">
         <li data-md>
-         <p>If any of the above types are ill-formed, then <code class="highlight"><c- n>transform_completion_signatures</c-><c- o>&lt;</c-><c- n>InputSignatures</c-><c- p>,</c-> <c- n>AdditionalSignatures</c-><c- p>,</c-> <c- n>SetValue</c-><c- p>,</c-> <c- n>SetError</c-><c- p>,</c-> <c- n>SetStopped</c-><c- o>></c-></code> is ill-formed,</p>
+         <p>If any of the above types are ill-formed, then <code class="highlight"><c- n>transform_completion_signatures</c-><c- o>&lt;</c-><c- n>InputSignatures</c-><c- p>,</c-> <c- n>AdditionalSignatures</c-><c- p>,</c-> <c- n>SetValue</c-><c- p>,</c-> <c- n>SetError</c-><c- p>,</c-> <c- n>SetStopped</c-><c- o>></c-></code> is ill-formed.</p>
         <li data-md>
-         <p>Otherwise, <code class="highlight"><c- n>transform_completion_signatures</c-><c- o>&lt;</c-><c- n>InputSignatures</c-><c- p>,</c-> <c- n>AdditionalSignatures</c-><c- p>,</c-> <c- n>SetValue</c-><c- p>,</c-> <c- n>SetError</c-><c- p>,</c-> <c- n>SetStopped</c-><c- o>></c-></code> names the type <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>Sigs</c-><c- p>...</c-><c- o>></c-></code> where <code class="highlight"><c- n>Sigs</c-><c- p>...</c-></code> is the unique set of
-types in all the template arguments of all the <code class="highlight"><c- n>completion_signatures</c-></code> specializations in <code class="highlight"><c- p>[</c-><c- n>AdditionalSignatures</c-><c- p>,</c-> <c- n>Vs</c-><c- p>...,</c-> <c- n>Es</c-><c- p>...,</c-> <c- n>Ss</c-><c- p>]</c-></code>.</p>
+         <p>Otherwise, <code class="highlight"><c- n>transform_completion_signatures</c-><c- o>&lt;</c-><c- n>InputSignatures</c-><c- p>,</c-> <c- n>AdditionalSignatures</c-><c- p>,</c-> <c- n>SetValue</c-><c- p>,</c-> <c- n>SetError</c-><c- p>,</c-> <c- n>SetStopped</c-><c- o>></c-></code> is the type <code class="highlight"><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>Sigs</c-><c- p>...</c-><c- o>></c-></code> where <code class="highlight"><c- n>Sigs</c-><c- p>...</c-></code> is the unique set of
+types in all the template arguments of all the <code class="highlight"><c- n>completion_signatures</c-></code> specializations in the set <code class="highlight"><c- n>AdditionalSignatures</c-><c- p>,</c-> <c- n>Vs</c-><c- p>...,</c-> <c- n>Es</c-><c- p>...,</c-> <c- n>Ss</c-></code>.</p>
        </ol>
      </ol>
      <h3 class="heading settled" data-level="34.12" id="spec-execution.contexts"><span class="secno">34.12. </span><span class="content">Execution contexts <b>[exec.ctx]</b></span><a class="self-link" href="#spec-execution.contexts"></a></h3>
-     <ol>
-      <li data-md>
-       <p>This subclause specifies some execution resources on which work can be
-scheduled.</p>
-     </ol>
      <h4 class="heading settled" data-level="34.12.1" id="spec-execution.contexts.run_loop"><span class="secno">34.12.1. </span><span class="content"><code class="highlight"><c- n>run_loop</c-></code> <b>[exec.run.loop]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop"></a></h4>
      <ol>
       <li data-md>
        <p>A <code class="highlight"><c- n>run_loop</c-></code> is an execution resource on which work can be scheduled. It
-maintains a simple, thread-safe first-in-first-out queue of work. Its <code class="highlight"><c- n>run</c-><c- p>()</c-></code> member function removes elements from the queue and executes them in a loop
-on whatever thread of execution calls <code class="highlight"><c- n>run</c-><c- p>()</c-></code>.</p>
+maintains a thread-safe first-in-first-out queue of work. Its <code class="highlight"><c- n>run</c-><c- p>()</c-></code> member function removes elements from the queue and executes them in a loop
+on the thread of execution calls <code class="highlight"><c- n>run</c-><c- p>()</c-></code>.</p>
       <li data-md>
        <p>A <code class="highlight"><c- n>run_loop</c-></code> instance has an associated <i>count</i> that corresponds to the
-number of work items that are in its queue. Additionally, a <code class="highlight"><c- n>run_loop</c-></code> has an
+number of work items that are in its queue. Additionally, a <code class="highlight"><c- n>run_loop</c-></code> instance has an
 associated <i>state</i> that can be one of <i>starting</i>, <i>running</i>,
 or <i>finishing</i>.</p>
       <li data-md>
-       <p>Concurrent invocations of the member functions of <code class="highlight"><c- n>run_loop</c-></code>, other than <code class="highlight"><c- n>run</c-></code> and its destructor, do not introduce data races. The member functions <code class="highlight"><c- n>pop_front</c-></code>, <code class="highlight"><c- n>push_back</c-></code>, and <code class="highlight"><c- n>finish</c-></code> execute atomically.</p>
+       <p>Concurrent invocations of the member functions of <code class="highlight"><c- n>run_loop</c-></code> other than <code class="highlight"><c- n>run</c-></code> and its destructor do not introduce data races. The member functions <code class="highlight"><c- n>pop_front</c-></code>, <code class="highlight"><c- n>push_back</c-></code>, and <code class="highlight"><c- n>finish</c-></code> execute atomically.</p>
       <li data-md>
-       <p><span class="wg21note">Implementations are encouraged to use an intrusive
+       <p><em>Recommended practice:</em> Implementations are encouraged to use an intrusive
 queue of operation states to hold the work units to make scheduling
-allocation-free.</span></p>
-<pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
-  <c- k>class</c-> <c- nc>run_loop</c-> <c- p>{</c->
-    <c- c1>// [exec.run.loop.types] Associated types</c->
-    <c- k>class</c-> <i><c- nc>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
-    <c- k>class</c-> <i><c- nc>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>sender</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
-    <c- k>struct</c-> <i><c- nc>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
-      <c- k>virtual</c-> <c- b>void</c-> <c- nf>execute</c-><c- p>()</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c->
-      <c- n>run_loop</c-><c- o>*</c-> <i><c- n>loop</c-></i><c- p>;</c->
-      <i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>*</c-> <i><c- n>next</c-></i><c- p>;</c->
-    <c- p>};</c->
-    <c- k>template</c-><c- o>&lt;</c-><c- n>receiver_of</c-><c- o>&lt;</c-><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>()</c-><c- o>>></c-> <c- n>Rcvr</c-><c- o>></c->
-      <c- k>using</c-> <i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-></i> <c- o>=</c-> <i><c- n>unspecified</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+allocation-free.</p>
+<pre class="highlight">    <c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
+      <c- k>class</c-> <c- nc>run_loop</c-> <c- p>{</c->
+        <c- c1>// [exec.run.loop.types] Associated types</c->
+        <c- k>class</c-> <i><c- nc>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+        <c- k>class</c-> <i><c- nc>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>sender</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
+        <c- k>struct</c-> <i><c- nc>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i> <c- p>{</c-> <c- c1>// exposition only</c->
+          <c- k>virtual</c-> <c- b>void</c-> <i><c- nf>execute</c-></i><c- p>()</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c->  <c- c1>// exposition only</c->
+          <c- n>run_loop</c-><c- o>*</c-> <i><c- n>loop</c-></i><c- p>;</c->  <c- c1>// exposition only</c->
+          <i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>*</c-> <i><c- n>next</c-></i><c- p>;</c->  <c- c1>// exposition only</c->
+        <c- p>};</c->
+        <c- k>template</c-><c- o>&lt;</c-><c- n>receiver_of</c-><c- o>&lt;</c-><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>()</c-><c- o>>></c-> <c- n>Rcvr</c-><c- o>></c->
+          <c- k>using</c-> <i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-></i> <c- o>=</c-> <i><c- n>unspecified</c-></i><c- p>;</c-> <c- c1>// exposition only</c->
 
-    <c- c1>// [exec.run.loop.members] Member functions:</c->
-    <i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>*</c-> <c- n>pop_front</c-><c- p>();</c-> <c- c1>// exposition only</c->
-    <c- b>void</c-> <c- nf>push_back</c-><c- p>(</c-><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>*</c-><c- p>);</c-> <c- c1>// exposition only</c->
 
-  <c- k>public</c-><c- o>:</c->
-    <c- c1>// [exec.run.loop.ctor] construct/copy/destroy</c->
-    <c- n>run_loop</c-><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c->
-    <c- n>run_loop</c-><c- p>(</c-><c- n>run_loop</c-><c- o>&amp;&amp;</c-><c- p>)</c-> <c- o>=</c-> <c- k>delete</c-><c- p>;</c->
-    <c- o>~</c-><c- n>run_loop</c-><c- p>();</c->
+<c- nl>TODO</c-><c- p>:</c-> <c- n>kebab</c-> <c- n>these</c-><c- o>:</c->
+        <c- c1>// [exec.run.loop.members] Member functions:</c->
+        <i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>*</c-> <i><c- n>pop</c-><c- o>-</c-><c- n>front</c-></i><c- p>();</c-> <c- c1>// exposition only</c->
+        <c- b>void</c-> <i><c- n>push</c-><c- o>-</c-><c- n>back</c-></i><c- p>(</c-><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>*</c-><c- p>);</c-> <c- c1>// exposition only</c->
 
-    <c- c1>// [exec.run.loop.members] Member functions:</c->
-    <i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></i> <c- n>get_scheduler</c-><c- p>();</c->
-    <c- b>void</c-> <c- nf>run</c-><c- p>();</c->
-    <c- b>void</c-> <c- nf>finish</c-><c- p>();</c->
-  <c- p>};</c->
-<c- p>}</c->
+      <c- k>public</c-><c- o>:</c->
+        <c- c1>// [exec.run.loop.ctor] construct/copy/destroy</c->
+        <c- n>run_loop</c-><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c->
+        <c- n>run_loop</c-><c- p>(</c-><c- n>run_loop</c-><c- o>&amp;&amp;</c-><c- p>)</c-> <c- o>=</c-> <c- k>delete</c-><c- p>;</c->
+        <c- o>~</c-><c- n>run_loop</c-><c- p>();</c->
+
+        <c- c1>// [exec.run.loop.members] Member functions:</c->
+        <i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></i> <c- n>get_scheduler</c-><c- p>();</c->
+        <c- b>void</c-> <c- nf>run</c-><c- p>();</c->
+        <c- b>void</c-> <c- nf>finish</c-><c- p>();</c->
+      <c- p>};</c->
+    <c- p>}</c->
 </pre>
      </ol>
      <h5 class="heading settled" data-level="34.12.1.1" id="spec-execution.contexts.run_loop.types"><span class="secno">34.12.1.1. </span><span class="content">Associated types <b>[exec.run.loop.types]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop.types"></a></h5>
@@ -11338,8 +11335,7 @@ allocation-free.</span></p>
 </pre>
      <ol>
       <li data-md>
-       <p><i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></code></i> is an unspecified type that models
-the <code class="highlight"><c- n>scheduler</c-></code> concept.</p>
+       <p><i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></code></i> is an unspecified type that models <code class="highlight"><c- n>scheduler</c-></code>.</p>
       <li data-md>
        <p>Instances of <i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></code></i> remain valid until the
 end of the lifetime of the <code class="highlight"><c- n>run_loop</c-></code> instance from which they were
@@ -11348,14 +11344,17 @@ obtained.</p>
        <p>Two instances of <i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></code></i> compare equal if
 and only if they were obtained from the same <code class="highlight"><c- n>run_loop</c-></code> instance.</p>
       <li data-md>
-       <p>Let <i><code class="highlight"><c- n>sch</c-></code></i> be an expression of type <i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></code></i>. The expression <code class="highlight"><c- n>schedule</c-><c- p>(</c-><i><c- n>sch</c-></i><c- p>)</c-></code> is not potentially-throwing and has type <i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>sender</c-></code></i>.</p>
+       <p>Let <i><code class="highlight"><c- n>sch</c-></code></i> be an expression of type <i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></code></i>. The expression <code class="highlight"><c- n>schedule</c-><c- p>(</c-><i><c- n>sch</c-></i><c- p>)</c-></code> has type <i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>sender</c-></code></i> and is not potentially-throwing
+if <i><code class="highlight"><c- n>sch</c-></code></i> is not potentially-throwing.</p>
      </ol>
 <pre class="highlight"><c- k>class</c-> <i><c- nc>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>sender</c-></i><c- p>;</c->
 </pre>
      <ol>
       <li data-md>
-       <p><i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>sender</c-></code></i> is an unspecified type such that <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- n>of</c-></i><c- o>&lt;</c-><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>sender</c-></i><c- o>></c-></code> is <code class="highlight">true</code>.
-Additionally, the types reported by its <code class="highlight"><c- n>error_types</c-></code> associated type is <code class="highlight"><c- n>exception_ptr</c-></code>, and the value of its <code class="highlight"><c- n>sends_stopped</c-></code> trait is <code class="highlight">true</code>.</p>
+       <p><i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>sender</c-></code></i> is an unspecified type such that for any
+type <code class="highlight"><c- n>Env</c-></code>, <code class="highlight"><c- n>completion_signatures_of_t</c-><c- o>&lt;</c-><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>sender</c-></i><c- p>,</c-> <c- n>Env</c-><c- o>></c-></code> is:</p>
+<pre class="highlight"><c- n>completion_signatures</c-><c- o>&lt;</c-><c- n>set_value_t</c-><c- p>(),</c-> <c- n>set_error_t</c-><c- p>(</c-><c- n>exception_ptr</c-><c- p>),</c-> <c- n>set_stopped_t</c-><c- p>()</c-><c- o>></c->
+</pre>
       <li data-md>
        <p>An instance of <i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>sender</c-></code></i> remains valid until the
 end of the lifetime of its associated <code class="highlight"><c- n>run_loop</c-></code> instance.</p>
@@ -11375,7 +11374,7 @@ not potentially-throwing, has type <i><code class="highlight"><c- n>run</c-><c- 
 </pre>
      <ol>
       <li data-md>
-       <p><code class="highlight"><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-></i><c- o>&lt;</c-><i><c- n>Rcvr</c-></i><c- o>></c-></code> inherits unambiguously
+       <p><code class="highlight"><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-></i><c- o>&lt;</c-><i><c- n>Rcvr</c-></i><c- o>></c-></code> inherits privately and unambiguously
 from <i><code class="highlight"><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></code></i>.</p>
       <li data-md>
        <p>Let <i><code class="highlight"><c- n>o</c-></code></i> be a non-<code class="highlight"><c- k>const</c-></code> lvalue of type <code class="highlight"><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-></i><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>></c-></code>, and let <code class="highlight"><i><c- n>REC</c-></i><c- p>(</c-><i><c- n>o</c-></i><c- p>)</c-></code> be a non-<code class="highlight"><c- k>const</c-></code> lvalue reference to an
@@ -11386,7 +11385,7 @@ expression <i><code class="highlight"><c- n>rcvr</c-></code></i> passed to the i
          <p>The object to which <code class="highlight"><i><c- n>REC</c-></i><c- p>(</c-><i><c- n>o</c-></i><c- p>)</c-></code> refers remains
 valid for the lifetime of the object to which <i><code class="highlight"><c- n>o</c-></code></i> refers.</p>
         <li data-md>
-         <p>The type <code class="highlight"><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-></i><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>></c-></code> overrides <code class="highlight"><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>::</c-><c- n>execute</c-><c- p>()</c-></code> such that <code class="highlight"><i><c- n>o</c-></i><c- p>.</c-><c- n>execute</c-><c- p>()</c-></code> is equivalent to the following:</p>
+         <p>The type <code class="highlight"><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-></i><c- o>&lt;</c-><c- n>Rcvr</c-><c- o>></c-></code> overrides <code class="highlight"><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>::</c-><i><c- n>execute</c-></i><c- p>()</c-></code> such that <code class="highlight"><i><c- n>o</c-></i><c- p>.</c-><i><c- n>execute</c-></i><c- p>()</c-></code> is equivalent to the following:</p>
 <pre class="highlight"><c- k>if</c-> <c- p>(</c-><c- n>get_stop_token</c-><c- p>(</c-><i><c- n>REC</c-></i><c- p>(</c-><i><c- n>o</c-></i><c- p>)).</c-><c- n>stop_requested</c-><c- p>())</c-> <c- p>{</c->
   <c- n>set_stopped</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><i><c- n>REC</c-></i><c- p>(</c-><i><c- n>o</c-></i><c- p>)));</c->
 <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
@@ -11397,7 +11396,7 @@ valid for the lifetime of the object to which <i><code class="highlight"><c- n>o
          <p>The expression <code class="highlight"><c- n>start</c-><c- p>(</c-><i><c- n>o</c-></i><c- p>)</c-></code> is equivalent to the
 following:</p>
 <pre class="highlight"><c- k>try</c-> <c- p>{</c->
-  <i><c- n>o</c-></i><c- p>.</c-><i><c- n>loop</c-></i><c- o>-></c-><c- n>push_back</c-><c- p>(</c-><c- o>&amp;</c-><i><c- n>o</c-></i><c- p>);</c->
+  <i><c- n>o</c-></i><c- p>.</c-><i><c- n>loop</c-></i><c- o>-></c-><i><c- n>push</c-><c- o>-</c-><c- n>back</c-></i><c- p>(</c-><c- o>&amp;</c-><i><c- n>o</c-></i><c- p>);</c->
 <c- p>}</c-> <c- k>catch</c-><c- p>(...)</c-> <c- p>{</c->
   <c- n>set_error</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><i><c- n>REC</c-></i><c- p>(</c-><i><c- n>o</c-></i><c- p>)),</c-> <c- n>current_exception</c-><c- p>());</c->
 <c- p>}</c->
@@ -11418,7 +11417,7 @@ following:</p>
        <p><i>Effects:</i> If <i>count</i> is not <code class="highlight"><c- mi>0</c-></code> or if <i>state</i> is <i>running</i>, invokes <code class="highlight"><c- n>terminate</c-><c- p>()</c-></code>. Otherwise, has no effects.</p>
      </ol>
      <h5 class="heading settled" data-level="34.12.1.3" id="spec-execution.contexts.run_loop.members"><span class="secno">34.12.1.3. </span><span class="content">Member functions <b>[exec.run.loop.members]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop.members"></a></h5>
-<pre class="highlight"><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>*</c-> <c- n>pop_front</c-><c- p>();</c->
+<pre class="highlight"><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>*</c-> <i><c- n>pop</c-><c- o>-</c-><c- n>front</c-></i><c- p>();</c->
 </pre>
      <ol>
       <li data-md>
@@ -11426,20 +11425,20 @@ following:</p>
 is <code class="highlight">true</code>:</p>
        <ul>
         <li data-md>
-         <p><i>count</i> is <code class="highlight"><c- mi>0</c-></code> and <i>state</i> is <i>finishing</i>, in which case <code class="highlight"><c- n>pop_front</c-></code> returns <code class="highlight"><c- k>nullptr</c-></code>; or</p>
+         <p><i>count</i> is <code class="highlight"><c- mi>0</c-></code> and <i>state</i> is <i>finishing</i>, in which case <i><code class="highlight"><c- n>pop</c-><c- o>-</c-><c- n>front</c-></code></i> returns <code class="highlight"><c- k>nullptr</c-></code>; or</p>
         <li data-md>
          <p><i>count</i> is greater than <code class="highlight"><c- mi>0</c-></code>, in which case an item is removed from
 the front of the queue, <i>count</i> is decremented by <code class="highlight"><c- mi>1</c-></code>, and the
 removed item is returned.</p>
        </ul>
      </ol>
-<pre class="highlight"><c- b>void</c-> <c- nf>push_back</c-><c- p>(</c-><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>*</c-> <c- n>item</c-><c- p>);</c->
+<pre class="highlight"><c- b>void</c-> <i><c- n>push</c-><c- o>-</c-><c- n>back</c-></i><c- p>(</c-><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>*</c-> <c- n>item</c-><c- p>);</c->
 </pre>
      <ol>
       <li data-md>
        <p><i>Effects:</i> Adds <code class="highlight"><c- n>item</c-></code> to the back of the queue and increments <i>count</i> by <code class="highlight"><c- mi>1</c-></code>.</p>
       <li data-md>
-       <p><i>Synchronization:</i> This operation synchronizes with the <code class="highlight"><c- n>pop_front</c-></code> operation that obtains <code class="highlight"><c- n>item</c-></code>.</p>
+       <p><i>Synchronization:</i> This operation synchronizes with the <i><code class="highlight"><c- n>pop</c-><c- o>-</c-><c- n>front</c-></code></i> operation that obtains <code class="highlight"><c- n>item</c-></code>.</p>
      </ol>
 <pre class="highlight"><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></i> <c- n>run_loop</c-><c- o>::</c-><c- n>get_scheduler</c-><c- p>();</c->
 </pre>
@@ -11453,8 +11452,8 @@ can be used to schedule work onto this <code class="highlight"><c- n>run_loop</c
      <ol>
       <li data-md>
        <p><i>Effects:</i> Equivalent to:</p>
-<pre class="highlight"><c- k>while</c-> <c- p>(</c-><c- k>auto</c-><c- o>*</c-> <c- n>op</c-> <c- o>=</c-> <c- n>pop_front</c-><c- p>())</c-> <c- p>{</c->
-  <c- n>op</c-><c- o>-></c-><c- n>execute</c-><c- p>();</c->
+<pre class="highlight"><c- k>while</c-> <c- p>(</c-><c- k>auto</c-><c- o>*</c-> <c- n>op</c-> <c- o>=</c-> <i><c- n>pop</c-><c- o>-</c-><c- n>front</c-></i><c- p>())</c-> <c- p>{</c->
+  <c- n>op</c-><c- o>-></c-><i><c- n>execute</c-></i><c- p>();</c->
 <c- p>}</c->
 </pre>
       <li data-md>
@@ -11471,7 +11470,7 @@ When <i>state</i> changes, it does so without introducing data races.</p>
       <li data-md>
        <p><i>Effects:</i> Changes <i>state</i> to <i>finishing</i>.</p>
       <li data-md>
-       <p><i>Synchronization:</i> This operation synchronizes with all <code class="highlight"><c- n>pop_front</c-></code> operations on this object.</p>
+       <p><i>Synchronization:</i> This operation synchronizes with all <i><code class="highlight"><c- n>pop</c-><c- o>-</c-><c- n>front</c-></code></i> operations on this object.</p>
      </ol>
      <h3 class="heading settled" data-level="34.13" id="spec-execution.coro_utils"><span class="secno">34.13. </span><span class="content">Coroutine utilities <b>[exec.coro.utils]</b></span><a class="self-link" href="#spec-execution.coro_utils"></a></h3>
      <h4 class="heading settled" data-level="34.13.1" id="spec-execution.coro_utils.as_awaitable"><span class="secno">34.13.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>as_awaitable</c-></code> <b>[exec.as.awaitable]</b></span><a class="self-link" href="#spec-execution.coro_utils.as_awaitable"></a></h4>
@@ -11528,7 +11527,7 @@ equivalent to the following:</p>
   <c- c1>// ... </c-><i><c- c1>see below</c-></i>
 <c- p>};</c->
 </pre>
-           <p>Let <code class="highlight"><c- n>rcvr</c-></code> be an rvalue expression of type <i><code class="highlight"><c- n>awaitable</c-><c- o>-</c-><c- n>receiver</c-></code></i>, let <code class="highlight"><c- n>crcvr</c-></code> be a <code class="highlight"><c- k>const</c-></code> lvalue that refers to <code class="highlight"><c- n>rcvr</c-></code>, let <code class="highlight"><c- n>vs</c-></code> be a parameter pack of types <code class="highlight"><c- n>Vs</c-><c- p>...</c-></code>, and let <code class="highlight"><c- n>err</c-></code> be an arbitrary expression of type <code class="highlight"><c- n>Err</c-></code>.
+           <p>Let <code class="highlight"><c- n>rcvr</c-></code> be an rvalue expression of type <i><code class="highlight"><c- n>awaitable</c-><c- o>-</c-><c- n>receiver</c-></code></i>, let <code class="highlight"><c- n>crcvr</c-></code> be a <code class="highlight"><c- k>const</c-></code> lvalue that refers to <code class="highlight"><c- n>rcvr</c-></code>, let <code class="highlight"><c- n>vs</c-></code> be a pack of types <code class="highlight"><c- n>Vs</c-><c- p>...</c-></code>, and let <code class="highlight"><c- n>err</c-></code> be an arbitrary expression of type <code class="highlight"><c- n>Err</c-></code>.
 Then:</p>
            <ol>
             <li data-md>
