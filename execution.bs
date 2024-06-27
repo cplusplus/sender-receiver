@@ -8446,8 +8446,8 @@ request but has no recommendataions at present.</span>
           try {
             sh_state->result.template emplace&lt;tuple_t>(Tag(), std::forward&lt;Args>(args)...);
           } catch (...) {
-            using err_tuple_t = tuple&lt;set_error_t, exception_ptr>;
-            sh_state->result.template emplace&lt;err_tuple_t>(set_error, current_exception());
+            using tuple_t = tuple&lt;set_error_t, exception_ptr>;
+            sh_state->result.template emplace&lt;tuple_t>(set_error, current_exception());
           }
           sh_state-><i>notify</i>();
         }
