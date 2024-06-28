@@ -4035,8 +4035,34 @@ following new paragraph:</span>
 </div>
 </div>
 
+<div class="standardeze">
+# Language support library <b>[cpp]</b> # {#spec-support}
+
 <div class="hidden">
-<h2 class="heading no-toc" id="hidden.e.1"> </h2>
+<h3 class="heading no-toc" id="hidden.support.1"></h3>
+<h3 class="heading no-toc" id="hidden.support.2"></h3>
+</div>
+
+## Implementation properties <b>[support.limits]</b> ## {#spec-support.limits}
+
+<div class="hidden">
+<h4 class="heading no-toc" id="hidden.support.3"></h4>
+</div>
+
+### Header `<version>` synopsis <b>[version.syn]</b> ### {#spec-version.syn}
+
+<span class="ed-note">To the `<version>` synopsis, add the following:</span>
+
+<pre highlight="c++">
+#define __cpp_lib_semaphore       201907L         <i>// also in</i> &lt;semaphore>
+<ins>#define __cpp_lib_senders         2024XXL         <i>// also in</i> &lt;execution></ins>
+#define __cpp_lib_shared_mutex    201505L         <i>// also in</i> &lt;shared_mutex>
+</pre>
+
+</div> <!-- end of standardeze -->
+
+
+<div class="hidden">
 <h2 class="heading no-toc" id="hidden.e.2"> </h2>
 <h2 class="heading no-toc" id="hidden.e.3"> </h2>
 <h2 class="heading no-toc" id="hidden.e.4"> </h2>
