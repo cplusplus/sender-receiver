@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>P2300R9: `std::execution`</title>
+  <title>P2300R10: `std::execution`</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -2385,7 +2385,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">P2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
+   <h1 class="p-name no-ref" id="title">P2300R10<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
    <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-28">2024-06-28</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
@@ -4071,8 +4071,20 @@ concurrency, including:</p>
    <p><b>Fixes:</b></p>
    <ul>
     <li data-md>
+     <p>Fixed <code class="highlight"><c- n>connect</c-></code> and <code class="highlight"><c- n>get_completion_signatures</c-></code> to use <code class="highlight"><c- n>transform_sender</c-></code>,
+as "<a data-link-type="biblio" href="https://wg21.link/p2999r3"><cite>Sender Algorithm Customization</cite></a>" proposed (but failed) to do. See "<a data-link-type="biblio" href="https://wg21.link/P3303R1"><cite>Fixing Lazy Sender Algorithm Customization</cite></a>" for details.</p>
+    <li data-md>
      <p><code class="highlight"><c- n>ensure_started</c-></code>, <code class="highlight"><c- n>start_detached</c-></code>, <code class="highlight"><c- n>execute</c-></code>, and <code class="highlight"><c- n>execute_may_block_caller</c-></code> are removed from the proposal. They are to be replaced with safer and more
-structured APIs by [@P3149R3].</p>
+structured APIs by "<a data-link-type="biblio" href="https://wg21.link/p3149r3"><cite>async_scope — Creating scopes for non-sequential concurrency</cite></a>". See "<a data-link-type="biblio" href="https://wg21.link/p3187r1"><cite>remove ensure_started and start_detached from P2300</cite></a>" for details.</p>
+    <li data-md>
+     <p>Fixed a logic error in the specification of <code class="highlight"><c- n>split</c-></code> that could have caused a
+receiver to be completed twice in some cases.</p>
+    <li data-md>
+     <p>Fixed <code class="highlight"><c- n>stopped_as_optional</c-></code> to handle the case where the child sender
+completes with more than one value, in which case the <code class="highlight"><c- n>stopped_as_optional</c-></code> sender completes with an <code class="highlight"><c- n>optional</c-></code> of a <code class="highlight"><c- n>tuple</c-></code> of the values.</p>
+    <li data-md>
+     <p>The <code class="highlight"><c- n>queryable</c-></code>, <code class="highlight"><c- n>stoppable_source</c-></code>, and <code class="highlight"><c- n>stoppable_callback_for</c-></code> concepts
+have been made exposition-only.</p>
    </ul>
    <p><b>Enhancements:</b></p>
    <ul>
@@ -4082,8 +4094,22 @@ model <code class="highlight"><c- n>queryable</c-></code>.</p>
     <li data-md>
      <p>The <code class="highlight"><c- n>get_delegatee_scheduler</c-></code> query has been renamed to <code class="highlight"><c- n>get_delegation_scheduler</c-></code>.</p>
     <li data-md>
+     <p>The <code class="highlight"><c- n>read</c-></code> environment has been renamed to <code class="highlight"><c- n>read_env</c-></code>.</p>
+    <li data-md>
+     <p>The nullary forms of the queries which returned instances of the <code class="highlight"><c- n>read_env</c-></code> sender have been removed. That is, <code class="highlight"><c- n>get_scheduler</c-><c- p>()</c-></code> is no longer another way
+to spell <code class="highlight"><c- n>read_env</c-><c- p>(</c-><c- n>get_scheduler</c-><c- p>)</c-></code>. Same for the other queries.</p>
+    <li data-md>
+     <p>A feature test macro has been added: <code class="highlight"><c- n>__cpp_lib_senders</c-></code>.</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>transfer</c-></code> has been renamed to <code class="highlight"><c- n>continues_on</c-></code>. <code class="highlight"><c- n>on</c-></code> has been renamed to <code class="highlight"><c- n>starts_on</c-></code>. A new <code class="highlight"><c- n>on</c-></code> algorithm has been added that is a combination of <code class="highlight"><c- n>starts_on</c-></code> and <code class="highlight"><c- n>continues_on</c-></code> for performing work on a different context
+and automatically transitioning back to the starting one. See "<a data-link-type="biblio" href="https://wg21.link/P3175R3"><cite>Reconsidering the std::execution::on algorithm</cite></a>"
+for details.</p>
+    <li data-md>
      <p>An exposition-only <i><code class="highlight"><c- n>simple</c-><c- o>-</c-><c- n>allocator</c-></code></i> concept is added to the
 Library introduction ([library]), and the specification of the <code class="highlight"><c- n>get_allocator</c-></code> query is expressed in terms of it.</p>
+    <li data-md>
+     <p>An exposition-only <i><code class="highlight"><c- n>write</c-><c- o>-</c-><c- n>env</c-></code></i> sender adaptor has been added for
+use in the implementation of the new <code class="highlight"><c- n>on</c-></code> algorithm.</p>
    </ul>
    <h3 class="heading settled" data-level="2.2" id="r9"><span class="secno">2.2. </span><span class="content">R9</span><a class="self-link" href="#r9"></a></h3>
    <p>The changes since R8 are as follows:</p>
@@ -4091,7 +4117,7 @@ Library introduction ([library]), and the specification of the <code class="high
    <ul>
     <li data-md>
      <p>The <code class="highlight"><c- n>tag_invoke</c-></code> mechanism has been replaced with member functions
-  for customizations as per <a href="https://wg21.link/p2855">P2855</a>.</p>
+  for customizations as per "<a data-link-type="biblio" href="https://wg21.link/p2855r1"><cite>Member customization points for Senders and Receivers</cite></a>".</p>
     <li data-md>
      <p>Per guidance from LWG and LEWG, <code class="highlight"><c- n>receiver_adaptor</c-></code> has been removed.</p>
     <li data-md>
@@ -6446,7 +6472,6 @@ declarations into the <code class="highlight"><c- o>&lt;</c-><c- n>stop_token</c
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>CallbackFn</c-><c- o>></c->
     <c- k>class</c-> <c- nc>inplace_stop_callback</c-><c- p>;</c->
 
-  <span class="ed-note"><c- n>Do</c-> <c- n>we</c-> <c- n>need</c-> <c- n>the</c-> <code class="highlight"><c- o><c- o>::</c-></c-><c- k><c- k>template</c-></c-></code> <c- n>here</c-><c- o>?</c-></span>
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- p>,</c-> <c- k>class</c-> <c- nc>CallbackFn</c-><c- o>></c->
     <c- k>using</c-> <c- n>stop_callback_for_t</c-> <c- o>=</c-> <c- n>T</c-><c- o>::</c-><c- k>template</c-> <c- n>callback_type</c-><c- o>&lt;</c-><c- n>CallbackFn</c-><c- o>></c-><c- p>;</c-></div>
 <c- p>}</c->
@@ -8953,11 +8978,6 @@ well-formed, <code class="highlight"><c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Snd
         <li data-md>
          <p>Otherwise, <code class="highlight"><c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-></code> is ill-formed.</p>
        </ul>
-       <p><span class="ed-note"> There is no way in standard C++ to determine whether the above declaration
-is well-formed without causing a hard error, so this presumes compiler
-magic. However, the author anticipates the adoption of [@P2141R1], which
-makes it possible to implement this purely in the library. P2141 has already
-been approved by EWG for C++26.</span></p>
       <li data-md>
        <p>Let <i><code class="highlight"><c- n>sender</c-><c- o>-</c-><c- k>for</c-></code></i> be an exposition-only concept defined as follows:</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
@@ -9744,10 +9764,10 @@ is true:</p>
          <p><code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or</p>
         <li data-md>
          <p><code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code> and <code class="highlight"><c- n>sndr</c-></code> is not
-  a pipeable sender adaptor closure object ([exec.adapt.objects]), or</p>
+a pipeable sender adaptor closure object ([exec.adapt.objects]), or</p>
         <li data-md>
          <p><code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> satisfies <code class="highlight"><c- n>sender</c-></code> and <code class="highlight"><c- n>sndr</c-></code> is also
-  a pipeable sender adaptor closure object.</p>
+a pipeable sender adaptor closure object.</p>
        </ul>
       <li data-md>
        <p>Otherwise, if <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> satisfies <code class="highlight"><c- n>sender</c-></code>, the expression <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to:</p>
@@ -11727,6 +11747,18 @@ the <code class="highlight"><c- n>unhandled_stopped</c-></code> of the coroutine
    <dd>Lee Howes. <a href="https://wg21.link/p1897r3"><cite>Towards C++23 executors: A proposal for an initial set of algorithms</cite></a>. 16 May 2020. URL: <a href="https://wg21.link/p1897r3">https://wg21.link/p1897r3</a>
    <dt id="biblio-p2175r0">[P2175R0]
    <dd>Lewis Baker. <a href="https://wg21.link/p2175r0"><cite>Composable cancellation for sender-based async operations</cite></a>. 15 December 2020. URL: <a href="https://wg21.link/p2175r0">https://wg21.link/p2175r0</a>
+   <dt id="biblio-p2855r1">[P2855R1]
+   <dd>Ville Voutilainen. <a href="https://wg21.link/p2855r1"><cite>Member customization points for Senders and Receivers</cite></a>. 22 February 2024. URL: <a href="https://wg21.link/p2855r1">https://wg21.link/p2855r1</a>
+   <dt id="biblio-p2999r3">[P2999R3]
+   <dd>Eric Niebler. <a href="https://wg21.link/p2999r3"><cite>Sender Algorithm Customization</cite></a>. 13 December 2023. URL: <a href="https://wg21.link/p2999r3">https://wg21.link/p2999r3</a>
+   <dt id="biblio-p3149r3">[P3149R3]
+   <dd>Ian Petersen, Ján Ondrušek; Jessica Wong; Kirk Shoop; Lee Howes; Lucian Radu Teodorescu;. <a href="https://wg21.link/p3149r3"><cite>async_scope — Creating scopes for non-sequential concurrency</cite></a>. 22 May 2024. URL: <a href="https://wg21.link/p3149r3">https://wg21.link/p3149r3</a>
+   <dt id="biblio-p3175r3">[P3175R3]
+   <dd>Eric Niebler. <a href="https://wg21.link/P3175R3"><cite>Reconsidering the std::execution::on algorithm</cite></a>. 2024-06-24. URL: <a href="https://wg21.link/P3175R3">https://wg21.link/P3175R3</a>
+   <dt id="biblio-p3187r1">[P3187R1]
+   <dd>Kirk Shoop, Lewis Baker. <a href="https://wg21.link/p3187r1"><cite>remove ensure_started and start_detached from P2300</cite></a>. 21 March 2024. URL: <a href="https://wg21.link/p3187r1">https://wg21.link/p3187r1</a>
+   <dt id="biblio-p3303r1">[P3303R1]
+   <dd>Eric Niebler. <a href="https://wg21.link/P3303R1"><cite>Fixing Lazy Sender Algorithm Customization</cite></a>. 2024-06-24. URL: <a href="https://wg21.link/P3303R1">https://wg21.link/P3303R1</a>
   </dl>
 <script>/* Boilerplate: script-dom-helper */
 "use strict";
@@ -12371,19 +12403,19 @@ function genLinkingSyntaxes(dfn) {
 "use strict";
 {
 let refsData = {
-"#completion-scheduler": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"completion scheduler","type":"dfn","url":"#completion-scheduler"},
-"#connect": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"connect","type":"dfn","url":"#connect"},
-"#execution-resource": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"execution resource","type":"dfn","url":"#execution-resource"},
-"#operation-state": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"operation state","type":"dfn","url":"#operation-state"},
-"#receiver": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"receiver","type":"dfn","url":"#receiver"},
-"#scheduler": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"scheduler","type":"dfn","url":"#scheduler"},
-"#send": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"send","type":"dfn","url":"#send"},
-"#sender": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"sender","type":"dfn","url":"#sender"},
-"#sender-adaptor": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"sender adaptor","type":"dfn","url":"#sender-adaptor"},
-"#sender-algorithm": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"sender algorithm","type":"dfn","url":"#sender-algorithm"},
-"#sender-consumer": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"sender consumer","type":"dfn","url":"#sender-consumer"},
-"#sender-factory": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"sender factory","type":"dfn","url":"#sender-factory"},
-"#start": {"export":true,"for_":[],"level":"9","normative":true,"shortname":"p2300","spec":"p2300-9","status":"local","text":"start","type":"dfn","url":"#start"},
+"#completion-scheduler": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"completion scheduler","type":"dfn","url":"#completion-scheduler"},
+"#connect": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"connect","type":"dfn","url":"#connect"},
+"#execution-resource": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"execution resource","type":"dfn","url":"#execution-resource"},
+"#operation-state": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"operation state","type":"dfn","url":"#operation-state"},
+"#receiver": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"receiver","type":"dfn","url":"#receiver"},
+"#scheduler": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"scheduler","type":"dfn","url":"#scheduler"},
+"#send": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"send","type":"dfn","url":"#send"},
+"#sender": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"sender","type":"dfn","url":"#sender"},
+"#sender-adaptor": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"sender adaptor","type":"dfn","url":"#sender-adaptor"},
+"#sender-algorithm": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"sender algorithm","type":"dfn","url":"#sender-algorithm"},
+"#sender-consumer": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"sender consumer","type":"dfn","url":"#sender-consumer"},
+"#sender-factory": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"sender factory","type":"dfn","url":"#sender-factory"},
+"#start": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"start","type":"dfn","url":"#start"},
 };
 
 function mkRefHint(link, ref) {
