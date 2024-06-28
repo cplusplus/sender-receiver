@@ -2596,6 +2596,15 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      </ol>
     <li><a href="#spec-library"><span class="secno">16</span> <span class="content">Library introduction <b>[library]</b></span></a>
     <li>
+     <a href="#spec-support"><span class="secno">17</span> <span class="content">Language support library <b>[cpp]</b></span></a>
+     <ol class="toc">
+      <li>
+       <a href="#spec-support.limits"><span class="secno">17.3</span> <span class="content">Implementation properties <b>[support.limits]</b></span></a>
+       <ol class="toc">
+        <li><a href="#spec-version.syn"><span class="secno">17.3.2</span> <span class="content">Header <code class="highlight"><c- o>&lt;</c-><c- n>version</c-><c- o>></c-></code> synopsis <b>[version.syn]</b></span></a>
+       </ol>
+     </ol>
+    <li>
      <a href="#spec-utilities"><span class="secno">22</span> <span class="content">General utilities library <b>[utilities]</b></span></a>
      <ol class="toc">
       <li>
@@ -6203,8 +6212,24 @@ minimal interface that meets the requirements of
      </ol>
     </div>
    </div>
+   <div class="standardeze">
+    <h2 class="heading settled" data-level="17" id="spec-support"><span class="secno">17. </span><span class="content">Language support library <b>[cpp]</b></span><a class="self-link" href="#spec-support"></a></h2>
+    <div class="hidden">
+     <h3 class="heading no-toc settled" data-level="17.1" id="hidden.support.1"><span class="secno">17.1. </span><span class="content"></span><a class="self-link" href="#hidden.support.1"></a></h3>
+     <h3 class="heading no-toc settled" data-level="17.2" id="hidden.support.2"><span class="secno">17.2. </span><span class="content"></span><a class="self-link" href="#hidden.support.2"></a></h3>
+    </div>
+    <h3 class="heading settled" data-level="17.3" id="spec-support.limits"><span class="secno">17.3. </span><span class="content">Implementation properties <b>[support.limits]</b></span><a class="self-link" href="#spec-support.limits"></a></h3>
+    <div class="hidden">
+     <h4 class="heading no-toc settled" data-level="17.3.1" id="hidden.support.3"><span class="secno">17.3.1. </span><span class="content"></span><a class="self-link" href="#hidden.support.3"></a></h4>
+    </div>
+    <h4 class="heading settled" data-level="17.3.2" id="spec-version.syn"><span class="secno">17.3.2. </span><span class="content">Header <code class="highlight"><c- o>&lt;</c-><c- n>version</c-><c- o>></c-></code> synopsis <b>[version.syn]</b></span><a class="self-link" href="#spec-version.syn"></a></h4>
+    <p><span class="ed-note">To the <code class="highlight"><c- o>&lt;</c-><c- n>version</c-><c- o>></c-></code> synopsis, add the following:</span></p>
+<pre class="highlight"><c- cp>#define __cpp_lib_semaphore       201907L         </c-><i><c- c1>// also in</c-></i><c- c1> &lt;semaphore></c->
+<ins><c- cp>#define __cpp_lib_senders         2024XXL         </c-><i><c- c1>// also in</c-></i><c- c1> &lt;execution></c-></ins>
+<c- cp>#define __cpp_lib_shared_mutex    201505L         </c-><i><c- c1>// also in</c-></i><c- c1> &lt;shared_mutex></c->
+</pre>
+   </div>
    <div class="hidden">
-    <h2 class="heading no-toc settled" data-level="17" id="hidden.e.1"><span class="secno">17. </span><span class="content"> </span><a class="self-link" href="#hidden.e.1"></a></h2>
     <h2 class="heading no-toc settled" data-level="18" id="hidden.e.2"><span class="secno">18. </span><span class="content"> </span><a class="self-link" href="#hidden.e.2"></a></h2>
     <h2 class="heading no-toc settled" data-level="19" id="hidden.e.3"><span class="secno">19. </span><span class="content"> </span><a class="self-link" href="#hidden.e.3"></a></h2>
     <h2 class="heading no-toc settled" data-level="20" id="hidden.e.4"><span class="secno">20. </span><span class="content"> </span><a class="self-link" href="#hidden.e.4"></a></h2>
