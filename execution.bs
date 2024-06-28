@@ -2,9 +2,10 @@
 Title: `std::execution`
 H1: <code>std::execution</code>
 Shortname: P2300
-Revision: 9
+Revision: 10
 Status: P
 Group: WG21
+Date: 2024-06-28
 Audience: SG1, LEWG
 Editor: Michał Dominiak, griwes@griwes.info
 Editor: Georgy Evtushenko, evtushenko.georgy@gmail.com
@@ -1503,9 +1504,22 @@ The changes since R9 are as follows:
 
 <b>Fixes:</b>
 
+  * Fixed `connect` and `get_completion_signatures` to use `transform_sender`,
+    as "[[P2999R3]]" proposed (but failed) to do. See "[[P3303R1]]" for details.
+
   * `ensure_started`, `start_detached`, `execute`, and `execute_may_block_caller`
     are removed from the proposal. They are to be replaced with safer and more
-    structured APIs by [@P3149R3].
+    structured APIs by "[[P3149R3]]". See "[[P3187R1]]" for details.
+
+  * Fixed a logic error in the specification of `split` that could have caused a
+    receiver to be completed twice in some cases.
+
+  * Fixed `stopped_as_optional` to handle the case where the child sender
+    completes with more than one value, in which case the `stopped_as_optional`
+    sender completes with an `optional` of a `tuple` of the values.
+
+  * The `queryable`, `stoppable_source`, and `stoppable_callback_for` concepts
+    have been made exposition-only.
 
 <b>Enhancements:</b>
 
@@ -1515,9 +1529,26 @@ The changes since R9 are as follows:
   * The `get_delegatee_scheduler` query has been renamed to
     `get_delegation_scheduler`.
 
+  * The `read` environment has been renamed to `read_env`.
+
+  * The nullary forms of the queries which returned instances of the `read_env`
+    sender have been removed. That is, `get_scheduler()` is no longer another way
+    to spell `read_env(get_scheduler)`. Same for the other queries.
+
+  * A feature test macro has been added: `__cpp_lib_senders`.
+
+  * `transfer` has been renamed to `continues_on`. `on` has been renamed to
+    `starts_on`. A new `on` algorithm has been added that is a combination of
+    `starts_on` and `continues_on` for performing work on a different context
+    and automatically transitioning back to the starting one. See "[[P3175R3]]"
+    for details.
+
   * An exposition-only <i>`simple-allocator`</i> concept is added to the
     Library introduction ([library]), and the specification of the
     `get_allocator` query is expressed in terms of it.
+
+  * An exposition-only <i>`write-env`</i> sender adaptor has been added for
+    use in the implementation of the new `on` algorithm.
 
 ## R9 ## {#r9}
 
@@ -1526,7 +1557,7 @@ The changes since R8 are as follows:
 <b>Fixes:</b>
 
   * The `tag_invoke` mechanism has been replaced with member functions
-      for customizations as per \[P2855](https://wg21.link/p2855).
+      for customizations as per "[[P2855R1]]".
 
   * Per guidance from LWG and LEWG, `receiver_adaptor` has been removed.
 
@@ -4275,7 +4306,6 @@ namespace std {
   template&lt;class CallbackFn>
     class inplace_stop_callback;
 
-  <span class="ed-note">Do we need the `::template` here?</span>
   template&lt;class T, class CallbackFn>
     using stop_callback_for_t = T::template callback_type&lt;CallbackFn>;</div>
 }
@@ -6932,13 +6962,6 @@ namespace std::execution {
 
       - Otherwise, `tag_of_t<Sndr>` is ill-formed.
 
-    <span class="ed-note">
-    There is no way in standard C++ to determine whether the above declaration
-    is well-formed without causing a hard error, so this presumes compiler
-    magic. However, the author anticipates the adoption of [@P2141R1], which
-    makes it possible to implement this purely in the library. P2141 has already
-    been approved by EWG for C++26.</span>
-
 6. Let <i>`sender-for`</i> be an exposition-only concept defined as follows:
 
     <pre highlight="c++">
@@ -7856,10 +7879,10 @@ namespace std::execution {
     * `decltype((sch))` does not satisfy `scheduler`, or
 
     * `decltype((sndr))` does not satisfy `sender` and `sndr` is not
-      a pipeable sender adaptor closure object ([exec.adapt.objects]), or
+        a pipeable sender adaptor closure object ([exec.adapt.objects]), or
 
     * `decltype((sndr))` satisfies `sender` and `sndr` is also
-      a pipeable sender adaptor closure object.
+        a pipeable sender adaptor closure object.
 
 3. Otherwise, if `decltype((sndr))` satisfies `sender`, the expression `on(sch,
     sndr)` is expression-equivalent to:
@@ -9955,6 +9978,20 @@ void finish();
         "pages": 2352,
         "publisher": "The Open Journal",
         "journal": "Journal of Open Source Software"
+    },
+
+    "P3175R3": {
+      "authors": ["Eric Niebler"],
+      "href": "https://wg21.link/P3175R3",
+      "title": "Reconsidering the std::execution::on algorithm",
+      "date": "2024-06-24"
+    },
+
+    "P3303R1": {
+      "authors": ["Eric Niebler"],
+      "href": "https://wg21.link/P3303R1",
+      "title": "Fixing Lazy Sender Algorithm Customization",
+      "date": "2024-06-24"
     }
 }
 </pre>
