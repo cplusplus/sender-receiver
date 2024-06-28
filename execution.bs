@@ -8540,7 +8540,7 @@ namespace std::execution {
     <code>sh_state-><i>dec-ref</i>()</code>.
 
 9. The exposition-only class template <i>`impls-for`</i>
-    ([exec.snd.general]) is specialized for _`split-impl-tag`_
+    ([exec.snd.general]) is specialized for <i>`split-impl-tag`</i>
     as follows:
 
         <pre highlight="c++">
@@ -8589,9 +8589,10 @@ namespace std::execution {
 
             2.  Then atomically does the following:
 
-                  - Inserts `&state` into `state.sh_state->waiting_states`, and
+                  - Reads the value `c` of `state.sh_state->completed`, and
 
-                  - Reads the value `c` of `state.sh_state->completed`.
+                  - Inserts `addressof(state)` into `state.sh_state->waiting_states`
+                    if `c` is `false`.
 
             3. If `c` is `true`, calls <code>state.<i>notify</i>()</code> and returns.
 
