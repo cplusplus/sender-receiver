@@ -5401,7 +5401,7 @@ template&lt;class Initializer>
       2. ... can be explicitly <dfn lt="start" export=true>started</dfn> once at
           most.
 
-      3. ... once started started, eventually <dfn lt="complete"
+      3. ... once started, eventually <dfn lt="complete"
           export=true>completes</dfn> exactly once with a (possibly empty) set
           of result datums and in exactly one of three <dfn export=true
           lt="disposition">dispositions</dfn>: success, failure, or
@@ -5493,7 +5493,7 @@ template&lt;class Initializer>
     associated operation state does not depend on the lifetimes of either the
     sender or the receiver from which it was created. A sender is started when
     it is connected to a receiver and the resulting asynchronous operation is
-    started. A sender's async result is the async result of an asynchronous
+    started. A sender's async result is the async result of the asynchronous
     operation created by connecting it to a receiver. A sender <dfn lt="send"
     export=true>sends</dfn> its results by way of the asynchronous operation(s)
     it produces, and a receiver <dfn lt="receive" export=true>receives</dfn>
@@ -7851,14 +7851,14 @@ namespace std::execution {
 
 2. The name `on` denotes a pipeable sender adaptor object. For subexpressions
     `sch` and `sndr`, `on(sch, sndr)` is ill-formed if any of the following
-    are `true`:
-    
-    * If `decltype((sch))` does not satisfy `scheduler`, or
+    is true:
 
-    * If `decltype((sndr))` does not satisfy `sender` and `sndr` is not
+    * `decltype((sch))` does not satisfy `scheduler`, or
+
+    * `decltype((sndr))` does not satisfy `sender` and `sndr` is not
       a pipeable sender adaptor closure object ([exec.adapt.objects]), or
 
-    * If `decltype((sndr))` satisfies `sender` and `sndr` is also
+    * `decltype((sndr))` satisfies `sender` and `sndr` is also
       a pipeable sender adaptor closure object.
 
 3. Otherwise, if `decltype((sndr))` satisfies `sender`, the expression `on(sch,
