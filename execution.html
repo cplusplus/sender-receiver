@@ -2564,15 +2564,12 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li><a href="#design-sender-adaptor-bulk"><span class="secno">4.20.9</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>bulk</c-></code></span></a>
         <li><a href="#design-sender-adaptor-split"><span class="secno">4.20.10</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>split</c-></code></span></a>
         <li><a href="#design-sender-adaptor-when_all"><span class="secno">4.20.11</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>when_all</c-></code></span></a>
-        <li><a href="#design-sender-adaptor-ensure_started"><span class="secno">4.20.12</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>ensure_started</c-></code></span></a>
        </ol>
       <li>
        <a href="#design-sender-consumers"><span class="secno">4.21</span> <span class="content">User-facing sender consumers</span></a>
        <ol class="toc">
-        <li><a href="#design-sender-consumer-start_detached"><span class="secno">4.21.1</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>start_detached</c-></code></span></a>
-        <li><a href="#design-sender-consumer-sync_wait"><span class="secno">4.21.2</span> <span class="content"><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code></span></a>
+        <li><a href="#design-sender-consumer-sync_wait"><span class="secno">4.21.1</span> <span class="content"><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code></span></a>
        </ol>
-      <li><a href="#design-execute"><span class="secno">4.22</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>execute</c-></code></span></a>
      </ol>
     <li>
      <a href="#design-implementer"><span class="secno">5</span> <span class="content">Design - implementer side</span></a>
@@ -2687,8 +2684,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li><a href="#spec-execution.get_scheduler"><span class="secno">34.5.6</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_scheduler</c-></code> <b>[exec.get.scheduler]</b></span></a>
         <li><a href="#spec-execution.get_delegation_scheduler"><span class="secno">34.5.7</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_delegation_scheduler</c-></code> <b>[exec.get.delegation.scheduler]</b></span></a>
         <li><a href="#spec-execution.get_forward_progress_guarantee"><span class="secno">34.5.8</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_forward_progress_guarantee</c-></code> <b>[exec.get.forward.progress.guarantee]</b></span></a>
-        <li><a href="#spec-execution.execute_may_block_caller"><span class="secno">34.5.9</span> <span class="content"><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>execute_may_block_caller</c-></code> <b>[exec.execute.may.block.caller]</b></span></a>
-        <li><a href="#spec-execution.get_completion_scheduler"><span class="secno">34.5.10</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_completion_scheduler</c-></code> <b>[exec.completion.scheduler]</b></span></a>
+        <li><a href="#spec-execution.get_completion_scheduler"><span class="secno">34.5.9</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_completion_scheduler</c-></code> <b>[exec.completion.scheduler]</b></span></a>
        </ol>
       <li><a href="#spec-execution.schedulers"><span class="secno">34.6</span> <span class="content">Schedulers <b>[exec.sched] </b></span></a>
       <li>
@@ -2739,7 +2735,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
           <li><a href="#spec-execution.senders.adaptor.then"><span class="secno">34.9.11.7</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>then</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>upon_stopped</c-></code> <b>[exec.then]</b></span></a>
           <li><a href="#spec-execution.senders.adapt.let"><span class="secno">34.9.11.8</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_value</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_error</c-></code>, <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>let_stopped</c-></code>, <b>[exec.let]</b></span></a>
           <li><a href="#spec-execution.senders.adapt.bulk"><span class="secno">34.9.11.9</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>bulk</c-></code> <b>[exec.bulk]</b></span></a>
-          <li><a href="#spec-execution.senders.adapt.split"><span class="secno">34.9.11.10</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>split</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>ensure_started</c-></code> <b>[exec.split]</b></span></a>
+          <li><a href="#spec-execution.senders.adapt.split"><span class="secno">34.9.11.10</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>split</c-></code> <b>[exec.split]</b></span></a>
           <li><a href="#spec-execution.senders.adaptor.when_all"><span class="secno">34.9.11.11</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>when_all</c-></code> <b>[exec.when.all]</b></span></a>
           <li><a href="#spec-execution.senders.adapt.into_variant"><span class="secno">34.9.11.12</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>into_variant</c-></code> <b>[exec.into.variant]</b></span></a>
           <li><a href="#spec-execution.senders.adapt.stopped_as_optional"><span class="secno">34.9.11.13</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>stopped_as_optional</c-></code> <b>[exec.stopped.as.optional]</b></span></a>
@@ -2748,33 +2744,31 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li>
          <a href="#spec-execution.senders.consumers"><span class="secno">34.9.12</span> <span class="content">Sender consumers <b>[exec.consumers]</b></span></a>
          <ol class="toc">
-          <li><a href="#spec-execution.senders.consumers.start_detached"><span class="secno">34.9.12.1</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>start_detached</c-></code> <b>[exec.start.detached]</b></span></a>
-          <li><a href="#spec-execution.senders.consumers.sync_wait"><span class="secno">34.9.12.2</span> <span class="content"><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code> <b>[exec.sync.wait]</b></span></a>
+          <li><a href="#spec-execution.senders.consumers.sync_wait"><span class="secno">34.9.12.1</span> <span class="content"><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code> <b>[exec.sync.wait]</b></span></a>
          </ol>
        </ol>
-      <li><a href="#spec-execution.execute"><span class="secno">34.10</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>execute</c-></code> <b>[exec.execute]</b></span></a>
       <li>
-       <a href="#spec-execution.snd_rec_utils"><span class="secno">34.11</span> <span class="content">Sender/receiver utilities <b>[exec.utils]</b></span></a>
+       <a href="#spec-execution.snd_rec_utils"><span class="secno">34.10</span> <span class="content">Sender/receiver utilities <b>[exec.utils]</b></span></a>
        <ol class="toc">
-        <li><a href="#spec-execution.snd_rec_utils.completion_sigs"><span class="secno">34.11.1</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>completion_signatures</c-></code> <b>[exec.utils.cmplsigs]</b></span></a>
-        <li><a href="#spec-execution.snd_rec_utils.transform_completion_sigs"><span class="secno">34.11.2</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transform_completion_signatures</c-></code> <b>[exec.utils.tfxcmplsigs]</b></span></a>
+        <li><a href="#spec-execution.snd_rec_utils.completion_sigs"><span class="secno">34.10.1</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>completion_signatures</c-></code> <b>[exec.utils.cmplsigs]</b></span></a>
+        <li><a href="#spec-execution.snd_rec_utils.transform_completion_sigs"><span class="secno">34.10.2</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transform_completion_signatures</c-></code> <b>[exec.utils.tfxcmplsigs]</b></span></a>
        </ol>
       <li>
-       <a href="#spec-execution.contexts"><span class="secno">34.12</span> <span class="content">Execution contexts <b>[exec.ctx]</b></span></a>
+       <a href="#spec-execution.contexts"><span class="secno">34.11</span> <span class="content">Execution contexts <b>[exec.ctx]</b></span></a>
        <ol class="toc">
         <li>
-         <a href="#spec-execution.contexts.run_loop"><span class="secno">34.12.1</span> <span class="content"><code class="highlight"><c- n>run_loop</c-></code> <b>[exec.run.loop]</b></span></a>
+         <a href="#spec-execution.contexts.run_loop"><span class="secno">34.11.1</span> <span class="content"><code class="highlight"><c- n>run_loop</c-></code> <b>[exec.run.loop]</b></span></a>
          <ol class="toc">
-          <li><a href="#spec-execution.contexts.run_loop.types"><span class="secno">34.12.1.1</span> <span class="content">Associated types <b>[exec.run.loop.types]</b></span></a>
-          <li><a href="#spec-execution.contexts.run_loop.ctor"><span class="secno">34.12.1.2</span> <span class="content">Constructor and destructor <b>[exec.run.loop.ctor]</b></span></a>
-          <li><a href="#spec-execution.contexts.run_loop.members"><span class="secno">34.12.1.3</span> <span class="content">Member functions <b>[exec.run.loop.members]</b></span></a>
+          <li><a href="#spec-execution.contexts.run_loop.types"><span class="secno">34.11.1.1</span> <span class="content">Associated types <b>[exec.run.loop.types]</b></span></a>
+          <li><a href="#spec-execution.contexts.run_loop.ctor"><span class="secno">34.11.1.2</span> <span class="content">Constructor and destructor <b>[exec.run.loop.ctor]</b></span></a>
+          <li><a href="#spec-execution.contexts.run_loop.members"><span class="secno">34.11.1.3</span> <span class="content">Member functions <b>[exec.run.loop.members]</b></span></a>
          </ol>
        </ol>
       <li>
-       <a href="#spec-execution.coro_utils"><span class="secno">34.13</span> <span class="content">Coroutine utilities <b>[exec.coro.utils]</b></span></a>
+       <a href="#spec-execution.coro_utils"><span class="secno">34.12</span> <span class="content">Coroutine utilities <b>[exec.coro.utils]</b></span></a>
        <ol class="toc">
-        <li><a href="#spec-execution.coro_utils.as_awaitable"><span class="secno">34.13.1</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>as_awaitable</c-></code> <b>[exec.as.awaitable]</b></span></a>
-        <li><a href="#spec-execution.coro_utils.with_awaitable_senders"><span class="secno">34.13.2</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>with_awaitable_senders</c-></code> <b>[exec.with.awaitable.senders]</b></span></a>
+        <li><a href="#spec-execution.coro_utils.as_awaitable"><span class="secno">34.12.1</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>as_awaitable</c-></code> <b>[exec.as.awaitable]</b></span></a>
+        <li><a href="#spec-execution.coro_utils.with_awaitable_senders"><span class="secno">34.12.2</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>with_awaitable_senders</c-></code> <b>[exec.with.awaitable.senders]</b></span></a>
        </ol>
      </ol>
     <li>
@@ -2881,7 +2875,7 @@ parameters. But we return an <code class="highlight"><c- b>int</c-></code>, whic
      <p>Finally, we’re ready to submit the entire asynchronous pipeline and wait for
 its completion. Everything up until this point has been completely
 asynchronous; the work may not have even started yet. To ensure the work has
-started and then block pending its completion, we use <a href="#design-sender-consumer-sync_wait">§ 4.21.2 this_thread::sync_wait</a>, which will either return a <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>optional</c-><c- o>&lt;</c-><c- n>std</c-><c- o>::</c-><c- n>tuple</c-><c- o>&lt;</c-><c- p>...</c-><c- o>>></c-></code> with the value sent by the last sender, or
+started and then block pending its completion, we use <a href="#design-sender-consumer-sync_wait">§ 4.21.1 this_thread::sync_wait</a>, which will either return a <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>optional</c-><c- o>&lt;</c-><c- n>std</c-><c- o>::</c-><c- n>tuple</c-><c- o>&lt;</c-><c- p>...</c-><c- o>>></c-></code> with the value sent by the last sender, or
 an empty <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>optional</c-></code> if the last sender sent a stopped signal, or it
 throws an exception if the last sender sent an error.</p>
    </ol>
@@ -4066,6 +4060,11 @@ concurrency, including:</p>
    <h3 class="heading settled" data-level="2.1" id="r10"><span class="secno">2.1. </span><span class="content">R10</span><a class="self-link" href="#r10"></a></h3>
    <p>The changes since R9 are as follows:</p>
    <p><b>Fixes:</b></p>
+   <ul>
+    <li data-md>
+     <p><code class="highlight"><c- n>ensure_started</c-></code>, <code class="highlight"><c- n>start_detached</c-></code>, <code class="highlight"><c- n>execute</c-></code>, and <code class="highlight"><c- n>execute_may_block_caller</c-></code> are removed from the proposal. They are to be replaced with safer and more
+structured APIs by [@P3149R3].</p>
+   </ul>
    <p><b>Enhancements:</b></p>
    <ul>
     <li data-md>
@@ -4813,7 +4812,7 @@ usages will only accept multi-shot senders.</p>
    <p>Algorithms that accept senders will typically either decay-copy an input sender
 and store it somewhere for later usage (for example as a data-member of the
 returned sender) or will immediately call <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> on the input
-sender, such as in <code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code> or <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>start_detached</c-></code>.</p>
+sender, such as in <code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code>.</p>
    <p>Some multi-use sender algorithms may require that an input sender be
 copy-constructible but will only call <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> on an rvalue of each
 copy, which still results in effectively executing the operation multiple times.
@@ -5036,10 +5035,10 @@ accelerator can sometimes be considerable.</p>
    <p>However, in the process of working on this paper and implementations of the
 features proposed within, our set of requirements has shifted, as we understood
 the different implementation strategies that are available for the feature set
-of this paper better, and, after weighting the earlier concerns against the
+of this paper better, and, after weighing the earlier concerns against the
 points presented below, we have arrived at the conclusion that a purely lazy
 model is enough for most algorithms, and users who intend to launch work earlier
-may use an algorithm such as <code class="highlight"><c- n>ensure_started</c-></code> to achieve that goal. We have also
+may write an algorithm to achieve that goal. We have also
 come to deeply appreciate the fact that a purely lazy model allows both the
 implementation and the compiler to have a much better understanding of what the
 complete graph of tasks looks like, allowing them to better optimize the code -
@@ -5582,7 +5581,7 @@ is related to the sender arguments it has received.</p>
    <p>Sender adaptors are <i>lazy</i>, that is, they are never allowed to submit any
 work for execution prior to the returned sender being <a data-link-type="dfn" href="#start" id="ref-for-start">started</a> later on, and
 are also guaranteed to not start any input senders passed into them. Sender
-consumers such as <a href="#design-sender-consumer-start_detached">§ 4.21.1 execution::start_detached</a> and <a href="#design-sender-consumer-sync_wait">§ 4.21.2 this_thread::sync_wait</a> start senders.</p>
+consumers such as <a href="#design-sender-consumer-sync_wait">§ 4.21.1 this_thread::sync_wait</a> start senders.</p>
    <p>For more implementer-centric description of starting senders, see <a href="#design-laziness">§ 5.5 Sender adaptors are lazy</a>.</p>
    <h4 class="heading settled" data-level="4.20.1" id="design-sender-adaptor-continues_on"><span class="secno">4.20.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>continues_on</c-></code></span><a class="self-link" href="#design-sender-adaptor-continues_on"></a></h4>
 <pre class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>continues_on</c-><c- p>(</c->
@@ -5754,49 +5753,21 @@ completes inline within the call to <code class="highlight"><c- n>start</c-></co
 <c- p>});</c->
 <c- c1>// when final executes, it will print "the two args: 1, abc"</c->
 </pre>
-   <h4 class="heading settled" data-level="4.20.12" id="design-sender-adaptor-ensure_started"><span class="secno">4.20.12. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>ensure_started</c-></code></span><a class="self-link" href="#design-sender-adaptor-ensure_started"></a></h4>
-<pre class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>ensure_started</c-><c- p>(</c->
-    <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>sender</c->
-<c- p>);</c->
-</pre>
-   <p>Once <code class="highlight"><c- n>ensure_started</c-></code> returns, it is known that the provided sender has been <a data-link-type="dfn" href="#connect" id="ref-for-connect">connected</a> and <code class="highlight"><c- n>start</c-></code> has been called on the resulting operation
-state (see <a href="#design-states">§ 5.2 Operation states represent work</a>); in other words, the work described by the
-provided sender has been submitted
-for execution on the appropriate execution resources. Returns a sender which
-completes when the provided sender completes and sends values equivalent to
-those of the provided sender.</p>
-   <p>If the returned sender is destroyed before <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-><c- p>()</c-></code> is called, or
-if <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-><c- p>()</c-></code> is called but the returned operation-state is
-destroyed before <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>start</c-><c- p>()</c-></code> is called, then a stop-request is sent to
-the eagerly launched operation and the operation is detached and will run to
-completion in the background. Its result will be discarded when it eventually
-completes.</p>
-   <p>Note that the application will need to make sure that resources are kept alive
-in the case that the operation detaches. e.g. by holding a <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>shared_ptr</c-></code> to
-those resources or otherwise having some out-of-band way to signal completion of
-the operation so that resource release can be sequenced after the completion.</p>
    <h3 class="heading settled" data-level="4.21" id="design-sender-consumers"><span class="secno">4.21. </span><span class="content">User-facing sender consumers</span><a class="self-link" href="#design-sender-consumers"></a></h3>
    <p>A <a data-link-type="dfn" href="#sender-consumer" id="ref-for-sender-consumer①">sender consumer</a> is an algorithm that takes one or more senders, which it
 may <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code>, as parameters, and does not return a sender.</p>
-   <h4 class="heading settled" data-level="4.21.1" id="design-sender-consumer-start_detached"><span class="secno">4.21.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>start_detached</c-></code></span><a class="self-link" href="#design-sender-consumer-start_detached"></a></h4>
-<pre class="highlight"><c- b>void</c-> <c- nf>start_detached</c-><c- p>(</c->
-    <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>sender</c->
-<c- p>);</c->
-</pre>
-   <p>Like <code class="highlight"><c- n>ensure_started</c-></code>, but does not return a value; if the provided sender sends
-an error instead of a value, <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>terminate</c-></code> is called.</p>
-   <h4 class="heading settled" data-level="4.21.2" id="design-sender-consumer-sync_wait"><span class="secno">4.21.2. </span><span class="content"><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code></span><a class="self-link" href="#design-sender-consumer-sync_wait"></a></h4>
+   <h4 class="heading settled" data-level="4.21.1" id="design-sender-consumer-sync_wait"><span class="secno">4.21.1. </span><span class="content"><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code></span><a class="self-link" href="#design-sender-consumer-sync_wait"></a></h4>
 <pre class="highlight"><c- k>auto</c-> <c- n>sync_wait</c-><c- p>(</c->
     <c- n>execution</c-><c- o>::</c-><c- n>sender</c-> <c- k>auto</c-> <c- n>sender</c->
 <c- p>)</c-> <c- k>requires</c-> <c- p>(</c-><i><c- n>always</c-><c- o>-</c-><c- n>sends</c-><c- o>-</c-><c- n>same</c-><c- o>-</c-><c- n>values</c-></i><c- p>(</c-><c- n>sender</c-><c- p>))</c->
     <c- o>-></c-> <c- n>std</c-><c- o>::</c-><c- n>optional</c-><c- o>&lt;</c-><c- n>std</c-><c- o>::</c-><c- n>tuple</c-><c- o>&lt;</c-><i><c- n>values</c-><c- o>-</c-><c- n>sent</c-><c- o>-</c-><c- n>by</c-></i><c- p>(</c-><c- n>sender</c-><c- p>)</c-><c- o>>></c-><c- p>;</c->
 </pre>
    <p><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code> is a sender consumer that submits the work described by
-the provided sender for execution, similarly to <code class="highlight"><c- n>ensure_started</c-></code>, except that it
-blocks <b>the current <code class="highlight"><c- n>std</c-><c- o>::</c-><c- kr>thread</c-></code> or thread of <code class="highlight"><c- n>main</c-></code></b> until the work is
+the provided sender for execution,
+blocking <b>the current <code class="highlight"><c- n>std</c-><c- o>::</c-><c- kr>thread</c-></code> or thread of <code class="highlight"><c- n>main</c-></code></b> until the work is
 completed, and returns an optional tuple of values that were sent by the
 provided sender on its completion of work. Where <a href="#design-sender-factory-schedule">§ 4.19.1 execution::schedule</a> and <a href="#design-sender-factory-just">§ 4.19.2 execution::just</a> are
-meant to <i>enter</i> the domain of senders, <code class="highlight"><c- n>sync_wait</c-></code> is meant to <i>exit</i> the domain of senders, retrieving the result of the task graph.</p>
+meant to <i>enter</i> the domain of senders, <code class="highlight"><c- n>sync_wait</c-></code> is one way to <i>exit</i> the domain of senders, retrieving the result of the task graph.</p>
    <p>If the provided sender sends an error instead of values, <code class="highlight"><c- n>sync_wait</c-></code> throws that
 error as an exception, or rethrows the original exception if the error is of
 type <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>exception_ptr</c-></code>.</p>
@@ -5811,21 +5782,6 @@ we expect that a variant of this function called <code class="highlight"><c- n>s
 different synchronization mechanisms than <code class="highlight"><c- n>std</c-><c- o>::</c-><c- kr>thread</c-></code>’s will provide their own
 flavors of <code class="highlight"><c- n>sync_wait</c-></code> as well (assuming their execution agents have the means
 to block in a non-deadlock manner).</p>
-   <h3 class="heading settled" data-level="4.22" id="design-execute"><span class="secno">4.22. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>execute</c-></code></span><a class="self-link" href="#design-execute"></a></h3>
-   <p>In addition to the three categories of functions presented above, we also
-propose to include a convenience function for fire-and-forget eager one-way
-submission of an invocable to a scheduler, to fulfil the role of one-way
-executors from P0443.</p>
-<pre class="highlight"><c- b>void</c-> <c- nf>execution::execute</c-><c- p>(</c->
-    <c- n>execution</c-><c- o>::</c-><c- n>schedule</c-> <c- k>auto</c-> <c- n>sched</c-><c- p>,</c->
-    <c- n>std</c-><c- o>::</c-><c- n>invocable</c-><void> <c- k>auto</c-> <c- n>fn</c->
-<c- p>);</c->
-</void></pre>
-   <p>Submits the provided function for execution on the provided scheduler, as-if by:</p>
-<pre class="highlight"><c- k>auto</c-> <c- n>snd</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>schedule</c-><c- p>(</c-><c- n>sched</c-><c- p>);</c->
-<c- k>auto</c-> <c- n>work</c-> <c- o>=</c-> <c- n>execution</c-><c- o>::</c-><c- n>then</c-><c- p>(</c-><c- n>snd</c-><c- p>,</c-> <c- n>fn</c-><c- p>);</c->
-<c- n>execution</c-><c- o>::</c-><c- n>start_detached</c-><c- p>(</c-><c- n>work</c-><c- p>);</c->
-</pre>
    <h2 class="heading settled" data-level="5" id="design-implementer"><span class="secno">5. </span><span class="content">Design - implementer side</span><a class="self-link" href="#design-implementer"></a></h2>
    <h3 class="heading settled" data-level="5.1" id="design-receivers"><span class="secno">5.1. </span><span class="content">Receivers serve as glue between senders</span><a class="self-link" href="#design-receivers"></a></h3>
    <p>A <a data-link-type="dfn" href="#receiver" id="ref-for-receiver">receiver</a> is a callback that supports more than one channel. In fact, it
@@ -5862,13 +5818,14 @@ is neither movable nor copyable, and its interface consists of a single
 algorithm: <code class="highlight"><c- n>start</c-></code>, which serves as the submission point of the work represented
 by a given operation state.</p>
    <p>Operation states are not a part of the user-facing API of this proposal; they
-are necessary for implementing sender consumers like <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>ensure_started</c-></code> and <code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code>, and the knowledge of them is necessary to
+are necessary for implementing sender consumers like <code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code>,
+and the knowledge of them is necessary to
 implement senders, so the only users who will interact with operation states
 directly are authors of senders and authors of sender algorithms.</p>
    <p>The return value of <a href="#design-connect">§ 5.3 execution::connect</a> must satisfy the operation state
 concept.</p>
    <h3 class="heading settled" data-level="5.3" id="design-connect"><span class="secno">5.3. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code></span><a class="self-link" href="#design-connect"></a></h3>
-   <p><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> is a customization point which <a data-link-type="dfn" href="#connect" id="ref-for-connect①">connects</a> senders with
+   <p><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>connect</c-></code> is a customization point which <a data-link-type="dfn" href="#connect" id="ref-for-connect">connects</a> senders with
 receivers, resulting in an operation state that will ensure that if <code class="highlight"><c- n>start</c-></code> is
 called that one of the completion operations will be called on the receiver
 passed to <code class="highlight"><c- n>connect</c-></code>.</p>
@@ -5976,9 +5933,7 @@ that accepts a sender as its first argument, should do the following:</p>
    </ol>
    <h3 class="heading settled" data-level="5.5" id="design-laziness"><span class="secno">5.5. </span><span class="content">Sender adaptors are lazy</span><a class="self-link" href="#design-laziness"></a></h3>
    <p>Contrary to early revisions of this paper, we propose to make all sender
-adaptors perform strictly lazy submission, unless specified otherwise (the one
-notable exception in this paper is <a href="#design-sender-adaptor-ensure_started">§ 4.20.12 execution::ensure_started</a>,
-whose sole purpose is to start an input sender).</p>
+adaptors perform strictly lazy submission, unless specified otherwise.</p>
    <p><dfn class="dfn-paneled" data-dfn-type="dfn" data-export id="strictly-lazy-submission">Strictly lazy submission</dfn> means that there is a guarantee
 that no work is submitted to an execution resource before a receiver is
 connected to a sender, and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>start</c-></code> is called on the resulting
@@ -6000,9 +5955,7 @@ execution resources outside of the current thread of execution, compilers are
 capable of removing the senders abstraction entirely, while still allowing for
 composition of functions across different parts of a program.</p>
    <p>The second way for this to occur is when a sender algorithm is specialized for a
-specific set of arguments. For instance, we expect that, for senders which are
-known to have been started already, <a href="#design-sender-adaptor-ensure_started">§ 4.20.12 execution::ensure_started</a> will be an identity transformation, because the sender algorithm will be
-specialized for such senders. Similarly, an implementation could recognize two
+specific set of arguments. For instance, an implementation could recognize two
 subsequent <a href="#design-sender-adaptor-bulk">§ 4.20.9 execution::bulk</a>s of compatible shapes, and merge them
 together into a single submission of a GPU kernel.</p>
    <h3 class="heading settled" data-level="5.7" id="design-transition-details"><span class="secno">5.7. </span><span class="content">Execution resource transitions are two-step</span><a class="self-link" href="#design-transition-details"></a></h3>
@@ -7424,10 +7377,6 @@ for execution control primitives as summarized in Table 1.</p>
         <td><a href="#spec-execution.senders">[exec.snd]</a>
         <td>Senders
         <td>
-       <tr>
-        <td><a href="#spec-execution.execute">[exec.execute]</a>
-        <td>One-way execution
-        <td>
      </table>
      <ol start="3">
       <li data-md>
@@ -7444,7 +7393,7 @@ for execution control primitives as summarized in Table 1.</p>
        <tr>
         <td>core
         <td>provide core execution functionality, and connection between core components
-        <td>e.g., <code class="highlight"><c- n>connect</c-></code>, <code class="highlight"><c- n>start</c-></code>, <code class="highlight"><c- n>execute</c-></code>
+        <td>e.g., <code class="highlight"><c- n>connect</c-></code>, <code class="highlight"><c- n>start</c-></code>
        <tr>
         <td>completion functions
         <td>called by senders to announce the completion of the work (success, error, or cancellation)
@@ -7456,7 +7405,7 @@ for execution control primitives as summarized in Table 1.</p>
          <ul>
           <li>sender factories (e.g., <code class="highlight"><c- n>schedule</c-></code>, <code class="highlight"><c- n>just</c-></code>, <code class="highlight"><c- n>read_env</c-></code>)
           <li>sender adaptors (e.g., <code class="highlight"><c- n>continues_on</c-></code>, <code class="highlight"><c- n>then</c-></code>, <code class="highlight"><c- n>let_value</c-></code>)
-          <li>sender consumers (e.g., <code class="highlight"><c- n>start_detached</c-></code>, <code class="highlight"><c- n>sync_wait</c-></code>)
+          <li>sender consumers (e.g., <code class="highlight"><c- n>sync_wait</c-></code>)
          </ul>
        <tr>
         <td><a href="#spec-execution.queries">queries</a>
@@ -7465,7 +7414,7 @@ for execution control primitives as summarized in Table 1.</p>
          <ul>
           <li>general queries (e.g., <code class="highlight"><c- n>get_allocator</c-></code>, <code class="highlight"><c- n>get_stop_token</c-></code>)
           <li>environment queries (e.g., <code class="highlight"><c- n>get_scheduler</c-></code>, <code class="highlight"><c- n>get_delegation_scheduler</c-></code>)
-          <li>scheduler queries (e.g., <code class="highlight"><c- n>get_forward_progress_guarantee</c-></code>, <code class="highlight"><c- n>execute_may_block_caller</c-></code>)
+          <li>scheduler queries (e.g., <code class="highlight"><c- n>get_forward_progress_guarantee</c-></code>)
           <li>sender attribute queries (e.g., <code class="highlight"><c- n>get_completion_scheduler</c-></code>)
          </ul>
      </table>
@@ -7916,7 +7865,6 @@ whose return type is not the type of a sender.</p>
   <c- k>struct</c-> <c- nc>let_stopped_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>struct</c-> <c- nc>bulk_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>struct</c-> <c- nc>split_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
-  <c- k>struct</c-> <c- nc>ensure_started_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>struct</c-> <c- nc>when_all_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>struct</c-> <c- nc>when_all_with_variant_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>struct</c-> <c- nc>into_variant_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
@@ -7935,16 +7883,11 @@ whose return type is not the type of a sender.</p>
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>let_stopped_t</c-> <c- n>let_stopped</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>bulk_t</c-> <c- n>bulk</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>split_t</c-> <c- n>split</c-><c- p>{};</c->
-  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>ensure_started_t</c-> <c- n>ensure_started</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>when_all_t</c-> <c- n>when_all</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>when_all_with_variant_t</c-> <c- n>when_all_with_variant</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>into_variant_t</c-> <c- n>into_variant</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>stopped_as_optional_t</c-> <c- n>stopped_as_optional</c-><c- p>{};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>stopped_as_error_t</c-> <c- n>stopped_as_error</c-><c- p>{};</c->
-
-  <c- c1>// [exec.consumers], sender consumers</c->
-  <c- k>struct</c-> <c- nc>start_detached_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
-  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>start_detached_t</c-> <c- n>start_detached</c-><c- p>{};</c->
 
   <c- c1>// [exec.utils], sender and receiver utilities</c->
   <c- c1>// [exec.utils.cmplsigs]</c->
@@ -7986,10 +7929,7 @@ whose return type is not the type of a sender.</p>
 <c- p>}</c->
 
 <c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>this_thread</c-> <c- p>{</c->
-  <c- c1>// [exec.queries], queries</c->
-  <c- k>struct</c-> <c- nc>execute_may_block_caller_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
-  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>execute_may_block_caller_t</c-> <c- n>execute_may_block_caller</c-><c- p>{};</c->
-
+  <c- c1>// [exec.consumers], consumers</c->
   <c- k>struct</c-> <c- nc>sync_wait_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- k>struct</c-> <c- nc>sync_wait_with_variant_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
 
@@ -7998,10 +7938,6 @@ whose return type is not the type of a sender.</p>
 <c- p>}</c->
 
 <c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
-  <c- c1>// [exec.execute], one-way execution</c->
-  <c- k>struct</c-> <c- nc>execute_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
-  <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>execute_t</c-> <c- n>execute</c-><c- p>{};</c->
-
   <c- c1>// [exec.as.awaitable]</c->
   <c- k>struct</c-> <c- nc>as_awaitable_t</c-> <c- p>{</c-> <i><c- n>see</c-> <c- n>below</c-></i> <c- p>};</c->
   <c- kr>inline</c-> <c- k>constexpr</c-> <c- n>as_awaitable_t</c-> <c- n>as_awaitable</c-><c- p>{};</c->
@@ -8216,35 +8152,7 @@ that scheduler’s associated execution resource shall provide the concurrent
 forward progress guarantee. If it returns <code class="highlight"><c- n>forward_progress_guarantee</c-><c- o>::</c-><c- n>parallel</c-></code>, all such execution agents shall
 provide at least the parallel forward progress guarantee.</p>
      </ol>
-     <h4 class="heading settled" data-level="34.5.9" id="spec-execution.execute_may_block_caller"><span class="secno">34.5.9. </span><span class="content"><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>execute_may_block_caller</c-></code> <b>[exec.execute.may.block.caller]</b></span><a class="self-link" href="#spec-execution.execute_may_block_caller"></a></h4>
-     <ol>
-      <li data-md>
-       <p><code class="highlight"><c- n>execute_may_block_caller</c-></code> asks a scheduler <code class="highlight"><c- n>sch</c-></code> whether any invocation of
-the <code class="highlight"><c- n>execute</c-></code> algorithm ([exec.execute]) with <code class="highlight"><c- n>sch</c-></code> may block the current
-thread of execution ([defns.block]).</p>
-      <li data-md>
-       <p>The name <code class="highlight"><c- n>execute_may_block_caller</c-></code> denotes a query object. For
-a subexpression <code class="highlight"><c- n>sch</c-></code>, let <code class="highlight"><c- n>Sch</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>Sch</c-></code> does not
-satisfy <code class="highlight"><c- n>scheduler</c-></code>, <code class="highlight"><c- n>execute_may_block_caller</c-><c- p>(</c-><c- n>sch</c-><c- p>)</c-></code> is ill-formed.
-Otherwise, <code class="highlight"><c- n>execute_may_block_caller</c-><c- p>(</c-><c- n>sch</c-><c- p>)</c-></code> is
-expression-equivalent to:</p>
-       <ol>
-        <li data-md>
-         <p><code class="highlight"><i><c- n>MANDATE</c-><c- o>-</c-><c- n>NOTHROW</c-></i><c- p>(</c-><c- n>as_const</c-><c- p>(</c-><c- n>sch</c-><c- p>).</c-><c- n>query</c-><c- p>(</c-><c- n>execute_may_block_caller</c-><c- p>))</c-></code>,
-if that expression is well-formed.</p>
-         <ul>
-          <li data-md>
-           <p><i>Mandates:</i> The type of the expression above is <code class="highlight"><c- b>bool</c-></code>.</p>
-         </ul>
-        <li data-md>
-         <p>Otherwise, <code class="highlight">true</code>.</p>
-       </ol>
-      <li data-md>
-       <p>If <code class="highlight"><c- n>execute_may_block_caller</c-><c- p>(</c-><c- n>sch</c-><c- p>)</c-></code> returns <code class="highlight">false</code> for some scheduler <code class="highlight"><c- n>sch</c-></code>,
-no invocation of the <code class="highlight"><c- n>execute</c-></code> algorithm with <code class="highlight"><c- n>sch</c-></code> shall block the calling
-thread.</p>
-     </ol>
-     <h4 class="heading settled" data-level="34.5.10" id="spec-execution.get_completion_scheduler"><span class="secno">34.5.10. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_completion_scheduler</c-></code> <b>[exec.completion.scheduler]</b></span><a class="self-link" href="#spec-execution.get_completion_scheduler"></a></h4>
+     <h4 class="heading settled" data-level="34.5.9" id="spec-execution.get_completion_scheduler"><span class="secno">34.5.9. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>get_completion_scheduler</c-></code> <b>[exec.completion.scheduler]</b></span><a class="self-link" href="#spec-execution.get_completion_scheduler"></a></h4>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>get_completion_scheduler</c-><c- o>&lt;</c-><i><c- n>completion</c-><c- o>-</c-><c- n>tag</c-></i><c- o>></c-></code> obtains the
@@ -10196,32 +10104,31 @@ and let the subexpression <code class="highlight"><c- n>rcvr</c-></code> denote 
          <p>propagates all completion operations sent by <code class="highlight"><c- n>sndr</c-></code>.</p>
        </ul>
      </ol>
-     <h5 class="heading settled" data-level="34.9.11.10" id="spec-execution.senders.adapt.split"><span class="secno">34.9.11.10. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>split</c-></code> and <code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>ensure_started</c-></code> <b>[exec.split]</b></span><a class="self-link" href="#spec-execution.senders.adapt.split"></a></h5>
+     <h5 class="heading settled" data-level="34.9.11.10" id="spec-execution.senders.adapt.split"><span class="secno">34.9.11.10. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>split</c-></code> <b>[exec.split]</b></span><a class="self-link" href="#spec-execution.senders.adapt.split"></a></h5>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>split</c-></code> adapts an arbitrary sender into a sender that can be connected
-multiple times. <code class="highlight"><c- n>ensure_started</c-></code> eagerly starts the execution of a sender,
-returning a sender that is usable as input to additional sender algorithms.</p>
+multiple times.</p>
       <li data-md>
-       <p>Let <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>env</c-></code></i> be the type of an environment such that,
+       <p>Let <i><code class="highlight"><c- n>split</c-><c- o>-</c-><c- n>env</c-></code></i> be the type of an environment such that,
 given an instance <code class="highlight"><c- n>env</c-></code>, the expression <code class="highlight"><c- n>get_stop_token</c-><c- p>(</c-><c- n>env</c-><c- p>)</c-></code> is well-formed
 and has type <code class="highlight"><c- n>inplace_stop_token</c-></code>.</p>
       <li data-md>
-       <p>The names <code class="highlight"><c- n>split</c-></code> and <code class="highlight"><c- n>ensure_started</c-></code> denote pipeable sender adaptor objects.
-Let the expression <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>cpo</c-></code></i> be one of <code class="highlight"><c- n>split</c-></code> or <code class="highlight"><c- n>ensure_started</c-></code>. For a subexpression <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>shared</c-><c- o>-</c-><c- n>env</c-></i><c- o>></c-></code> is <code class="highlight">false</code>, <code class="highlight"><i><c- n>shared</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is ill-formed.</p>
+       <p>The name <code class="highlight"><c- n>split</c-></code> denotes a pipeable sender adaptor object.
+For a subexpression <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. 
+  If <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>split</c-><c- o>-</c-><c- n>env</c-></i><c- o>></c-></code> is <code class="highlight">false</code>, <code class="highlight"><c- n>split</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is ill-formed.</p>
       <li data-md>
-       <p>Otherwise, the expression <code class="highlight"><i><c- n>shared</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is
+       <p>Otherwise, the expression <code class="highlight"><c- n>split</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is
 expression-equivalent to:</p>
 <pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
   <i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>early</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>),</c->
-  <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><i><c- n>shared</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>,</c-> <c- p>{},</c-> <c- n>sndr</c-><c- p>))</c->
+  <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><c- n>split</c-><c- p>,</c-> <c- p>{},</c-> <c- n>sndr</c-><c- p>))</c->
 </pre>
        <p>except that <code class="highlight"><c- n>sndr</c-></code> is evaluated only once.</p>
        <ul>
         <li data-md>
-         <p><span class="wg21note">The default implementation of <code class="highlight"><c- n>transform_sender</c-></code> will have the effect of connecting the sender to a receiver and, in the
-case of <code class="highlight"><c- n>ensure_started</c-></code>, calling <code class="highlight"><c- n>start</c-></code> on the resulting operation
-state. It will return a sender with a different tag type.</span></p>
+         <p><span class="wg21note">The default implementation of <code class="highlight"><c- n>transform_sender</c-></code> will have the effect of connecting the sender to a receiver.
+It will return a sender with a different tag type.</span></p>
        </ul>
       <li data-md>
        <p>Let <i><code class="highlight"><c- n>local</c-><c- o>-</c-><c- n>state</c-></code></i> denote the following exposition-only class template:</p>
@@ -10229,7 +10136,6 @@ state. It will return a sender with a different tag type.</span></p>
   <c- k>struct</c-> <i><c- nc>local</c-><c- o>-</c-><c- n>state</c-><c- o>-</c-><c- n>base</c-></i> <c- p>{</c->          <c- c1>// exposition only</c->
     <c- k>virtual</c-> <c- o>~</c-><i><c- n>local</c-><c- o>-</c-><c- n>state</c-><c- o>-</c-><c- n>base</c-></i><c- p>()</c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
     <c- k>virtual</c-> <c- b>void</c-> <i><c- nf>notify</c-></i><c- p>()</c-> <c- k>noexcept</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- c1>// exposition only</c->
-    <c- k>virtual</c-> <c- b>void</c-> <i><c- nf>detach</c-></i><c- p>()</c-> <c- k>noexcept</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- c1>// exposition only</c->
   <c- p>};</c->
 
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
@@ -10241,7 +10147,6 @@ state. It will return a sender with a different tag type.</span></p>
     <c- o>~</c-><i><c- n>local</c-><c- o>-</c-><c- n>state</c-></i><c- p>();</c->
 
     <c- b>void</c-> <i><c- nf>notify</c-></i><c- p>()</c-> <c- k>noexcept</c-> <c- k>override</c-><c- p>;</c->
-    <c- b>void</c-> <i><c- nf>detach</c-></i><c- p>()</c-> <c- k>noexcept</c-> <c- k>override</c-><c- p>;</c->
 
   <c- k>private</c-><c- o>:</c->
     <c- n>optional</c-><c- o>&lt;</c-><i><c- n>on</c-><c- o>-</c-><c- n>stop</c-><c- o>-</c-><c- n>callback</c-></i><c- o>></c-> <c- n>on_stop</c-><c- p>;</c-> <c- c1>// exposition only</c->
@@ -10267,8 +10172,7 @@ state. It will return a sender with a different tag type.</span></p>
          <ol>
           <li data-md>
            <p><em>Effects:</em> Equivalent to:</p>
-<pre class="highlight"><i><c- n>detach</c-></i><c- p>();</c->
-<c- n>sh_state</c-><c- o>-></c-><i><c- n>dec</c-><c- o>-</c-><c- n>ref</c-></i><c- p>();</c->
+<pre class="highlight"><c- n>sh_state</c-><c- o>-></c-><i><c- n>dec</c-><c- o>-</c-><c- n>ref</c-></i><c- p>();</c->
 </pre>
          </ol>
         <li data-md>
@@ -10278,37 +10182,29 @@ state. It will return a sender with a different tag type.</span></p>
            <p><em>Effects:</em> Equivalent to:</p>
 <pre class="highlight"><c- n>on_stop</c-><c- p>.</c-><c- n>reset</c-><c- p>();</c->
 <c- n>visit</c-><c- p>(</c->
-  <c- p>[</c-><c- k>this</c-><c- p>]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tuple</c-><c- o>></c-><c- p>(</c-><c- n>Tuple</c-><c- o>&amp;&amp;</c-> <c- n>tupl</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
+  <c- p>[</c-><c- k>this</c-><c- p>](</c-><c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>tupl</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
     <c- n>apply</c-><c- p>(</c->
-      <c- p>[</c-><c- k>this</c-><c- p>](</c-><c- k>auto</c-> <c- n>tag</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
-        <c- n>tag</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- o>*</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- n>Tuple</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...);</c->
+      <c- p>[</c-><c- k>this</c-><c- p>](</c-><c- k>auto</c-> <c- n>tag</c-><c- p>,</c-> <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>-></c-> <c- b>void</c-> <c- p>{</c->
+        <c- n>tag</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- o>*</c-><c- n>rcvr</c-><c- p>),</c-> <c- n>args</c-><c- p>...);</c->
       <c- p>},</c->
       <c- n>tupl</c-><c- p>);</c->
   <c- p>},</c->
-  <i><c- n>QUAL</c-></i><c- p>(</c-><c- n>sh_state</c-><c- o>-></c-><c- n>result</c-><c- p>));</c->
+  <c- n>sh_state</c-><c- o>-></c-><c- n>result</c-><c- p>);</c->
 </pre>
-           <p>where <i><code class="highlight"><c- n>QUAL</c-></code></i> is <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move</c-></code> if <code class="highlight"><c- n>same_as</c-><c- o>&lt;</c-><c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>,</c-> <i><c- n>ensure</c-><c- o>-</c-><c- n>started</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>></c-></code> is <code class="highlight">true</code>, and <code class="highlight"><c- n>as_const</c-></code> otherwise.</p>
-         </ol>
-        <li data-md>
-<pre class="highlight"><c- b>void</c-> <i><c- nf>detach</c-></i><c- p>()</c-> <c- k>noexcept</c-> <c- k>override</c-><c- p>;</c-></pre>
-         <ol>
-          <li data-md>
-           <p><em>Effects:</em> Equivalent to <code class="highlight"><c- n>sh_state</c-><c- o>-></c-><i><c- n>detach</c-></i><c- p>()</c-></code> if <code class="highlight"><c- n>same_as</c-><c- o>&lt;</c-><c- n>tag_of_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>,</c-> <i><c- n>ensure</c-><c- o>-</c-><c- n>started</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>></c-></code> is <code class="highlight">true</code>; otherwise,
-nothing.</p>
          </ol>
        </ol>
       <li data-md>
-       <p>Let <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>receiver</c-></code></i> denote the following exposition-only class
+       <p>Let <i><code class="highlight"><c- n>split</c-><c- o>-</c-><c- n>receiver</c-></code></i> denote the following exposition-only class
 template:</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
   <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
-  <c- k>struct</c-> <i><c- nc>shared</c-><c- o>-</c-><c- n>receiver</c-></i> <c- p>{</c->
+  <c- k>struct</c-> <i><c- nc>split</c-><c- o>-</c-><c- n>receiver</c-></i> <c- p>{</c->
     <c- k>using</c-> <c- n>receiver_concept</c-> <c- o>=</c-> <c- n>receiver_t</c-><c- p>;</c->
 
     <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Tag</c-><c- p>,</c-> <c- k>class</c-><c- p>...</c-> <c- n>Args</c-><c- o>></c->
     <c- b>void</c-> <i><c- n>complete</c-></i><c- p>(</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...</c-> <c- n>args</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c-> <i><c- c1>// exposition only</c-></i>
+      <c- k>using</c-> <c- n>tuple_t</c-> <c- o>=</c-> <i><c- n>decayed</c-><c- o>-</c-><c- n>tuple</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-><c- p>;</c->
       <c- k>try</c-> <c- p>{</c->
-        <c- k>using</c-> <c- n>tuple_t</c-> <c- o>=</c-> <i><c- n>decayed</c-><c- o>-</c-><c- n>tuple</c-></i><c- o>&lt;</c-><c- n>Tag</c-><c- p>,</c-> <c- n>Args</c-><c- p>...</c-><c- o>></c-><c- p>;</c->
         <c- n>sh_state</c-><c- o>-></c-><c- n>result</c-><c- p>.</c-><c- k>template</c-> <c- n>emplace</c-><c- o>&lt;</c-><c- n>tuple_t</c-><c- o>></c-><c- p>(</c-><c- n>Tag</c-><c- p>(),</c-> <c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Args</c-><c- o>></c-><c- p>(</c-><c- n>args</c-><c- p>)...);</c->
       <c- p>}</c-> <c- k>catch</c-> <c- p>(...)</c-> <c- p>{</c->
         <c- k>using</c-> <c- n>tuple_t</c-> <c- o>=</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>set_error_t</c-><c- p>,</c-> <c- n>exception_ptr</c-><c- o>></c-><c- p>;</c->
@@ -10360,7 +10256,6 @@ template:</p>
 
     <c- b>void</c-> <i><c- n>start</c-><c- o>-</c-><c- n>op</c-></i><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c->  <c- c1>// exposition only</c->
     <c- b>void</c-> <i><c- nf>notify</c-></i><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c->  <c- c1>// exposition only</c->
-    <c- b>void</c-> <i><c- nf>detach</c-></i><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c->  <c- c1>// exposition only</c->
     <c- b>void</c-> <i><c- n>inc</c-><c- o>-</c-><c- n>ref</c-></i><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c-> <c- c1>// exposition only</c->
     <c- b>void</c-> <i><c- n>dec</c-><c- o>-</c-><c- n>ref</c-></i><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c-> <c- c1>// exposition only</c->
 
@@ -10369,7 +10264,7 @@ template:</p>
     <i><c- n>state</c-><c- o>-</c-><c- n>list</c-><c- o>-</c-><c- n>type</c-></i> <c- n>waiting_states</c-><c- p>;</c->    <c- c1>// exposition only</c->
     <c- n>atomic</c-><c- o>&lt;</c-><c- b>bool</c-><c- o>></c-> <c- n>completed</c-><c- p>{</c->false<c- p>};</c->   <c- c1>// exposition only</c->
     <c- n>atomic</c-><c- o>&lt;</c-><c- b>size_t</c-><c- o>></c-> <c- n>ref_count</c-><c- p>{</c-><c- mi>1</c-><c- p>};</c->   <c- c1>// exposition only</c->
-    <c- n>connect_result_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>shared</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>></c-> <c- n>op_state</c-><c- p>;</c->    <c- c1>// exposition only</c->
+    <c- n>connect_result_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>split</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>></c-> <c- n>op_state</c-><c- p>;</c->    <c- c1>// exposition only</c->
   <c- p>};</c->
 <c- p>}</c->
 </pre>
@@ -10385,7 +10280,7 @@ template:</p>
 <pre class="highlight">  <c- k>explicit</c-> <i><c- n>shared</c-><c- o>-</c-><c- n>state</c-></i><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>);</c-></pre>
          <ol>
           <li data-md>
-           <p><em>Effects:</em> Initializes <code class="highlight"><c- n>op_state</c-></code> with the result of <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <i><c- n>shared</c-><c- o>-</c-><c- n>receiver</c-></i><c- p>{</c-><c- k>this</c-><c- p>})</c-></code>.</p>
+           <p><em>Effects:</em> Initializes <code class="highlight"><c- n>op_state</c-></code> with the result of <code class="highlight"><c- n>connect</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <i><c- n>split</c-><c- o>-</c-><c- n>receiver</c-></i><c- p>{</c-><c- k>this</c-><c- p>})</c-></code>.</p>
           <li data-md>
            <p><em>Postcondition:</em> <code class="highlight"><c- n>waiting_states</c-></code> is empty, and <code class="highlight"><c- n>completed</c-></code> is <code class="highlight">false</code>.</p>
          </ol>
@@ -10410,16 +10305,6 @@ value in a local <code class="highlight"><c- n>prior_states</c-></code>.</p>
            <p>Then, for each pointer <code class="highlight"><c- n>p</c-></code> in <code class="highlight"><c- n>prior_states</c-></code>, calls <code class="highlight"><c- n>p</c-><c- o>-></c-><i><c- n>notify</c-></i><c- p>()</c-></code>. Finally, calls <code class="highlight"><i><c- n>dec</c-><c- o>-</c-><c- n>ref</c-></i><c- p>()</c-></code>.</p>
          </ol>
         <li data-md>
-<pre class="highlight">  <c- b>void</c-> <i><c- nf>detach</c-></i><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c-></pre>
-         <ol>
-          <li data-md>
-           <p><em>Effects:</em> If <code class="highlight"><c- n>completed</c-></code> is <code class="highlight">false</code> and <code class="highlight"><c- n>waiting_states</c-></code> is empty,
-  calls <code class="highlight"><c- n>stop_src</c-><c- p>.</c-><c- n>request_stop</c-><c- p>()</c-></code>. <span class="wg21note">This has
-  the effect of requesting early termination of any asynchronous
-  operation that was started as a result of a call to <code class="highlight"><c- n>ensure_started</c-></code>,
-  but only if the resulting sender was never connected and started. </span></p>
-         </ol>
-        <li data-md>
 <pre class="highlight">  <c- b>void</c-> <i><c- n>inc</c-><c- o>-</c-><c- n>ref</c-></i><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c-></pre>
          <ol>
           <li data-md>
@@ -10437,22 +10322,23 @@ value in a local <code class="highlight"><c- n>prior_states</c-></code>.</p>
          </ol>
        </ol>
       <li data-md>
-       <p>For each type <code class="highlight"><c- n>split_t</c-></code> and <code class="highlight"><c- n>ensure_started_t</c-></code>, there is a different,
-associated exposition-only implementation tag type, <i><code class="highlight"><c- n>split</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i> and <i><code class="highlight"><c- n>ensure</c-><c- o>-</c-><c- n>started</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i>, respectively. Let <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i> be the associated implementation tag type of <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>cpo</c-></code></i>. Given an expression <code class="highlight"><c- n>sndr</c-></code>, the expression <code class="highlight"><i><c- n>shared</c-><c- o>-</c-><c- n>cpo</c-></i><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is equivalent to:</p>
+       <p>Let <i><code class="highlight"><c- n>split</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i> be an empty exposition-only class type.
+Given an expression <code class="highlight"><c- n>sndr</c-></code>, the expression <code class="highlight"><c- n>split</c-><c- p>.</c-><c- n>transform_sender</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is equivalent to:</p>
 <pre class="highlight"><c- k>auto</c-><c- o>&amp;&amp;</c-> <c- p>[</c-><c- n>tag</c-><c- p>,</c-> <c- n>_</c-><c- p>,</c-> <c- n>child</c-><c- p>]</c-> <c- o>=</c-> <c- n>sndr</c-><c- p>;</c->
 <c- k>auto</c-><c- o>*</c-> <c- n>sh_state</c-> <c- o>=</c-> <c- k>new</c-> <i><c- n>shared</c-><c- o>-</c-><c- n>state</c-></i><c- p>{</c-><c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-><c- o>></c-><c- p>(</c-><c- n>child</c-><c- p>)};</c->
-<c- k>return</c-> <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><i><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- p>(),</c-> <i><c- n>shared</c-><c- o>-</c-><c- n>wrapper</c-></i><c- p>{</c-><c- n>sh_state</c-><c- p>,</c-> <c- n>tag</c-><c- p>});</c->
+<c- k>return</c-> <i><c- n>make</c-><c- o>-</c-><c- n>sender</c-></i><c- p>(</c-><i><c- n>split</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- p>(),</c-> <i><c- n>shared</c-><c- o>-</c-><c- n>wrapper</c-></i><c- p>{</c-><c- n>sh_state</c-><c- p>,</c-> <c- n>tag</c-><c- p>});</c->
 </pre>
        <p>where <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>wrapper</c-></code></i> is an exposition-only class that manages the
-reference count of the <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>state</c-></code></i> object pointed to by <code class="highlight"><c- n>sh_state</c-></code>. <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>wrapper</c-></code></i> models <code class="highlight"><c- n>movable</c-></code> with move operations nulling out the
-moved-from object. If <code class="highlight"><c- n>tag</c-></code> is <code class="highlight"><c- n>split_t</c-></code>, <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>wrapper</c-></code></i> models <code class="highlight"><c- n>copyable</c-></code> with copy operations incrementing the reference count by calling <code class="highlight"><c- n>sh_state</c-><c- o>-></c-><i><c- n>inc</c-><c- o>-</c-><c- n>ref</c-></i><c- p>()</c-></code>. The constructor calls <code class="highlight"><c- n>sh_state</c-><c- o>-></c-><i><c- n>start</c-><c- o>-</c-><c- n>op</c-></i><c- p>()</c-></code> if <code class="highlight"><c- n>tag</c-></code> is <code class="highlight"><c- n>ensure_started_t</c-></code>. The
-destructor has no effect if <code class="highlight"><c- n>sh_state</c-></code> is null; otherwise, it calls <code class="highlight"><c- n>sh_state</c-><c- o>-></c-><i><c- n>detach</c-></i><c- p>()</c-></code> if <code class="highlight"><c- n>tag</c-></code> is <code class="highlight"><c- n>ensure_started_t</c-></code>;
-and finally, it decrements the reference count by calling <code class="highlight"><c- n>sh_state</c-><c- o>-></c-><i><c- n>dec</c-><c- o>-</c-><c- n>ref</c-></i><c- p>()</c-></code>.</p>
+reference count of the <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>state</c-></code></i> object pointed to by <code class="highlight"><c- n>sh_state</c-></code>. <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>wrapper</c-></code></i> models <code class="highlight"><c- n>copyable</c-></code> with move operations nulling out the
+moved-from object, copy operations incrementing the reference count by calling <code class="highlight"><c- n>sh_state</c-><c- o>-></c-><i><c- n>inc</c-><c- o>-</c-><c- n>ref</c-></i><c- p>()</c-></code>, and assignment operations performing
+a copy-and-swap operation. The
+destructor has no effect if <code class="highlight"><c- n>sh_state</c-></code> is null; otherwise, it
+decrements the reference count by calling <code class="highlight"><c- n>sh_state</c-><c- o>-></c-><i><c- n>dec</c-><c- o>-</c-><c- n>ref</c-></i><c- p>()</c-></code>.</p>
       <li data-md>
-       <p>The exposition-only class template <i><code class="highlight"><c- n>impls</c-><c- o>-</c-><c- k>for</c-></code></i> ([exec.snd.general]) is specialized for <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i> as follows:</p>
+       <p>The exposition-only class template <i><code class="highlight"><c- n>impls</c-><c- o>-</c-><c- k>for</c-></code></i> ([exec.snd.general]) is specialized for <i><code class="highlight"><c- n>split</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i> as follows:</p>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
   <c- k>template</c-><c- o>&lt;></c->
-  <c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>></c-> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->
+  <c- k>struct</c-> <i><c- nc>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>split</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>></c-> <c- o>:</c-> <i><c- k>default</c-><c- o>-</c-><c- n>impls</c-></i> <c- p>{</c->
     <c- k>static</c-> <c- k>constexpr</c-> <c- k>auto</c-> <i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
     <c- k>static</c-> <c- k>constexpr</c-> <c- k>auto</c-> <i><c- n>start</c-></i> <c- o>=</c-> <i><c- n>see</c-> <c- n>below</c-></i><c- p>;</c->
   <c- p>};</c->
@@ -10460,14 +10346,14 @@ and finally, it decrements the reference count by calling <code class="highlight
 </pre>
        <ol>
         <li data-md>
-         <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i></code> is initialized with a callable object equivalent to the following lambda
+         <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>split</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>>::</c-><i><c- n>get</c-><c- o>-</c-><c- n>state</c-></i></code> is initialized with a callable object equivalent to the following lambda
 expression:</p>
 <pre class="highlight"><c- p>[]</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>,</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
   <c- k>return</c-> <i><c- n>local</c-><c- o>-</c-><c- n>state</c-></i><c- p>{</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>rcvr</c-><c- p>};</c->
 <c- p>}</c->
 </pre>
         <li data-md>
-         <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>>::</c-><i><c- n>start</c-></i></code> is initialized with a callable object that has a function call operator
+         <p>The member <code class="highlight"><i><c- n>impls</c-><c- o>-</c-><c- k>for</c-></i><c- o>&lt;</c-><i><c- n>split</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></i><c- o>>::</c-><i><c- n>start</c-></i></code> is initialized with a callable object that has a function call operator
 equivalent to the following:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- p>,</c-> <c- k>class</c-> <c- nc>Rcvr</c-><c- o>></c->
 <c- b>void</c-> <c- k>operator</c-><c- p>()(</c-><i><c- n>local</c-><c- o>-</c-><c- n>state</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>>&amp;</c-> <c- n>state</c-><c- p>,</c-> <c- n>Rcvr</c-><c- o>&amp;</c-> <c- n>rcvr</c-><c- p>)</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c->
@@ -10484,44 +10370,21 @@ does the following in order:</p>
   <i><c- n>on</c-><c- o>-</c-><c- n>stop</c-><c- o>-</c-><c- n>request</c-></i><c- p>{</c-><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>stop_src</c-><c- p>});</c->
 </pre>
             <li data-md>
-             <p>If <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i> is <i><code class="highlight"><c- n>ensure</c-><c- o>-</c-><c- n>started</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i>,
-and if <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>stop_src</c-><c- p>.</c-><c- n>stop_requested</c-><c- p>()</c-></code> is <code class="highlight">true</code>,
-calls <code class="highlight"><c- n>set_stopped</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>rcvr</c-><c- p>))</c-></code> and returns.</p>
-            <li data-md>
-             <p>Otherwise, atomically does the following:</p>
+             <p>Then atomically does the following:</p>
              <ul>
               <li data-md>
-               <p>Inserts <code class="highlight"><c- n>addressof</c-><c- p>(</c-><c- n>state</c-><c- p>)</c-></code> into <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>waiting_states</c-></code>, and</p>
+               <p>Reads the value <code class="highlight"><c- n>c</c-></code> of <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>completed</c-></code>, and</p>
               <li data-md>
-               <p>Reads the value of <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>completed</c-></code>.</p>
+               <p>Inserts <code class="highlight"><c- n>addressof</c-><c- p>(</c-><c- n>state</c-><c- p>)</c-></code> into <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>waiting_states</c-></code> if <code class="highlight"><c- n>c</c-></code> is <code class="highlight">false</code>.</p>
              </ul>
             <li data-md>
-             <p>If the value read from <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>completed</c-></code> is <code class="highlight">true</code>,
-calls <code class="highlight"><c- n>state</c-><c- p>.</c-><i><c- n>notify</c-></i><c- p>()</c-></code> and returns.</p>
+             <p>If <code class="highlight"><c- n>c</c-></code> is <code class="highlight">true</code>, calls <code class="highlight"><c- n>state</c-><c- p>.</c-><i><c- n>notify</c-></i><c- p>()</c-></code> and returns.</p>
             <li data-md>
-             <p>Otherwise, if <i><code class="highlight"><c- n>shared</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i> is <i><code class="highlight"><c- n>split</c-><c- o>-</c-><c- n>impl</c-><c- o>-</c-><c- n>tag</c-></code></i>, and if <code class="highlight"><c- n>addressof</c-><c- p>(</c-><c- n>state</c-><c- p>)</c-></code> is the first item added
+             <p>Otherwise, if <code class="highlight"><c- n>addressof</c-><c- p>(</c-><c- n>state</c-><c- p>)</c-></code> is the first item added
 to <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><c- n>waiting_states</c-></code>, calls <code class="highlight"><c- n>state</c-><c- p>.</c-><c- n>sh_state</c-><c- o>-></c-><i><c- n>start</c-><c- o>-</c-><c- n>op</c-></i><c- p>()</c-></code>.</p>
            </ol>
          </ol>
        </ol>
-      <li data-md>
-       <div class="wg21note">
-        Under the following conditions, the results of the
-child operation are discarded: 
-        <ul>
-         <li data-md>
-          <p>When a sender returned from <code class="highlight"><c- n>ensure_started</c-></code> is destroyed without being
-connected to a receiver, or</p>
-         <li data-md>
-          <p>If the sender is connected to a receiver but the operation state
-is destroyed without having been started, or</p>
-         <li data-md>
-          <p>If polling the receiver’s stop token indicates that stop has been
-requested when <code class="highlight"><c- n>start</c-></code> is called, and the operation has not yet
-completed.</p>
-        </ul>
-       </div>
-       <p></p>
      </ol>
      <h5 class="heading settled" data-level="34.9.11.11" id="spec-execution.senders.adaptor.when_all"><span class="secno">34.9.11.11. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>when_all</c-></code> <b>[exec.when.all]</b></span><a class="self-link" href="#spec-execution.senders.adaptor.when_all"></a></h5>
      <ol>
@@ -10859,57 +10722,7 @@ If <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- k>for</c-></i><c-
 </pre>
      </ol>
      <h4 class="heading settled" data-level="34.9.12" id="spec-execution.senders.consumers"><span class="secno">34.9.12. </span><span class="content">Sender consumers <b>[exec.consumers]</b></span><a class="self-link" href="#spec-execution.senders.consumers"></a></h4>
-     <h5 class="heading settled" data-level="34.9.12.1" id="spec-execution.senders.consumers.start_detached"><span class="secno">34.9.12.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>start_detached</c-></code> <b>[exec.start.detached]</b></span><a class="self-link" href="#spec-execution.senders.consumers.start_detached"></a></h5>
-     <ol>
-      <li data-md>
-       <p><code class="highlight"><c- n>start_detached</c-></code> eagerly starts a sender without the caller needing to manage
-the lifetimes of any objects.</p>
-      <li data-md>
-       <p>The name <code class="highlight"><c- n>start_detached</c-></code> denotes a customization point object. For a
-subexpression <code class="highlight"><c- n>sndr</c-></code>, let <code class="highlight"><c- n>Sndr</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>. If <code class="highlight"><c- n>sender_in</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <c- n>empty_env</c-><c- o>></c-></code> is <code class="highlight">false</code>, <code class="highlight"><c- n>start_detached</c-></code> is ill-formed.
-Otherwise, the expression <code class="highlight"><c- n>start_detached</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to
-the following except that <code class="highlight"><c- n>sndr</c-></code> is evaluated only once:</p>
-<pre class="highlight"><c- n>apply_sender</c-><c- p>(</c-><i><c- n>get</c-><c- o>-</c-><c- n>domain</c-><c- o>-</c-><c- n>early</c-></i><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <c- n>start_detached</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c->
-</pre>
-       <ul>
-        <li data-md>
-         <p><i>Mandates:</i> <code class="highlight"><c- n>same_as</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><em><c- n>e</c-></em><c- p>),</c-> <c- b>void</c-><c- o>></c-></code> is <code class="highlight">true</code> where <code class="highlight"><em><c- n>e</c-></em></code> is the expression above.</p>
-       </ul>
-       <p>If the expression above does not eagerly start the sender <code class="highlight"><c- n>sndr</c-></code> after
-connecting it with a receiver that ignores value and stopped completion
-operations and calls <code class="highlight"><c- n>terminate</c-><c- p>()</c-></code> on error completions, the behavior of
-calling <code class="highlight"><c- n>start_detached</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is undefined.</p>
-      <li data-md>
-       <p>Let <code class="highlight"><c- n>sndr</c-></code> be a subexpression such that <code class="highlight"><c- n>Sndr</c-></code> is <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code>, and let <i><code class="highlight"><c- n>detached</c-><c- o>-</c-><c- n>receiver</c-></code></i> and <i><code class="highlight"><c- n>detached</c-><c- o>-</c-><c- n>operation</c-></code></i> be the following exposition-only
-class templates:</p>
-<pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-><c- o>::</c-><c- nn>execution</c-> <c- p>{</c->
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
-  <c- k>struct</c-> <i><c- nc>detached</c-><c- o>-</c-><c- n>receiver</c-></i> <c- p>{</c->
-    <c- k>using</c-> <c- n>receiver_concept</c-> <c- o>=</c-> <c- n>receiver_t</c-><c- p>;</c->
-    <i><c- n>detached</c-><c- o>-</c-><c- n>operation</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>*</c-> <i><c- n>op</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
-
-    <c- b>void</c-> <c- nf>set_value</c-><c- p>()</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>delete</c-> <c- n>op</c-><c- p>;</c-> <c- p>}</c->
-    <c- b>void</c-> <c- nf>set_error</c-><c- p>()</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- n>terminate</c-><c- p>();</c-> <c- p>}</c->
-    <c- b>void</c-> <c- nf>set_stopped</c-><c- p>()</c-> <c- o>&amp;&amp;</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>delete</c-> <c- n>op</c-><c- p>;</c-> <c- p>}</c->
-    <c- n>empty_env</c-> <c- nf>get_env</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-> <c- p>{</c-> <c- k>return</c-> <c- p>{};</c-> <c- p>}</c->
-  <c- p>};</c->
-
-  <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>Sndr</c-><c- o>></c->
-  <c- k>struct</c-> <i><c- nc>detached</c-><c- o>-</c-><c- n>operation</c-></i> <c- p>{</c->
-    <c- n>connect_result_t</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>detached</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>></c-> <i><c- n>op</c-></i><c- p>;</c-> <i><c- c1>// exposition only</c-></i>
-
-    <c- k>explicit</c-> <i><c- n>detached</c-><c- o>-</c-><c- n>operation</c-></i><c- p>(</c-><c- n>Sndr</c-><c- o>&amp;&amp;</c-> <c- n>sndr</c-><c- p>)</c->
-      <c- o>:</c-> <i><c- n>op</c-></i><c- p>(</c-><c- n>connect</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>forward</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>),</c-> <i><c- n>detached</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>{</c-><c- k>this</c-><c- p>}))</c->
-    <c- p>{}</c->
-  <c- p>};</c->
-<c- p>}</c->
-</pre>
-      <li data-md>
-       <p>If <code class="highlight"><c- n>sender_to</c-><c- o>&lt;</c-><c- n>Sndr</c-><c- p>,</c-> <i><c- n>detached</c-><c- o>-</c-><c- n>receiver</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>>></c-></code> is <code class="highlight">false</code>, the
-expression <code class="highlight"><c- n>start_detached</c-><c- p>.</c-><c- n>apply_sender</c-><c- p>(</c-><c- n>sndr</c-><c- p>)</c-></code> is ill-formed; otherwise, it is
-expression-equivalent to <code class="highlight"><c- n>start</c-><c- p>((</c-><c- k>new</c-> <i><c- n>detached</c-><c- o>-</c-><c- n>operation</c-></i><c- o>&lt;</c-><c- n>Sndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>))</c-><c- o>-></c-><i><c- n>op</c-></i><c- p>)</c-></code>.</p>
-     </ol>
-     <h5 class="heading settled" data-level="34.9.12.2" id="spec-execution.senders.consumers.sync_wait"><span class="secno">34.9.12.2. </span><span class="content"><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code> <b>[exec.sync.wait]</b></span><a class="self-link" href="#spec-execution.senders.consumers.sync_wait"></a></h5>
+     <h5 class="heading settled" data-level="34.9.12.1" id="spec-execution.senders.consumers.sync_wait"><span class="secno">34.9.12.1. </span><span class="content"><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code> <b>[exec.sync.wait]</b></span><a class="self-link" href="#spec-execution.senders.consumers.sync_wait"></a></h5>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait</c-></code> and <code class="highlight"><c- n>this_thread</c-><c- o>::</c-><c- n>sync_wait_with_variant</c-></code> are used
@@ -11106,30 +10919,8 @@ by relying on the forward progress guarantee delegation provided by <code class=
          </ol>
        </ol>
      </ol>
-     <h3 class="heading settled" data-level="34.10" id="spec-execution.execute"><span class="secno">34.10. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>execute</c-></code> <b>[exec.execute]</b></span><a class="self-link" href="#spec-execution.execute"></a></h3>
-     <ol>
-      <li data-md>
-       <p><code class="highlight"><c- n>execute</c-></code> executes a specified callable object on a specified scheduler.</p>
-      <li data-md>
-       <p>The name <code class="highlight"><c- n>execute</c-></code> denotes a customization point object. For some
-subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>f</c-></code>, let <code class="highlight"><c- n>Sch</c-></code> be <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> and <code class="highlight"><c- n>F</c-></code> be the
-decayed type of <code class="highlight"><c- n>f</c-></code>. If <code class="highlight"><c- n>Sch</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code> or <code class="highlight"><c- n>F</c-></code> does not
-satisfy <code class="highlight"><c- n>invocable</c-></code>, <code class="highlight"><c- n>execute</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is ill-formed. Otherwise, <code class="highlight"><c- n>execute</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is expression-equivalent to:</p>
-<pre class="highlight"><c- n>apply_sender</c-><c- p>(</c->
-  <i><c- n>query</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- k>default</c-></i><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>()),</c->
-  <c- n>execute</c-><c- p>,</c-> <c- n>schedule</c-><c- p>(</c-><c- n>sch</c-><c- p>),</c-> <c- n>f</c-><c- p>)</c->
-</pre>
-       <ul>
-        <li data-md>
-         <p><i>Mandates:</i> The type of the expression above is <code class="highlight"><c- b>void</c-></code>.</p>
-       </ul>
-      <li data-md>
-       <p>For some subexpressions <code class="highlight"><c- n>sndr</c-></code> and <code class="highlight"><c- n>f</c-></code> where <code class="highlight"><c- n>F</c-></code> is the decayed type of <code class="highlight"><c- n>f</c-></code>,
-if <code class="highlight"><c- n>F</c-></code> does not satisfy <code class="highlight"><c- n>invocable</c-></code>, the expression <code class="highlight"><c- n>execute</c-><c- p>.</c-><c- n>apply_sender</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>f</c-><c- p>)</c-></code> is ill-formed; otherwise it is
-expression-equivalent to <code class="highlight"><c- n>start_detached</c-><c- p>(</c-><c- n>then</c-><c- p>(</c-><c- n>sndr</c-><c- p>,</c-> <c- n>f</c-><c- p>))</c-></code>.</p>
-     </ol>
-     <h3 class="heading settled" data-level="34.11" id="spec-execution.snd_rec_utils"><span class="secno">34.11. </span><span class="content">Sender/receiver utilities <b>[exec.utils]</b></span><a class="self-link" href="#spec-execution.snd_rec_utils"></a></h3>
-     <h4 class="heading settled" data-level="34.11.1" id="spec-execution.snd_rec_utils.completion_sigs"><span class="secno">34.11.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>completion_signatures</c-></code> <b>[exec.utils.cmplsigs]</b></span><a class="self-link" href="#spec-execution.snd_rec_utils.completion_sigs"></a></h4>
+     <h3 class="heading settled" data-level="34.10" id="spec-execution.snd_rec_utils"><span class="secno">34.10. </span><span class="content">Sender/receiver utilities <b>[exec.utils]</b></span><a class="self-link" href="#spec-execution.snd_rec_utils"></a></h3>
+     <h4 class="heading settled" data-level="34.10.1" id="spec-execution.snd_rec_utils.completion_sigs"><span class="secno">34.10.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>completion_signatures</c-></code> <b>[exec.utils.cmplsigs]</b></span><a class="self-link" href="#spec-execution.snd_rec_utils.completion_sigs"></a></h4>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>completion_signatures</c-></code> is a type that encodes a set of completion signatures
@@ -11230,7 +11021,7 @@ to make it valid to use non-variadic templates as <i><code class="highlight"><c-
 <c- p>}</c->
 </pre>
      </ol>
-     <h4 class="heading settled" data-level="34.11.2" id="spec-execution.snd_rec_utils.transform_completion_sigs"><span class="secno">34.11.2. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transform_completion_signatures</c-></code> <b>[exec.utils.tfxcmplsigs]</b></span><a class="self-link" href="#spec-execution.snd_rec_utils.transform_completion_sigs"></a></h4>
+     <h4 class="heading settled" data-level="34.10.2" id="spec-execution.snd_rec_utils.transform_completion_sigs"><span class="secno">34.10.2. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>transform_completion_signatures</c-></code> <b>[exec.utils.tfxcmplsigs]</b></span><a class="self-link" href="#spec-execution.snd_rec_utils.transform_completion_sigs"></a></h4>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>transform_completion_signatures</c-></code> is an alias template used to transform one
@@ -11305,8 +11096,8 @@ satisfied.</p>
 types in all the template arguments of all the <code class="highlight"><c- n>completion_signatures</c-></code> specializations in the set <code class="highlight"><c- n>AdditionalSignatures</c-><c- p>,</c-> <c- n>Vs</c-><c- p>...,</c-> <c- n>Es</c-><c- p>...,</c-> <c- n>Ss</c-></code>.</p>
        </ol>
      </ol>
-     <h3 class="heading settled" data-level="34.12" id="spec-execution.contexts"><span class="secno">34.12. </span><span class="content">Execution contexts <b>[exec.ctx]</b></span><a class="self-link" href="#spec-execution.contexts"></a></h3>
-     <h4 class="heading settled" data-level="34.12.1" id="spec-execution.contexts.run_loop"><span class="secno">34.12.1. </span><span class="content"><code class="highlight"><c- n>run_loop</c-></code> <b>[exec.run.loop]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop"></a></h4>
+     <h3 class="heading settled" data-level="34.11" id="spec-execution.contexts"><span class="secno">34.11. </span><span class="content">Execution contexts <b>[exec.ctx]</b></span><a class="self-link" href="#spec-execution.contexts"></a></h3>
+     <h4 class="heading settled" data-level="34.11.1" id="spec-execution.contexts.run_loop"><span class="secno">34.11.1. </span><span class="content"><code class="highlight"><c- n>run_loop</c-></code> <b>[exec.run.loop]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop"></a></h4>
      <ol>
       <li data-md>
        <p>A <code class="highlight"><c- n>run_loop</c-></code> is an execution resource on which work can be scheduled. It
@@ -11354,7 +11145,7 @@ allocation-free.</p>
 <c- p>}</c->
 </pre>
      </ol>
-     <h5 class="heading settled" data-level="34.12.1.1" id="spec-execution.contexts.run_loop.types"><span class="secno">34.12.1.1. </span><span class="content">Associated types <b>[exec.run.loop.types]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop.types"></a></h5>
+     <h5 class="heading settled" data-level="34.11.1.1" id="spec-execution.contexts.run_loop.types"><span class="secno">34.11.1.1. </span><span class="content">Associated types <b>[exec.run.loop.types]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop.types"></a></h5>
 <pre class="highlight"><c- k>class</c-> <i><c- nc>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>scheduler</c-></i><c- p>;</c->
 </pre>
      <ol>
@@ -11427,7 +11218,7 @@ valid for the lifetime of the object to which <i><code class="highlight"><c- n>o
 </pre>
        </ul>
      </ol>
-     <h5 class="heading settled" data-level="34.12.1.2" id="spec-execution.contexts.run_loop.ctor"><span class="secno">34.12.1.2. </span><span class="content">Constructor and destructor <b>[exec.run.loop.ctor]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop.ctor"></a></h5>
+     <h5 class="heading settled" data-level="34.11.1.2" id="spec-execution.contexts.run_loop.ctor"><span class="secno">34.11.1.2. </span><span class="content">Constructor and destructor <b>[exec.run.loop.ctor]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop.ctor"></a></h5>
 <pre class="highlight"><c- n>run_loop</c-><c- p>()</c-> <c- k>noexcept</c-><c- p>;</c->
 </pre>
      <ol>
@@ -11440,7 +11231,7 @@ valid for the lifetime of the object to which <i><code class="highlight"><c- n>o
       <li data-md>
        <p><i>Effects:</i> If <i>count</i> is not <code class="highlight"><c- mi>0</c-></code> or if <i>state</i> is <i>running</i>, invokes <code class="highlight"><c- n>terminate</c-><c- p>()</c-></code>. Otherwise, has no effects.</p>
      </ol>
-     <h5 class="heading settled" data-level="34.12.1.3" id="spec-execution.contexts.run_loop.members"><span class="secno">34.12.1.3. </span><span class="content">Member functions <b>[exec.run.loop.members]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop.members"></a></h5>
+     <h5 class="heading settled" data-level="34.11.1.3" id="spec-execution.contexts.run_loop.members"><span class="secno">34.11.1.3. </span><span class="content">Member functions <b>[exec.run.loop.members]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop.members"></a></h5>
 <pre class="highlight"><i><c- n>run</c-><c- o>-</c-><c- n>loop</c-><c- o>-</c-><c- n>opstate</c-><c- o>-</c-><c- n>base</c-></i><c- o>*</c-> <i><c- n>pop</c-><c- o>-</c-><c- n>front</c-></i><c- p>();</c->
 </pre>
      <ol>
@@ -11495,8 +11286,8 @@ data races.</p>
       <li data-md>
        <p><i>Synchronization:</i> <code class="highlight"><c- n>finish</c-></code> synchronizes with the <i><code class="highlight"><c- n>pop</c-><c- o>-</c-><c- n>front</c-></code></i> operation that returns <code class="highlight"><c- k>nullptr</c-></code>.</p>
      </ol>
-     <h3 class="heading settled" data-level="34.13" id="spec-execution.coro_utils"><span class="secno">34.13. </span><span class="content">Coroutine utilities <b>[exec.coro.utils]</b></span><a class="self-link" href="#spec-execution.coro_utils"></a></h3>
-     <h4 class="heading settled" data-level="34.13.1" id="spec-execution.coro_utils.as_awaitable"><span class="secno">34.13.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>as_awaitable</c-></code> <b>[exec.as.awaitable]</b></span><a class="self-link" href="#spec-execution.coro_utils.as_awaitable"></a></h4>
+     <h3 class="heading settled" data-level="34.12" id="spec-execution.coro_utils"><span class="secno">34.12. </span><span class="content">Coroutine utilities <b>[exec.coro.utils]</b></span><a class="self-link" href="#spec-execution.coro_utils"></a></h3>
+     <h4 class="heading settled" data-level="34.12.1" id="spec-execution.coro_utils.as_awaitable"><span class="secno">34.12.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>as_awaitable</c-></code> <b>[exec.as.awaitable]</b></span><a class="self-link" href="#spec-execution.coro_utils.as_awaitable"></a></h4>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>as_awaitable</c-></code> transforms an object into one that is awaitable within a
@@ -11624,7 +11415,7 @@ promise type <code class="highlight"><c- n>Promise</c-></code>.</p>
        </ol>
        <p>except that the evaluations of <code class="highlight"><c- n>expr</c-></code> and <code class="highlight"><c- n>p</c-></code> are indeterminately sequenced.</p>
      </ol>
-     <h4 class="heading settled" data-level="34.13.2" id="spec-execution.coro_utils.with_awaitable_senders"><span class="secno">34.13.2. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>with_awaitable_senders</c-></code> <b>[exec.with.awaitable.senders]</b></span><a class="self-link" href="#spec-execution.coro_utils.with_awaitable_senders"></a></h4>
+     <h4 class="heading settled" data-level="34.12.2" id="spec-execution.coro_utils.with_awaitable_senders"><span class="secno">34.12.2. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>with_awaitable_senders</c-></code> <b>[exec.with.awaitable.senders]</b></span><a class="self-link" href="#spec-execution.coro_utils.with_awaitable_senders"></a></h4>
      <ol>
       <li data-md>
        <p><code class="highlight"><c- n>with_awaitable_senders</c-></code>, when used as the base class of a coroutine promise
@@ -12117,7 +11908,7 @@ let dfnPanelData = {
 "completion-scheduler": {"dfnID":"completion-scheduler","dfnText":"completion\nscheduler","external":false,"refSections":[{"refs":[{"id":"ref-for-completion-scheduler"}],"title":"4.5. Senders can propagate completion schedulers"},{"refs":[{"id":"ref-for-completion-scheduler\u2460"}],"title":"4.6. Execution resource transitions are explicit"},{"refs":[{"id":"ref-for-completion-scheduler\u2461"}],"title":"4.19.2. execution::just"},{"refs":[{"id":"ref-for-completion-scheduler\u2462"}],"title":"4.19.3. execution::just_error"},{"refs":[{"id":"ref-for-completion-scheduler\u2463"}],"title":"4.19.4. execution::just_stopped"},{"refs":[{"id":"ref-for-completion-scheduler\u2464"}],"title":"4.20.5. execution::starts_on"},{"refs":[{"id":"ref-for-completion-scheduler\u2465"}],"title":"4.20.11. execution::when_all"},{"refs":[{"id":"ref-for-completion-scheduler\u2466"}],"title":"5.4. Sender algorithms are customizable"}],"url":"#completion-scheduler"},
 "completion-signature": {"dfnID":"completion-signature","dfnText":"completion signature","external":false,"refSections":[],"url":"#completion-signature"},
 "completion-tag": {"dfnID":"completion-tag","dfnText":"completion tag","external":false,"refSections":[],"url":"#completion-tag"},
-"connect": {"dfnID":"connect","dfnText":"Connecting","external":false,"refSections":[{"refs":[{"id":"ref-for-connect"}],"title":"4.20.12. execution::ensure_started"},{"refs":[{"id":"ref-for-connect\u2460"}],"title":"5.3. execution::connect"}],"url":"#connect"},
+"connect": {"dfnID":"connect","dfnText":"Connecting","external":false,"refSections":[{"refs":[{"id":"ref-for-connect"}],"title":"5.3. execution::connect"}],"url":"#connect"},
 "decay-copied-from": {"dfnID":"decay-copied-from","dfnText":"decay-copied from","external":false,"refSections":[],"url":"#decay-copied-from"},
 "disengaged": {"dfnID":"disengaged","dfnText":"disengaged","external":false,"refSections":[],"url":"#disengaged"},
 "disposition": {"dfnID":"disposition","dfnText":"dispositions","external":false,"refSections":[],"url":"#disposition"},
