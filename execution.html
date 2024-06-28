@@ -7540,7 +7540,7 @@ program execution that:</p>
          <p>... can be explicitly <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="start" id="start">started</dfn> once at
   most.</p>
         <li data-md>
-         <p>... once started started, eventually <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="complete" id="complete">completes</dfn> exactly once with a (possibly empty) set
+         <p>... once started, eventually <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="complete" id="complete">completes</dfn> exactly once with a (possibly empty) set
   of result datums and in exactly one of three <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="disposition" id="disposition">dispositions</dfn>: success, failure, or
   cancellation.</p>
          <ul>
@@ -7617,7 +7617,7 @@ receiver used to create it. The lifetime of an asynchronous operation’s
 associated operation state does not depend on the lifetimes of either the
 sender or the receiver from which it was created. A sender is started when
 it is connected to a receiver and the resulting asynchronous operation is
-started. A sender’s async result is the async result of an asynchronous
+started. A sender’s async result is the async result of the asynchronous
 operation created by connecting it to a receiver. A sender <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="send" id="send">sends</dfn> its results by way of the asynchronous operation(s)
 it produces, and a receiver <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="receive" id="receive">receives</dfn> those results. A sender is either valid or invalid; it becomes invalid
 when its parent sender (see below) becomes invalid.</p>
@@ -9738,15 +9738,15 @@ execution back to the execution resource on which <code class="highlight"><c- n>
        </ul>
       <li data-md>
        <p>The name <code class="highlight"><c- n>on</c-></code> denotes a pipeable sender adaptor object. For subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>sndr</c-></code>, <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is ill-formed if any of the following
-are <code class="highlight">true</code>:</p>
+is true:</p>
        <ul>
         <li data-md>
-         <p>If <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or</p>
+         <p><code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or</p>
         <li data-md>
-         <p>If <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code> and <code class="highlight"><c- n>sndr</c-></code> is not
+         <p><code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code> and <code class="highlight"><c- n>sndr</c-></code> is not
   a pipeable sender adaptor closure object ([exec.adapt.objects]), or</p>
         <li data-md>
-         <p>If <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> satisfies <code class="highlight"><c- n>sender</c-></code> and <code class="highlight"><c- n>sndr</c-></code> is also
+         <p><code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> satisfies <code class="highlight"><c- n>sender</c-></code> and <code class="highlight"><c- n>sndr</c-></code> is also
   a pipeable sender adaptor closure object.</p>
        </ul>
       <li data-md>
