@@ -2386,7 +2386,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2300R9<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-27">2024-06-27</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-28">2024-06-28</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -2766,7 +2766,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
        <a href="#spec-execution.contexts"><span class="secno">34.11</span> <span class="content">Execution contexts <b>[exec.ctx]</b></span></a>
        <ol class="toc">
         <li>
-         <a href="#spec-execution.contexts.run_loop"><span class="secno">34.11.1</span> <span class="content"><code class="highlight"><c- n>run_loop</c-></code> <b>[exec.run.loop]</b></span></a>
+         <a href="#spec-execution.contexts.run_loop"><span class="secno">34.11.1</span> <span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>run_loop</c-></code> <b>[exec.run.loop]</b></span></a>
          <ol class="toc">
           <li><a href="#spec-execution.contexts.run_loop.types"><span class="secno">34.11.1.1</span> <span class="content">Associated types <b>[exec.run.loop.types]</b></span></a>
           <li><a href="#spec-execution.contexts.run_loop.ctor"><span class="secno">34.11.1.2</span> <span class="content">Constructor and destructor <b>[exec.run.loop.ctor]</b></span></a>
@@ -7615,7 +7615,10 @@ associated receiver is equal to the receiver used to create it, and its
 associated environment is equal to the environment associated with the
 receiver used to create it. The lifetime of an asynchronous operation’s
 associated operation state does not depend on the lifetimes of either the
-sender or the receiver from which it was created. A sender <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="send" id="send">sends</dfn> its results by way of the asynchronous operation(s)
+sender or the receiver from which it was created. A sender is started when
+it is connected to a receiver and the resulting asynchronous operation is
+started. A sender’s async result is the async result of an asynchronous
+operation created by connecting it to a receiver. A sender <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="send" id="send">sends</dfn> its results by way of the asynchronous operation(s)
 it produces, and a receiver <dfn class="dfn-paneled" data-dfn-type="dfn" data-export data-lt="receive" id="receive">receives</dfn> those results. A sender is either valid or invalid; it becomes invalid
 when its parent sender (see below) becomes invalid.</p>
       <li data-md>
@@ -9734,11 +9737,20 @@ associated execution resource, then executes a sender adaptor closure <code clas
 execution back to the execution resource on which <code class="highlight"><c- n>sndr</c-></code> completed.</p>
        </ul>
       <li data-md>
-       <p>The name <code class="highlight"><c- n>on</c-></code> denotes a pipeable sender adaptor object. For subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>sndr</c-></code>, if <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code>, <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is ill-formed.
-If <code class="highlight"><c- n>sndr</c-></code> is a pipeable sender adaptor closure object, <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is
-ambiguous with the partial application of the overload described below.</p>
+       <p>The name <code class="highlight"><c- n>on</c-></code> denotes a pipeable sender adaptor object. For subexpressions <code class="highlight"><c- n>sch</c-></code> and <code class="highlight"><c- n>sndr</c-></code>, <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is ill-formed if any of the following
+are <code class="highlight">true</code>:</p>
+       <ul>
+        <li data-md>
+         <p>If <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sch</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>scheduler</c-></code>, or</p>
+        <li data-md>
+         <p>If <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> does not satisfy <code class="highlight"><c- n>sender</c-></code> and <code class="highlight"><c- n>sndr</c-></code> is not
+  a pipeable sender adaptor closure object ([exec.adapt.objects]), or</p>
+        <li data-md>
+         <p>If <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> satisfies <code class="highlight"><c- n>sender</c-></code> and <code class="highlight"><c- n>sndr</c-></code> is also
+  a pipeable sender adaptor closure object.</p>
+       </ul>
       <li data-md>
-       <p>Otherwise, the expression <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to:</p>
+       <p>Otherwise, if <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>sndr</c-><c- p>))</c-></code> satisfies <code class="highlight"><c- n>sender</c-></code>, the expression <code class="highlight"><c- n>on</c-><c- p>(</c-><c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>)</c-></code> is expression-equivalent to:</p>
 <pre class="highlight"><c- n>transform_sender</c-><c- p>(</c->
   <em><c- n>query</c-><c- o>-</c-><c- k>or</c-><c- o>-</c-><c- k>default</c-></em><c- p>(</c-><c- n>get_domain</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>default_domain</c-><c- p>()),</c->
   <em><c- n>make</c-><c- o>-</c-><c- n>sender</c-></em><c- p>(</c-><c- n>on</c-><c- p>,</c-> <c- n>sch</c-><c- p>,</c-> <c- n>sndr</c-><c- p>))</c->
@@ -11122,7 +11134,7 @@ types in all the template arguments of all the <code class="highlight"><c- n>com
        </ol>
      </ol>
      <h3 class="heading settled" data-level="34.11" id="spec-execution.contexts"><span class="secno">34.11. </span><span class="content">Execution contexts <b>[exec.ctx]</b></span><a class="self-link" href="#spec-execution.contexts"></a></h3>
-     <h4 class="heading settled" data-level="34.11.1" id="spec-execution.contexts.run_loop"><span class="secno">34.11.1. </span><span class="content"><code class="highlight"><c- n>run_loop</c-></code> <b>[exec.run.loop]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop"></a></h4>
+     <h4 class="heading settled" data-level="34.11.1" id="spec-execution.contexts.run_loop"><span class="secno">34.11.1. </span><span class="content"><code class="highlight"><c- n>execution</c-><c- o>::</c-><c- n>run_loop</c-></code> <b>[exec.run.loop]</b></span><a class="self-link" href="#spec-execution.contexts.run_loop"></a></h4>
      <ol>
       <li data-md>
        <p>A <code class="highlight"><c- n>run_loop</c-></code> is an execution resource on which work can be scheduled. It
@@ -11424,7 +11436,7 @@ expression-equivalent to <code class="highlight"><c- n>tag</c-><c- p>(</c-><c- n
            <p><i>Mandates:</i> <code class="highlight"><i><c- n>is</c-><c- o>-</c-><c- n>awaitable</c-></i><c- o>&lt;</c-><c- n>A</c-><c- p>,</c-> <c- n>Promise</c-><c- o>></c-></code> is <code class="highlight">true</code>, where <code class="highlight"><c- n>A</c-></code> is the type of the expression above.</p>
          </ul>
         <li data-md>
-         <p>Otherwise, <code class="highlight"><c- b>void</c-><c- p>(</c-><c- n>p</c-><c- p>),</c-> <c- n>expr</c-></code> if <code class="highlight"><i><c- n>is</c-><c- o>-</c-><c- n>awaitable</c-></i><c- o>&lt;</c-><c- n>Expr</c-><c- p>,</c-> <i><c- n>U</c-></i><c- o>></c-></code> is <code class="highlight">true</code>, where <i><code class="highlight"><c- n>U</c-></code></i> is an unspecified class type that
+         <p>Otherwise, <code class="highlight"><c- p>(</c-><c- b>void</c-><c- p>(</c-><c- n>p</c-><c- p>),</c-> <c- n>expr</c-><c- p>)</c-></code> if <code class="highlight"><i><c- n>is</c-><c- o>-</c-><c- n>awaitable</c-></i><c- o>&lt;</c-><c- n>Expr</c-><c- p>,</c-> <i><c- n>U</c-></i><c- o>></c-></code> is <code class="highlight">true</code>, where <i><code class="highlight"><c- n>U</c-></code></i> is an unspecified class type that
 is not <code class="highlight"><c- n>Promise</c-></code> and that lacks a member named <code class="highlight"><c- n>await_transform</c-></code>.</p>
          <ul>
           <li data-md>
@@ -11436,7 +11448,7 @@ promise type <code class="highlight"><c- n>Promise</c-></code>.</p>
         <li data-md>
          <p>Otherwise, <code class="highlight"><i><c- n>sender</c-><c- o>-</c-><c- n>awaitable</c-></i><c- p>{</c-><c- n>expr</c-><c- p>,</c-> <c- n>p</c-><c- p>}</c-></code> if <code class="highlight"><i><c- n>awaitable</c-><c- o>-</c-><c- n>sender</c-></i><c- o>&lt;</c-><c- n>Expr</c-><c- p>,</c-> <c- n>Promise</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
         <li data-md>
-         <p>Otherwise, <code class="highlight"><c- b>void</c-><c- p>(</c-><c- n>p</c-><c- p>),</c-> <c- n>expr</c-></code>.</p>
+         <p>Otherwise, <code class="highlight"><c- p>(</c-><c- b>void</c-><c- p>(</c-><c- n>p</c-><c- p>),</c-> <c- n>expr</c-><c- p>)</c-></code>.</p>
        </ol>
        <p>except that the evaluations of <code class="highlight"><c- n>expr</c-></code> and <code class="highlight"><c- n>p</c-></code> are indeterminately sequenced.</p>
      </ol>
