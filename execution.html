@@ -3005,7 +3005,7 @@ in our temporary storage <code class="highlight"><c- n>partials</c-></code>.</p>
 <c- n>sender_of</c-><c- o>&lt;</c-><c- n>dynamic_buffer</c-><c- o>></c-> <c- k>auto</c-> <c- n>async_read_array</c-><c- p>(</c-><c- k>auto</c-> <c- n>handle</c-><c- p>)</c-> <c- p>{</c->                <c- c1>// 2</c->
   <c- k>return</c-> <c- n>just</c-><c- p>(</c-><c- n>dynamic_buffer</c-><c- p>{})</c->                                               <c- c1>// 4</c->
        <c- o>|</c-> <c- n>let_value</c-><c- p>([</c-><c- n>handle</c-><c- p>]</c-> <c- p>(</c-><c- n>dynamic_buffer</c-><c- o>&amp;</c-> <c- n>buf</c-><c- p>)</c-> <c- p>{</c->                           <c- c1>// 5</c->
-           <c- k>return</c-> <c- n>just</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>as_writeable_bytes</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>span</c-><c- p>(</c-><c- o>&amp;</c-><c- n>buf</c-><c- p>.</c-><c- n>size</c-><c- p>,</c-> <c- mi>1</c-><c- p>)))</c->      <c- c1>// 6</c->
+           <c- k>return</c-> <c- n>just</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>as_writable_bytes</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>span</c-><c- p>(</c-><c- o>&amp;</c-><c- n>buf</c-><c- p>.</c-><c- n>size</c-><c- p>,</c-> <c- mi>1</c-><c- p>)))</c->       <c- c1>// 6</c->
                 <c- o>|</c-> <c- n>async_read</c-><c- p>(</c-><c- n>handle</c-><c- p>)</c->                                          <c- c1>// 7</c->
                 <c- o>|</c-> <c- n>then</c-><c- p>(</c->                                                       <c- c1>// 8</c->
                     <c- p>[</c-><c- o>&amp;</c-><c- n>buf</c-><c- p>]</c-> <c- p>(</c-><c- n>std</c-><c- o>::</c-><c- b>size_t</c-> <c- n>bytes_read</c-><c- p>)</c-> <c- p>{</c->                         <c- c1>// 9</c->
