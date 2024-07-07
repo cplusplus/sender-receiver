@@ -1,9 +1,9 @@
 <pre class='metadata'>
 Title: `std::execution`
 H1: <code>std::execution</code>
-Shortname: P2300
-Revision: 10
-Status: P
+Shortname: D2300
+Revision: 10.a
+Status: D
 Group: WG21
 Date: 2024-06-28
 Audience: SG1, LEWG
@@ -7628,7 +7628,7 @@ namespace std::execution {
             return let_value(
               schedule(sch),
               [sndr = std::forward_like&lt;OutSndr>(sndr)]() mutable
-                noexcept(is_nothrow_move_constructible_v<OutSndr>) {
+                noexcept(is_nothrow_move_constructible_v&lt;decay_t<OutSndr>>) {
                 return std::move(sndr);
               });
             </pre>
@@ -9919,7 +9919,7 @@ void finish();
 2.  <pre highlight="c++">
     template&lt;class OtherPromise>
       requires (!same_as&lt;OtherPromise, void>)
-    void set_continuation(coroutine_handle<OtherPromise> h) noexcept;
+    void set_continuation(coroutine_handle&lt;OtherPromise> h) noexcept;
     </pre>
 
     1. <i>Effects:</i> Equivalent to:
