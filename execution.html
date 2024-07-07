@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>P2300R10: `std::execution`</title>
+  <title>D2300R10.a: `std::execution`</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -2389,8 +2389,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">P2300R10<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2024-06-28">2024-06-28</time></span></h2>
+   <h1 class="p-name no-ref" id="title">D2300R10.a<br><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>execution</c-></code></h1>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2024-06-28">2024-06-28</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Authors:
@@ -9550,7 +9550,7 @@ otherwise:</p>
 <c- k>return</c-> <c- n>let_value</c-><c- p>(</c->
   <c- n>schedule</c-><c- p>(</c-><c- n>sch</c-><c- p>),</c->
   <c- p>[</c-><c- n>sndr</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>forward_like</c-><c- o>&lt;</c-><c- n>OutSndr</c-><c- o>></c-><c- p>(</c-><c- n>sndr</c-><c- p>)]()</c-> <c- k>mutable</c->
-    <c- k>noexcept</c-><c- p>(</c-><c- n>is_nothrow_move_constructible_v</c-><outsndr><c- p>)</c-> <c- p>{</c->
+    <c- k>noexcept</c-><c- p>(</c-><c- n>is_nothrow_move_constructible_v</c-><c- o>&lt;</c-><c- n>decay_t</c-><outsndr><c- o>></c-><c- p>)</c-> <c- p>{</c->
     <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>sndr</c-><c- p>);</c->
   <c- p>});</c->
 </outsndr></pre>
@@ -11514,8 +11514,8 @@ the <code class="highlight"><c- n>unhandled_stopped</c-></code> of the coroutine
       <li data-md>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>OtherPromise</c-><c- o>></c->
   <c- k>requires</c-> <c- p>(</c-><c- o>!</c-><c- n>same_as</c-><c- o>&lt;</c-><c- n>OtherPromise</c-><c- p>,</c-> <c- b>void</c-><c- o>></c-><c- p>)</c->
-<c- b>void</c-> <c- n>set_continuation</c-><c- p>(</c-><c- n>coroutine_handle</c-><otherpromise> <c- n>h</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
-</otherpromise></pre>
+<c- b>void</c-> <c- n>set_continuation</c-><c- p>(</c-><c- n>coroutine_handle</c-><c- o>&lt;</c-><c- n>OtherPromise</c-><c- o>></c-> <c- n>h</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
+</pre>
        <ol>
         <li data-md>
          <p><i>Effects:</i> Equivalent to:</p>
@@ -12407,19 +12407,19 @@ function genLinkingSyntaxes(dfn) {
 "use strict";
 {
 let refsData = {
-"#completion-scheduler": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"completion scheduler","type":"dfn","url":"#completion-scheduler"},
-"#connect": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"connect","type":"dfn","url":"#connect"},
-"#execution-resource": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"execution resource","type":"dfn","url":"#execution-resource"},
-"#operation-state": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"operation state","type":"dfn","url":"#operation-state"},
-"#receiver": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"receiver","type":"dfn","url":"#receiver"},
-"#scheduler": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"scheduler","type":"dfn","url":"#scheduler"},
-"#send": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"send","type":"dfn","url":"#send"},
-"#sender": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"sender","type":"dfn","url":"#sender"},
-"#sender-adaptor": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"sender adaptor","type":"dfn","url":"#sender-adaptor"},
-"#sender-algorithm": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"sender algorithm","type":"dfn","url":"#sender-algorithm"},
-"#sender-consumer": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"sender consumer","type":"dfn","url":"#sender-consumer"},
-"#sender-factory": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"sender factory","type":"dfn","url":"#sender-factory"},
-"#start": {"export":true,"for_":[],"level":"10","normative":true,"shortname":"p2300","spec":"p2300-10","status":"local","text":"start","type":"dfn","url":"#start"},
+"#completion-scheduler": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"completion scheduler","type":"dfn","url":"#completion-scheduler"},
+"#connect": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"connect","type":"dfn","url":"#connect"},
+"#execution-resource": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"execution resource","type":"dfn","url":"#execution-resource"},
+"#operation-state": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"operation state","type":"dfn","url":"#operation-state"},
+"#receiver": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"receiver","type":"dfn","url":"#receiver"},
+"#scheduler": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"scheduler","type":"dfn","url":"#scheduler"},
+"#send": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"send","type":"dfn","url":"#send"},
+"#sender": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"sender","type":"dfn","url":"#sender"},
+"#sender-adaptor": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"sender adaptor","type":"dfn","url":"#sender-adaptor"},
+"#sender-algorithm": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"sender algorithm","type":"dfn","url":"#sender-algorithm"},
+"#sender-consumer": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"sender consumer","type":"dfn","url":"#sender-consumer"},
+"#sender-factory": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"sender factory","type":"dfn","url":"#sender-factory"},
+"#start": {"export":true,"for_":[],"level":"10.a","normative":true,"shortname":"d2300","spec":"d2300-10.a","status":"local","text":"start","type":"dfn","url":"#start"},
 };
 
 function mkRefHint(link, ref) {
