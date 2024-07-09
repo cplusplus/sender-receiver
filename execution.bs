@@ -2,7 +2,7 @@
 Title: `std::execution`
 H1: <code>std::execution</code>
 Shortname: D2300
-Revision: 10.a
+Revision: 11
 Status: D
 Group: WG21
 Date: 2024-06-28
